@@ -1,2 +1,2 @@
 # botlightyear
-The repository of the main robot of the mecatronics project at UCLouvain
+The repository of the main robot of Group 2 of the mecatronics project at UCLouvain
