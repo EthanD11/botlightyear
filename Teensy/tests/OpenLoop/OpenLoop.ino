@@ -1,3 +1,5 @@
+#include <Encoder.h>
+
 // Pins
 // IN1
 const uint8_t C_L = 14, C_R = 3;
@@ -22,9 +24,6 @@ int printed = 0;
 
 
 void setup() {
-
-  // Create a Serial interface
-  Serial.begin(115200);
 
   // Enable the level shifter
   pinMode(LEVEL_SHIFTER, OUTPUT);
@@ -69,7 +68,7 @@ void loop() {
   if (current_time - sens_time > 20) {
     sens_time = current_time;
 
-    if (current_time > 6000){
+    if (current_time > 4000){
         analogWrite(PWM_L, 0);
         analogWrite(PWM_R, 0);
     } else if (current_time > 1000) {

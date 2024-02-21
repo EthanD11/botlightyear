@@ -94,11 +94,11 @@ void t1_speed_ctrl(float speed_l, float speed_r, float ref_l, float ref_r) {
   // add an anti-deadzone term to compensate the deadzone around 0
   // Do not use this, it is unnecessary and dangerous
   int adz_l = (vl < 0) ? -adz : adz, adz_r = (vr < 0) ? -adz : adz;
-  dc_refl = SAT(((int)(vl * MOTOR_DUTY_RANGE / 24)) + adz_l, MOTOR_DUTY_RANGE);
-  dc_refr = SAT(((int)(vr * MOTOR_DUTY_RANGE / 24)) + adz_r, MOTOR_DUTY_RANGE);
+  dc_refl = SAT(((int)(vl * MOTOR_DUTY_RANGE)) + adz_l, MOTOR_DUTY_RANGE);
+  dc_refr = SAT(((int)(vr * MOTOR_DUTY_RANGE)) + adz_r, MOTOR_DUTY_RANGE);
 #else
-  dc_refl = SAT((int)(vl * MOTOR_DUTY_RANGE / 24), MOTOR_DUTY_RANGE);
-  dc_refr = SAT((int)(vr * MOTOR_DUTY_RANGE / 24), MOTOR_DUTY_RANGE);
+  dc_refl = SAT((int)(vl * MOTOR_DUTY_RANGE), MOTOR_DUTY_RANGE);
+  dc_refr = SAT((int)(vr * MOTOR_DUTY_RANGE), MOTOR_DUTY_RANGE);
 #endif
 #ifdef VERBOSE
   printf("Voltages : %f, %f\n", vl, vr);

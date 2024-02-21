@@ -34,7 +34,6 @@ float fwd, rot;
 float speed_refl, speed_refr;
 // New values transferred over SPI channel, with associated flag for their arrival
 uint32_t flag = 0;
-uint8_t mode = 0;
 uint32_t buf[7];
 float *data;
 
@@ -106,9 +105,6 @@ void loop() {
     speed_right = (tick_right - old_tick_right)*TICKS_TO_M;
 
     old_tick_left = tick_left; old_tick_right = tick_right;
-    speed_left  /= (current_time - control_time);
-    speed_right /= (current_time - control_time);
-    
 
     switch (mode)
     {
@@ -140,7 +136,9 @@ void loop() {
       speed_refl = 0; speed_refr = 0;
       break;
     }
-      
+
+    speed_left  /= (current_time - control_time);
+    speed_right /= (current_time - control_time);
     t1_speed_ctrl(speed_left, speed_right, speed_refl, speed_refr);
 
   }
@@ -159,7 +157,7 @@ void receiveEvent() {
     
   }
 
-  if (flag == 7) {
+  if (flag == 6) {
 
     // Updating values according to SPI query
     data = (float*) buf;
