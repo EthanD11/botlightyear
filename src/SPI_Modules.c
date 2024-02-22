@@ -15,13 +15,13 @@ static inline int32_t Reverse32(int32_t value)
 }
 
 void init_spi() {
-    DE0_handle = spiOpen(SPI_DE0, SPI_SPEED_HZ_DEFAULT, SPI_MODE_DEFAULT);
-    Teensy_handle = spiOpen(SPI_TEENSY, SPI_SPEED_HZ_DEFAULT, SPI_MODE_DEFAULT);
+    DE0_handle = lgSpiOpen(SPI_DE0, 0, SPI_SPEED_HZ_DEFAULT, SPI_MODE_DEFAULT);
+    Teensy_handle = lgSpiOpen(SPI_TEENSY, 0, SPI_SPEED_HZ_DEFAULT, SPI_MODE_DEFAULT);
 }
 
 void close_spi() {
-    spiClose(DE0_handle);
-    spiClose(Teensy_handle);
+    lgSpiClose(DE0_handle);
+    lgSpiClose(Teensy_handle);
 }
 
 // ############################################
@@ -33,13 +33,13 @@ void get_odo_tick(int32_t *tick_left, int32_t *tick_right) {
     // left
     char send[] = {0x03,0,0,0,0};
     char receive[5];
-    spiXfer(DE0_handle, send, receive, 5);
+    lgSpiXfer(DE0_handle, send, receive, 5);
     *tick_left = *((int32_t *)(&(receive[1])));
     *tick_left = Reverse32(*tick_left);
     
     // right
     send[0] = 0x04;
-    spiXfer(DE0_handle, send, receive, 5);
+    lgSpiXfer(DE0_handle, send, receive, 5);
     *tick_right = *((int32_t *)(&(receive[1])));
     *tick_right = Reverse32(*tick_right);
 
@@ -50,7 +50,7 @@ void get_odo_tick_fast(int32_t *tick_left, int32_t *tick_right) {
     
     char send[] = {0x20,0,0,0,0};
     char receive[5];
-    spiXfer(DE0_handle, send, receive, 5);
+    lgSpiXfer(DE0_handle, send, receive, 5);
     
     *tick_left  = (receive[1] << 8) + (receive[2] << 16);
     *tick_right = (receive[3] << 8) + (receive[4] << 16);
@@ -61,13 +61,13 @@ void get_enc_spd(int32_t *spd_left, int32_t*spd_right) {
     // left
     char send[] = {0x01,0,0,0,0};
     char receive[5];
-    spiXfer(DE0_handle, send, receive, 5);
+    lgSpiXfer(DE0_handle, send, receive, 5);
     *spd_left = *((int32_t *)(&(receive[1])));
     *spd_left = Reverse32(*spd_left);
 
     // right
     send[0] = 0x02;
-    spiXfer(DE0_handle, send, receive, 5);
+    lgSpiXfer(DE0_handle, send, receive, 5);
     *spd_right = *((int32_t *)(&(receive[1])));
     *spd_right = Reverse32(*spd_right);
 
@@ -78,7 +78,7 @@ void get_enc_spd_fast(int32_t *spd_left, int32_t *spd_right) {
     
     char send[] = {0x10,0,0,0,0};
     char receive[5];
-    spiXfer(DE0_handle, send, receive, 5);
+    lgSpiXfer(DE0_handle, send, receive, 5);
 
     *spd_left  = (receive[1] << 16) + (receive[2] << 24);
     *spd_right = (receive[3] << 16) + (receive[4] << 24);
@@ -88,7 +88,7 @@ void get_enc_spd_fast(int32_t *spd_left, int32_t *spd_right) {
 void odo_enc_reset() {
     char send[] = {0x7F,0,0,0,0};
     char receive[5];
-    spiXfer(DE0_handle, send, receive, 5);
+    lgSpiXfer(DE0_handle, send, receive, 5);
 }
 
 // ############################
@@ -97,7 +97,7 @@ void odo_enc_reset() {
 
 double sonar_ask() {
 
-    gpioTrigger(sonar_GPIO_Trig, 11, 1);
+    lgTxPulse(sonar_GPIO_Trig, 11, 1);
     time_sleep(6e-2);
 
     char send[] = {0x05,0,0,0,0};

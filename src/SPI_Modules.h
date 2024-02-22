@@ -1,7 +1,7 @@
 #ifndef MECATROMINIBOT_SPI_MODULES_H
 #define MECATROMINIBOT_SPI_MODULES_H
 
-#include <pigpio.h>
+#include <lgpio.h>
 #include <stdint.h>
 
 // SPI

@@ -1,0 +1,123 @@
+# -----------------------------------------------------------------------------------
+#Variables
+# Arguments for the compilation
+CC:=gcc
+CXX = g++ #pour le lidar
+CFLAGS:=-Wall -g -std=gnu99
+LIBS:=-llgpio -lm
+# Directories
+HEADERS_DIR:=src
+SOURCES_DIR:=src
+TESTS_DIR:=tests
+OBJ_DIR:=bin
+# List of c file
+SOURCES = $(wildcard $(SOURCES_DIR)/*.c)
+TESTS = $(wildcard $(TESTS_DIR)/*.c)
+# List of .o file
+SOURCES_OBJ = $(addprefix $(OBJ_DIR)/,$(notdir $(SOURCES:.c=.o)))
+# List of c++ files for lidar
+LIDAR_SOURCES := ../tests/test_lidar.cpp
+LIDAR_OBJ := $(OBJ_DIR)/test_lidar.o
+# -----------------------------------------------------------------------------------
+# Rules
+
+#Create the OBJ_DIR directory
+$(OBJ_DIR):
+	@mkdir -p $(OBJ_DIR)
+
+# Compiling a binary file from a source file
+$(OBJ_DIR)/%.o: $(SOURCES_DIR)/%.c | $(OBJ_DIR)
+	@$(CC) -I$(HEADERS_DIR) $(CFLAGS) -o $@ -c $< $(LIBS)
+
+# Compiling a binary file from a c++ source file (for lidar)
+$(OBJ_DIR)/%.o: ../rplidar/%.cpp | $(OBJ_DIR)
+	@$(CXX) -I../rplidar/include $(CXXFLAGS) -o $@ -c $<
+
+
+# Compiling all the sources
+compile: $(SOURCES_OBJ)
+
+#Compiling a random file that use SOURCES file
+%.o: %.c $(SOURCES_OBJ)
+	@$(CC) -I$(HEADERS_DIR) $(CFLAGS) $^ -o $@ $(LIBS)
+
+#Do an individual test
+test_%: $(TESTS_DIR)/test_%.o $(SOURCES_OBJ)
+	@./$<
+	@rm $<
+
+#Run all the tests
+tests: $(TESTS:.c=.o)
+	$(foreach test, $^, ./$(test);)
+
+test_lidar: lidar_test_program
+	@./bin/test_lidar
+	@rm ./bin/test_lidar
+
+# Run the lidar program
+#    system("g++ ../tests/test_lidar.cpp -o ../tests/test_lidar && ../tests/test_lidar");
+# 	@g++ ./tests/test_lidar.cpp -o ./bin/test_lidar -lsl_lidar_sdk -lpthread -L./rplidar/output/Linux/Release -I./rplidar/sdk/include -I./rplidar/sdk/src
+lidar_test_program:
+	@g++ ./tests/test_lidar.cpp -o ./bin/test_lidar -lsl_lidar_sdk -lpthread -L./rplidar/output/Linux/Release -I./rplidar/sdk/include -I./rplidar/sdk/src
+
+
+lidar: lidar_program
+	@./bin/lidar
+	@rm ./bin/lidar
+
+# Run the lidar program
+lidar_program:
+	@g++ ./src/lidar.cpp -o ./bin/lidar -lsl_lidar_sdk -lpthread -L./rplidar/output/Linux/Release -I./rplidar/sdk/include -I./rplidar/sdk/src
+
+# Run Camera program
+camera: camera_program
+	@./bin/camera
+	@rm ./bin/camera
+
+camera_program:
+	@g++ ./src/cameraTag.cpp -o ./bin/camera -lpthread -I/usr/include/opencv4 -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_aruco -lopencv_videoio
+
+# Run Camera program
+test_camera: camera_test_program
+	@./bin/test_camera
+	@rm ./bin/test_camera
+
+camera_test_program:
+	@g++ ./tests/test_cameraTag.cpp -o ./bin/test_camera -lpthread -I/usr/include/opencv4 -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_aruco -lopencv_videoio
+
+
+
+#Run the project (process the inputs in input_binary/ and write it to "output.txt")
+run: fec 
+	@./fec input_binary -f output.txt
+	@rm fec
+	@echo "The project has ran sucessfully !"
+
+#Run the project with verbose (process the inputs in input_binary/ and write it to "output.txt")
+run-v: fec
+	@./fec input_binary -v -f output.txt
+	@rm fec
+	@echo "The project has ran sucessfully !"
+
+#Compile the project and create a "fec" executable
+fec: speedcontroller.c $(SOURCES_OBJ)
+	@$(CC) -I$(HEADERS_DIR) $(CFLAGS) $^ -o fec $(LIBS) -O3
+
+#Run valgrind on the project
+valgrind : fec
+	@valgrind --leak-check=yes --show-leak-kinds=all ./fec input_binary -f output.txt
+
+#Clean the project of all object file.
+clean:
+	@rm -f $(HEADERS_DIR)/*.o
+	@rm -f $(SOURCES_DIR)/*.o
+	@rm -f $(TESTS_DIR)/*.o
+	@rm -f *.o
+	@rm -f fec
+	@rm -f bin/*.o
+
+#Clean the OBJ_DIR directory
+clean_obj:
+	@rm -f $(OBJ_DIR)/*
+
+.PHONY: clean clean_obj tests test_%
