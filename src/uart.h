@@ -1,7 +1,7 @@
 #ifndef MECATROMINIBOT_UART_H
 #define MECATROMINIBOT_UART_H
 
-#include <pigpio.h>
+#include <lgpio.h>
 
 /**
  * @brief Transfers data to UART device. Set one of the length to 0 to skip the step. gpioInitialise() must have been called before.

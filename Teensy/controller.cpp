@@ -44,9 +44,9 @@ const uint8_t PWM_L = 22, PWM_R = 23;
 // Parameters definiton
 // TODO : Recompute for Teensy
 // -- T1 --
-const float t1_kp = 1.062878e-02;              // Proportional coefficient for speed (V/(rad_mot/s))
-const float t1_ki = 6.455830e-05 * REG_DELAY;  // Integral coefficient for speed (V/rad_motor) * Delta t for the integral
-const float t1_aw = 1e4;                       // Saturation level of the integral (anti-windup)
+const float t1_kp = 2.215870e-01;                     // Proportional coefficient for speed (V/(rad_mot/s))
+const float t1_ki = 6.372123e-01 * REG_DELAY * 1e-3;  // Integral coefficient for speed (V/rad_motor) * Delta t for the integral
+const float t1_aw = 1e4;                              // Saturation level of the integral (anti-windup)
 // -- T3 --
 // Note : local asymptocical stability if ka > kp > 0, kb < 0
 const float t3_kp = 1;          // Proportional coefficient for distance error
@@ -111,7 +111,8 @@ void t1_speed_ctrl(float speed_l, float speed_r, float ref_l, float ref_r) {
 
 void t3_position_ctrl(float x, float y, float t, float xr, float yr, float tr, float *ref_l, float *ref_r) {
 
-  // From https://moodle.uclouvain.be/pluginfile.php/41211/mod_resource/content/1/Mobile_robots_control_2015.pdf?forcedownload=0
+  // Inspired by, but not identical to :
+  // https://moodle.uclouvain.be/pluginfile.php/41211/mod_resource/content/1/Mobile_robots_control_2015.pdf?forcedownload=0
   // Slides 22-27
 
   float dx, dy; // Errors in cartesian coordinates
@@ -123,7 +124,7 @@ void t3_position_ctrl(float x, float y, float t, float xr, float yr, float tr, f
   dx = xr - x;
   dy = yr - y;
 
-  // Compute the errors in "polar" coordinates, include desired orientation (different from source above)
+  // Compute the errors in "polar" coordinates
   p = hypot(dx, dy);
   if (p < t3_pos_tol) flag_reached = 1;
   else if (p > t3_dft_tol) flag_reached = 0;

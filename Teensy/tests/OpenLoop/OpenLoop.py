@@ -3,6 +3,10 @@ wheel diameter = 72 mm
 Gear ratio = 1:20
 Ticks/motor_turn = 8192 
 => TICKS_TO_M = pi*72e-3/20/8192 = 1.38e-6
+
+(1(t) (*) h(t)) = 1.504300e+00*(1-exp(-t/3.477444e-01))
+Chosen response time in closed loop : 1.043233e+00
+Kp, Ki : 2.215870e-01 6.372123e-01
 """
 
 import numpy as np
@@ -14,7 +18,7 @@ time = (array[:,0]-array[3,0])*1e-3
 speed = np.diff(array[:,1])/np.diff(time)*1.38e-6
 print(np.column_stack([time[1:], speed]))
 alpha = np.mean(speed[-5:])*256/120
-beta = alpha*(time[4]-time[3])/(speed[4]-speed[3])
+beta = alpha*120/256*(time[4]-time[3])/(speed[4]-speed[3])
 print(f"(24*1(t) (*) h(t)) = {format(alpha,'e')}*(1-exp(-t/{format(beta, 'e')}))")
 
 tau = 3*beta

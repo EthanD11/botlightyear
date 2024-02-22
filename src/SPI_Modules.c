@@ -94,7 +94,7 @@ void odo_enc_reset() {
 // ############################
 // -------- Sonars ------------
 // ############################
-
+/*
 double sonar_ask() {
 
     lgTxPulse(sonar_GPIO_Trig, 11, 1);
@@ -113,4 +113,4 @@ double sonar_ask() {
 
 void init_sonar() {
     gpioSetMode(sonar_GPIO_Trig, PI_OUTPUT);
-}
+}*/
