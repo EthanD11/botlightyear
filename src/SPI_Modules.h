@@ -4,6 +4,8 @@
 #include <lgpio.h>
 #include <stdint.h>
 
+#define VERBOSE
+
 // SPI
 #define SPI_DE0 1
 #define SPI_TEENSY 0

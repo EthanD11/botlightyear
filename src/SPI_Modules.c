@@ -1,8 +1,12 @@
 #include "SPI_Modules.h"
 
-unsigned int DE0_handle, Teensy_handle;
+int DE0_handle, Teensy_handle;
 const unsigned int sonar_GPIO_Trig = 16;
 const unsigned int sonar_GPIO_Echo = 19;
+const double x_max = 3.0; 
+const double y_max = 2.0; 
+const double t_max = 360.0; 
+const double speed_max = 2.0; 
 
 // Converts words from big endian to little endian (and vice versa)
 // https://codereview.stackexchange.com/questions/151049/endianness-conversion-in-c
@@ -15,9 +19,48 @@ static inline int32_t Reverse32(int32_t value)
 }
 
 void init_spi() {
-    DE0_handle = lgSpiOpen(SPI_DE0, 0, SPI_SPEED_HZ_DEFAULT, SPI_MODE_DEFAULT);
-    Teensy_handle = lgSpiOpen(SPI_TEENSY, 0, SPI_SPEED_HZ_DEFAULT, SPI_MODE_DEFAULT);
+    DE0_handle = lgSpiOpen(0, SPI_DE0, SPI_SPEED_HZ_DEFAULT, SPI_MODE_DEFAULT);
+    Teensy_handle = lgSpiOpen(0, SPI_TEENSY, SPI_SPEED_HZ_DEFAULT, SPI_MODE_DEFAULT);
+    return (DE0_handle >=0) & (Teensy_handle>=0); 
 }
+
+void position_control(double x, double y, double t, double xr, double yr, double tr) {
+    // Compression to go to SPI
+    char send[] = {0,0,0,0,0,0,0};
+    send[0] = (char) 2; 
+    send[1] = (char) x*255/x_max;   // x compressed
+    send[2] = (char) y*255/y_max;   // y compressed
+    send[3] = (char) (t+180)*255/t_max;   // t compressed
+    send[4] = (char) xr*255/x_max;  // xr compressed
+    send[5] = (char) yr*255/y_max;  // yr compressed
+    send[6] = (char) (tr+180)*255/t_max;  // tr compressed
+
+    char receive[7];
+    lgSpiXfer(Teensy_handle, send, receive, 7);
+
+    #ifdef VERBOSE
+    printf("Sending Position ctrl \n");
+    printf("%d\n", receive);
+    #endif
+}
+
+void speed_control(double speed_left, double speed_right) {
+    // Compression to go to SPI
+    char send[] = {0,0,0};
+    send[0] = (char) 3; 
+    send[1] = (char) speed_left*255/speed_max;   // speed_left compressed
+    send[2] = (char) speed_right*255/speed_max;   // speed_right compressed
+
+    char receive[3];
+    lgSpiXfer(Teensy_handle, send, receive, 3);
+
+    #ifdef VERBOSE
+    printf("Sending Speed ctrl \n");
+    printf("%d\n", receive);
+    #endif
+    
+}
+
 
 void close_spi() {
     lgSpiClose(DE0_handle);
