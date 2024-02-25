@@ -1,5 +1,3 @@
-Rework for lgpio library
-
 SPI bus
  - Teensy : Design instruction encoding (already started a bit in Teensy.ino),
     could be inspired from DE0 encoding for servomotors/steppers

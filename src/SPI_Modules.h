@@ -71,7 +71,7 @@ void odo_enc_reset();
 
 void init_sonar();
 
-/**
+**
  * @brief Trigger sonar pulse and return output distance. Must be called after init_sonar
 
 double sonar_ask();*/
