@@ -8,20 +8,17 @@ const uint8_t D_L = 15, D_R = 4;
 // Enable
 const uint8_t PWM_L = 22, PWM_R = 23;
 // Current sensors
-// const uint8_t CURRENT_L = 41, CURRENT_R = 40;
-
-double max_curl = 0, max_curr = 0;
+// const uint8_t CURRENT_L = 41, CURRENT_R = 40;  
 
 // Create encoder objects with the pins A and B
 
 Encoder enc_l(25, 26);
+Encoder enc_r(30, 31);
 
 // Level-shifter pin
 const int LEVEL_SHIFTER = 2;
 
 int sens_time, current_time;
-int printed = 0;
-
 
 void setup() {
 
@@ -65,17 +62,18 @@ void loop() {
   // Get time
   current_time = millis();
   
-  if (current_time - sens_time > 20) {
+  if (current_time - sens_time > 50) {
     sens_time = current_time;
 
-    if (current_time > 4000){
+    if (current_time > 3000){
         analogWrite(PWM_L, 0);
         analogWrite(PWM_R, 0);
     } else if (current_time > 1000) {
         sens_time = current_time;
         analogWrite(PWM_L, 120);
         analogWrite(PWM_R, 120);
-        Serial.printf("%d\t%d\n", current_time, (int) enc_l.read());
+        Serial.printf("left : %.4f\n", enc_l.read()*1.003/58131);
+        Serial.printf("right : %.4f\n", enc_r.read()*1.38e-6);
     }
   }
 

@@ -13,11 +13,12 @@ uint32_t data = 13;
 
 void setup() {
   // Serial declaration
-  Serial.begin(115200);
-  while (!Serial);
+  //Serial.begin(115200);
+  //while (!Serial);
 
   // Configure SPI
-  mySPI.begin(MSBFIRST, SPI_MODE2);
+  mySPI.begin(MSBFIRST, SPI_MODE0);
+  mySPI.swapPins();
   mySPI.onReceive(receiveEvent);
 }
 

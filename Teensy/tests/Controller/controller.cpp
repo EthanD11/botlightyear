@@ -5,7 +5,7 @@
 inline int ABS(int x) {
   return ((x >= 0) ? x : -x);
 }
-inline float ABS(float x) {
+inline double ABS(double x) {
   return ((x >= 0) ? x : -x);
 }
 inline int SAT(int x, int limit) {
@@ -13,7 +13,7 @@ inline int SAT(int x, int limit) {
 }  // Saturation function for integers
 inline double SAT(double x, double limit) {
   return ((x > limit) ? limit : ((x < -limit) ? -limit : x));
-}  // Saturation function for floats
+}  // Saturation function for doubles
 
 
 #define MOTOR_DUTY_RANGE 250  // Duty cycle range
@@ -42,28 +42,29 @@ const uint8_t PWM_L = 22, PWM_R = 23;
 // Parameters definiton
 // TODO : Recompute for Teensy
 // -- T1 --
-const float t1_kp = 7.795856e-01;                     // Proportional coefficient for speed (V/(rad_mot/s))
-const float t1_ki = 8.398411e-01 * REG_DELAY * 1e-3;  // Integral coefficient for speed (V/rad_motor) * Delta t for the integral
-const float t1_aw = 30;                              // Saturation level of the integral (anti-windup)
+const double t1_kp = 7.795856e-01;                     // Proportional coefficient for speed (V/(rad_mot/s))
+const double t1_ki = 8.398411e-01 * REG_DELAY * 1e-3;  // Integral coefficient for speed (V/rad_motor) * Delta t for the integral
+const double t1_aw = 30;                              // Saturation level of the integral (anti-windup)
 // -- T3 --
 // Note : local asymptocical stability if ka > kp > 0, kb < 0
-const float t3_kp = 0.1;          // Proportional coefficient for distance error
-const float t3_ka = 0.5;          // Proportional coefficient for direction error
-const float t3_kb = -0.1;         // Proportional coefficient for orientation error
-const float t3_pos_tol = 1e-2;  // Acceptable static error on position (m)
-const float t3_dft_tol = 2e-2;  // Acceptable drift from reference position when reorienting (m)
-const float t3_ang_tol = 8.73e-2; // Acceptable static error on orientation (rad, eq to 5 degrees)
+//        strong stability if kp > 0 > kb, ka > kp*2/pi - kb*5/3
+const double t3_kp = 0.1;          // Proportional coefficient for distance error
+const double t3_ka = 0.5;          // Proportional coefficient for direction error
+const double t3_kb = -0.1;         // Proportional coefficient for orientation error
+const double t3_pos_tol = 1e-1;  // Acceptable static error on position (m)
+const double t3_dft_tol = 2e-1;  // Acceptable drift from reference position when reorienting (m)
+const double t3_ang_tol = 2*8.73e-2; // Acceptable static error on orientation (rad, eq to 5 degrees)
 int flag_reached = 0;
 
-float isl = 0, isr = 0;        // Integrals of error on speed, left and right
+double isl = 0, isr = 0;        // Integrals of error on speed, left and right
 int dc_curl = 0, dc_curr = 0;  // Current duty cycle values
 
-void t1_speed_ctrl(float speed_l, float speed_r, float ref_l, float ref_r) {
+void t1_speed_ctrl(double speed_l, double speed_r, double ref_l, double ref_r) {
 
   // PI controller
 
-  float esl, esr;        // Errors on speed, left and right
-  float vl, vr;          // Voltage output commands, left and right
+  double esl, esr;        // Errors on speed, left and right
+  double vl, vr;          // Voltage output commands, left and right
   int dc_refl, dc_refr;  // Duty cycles
 
 #ifdef ADZ_ENABLE
@@ -107,16 +108,16 @@ void t1_speed_ctrl(float speed_l, float speed_r, float ref_l, float ref_r) {
 }
 
 
-void t3_position_ctrl(float x, float y, float t, float xr, float yr, float tr, float *ref_l, float *ref_r) {
+void t3_position_ctrl(double x, double y, double t, double xr, double yr, double tr, double *ref_l, double *ref_r) {
 
   // Inspired by, but not identical to :
   // https://moodle.uclouvain.be/pluginfile.php/41211/mod_resource/content/1/Mobile_robots_control_2015.pdf?forcedownload=0
   // Slides 22-27
 
-  float dx, dy; // Errors in cartesian coordinates
-  float p, phi, a, b; // Errors on position and orientation in "polar" coordinates
-  float v_ref, rot_ref; // Reference velocity and rotation
-  float temp;
+  double dx, dy; // Errors in cartesian coordinates
+  double p, phi, a, b; // Errors on position and orientation in "polar" coordinates
+  double v_ref, rot_ref; // Reference velocity and rotation
+  double temp;
 
   // Comute the errors in standard coordinates
   dx = xr - x;

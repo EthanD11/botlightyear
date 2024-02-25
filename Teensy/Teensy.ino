@@ -3,14 +3,21 @@
 #include "SPISlave_T4.h"
 #include "controller.h"
 
+//#define PARITY_CHECK
+
 // Note : Left = 1, Right = 2
 
 // ----- ENCODERS -----
 
 // Create encoder objects with the pins A and B
-
+// TODO : CHECK PINS
+#ifdef ODOMETERS_ENC
+Encoder enc_l(26, 25);
+Encoder enc_r(31, 30);
+#else
 Encoder enc_l(25, 26);
 Encoder enc_r(30, 31);
+#endif
 
 // Level-shifter pin
 const int LEVEL_SHIFTER = 2;
@@ -18,12 +25,35 @@ const int LEVEL_SHIFTER = 2;
 // Ticks
 int old_tick_left = 0, old_tick_right = 0;
 float speed_left = 0, speed_right = 0;
+
+#ifdef ODOMETERS_ENC
+const float TICKS_TO_M = 1.7257e-5; // Multiply to get meters from tick count. pi*45e-3/8192
+#else
 const float TICKS_TO_M = 1.3806e-6; // Multiply to get meters from tick count. pi*72e-3/20/8192
+#endif
 
 // ----- SPI -----
 
+typedef enum {
+  QueryTestRead, // SPI test, answer with [1,2,3,4]
+  QueryTestWrite, // SPI test, answer with data received
+  QueryPositionControl, // Position update, data received = [flag,x,y,t,xr,yr,tr]
+  QuerySpeedControl // Speed control, data received = [flag,left,right]
+} query_t;
+
 // Create spi object
 SPISlave_T4 mySPI(0, SPI_8_BITS);
+
+uint32_t i = 0, n = 7; // Number of bytes received, expected and actual
+query_t query;
+#ifdef PARITY_CHECK
+uint8_t parity_bit;
+#endif
+
+uint32_t dataBuf[7];
+uint32_t testWriteBuf[4];
+
+
 
 
 // ----- GENERALS -----
@@ -32,24 +62,19 @@ SPISlave_T4 mySPI(0, SPI_8_BITS);
 float x = 0, y = 0, t = 0, xr = 0, yr = 0, tr = 0;
 float fwd, rot;
 float speed_refl, speed_refr;
-// New values transferred over SPI channel, with associated flag for their arrival
-uint32_t flag = 0;
-uint32_t buf[7];
-float *data;
 
 // Time variables
-int current_time;
 int control_time;
-
+//int request_time;
+//const int SPI_TTL = 7*8/500;
 
 typedef enum {
-  Idle, // No input from RPi, default is to remain still
-  New_position, // Received new t3 position data from RPi
-  Following, // Pursuing current goal autonomously
-  Remote_control // Follow speed command directly from RPi
-} mode_t; // Control modes type
+  ModeIdle, // No input from RPi, default is to remain still
+  ModePositionControl,
+  ModeSpeedControl
+} controlmode_t; // Control modes type
 
-mode_t mode = Idle;
+controlmode_t mode = ModeIdle;
 
 
 // --------------------------------------------------------------
@@ -57,22 +82,19 @@ mode_t mode = Idle;
 
 void setup() {
   // Serial declaration
-  Serial.begin(115200);
-  while (!Serial);
+  //Serial.begin(115200);
+  //while (!Serial);
 
 
   // ----- SPI -----
-  mySPI.begin(MSBFIRST, SPI_MODE2);
-  mySPI.onReceive(receiveEvent);
 
+  mySPI.begin(MSBFIRST, SPI_MODE0);
+  mySPI.swapPins();
+  mySPI.onReceive(receiveEvent);
 
   // ----- MOTORS -----
 
   init_motors();
-
-  // Default values
-  control_time = millis();
-
 
   // ----- ENCODERS -----
 
@@ -84,17 +106,47 @@ void setup() {
   enc_l.write(0);
   enc_r.write(0);
 
+  // ----- GENERAL -----
+
+  control_time = millis();
+  //request_time = -SPI_TTL;
+
 }
 
 void loop() {
+
+  if (i == n) {
+    i = 0;
+    switch (dataBuf[0]) {
+      case QueryPositionControl:
+        x  = ((double)dataBuf[1])*3/255;
+        y  = ((double)dataBuf[2])*2/255;
+        t  = ((double)dataBuf[3])*360/255 - 180;
+        xr = ((double)dataBuf[4])*3/255;
+        yr = ((double)dataBuf[5])*2/255;
+        tr = ((double)dataBuf[6])*360/255 - 180;
+        mode = ModePositionControl;
+        break;
+
+      case QuerySpeedControl:
+        speed_refl = ((double)dataBuf[1])*2/255;
+        speed_refr = ((double)dataBuf[2])*2/255;
+        mode = ModeSpeedControl;
+        break;
+      
+      default:
+        break;
+      
+
+    }
+  }
+
+
   // Get time
-  current_time = millis();
+  int current_time = millis();
 
   // Each 20ms TODO : Restimate REG_DELAY
   if(current_time - control_time > REG_DELAY){
-
-    // Update last control time
-    control_time = current_time;
 
     // Updating values according to encoders
     int tick_left, tick_right;
@@ -106,19 +158,12 @@ void loop() {
 
     old_tick_left = tick_left; old_tick_right = tick_right;
 
-    switch (mode)
-    {
-    case Idle:
+    switch (mode) {
+    case ModeIdle:
+      duty_cycle_update(0,0);
+      return;
 
-      speed_refl = 0; speed_refr = 0;
-      break;
-
-    case New_position:
-
-
-      break;
-
-    case Following:
+    case ModePositionControl:
 
       // Forward & rotation component
       fwd = (speed_left+speed_right)/2;
@@ -130,16 +175,25 @@ void loop() {
       t3_position_ctrl(x,y,t,xr,yr,tr, &speed_refl, &speed_refr);
       break;
 
-    case Remote_control:
-
-    default: // Idle
-      speed_refl = 0; speed_refr = 0;
+    case ModeSpeedControl:
       break;
+
+    default: // ModeIdle
+      duty_cycle_update(0,0);
+      return;
     }
 
     speed_left  /= (current_time - control_time);
     speed_right /= (current_time - control_time);
+    #ifdef VERBOSE
+    printf("Speed : %.4f\t%.4f\n", speed_left, speed_right);
+    printf("Speed reference : %.4f\t%.4f\n", speed_refl, speed_refr);
+    #endif
+
     t1_speed_ctrl(speed_left, speed_right, speed_refl, speed_refr);
+
+    // Update last control time
+    control_time = current_time;
 
   }
 }
@@ -148,26 +202,38 @@ void receiveEvent() {
   
   //When there is data to read
   while ( mySPI.available() ) {
+
+    uint32_t data = mySPI.popr();
+
+    if (i == 0) {
+      switch (data) {
+        case QueryPositionControl :
+          n = 7;
+          break;
+
+        case QuerySpeedControl:
+          n = 3;
+          break;
+
+        default:
+          n = 7;
+          break;
+      }
+    }
     
     // Get data
-    buf[flag++] = mySPI.popr();
-
-    // Push number of data received in send buffer
-    mySPI.pushr(flag);
+    dataBuf[i++] = data;
     
   }
 
-  if (flag == 6) {
-
-    // Updating values according to SPI query
-    data = (float*) buf;
-    x  = data[0];
-    y  = data[1];
-    t  = data[2];
-    xr = data[3];
-    yr = data[4];
-    tr = data[5];
-    flag = 0;
-  }
-  
 }
+
+#ifdef PARITY_CHECK
+inline uint8_t parity_check() {
+  uint8_t b = 0;
+  for (int j = 0, j < n, i++) {
+    b ^= __builtin_parity(data[j]);
+  }
+  return b;
+} 
+#endif

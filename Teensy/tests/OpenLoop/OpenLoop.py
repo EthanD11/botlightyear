@@ -12,16 +12,16 @@ Kp, Ki : 2.215870e-01 6.372123e-01
 import numpy as np
 import matplotlib.pyplot as plt
 
-array = np.loadtxt("OpenLoop.txt",dtype=np.float64,delimiter="\t")
+array = np.loadtxt("OpenLoop2.txt",dtype=np.float64,delimiter="\t")
 
 time = (array[:,0]-array[3,0])*1e-3
 speed = np.diff(array[:,1])/np.diff(time)*1.38e-6
 print(np.column_stack([time[1:], speed]))
-alpha = np.mean(speed[-5:])*256/120
+alpha = np.mean(speed[-70:])*256/120
 beta = alpha*120/256*(time[4]-time[3])/(speed[4]-speed[3])
-print(f"(24*1(t) (*) h(t)) = {format(alpha,'e')}*(1-exp(-t/{format(beta, 'e')}))")
+print(f"(1(t) (*) h(t)) = {format(alpha,'e')}*(1-exp(-t/{format(beta, 'e')}))")
 
-tau = 3*beta
+tau = beta
 print(f"Chosen response time in closed loop : {format(tau,'e')}")
 
 Kp = beta/alpha/tau
@@ -30,7 +30,7 @@ print("Kp, Ki :", format(Kp, "e"), format(Ki, "e"))
 
 plt.figure()
 plt.plot(time[1:], speed)
-plt.plot([beta,2], [speed[-1], speed[-1]], "-r")
+plt.plot([beta,time[-1]], [speed[-1], speed[-1]], "-r")
 plt.plot([0,beta], [0, speed[-1]], "-r")
 plt.plot([beta,beta], [speed[-1],0], "--r")
 plt.title("Open Loop Step Response")
