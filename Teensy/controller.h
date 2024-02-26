@@ -27,7 +27,7 @@
  * Computes the error, controls it with a PI controller, updates the duty cycle of the motor input voltage.
  * Arguments are respectively : omega-left, omega-right, omega-left-reference, omega-right-reference.
  */
-void t1_speed_ctrl(float speed_l, float speed_r, float ref_l, float ref_r);
+void t1_speed_ctrl(double speed_l, double speed_r, double ref_l, double ref_r);
 
 /**
  * @brief Type 3 State-feedback control of the position and orientation of the robot.
@@ -36,7 +36,7 @@ void t1_speed_ctrl(float speed_l, float speed_r, float ref_l, float ref_r);
  * Arguments are respectively : 
  * current x, y and theta, reference x, y and theta, pointers to contain left and right output reference speeds
  */
-void t3_position_ctrl(float x, float y, float t, float xr, float yr, float tr, float *ref_l, float *ref_r);
+void t3_position_ctrl(double x, double y, double t, double xr, double yr, double tr, double *ref_l, double *ref_r);
 
 /**
  * @brief Initializes motor pins. Should be called during setup.

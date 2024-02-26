@@ -24,12 +24,12 @@ const int LEVEL_SHIFTER = 2;
 
 // Ticks
 int old_tick_left = 0, old_tick_right = 0;
-float speed_left = 0, speed_right = 0;
+double speed_left = 0, speed_right = 0;
 
 #ifdef ODOMETERS_ENC
-const float TICKS_TO_M = 1.7257e-5; // Multiply to get meters from tick count. pi*45e-3/8192
+const double TICKS_TO_M = 1.7257e-5; // Multiply to get meters from tick count. pi*45e-3/8192
 #else
-const float TICKS_TO_M = 1.3806e-6; // Multiply to get meters from tick count. pi*72e-3/20/8192
+const double TICKS_TO_M = 1.3806e-6; // Multiply to get meters from tick count. pi*72e-3/20/8192
 #endif
 
 // ----- SPI -----
@@ -59,9 +59,9 @@ uint32_t dataBuf[7];
 // ----- GENERALS -----
 
 // Current and reference x, y and theta
-float x = 0, y = 0, t = 0, xr = 0, yr = 0, tr = 0;
-float fwd, rot;
-float speed_refl, speed_refr;
+double x = 0, y = 0, t = 0, xr = 0, yr = 0, tr = 0;
+double fwd, rot;
+double speed_refl, speed_refr;
 
 // Time variables
 int control_time;
