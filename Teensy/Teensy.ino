@@ -51,7 +51,7 @@ uint8_t parity_bit;
 #endif
 
 uint32_t dataBuf[7];
-uint32_t testWriteBuf[4];
+//uint32_t testWriteBuf[4];
 
 
 
@@ -119,16 +119,20 @@ void loop() {
     i = 0;
     switch (dataBuf[0]) {
       case QueryPositionControl:
-        x  = ((double)dataBuf[1])*3/255;
-        y  = ((double)dataBuf[2])*2/255;
-        t  = ((double)dataBuf[3])*360/255 - 180;
-        xr = ((double)dataBuf[4])*3/255;
-        yr = ((double)dataBuf[5])*2/255;
-        tr = ((double)dataBuf[6])*360/255 - 180;
+        enc_l.write(0); enc_r.write(0); 
+        old_tick_left = 0; old_tick_right = 0;
+        x  = ((double)(dataBuf[1]))*3/255;
+        y  = ((double)(dataBuf[2]))*2/255;
+        t  = ((double)(dataBuf[3]))*2*M_PI/255 - M_PI;
+        xr = ((double)(dataBuf[4]))*3/255;
+        yr = ((double)(dataBuf[5]))*2/255;
+        tr = ((double)(dataBuf[6]))*2*M_PI/255 - M_PI;
         mode = ModePositionControl;
         break;
 
       case QuerySpeedControl:
+        enc_l.write(0); enc_r.write(0); 
+        old_tick_left = 0; old_tick_right = 0;
         speed_refl = ((double)dataBuf[1])*2/255;
         speed_refr = ((double)dataBuf[2])*2/255;
         mode = ModeSpeedControl;
@@ -136,8 +140,6 @@ void loop() {
       
       default:
         break;
-      
-
     }
   }
 
@@ -157,6 +159,10 @@ void loop() {
     speed_right = (tick_right - old_tick_right)*TICKS_TO_M;
 
     old_tick_left = tick_left; old_tick_right = tick_right;
+
+    #ifdef VERBOSE
+    printf("Ticks : %d, %d\n", old_tick_left, old_tick_right);
+    #endif
 
     switch (mode) {
     case ModeIdle:
@@ -183,8 +189,8 @@ void loop() {
       return;
     }
 
-    speed_left  /= (current_time - control_time);
-    speed_right /= (current_time - control_time);
+    speed_left  /= ((current_time - control_time)*1e-3);
+    speed_right /= ((current_time - control_time)*1e-3);
     #ifdef VERBOSE
     printf("Speed : %.4f\t%.4f\n", speed_left, speed_right);
     printf("Speed reference : %.4f\t%.4f\n", speed_refl, speed_refr);
@@ -220,19 +226,20 @@ void receiveEvent() {
           break;
       }
     }
-    
     // Get data
     dataBuf[i++] = data;
-    
-  }
 
+    #ifdef VERBOSE
+    printf("NEW DATA : %d\n", (int) data);
+    #endif
+  }
 }
 
 #ifdef PARITY_CHECK
 inline uint8_t parity_check() {
   uint8_t b = 0;
   for (int j = 0, j < n, i++) {
-    b ^= __builtin_parity(data[j]);
+    b ^= __builtin_parity(dataBuf[j]);
   }
   return b;
 } 

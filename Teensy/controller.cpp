@@ -11,7 +11,7 @@ inline float ABS(float x) {
 inline int SAT(int x, int limit) {
   return ((x > limit) ? limit : ((x < -limit) ? -limit : x));
 }  // Saturation function for integers
-inline double SAT(double x, double limit) {
+inline float SAT(float x, float limit) {
   return ((x > limit) ? limit : ((x < -limit) ? -limit : x));
 }  // Saturation function for floats
 
@@ -47,11 +47,11 @@ const float t1_ki = 8.398411e-01 * REG_DELAY * 1e-3;  // Integral coefficient fo
 const float t1_aw = 30;                              // Saturation level of the integral (anti-windup)
 // -- T3 --
 // Note : local asymptocical stability if ka > kp > 0, kb < 0
-const float t3_kp = 0.1;          // Proportional coefficient for distance error
-const float t3_ka = 0.5;          // Proportional coefficient for direction error
-const float t3_kb = -0.1;         // Proportional coefficient for orientation error
-const float t3_pos_tol = 1e-2;  // Acceptable static error on position (m)
-const float t3_dft_tol = 2e-2;  // Acceptable drift from reference position when reorienting (m)
+const float t3_kp = 0.05;          // Proportional coefficient for distance error
+const float t3_ka = 0.25;          // Proportional coefficient for direction error
+const float t3_kb = -0.05;         // Proportional coefficient for orientation error
+const float t3_pos_tol = 1e-1;  // Acceptable static error on position (m)
+const float t3_dft_tol = 2e-1;  // Acceptable drift from reference position when reorienting (m)
 const float t3_ang_tol = 8.73e-2; // Acceptable static error on orientation (rad, eq to 5 degrees)
 int flag_reached = 0;
 
@@ -60,8 +60,10 @@ int dc_curl = 0, dc_curr = 0;  // Current duty cycle values
 
 void t1_speed_ctrl(float speed_l, float speed_r, float ref_l, float ref_r) {
 
-  // PI controller
+  speed_l = SAT(speed_l, REF_SPEED_LIMIT);
+  speed_r = SAT(speed_r, REF_SPEED_LIMIT);
 
+  // PI controller
   float esl, esr;        // Errors on speed, left and right
   float vl, vr;          // Voltage output commands, left and right
   int dc_refl, dc_refr;  // Duty cycles
@@ -79,8 +81,8 @@ void t1_speed_ctrl(float speed_l, float speed_r, float ref_l, float ref_r) {
   isr = SAT(isr + esr, t1_aw);
 
 #ifdef VERBOSE
-  printf("Left Integral  : %f\n", isl);
-  printf("Right Integral : %f\n", isr);
+  printf("Left Integral  : %.4f\n", isl);
+  printf("Right Integral : %.4f\n", isr);
 #endif
 
   // Compute voltages
@@ -99,8 +101,8 @@ void t1_speed_ctrl(float speed_l, float speed_r, float ref_l, float ref_r) {
   dc_refr = SAT((int)(vr * MOTOR_DUTY_RANGE), MOTOR_DUTY_RANGE);
 #endif
 #ifdef VERBOSE
-  printf("Voltages : %f, %f\n", vl, vr);
-  printf("Updating speed to : %d, %d\n\n", dc_refl, dc_refr);
+  printf("Voltages : %.4f, %.4f\n", vl*24, vr*24);
+  printf("Updating duty cycles to : %d, %d\n\n", dc_refl, dc_refr);
 #endif
 
   duty_cycle_update(dc_refl, dc_refr);
@@ -113,10 +115,15 @@ void t3_position_ctrl(float x, float y, float t, float xr, float yr, float tr, f
   // https://moodle.uclouvain.be/pluginfile.php/41211/mod_resource/content/1/Mobile_robots_control_2015.pdf?forcedownload=0
   // Slides 22-27
 
+  #ifdef VERBOSE
+  printf("Current coordinates : %.4f, %.4f, %.4f\n", x, y, t);
+  printf("Reference coordinates : %.4f, %.4f, %.4f\n", xr, yr, tr);
+  #endif
+
   float dx, dy; // Errors in cartesian coordinates
   float p, phi, a, b; // Errors on position and orientation in "polar" coordinates
   float v_ref, rot_ref; // Reference velocity and rotation
-  float temp;
+  //float temp;
 
   // Comute the errors in standard coordinates
   dx = xr - x;
@@ -151,13 +158,13 @@ void t3_position_ctrl(float x, float y, float t, float xr, float yr, float tr, f
 
   // Compute reference velocity and rotation
   // Temp allows for a smoother transition, will be renamed if kept
-  temp = 0.557 * ((a + 70)/(8 + ABS(a + 70)) + (70 - a)/(8 + ABS(a - 70)));
-  v_ref = temp * t3_kp * p;
-  rot_ref = t3_ka * a + temp * t3_kb * b;
+  //temp = 0.557 * ((a + 1.22)/(0.14 + ABS(a + (float) 1.22)) + (1.22 - a)/(0.14 + ABS(a - (float) 1.22)));
+  v_ref = t3_kp * p;
+  rot_ref = t3_ka * a + t3_kb * b;
 
   // Translate into left and right wheel reference speed
-  *ref_l = SAT((v_ref - WHEEL_L * rot_ref) / WHEEL_R, REF_SPEED_LIMIT);
-  *ref_r = SAT((v_ref + WHEEL_L * rot_ref) / WHEEL_R, REF_SPEED_LIMIT);
+  *ref_l = (v_ref - WHEEL_L * rot_ref) / WHEEL_R;
+  *ref_r = (v_ref + WHEEL_L * rot_ref) / WHEEL_R;
 }
 
 void init_motors() {
