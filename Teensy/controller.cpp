@@ -3,25 +3,25 @@
 #include "controller.h"
 #include <cmath>
 inline int ABS(int x) {
-  return ((x >= 0) ? x : -x);
+  return (((x) >= 0) ? (x) : -(x));
 }
 inline double ABS(double x) {
-  return ((x >= 0) ? x : -x);
+  return (((x) >= 0) ? (x) : -(x));
 }
 inline int SAT(int x, int limit) {
-  return ((x > limit) ? limit : ((x < -limit) ? -limit : x));
+  return (((x) > (limit)) ? (limit) : (((x) < -(limit)) ? -(limit) : (x)));
 }  // Saturation function for integers
 inline double SAT(double x, double limit) {
-  return ((x > limit) ? limit : ((x < -limit) ? -limit : x));
+  return (((x) > (limit)) ? (limit) : (((x) < -(limit)) ? -(limit) : (x)));
 }  // Saturation function for doubles
 
 
 #define MOTOR_DUTY_RANGE 250  // Duty cycle range
-#define BUF_STEP 250           // Max step to avoid brutal speed changes
+#define BUF_STEP 50           // Max step to avoid brutal speed changes
 
 // Uncomment to enable Anti-Dead Zone (ADZ)
 // Do not use this, it is unnecessary and unstable (and needs to be changed anyway)
-//#define ADZ_ENABLE
+#define ADZ_ENABLE
 
 
 #ifdef ADZ_ENABLE
@@ -38,12 +38,14 @@ const uint8_t D_L = 15, D_R = 4;
 const uint8_t PWM_L = 22, PWM_R = 23;
 // Current sensors
 //const uint8_t CURRENT_L = 41, CURRENT_R = 40;
+// Test points
+const uint8_t A1 = 29, A2 = 37;
 
 // Parameters definiton
 // TODO : Recompute for Teensy
 // -- T1 --
-const double t1_kp = 7.795856e-01;                     // Proportional coefficient for speed (V/(rad_mot/s))
-const double t1_ki = 8.398411e-01 * REG_DELAY * 1e-3;  // Integral coefficient for speed (V/rad_motor) * Delta t for the integral
+const double t1_kp = 1.169378e+00;                     // Proportional coefficient for speed (V/(rad_mot/s))
+const double t1_ki = 1.259762e+00 * REG_DELAY * 1e-3;  // Integral coefficient for speed (V/rad_motor) * Delta t for the integral
 const double t1_aw = 30;                              // Saturation level of the integral (anti-windup)
 // -- T3 --
 // Note : local asymptocical stability if ka > kp > 0, kb < 0
@@ -94,8 +96,8 @@ void t1_speed_ctrl(double speed_l, double speed_r, double ref_l, double ref_r) {
   // add an anti-deadzone term to compensate the deadzone around 0
   // Do not use this, it is unnecessary and dangerous
   int adz_l = (vl < 0) ? -adz : adz, adz_r = (vr < 0) ? -adz : adz;
-  dc_refl = SAT(((int)(vl * MOTOR_DUTY_RANGE)) + adz_l, MOTOR_DUTY_RANGE);
-  dc_refr = SAT(((int)(vr * MOTOR_DUTY_RANGE)) + adz_r, MOTOR_DUTY_RANGE);
+  dc_refl = SAT(((int)(vl * MOTOR_DUTY_RANGE)) + adz_l * (double) (speed_l > 0.05), MOTOR_DUTY_RANGE);
+  dc_refr = SAT(((int)(vr * MOTOR_DUTY_RANGE)) + adz_r * (double) (speed_r > 0.05), MOTOR_DUTY_RANGE);
 #else
   dc_refl = SAT((int)(vl * MOTOR_DUTY_RANGE), MOTOR_DUTY_RANGE);
   dc_refr = SAT((int)(vr * MOTOR_DUTY_RANGE), MOTOR_DUTY_RANGE);
@@ -176,6 +178,8 @@ void init_motors() {
   pinMode(C_R, OUTPUT);
   pinMode(D_R, OUTPUT);
   pinMode(PWM_R, OUTPUT);
+  pinMode(A1, OUTPUT);
+  pinMode(A2, OUTPUT);
 
   // Input pins
   //pinMode(CURRENT_L, INPUT);
@@ -190,6 +194,11 @@ void init_motors() {
   analogWriteFrequency(PWM_R, 20e3);
   analogWrite(PWM_L, 0);
   analogWrite(PWM_R, 0);
+
+  analogWriteFrequency(A1, 20e3);
+  analogWriteFrequency(A2, 20e3);
+  analogWrite(A1, 0);
+  analogWrite(A2, 0);
 }
 
 void duty_cycle_update(int left, int right) {
@@ -197,10 +206,12 @@ void duty_cycle_update(int left, int right) {
   // Left buffered control
   dc_curl += SAT(left - dc_curl, BUF_STEP);
   analogWrite(PWM_L, ABS(dc_curl));
+  analogWrite(A1, ABS(dc_curl));
 
   // Right buffered control
   dc_curr += SAT(right - dc_curr, BUF_STEP);
   analogWrite(PWM_R, ABS(dc_curr));
+  analogWrite(A2, ABS(dc_curr));
 
   // Left Direction (forward vs backward)
   if (dc_curl < 0) {

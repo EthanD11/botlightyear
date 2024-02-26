@@ -2,6 +2,11 @@
  * This example code shows how to use the spi communication bus
  */
 
+const int A1 = 29;
+const int A3 = 36;
+int on = 0;
+
+
 // SPI library
 #include "SPISlave_T4.h"
 // Create spi object
@@ -20,6 +25,11 @@ void setup() {
   mySPI.begin(MSBFIRST, SPI_MODE0);
   mySPI.swapPins();
   mySPI.onReceive(receiveEvent);
+
+  // Set pins to output
+  pinMode(A1, OUTPUT);
+  pinMode(A3, OUTPUT);
+
 }
 
 void loop() {
@@ -34,6 +44,7 @@ void receiveEvent() {
     // Get data
     data = mySPI.popr();
     // push it to send buffer
+    if (data == 7) analog
     mySPI.pushr(data);
     // Print data
     Serial.print(data, HEX);

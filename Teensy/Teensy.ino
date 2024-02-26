@@ -32,9 +32,14 @@ const double TICKS_TO_M = 1.7257e-5; // Multiply to get meters from tick count. 
 const double TICKS_TO_M = 1.3806e-6; // Multiply to get meters from tick count. pi*72e-3/20/8192
 #endif
 
+
 // ----- SPI -----
 
+// Test pin
+const uint8_t A3 = 36;
+
 typedef enum {
+  QueryIdle, // Idle, reset motor voltages to 0V
   QueryTestRead, // SPI test, answer with [1,2,3,4]
   QueryTestWrite, // SPI test, answer with data received
   QueryPositionControl, // Position update, data received = [flag,x,y,t,xr,yr,tr]
@@ -44,7 +49,7 @@ typedef enum {
 // Create spi object
 SPISlave_T4 mySPI(0, SPI_8_BITS);
 
-uint32_t i = 0, n = 7; // Number of bytes received, expected and actual
+uint32_t i = 0, n = 1; // Number of bytes received, expected and actual
 query_t query;
 #ifdef PARITY_CHECK
 uint8_t parity_bit;
@@ -52,8 +57,6 @@ uint8_t parity_bit;
 
 uint32_t dataBuf[7];
 //uint32_t testWriteBuf[4];
-
-
 
 
 // ----- GENERALS -----
@@ -91,6 +94,9 @@ void setup() {
   mySPI.begin(MSBFIRST, SPI_MODE0);
   mySPI.swapPins();
   mySPI.onReceive(receiveEvent);
+  pinMode(A3, OUTPUT);
+  analogWriteFrequency(A3,20e3);
+  analogWrite(A3,0);
 
   // ----- MOTORS -----
 
@@ -137,8 +143,13 @@ void loop() {
         speed_refr = ((double)dataBuf[2])*2/255;
         mode = ModeSpeedControl;
         break;
+
+      case QueryIdle:
+        mode = ModeIdle;
+        break;
       
-      default:
+      default: // Idle
+        mode = ModeIdle;
         break;
     }
   }
@@ -166,6 +177,7 @@ void loop() {
 
     switch (mode) {
     case ModeIdle:
+      control_time = current_time;
       duty_cycle_update(0,0);
       return;
 
@@ -221,8 +233,12 @@ void receiveEvent() {
           n = 3;
           break;
 
-        default:
-          n = 7;
+        case QueryIdle:
+          n = 1;
+          break;
+
+        default: // Idle
+          n = 1;
           break;
       }
     }
