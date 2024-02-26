@@ -5,8 +5,8 @@ const unsigned int sonar_GPIO_Trig = 16;
 const unsigned int sonar_GPIO_Echo = 19;
 const double x_max = 3.0; 
 const double y_max = 2.0; 
-const double t_max = 360.0; 
-const double speed_max = 2.0; 
+const double t_max = 2*3.141593; 
+const double speed_max = 1.0; 
 
 // Converts words from big endian to little endian (and vice versa)
 // https://codereview.stackexchange.com/questions/151049/endianness-conversion-in-c
@@ -18,49 +18,11 @@ static inline int32_t Reverse32(int32_t value)
             ((value & 0xFF000000) >> 24));
 }
 
-void init_spi() {
+int init_spi() {
     DE0_handle = lgSpiOpen(0, SPI_DE0, SPI_SPEED_HZ_DEFAULT, SPI_MODE_DEFAULT);
     Teensy_handle = lgSpiOpen(0, SPI_TEENSY, SPI_SPEED_HZ_DEFAULT, SPI_MODE_DEFAULT);
-    return (DE0_handle >=0) & (Teensy_handle>=0); 
+    return (DE0_handle < 0) | (Teensy_handle  < 0); 
 }
-
-void position_control(double x, double y, double t, double xr, double yr, double tr) {
-    // Compression to go to SPI
-    char send[] = {0,0,0,0,0,0,0};
-    send[0] = (char) 2; 
-    send[1] = (char) x*255/x_max;   // x compressed
-    send[2] = (char) y*255/y_max;   // y compressed
-    send[3] = (char) (t+180)*255/t_max;   // t compressed
-    send[4] = (char) xr*255/x_max;  // xr compressed
-    send[5] = (char) yr*255/y_max;  // yr compressed
-    send[6] = (char) (tr+180)*255/t_max;  // tr compressed
-
-    char receive[7];
-    lgSpiXfer(Teensy_handle, send, receive, 7);
-
-    #ifdef VERBOSE
-    printf("Sending Position ctrl \n");
-    printf("%d\n", receive);
-    #endif
-}
-
-void speed_control(double speed_left, double speed_right) {
-    // Compression to go to SPI
-    char send[] = {0,0,0};
-    send[0] = (char) 3; 
-    send[1] = (char) speed_left*255/speed_max;   // speed_left compressed
-    send[2] = (char) speed_right*255/speed_max;   // speed_right compressed
-
-    char receive[3];
-    lgSpiXfer(Teensy_handle, send, receive, 3);
-
-    #ifdef VERBOSE
-    printf("Sending Speed ctrl \n");
-    printf("%d\n", receive);
-    #endif
-    
-}
-
 
 void close_spi() {
     lgSpiClose(DE0_handle);
@@ -88,6 +50,7 @@ void get_odo_tick(int32_t *tick_left, int32_t *tick_right) {
 
 }
 
+/*
 void get_odo_tick_fast(int32_t *tick_left, int32_t *tick_right) {
 
     
@@ -98,7 +61,7 @@ void get_odo_tick_fast(int32_t *tick_left, int32_t *tick_right) {
     *tick_left  = (receive[1] << 8) + (receive[2] << 16);
     *tick_right = (receive[3] << 8) + (receive[4] << 16);
 
-}
+}*/
 
 void get_enc_spd(int32_t *spd_left, int32_t*spd_right) {
     // left
@@ -116,6 +79,7 @@ void get_enc_spd(int32_t *spd_left, int32_t*spd_right) {
 
 }
 
+/*
 void get_enc_spd_fast(int32_t *spd_left, int32_t *spd_right) {
 
     
@@ -126,7 +90,7 @@ void get_enc_spd_fast(int32_t *spd_left, int32_t *spd_right) {
     *spd_left  = (receive[1] << 16) + (receive[2] << 24);
     *spd_right = (receive[3] << 16) + (receive[4] << 24);
 
-}
+}*/
 
 void odo_enc_reset() {
     char send[] = {0x7F,0,0,0,0};
@@ -157,3 +121,50 @@ double sonar_ask() {
 void init_sonar() {
     gpioSetMode(sonar_GPIO_Trig, PI_OUTPUT);
 }*/
+
+// ############################
+// -------- Teensy ------------
+// ############################
+
+void teensy_pos_ctrl(double x, double y, double t, double xr, double yr, double tr) {
+    // Compression to go to SPI
+    char send[7];
+    send[0] = (char) 3; 
+    send[1] = (char) (x*255/x_max);   // x compressed
+    send[2] = (char) (y*255/y_max);   // y compressed
+    send[3] = (char) ((t+t_max/2)*255/t_max);   // t compressed
+    send[4] = (char) (xr*255/x_max);  // xr compressed
+    send[5] = (char) (yr*255/y_max);  // yr compressed
+    send[6] = (char) ((tr+t_max/2)*255/t_max);  // tr compressed
+
+    char receive[7];
+    lgSpiXfer(Teensy_handle, send, receive, 7);
+
+    #ifdef VERBOSE
+    printf("Sending Position ctrl \n");
+    for (int i = 0; i < 7; i++)
+    {
+        printf("%d, %d\n",send[i], receive[i]);
+    }
+    #endif
+}
+
+void teensy_spd_ctrl(double speed_left, double speed_right) {
+    // Compression to go to SPI
+    char send[3];
+    send[0] = (char) 4; 
+    send[1] = (char) (speed_left*255/speed_max);   // speed_left compressed
+    send[2] = (char) (speed_right*255/speed_max);   // speed_right compressed
+
+    char receive[3];
+    lgSpiXfer(Teensy_handle, send, receive, 3);
+
+    #ifdef VERBOSE
+    printf("Sending Speed ctrl \n");
+    for (int i = 0; i < 3; i++)
+    {
+        printf("%d, %d\n",send[i], receive[i]);
+    }
+    #endif
+    
+}

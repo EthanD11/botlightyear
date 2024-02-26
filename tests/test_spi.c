@@ -1,5 +1,4 @@
 #include "SPI_Modules.h"
-#include <stdio.h>
 
 int main(int argc, char const *argv[])
 {
@@ -8,20 +7,22 @@ int main(int argc, char const *argv[])
     char send[] = {6,0,0,0,0};
     char receive[5];
     lgSpiXfer(Teensy_Handle, send, receive, 1);
-    printf("%d\n", receive);
+    printf("%d\n", receive[0]);
     send[0] = 7;
     lgSpiXfer(Teensy_Handle, send, receive, 1);
-    printf("%d\n", receive);
+    printf("%d\n", receive[0]);
     send[0] = 7;
     lgSpiXfer(Teensy_Handle, send, receive, 1);
-    printf("%d\n", receive);
+    printf("%d\n", receive[0]);
     send[0] = 8;
     lgSpiXfer(Teensy_Handle, send, receive, 1);
-    printf("%d\n", receive);
+    printf("%d\n", receive[0]);
     send[0] = 0;
     lgSpiXfer(Teensy_Handle, send, receive, 1);
-    printf("%d\n", receive);
+    printf("%d\n", receive[0]);
     lgSpiClose(Teensy_Handle);
+
+    return 0;
 
     int DE0_Handle = lgSpiOpen(0, SPI_DE0, SPI_SPEED_HZ_DEFAULT, 0);
     if (DE0_Handle < 0) return -1;
