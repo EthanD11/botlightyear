@@ -2,9 +2,9 @@
  * This example code shows how to use the spi communication bus
  */
 
-const int A1 = 29;
+const int a1 = 29;
 const int A3 = 36;
-int on = 0;
+int on1 = 0, on3 = 0;
 
 
 // SPI library
@@ -27,7 +27,7 @@ void setup() {
   mySPI.onReceive(receiveEvent);
 
   // Set pins to output
-  pinMode(A1, OUTPUT);
+  pinMode(a1, OUTPUT);
   pinMode(A3, OUTPUT);
 
 }
@@ -43,8 +43,20 @@ void receiveEvent() {
   while ( mySPI.available() ) {
     // Get data
     data = mySPI.popr();
+
+    if (data == 5) {
+      on1 = 1-on1;
+      if (on1) analogWrite(a1, 256);
+      else analogWrite(a1, 0);
+    }
+
+    if (data == 1) {
+      on3 = 1-on3;
+      if (on3) analogWrite(a3, 256);
+      else analogWrite(a3, 0);
+    }
+
     // push it to send buffer
-    if (data == 7) analog
     mySPI.pushr(data);
     // Print data
     Serial.print(data, HEX);

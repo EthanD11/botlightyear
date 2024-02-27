@@ -10,6 +10,8 @@ const uint8_t PWM_L = 22, PWM_R = 23;
 // Current sensors
 // const uint8_t CURRENT_L = 41, CURRENT_R = 40;  
 
+int i = 30;
+
 // Create encoder objects with the pins A and B
 
 Encoder enc_l(25, 26);
@@ -62,17 +64,19 @@ void loop() {
   // Get time
   current_time = millis();
   
-  if (current_time - sens_time > 50) {
+  if (current_time - sens_time > 10000) {
     sens_time = current_time;
 
-    if (current_time > 3000){
+    if (current_time > 50000){
         analogWrite(PWM_L, 0);
         analogWrite(PWM_R, 0);
-    } else if (current_time > 1000) {
-        sens_time = current_time;
-        analogWrite(PWM_L, 120);
-        analogWrite(PWM_R, 120);
-        Serial.printf("left : %.4f\n", enc_l.read()*1.003/58131);
+    } else {
+        i += 5;
+        analogWrite(PWM_L, 50);
+        analogWrite(PWM_R, 50);
+        //Serial.printf("left : %.4f\n", enc_l.read()*1.003/58131);
+        Serial.printf("PWM : %d\n", i);
+        Serial.printf("left  : %.4f\n", enc_l.read()*1.38e-6);
         Serial.printf("right : %.4f\n", enc_r.read()*1.38e-6);
     }
   }

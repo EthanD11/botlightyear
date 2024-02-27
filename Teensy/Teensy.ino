@@ -36,7 +36,7 @@ const double TICKS_TO_M = 1.3806e-6; // Multiply to get meters from tick count. 
 // ----- SPI -----
 
 // Test pin
-const uint8_t A3 = 36;
+const uint8_t a3 = 36;
 
 typedef enum {
   QueryIdle, // Idle, reset motor voltages to 0V
@@ -94,9 +94,9 @@ void setup() {
   mySPI.begin(MSBFIRST, SPI_MODE0);
   mySPI.swapPins();
   mySPI.onReceive(receiveEvent);
-  pinMode(A3, OUTPUT);
-  analogWriteFrequency(A3,20e3);
-  analogWrite(A3,0);
+  pinMode(a3, OUTPUT);
+  analogWriteFrequency(a3,20e3);
+  analogWrite(a3,0);
 
   // ----- MOTORS -----
 
@@ -134,6 +134,7 @@ void loop() {
         yr = ((double)(dataBuf[5]))*2/255;
         tr = ((double)(dataBuf[6]))*2*M_PI/255 - M_PI;
         mode = ModePositionControl;
+        analogWrite(a3, 256);
         break;
 
       case QuerySpeedControl:
@@ -142,14 +143,17 @@ void loop() {
         speed_refl = ((double)dataBuf[1])*2/255;
         speed_refr = ((double)dataBuf[2])*2/255;
         mode = ModeSpeedControl;
+        analogWrite(a3, 128);
         break;
 
       case QueryIdle:
         mode = ModeIdle;
+        analogWrite(a3, 0);
         break;
       
       default: // Idle
         mode = ModeIdle;
+        analogWrite(a3, 0);
         break;
     }
   }
@@ -176,33 +180,35 @@ void loop() {
     #endif
 
     switch (mode) {
-    case ModeIdle:
-      control_time = current_time;
-      duty_cycle_update(0,0);
-      return;
+      case ModeIdle:
+        control_time = current_time;
+        duty_cycle_update(0,0);
+        return;
 
-    case ModePositionControl:
+      case ModePositionControl:
 
-      // Forward & rotation component
-      fwd = (speed_left+speed_right)/2;
-      rot = (speed_right-speed_left)/(2*WHEEL_L); // Divided by two, divided by half the distance between the two wheels = 176.17mm
+        // Update position estimate from encoder data
+        fwd = (speed_left+speed_right)/2;
+        rot = (speed_right-speed_left)/(2*WHEEL_L); // Divided by two, divided by half the distance between the two wheels = 176.17mm
 
-      x += fwd*cos(t+rot/2);
-      y += fwd*sin(t+rot/2);
-      t += rot;
-      t3_position_ctrl(x,y,t,xr,yr,tr, &speed_refl, &speed_refr);
-      break;
+        x += fwd*cos(t+rot/2);
+        y += fwd*sin(t+rot/2);
+        t += rot;
+        t3_position_ctrl(x,y,t,xr,yr,tr, &speed_refl, &speed_refr);
+        break;
 
-    case ModeSpeedControl:
-      break;
+      case ModeSpeedControl:
+        break;
 
-    default: // ModeIdle
-      duty_cycle_update(0,0);
-      return;
+      default: // ModeIdle
+        control_time = current_time;
+        duty_cycle_update(0,0);
+        return;
     }
 
     speed_left  /= ((current_time - control_time)*1e-3);
     speed_right /= ((current_time - control_time)*1e-3);
+    if ((std::abs(speed_refl) < SPD_TOL) && (std::abs(speed_refr) < SPD_TOL) && (std::abs(speed_left) < SPD_TOL) && (std::abs(speed_right) < SPD_TOL)) mode = ModeIdle;
     #ifdef VERBOSE
     printf("Speed : %.4f\t%.4f\n", speed_left, speed_right);
     printf("Speed reference : %.4f\t%.4f\n", speed_refl, speed_refr);
