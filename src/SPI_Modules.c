@@ -152,11 +152,11 @@ void teensy_pos_ctrl(double x, double y, double t, double xr, double yr, double 
 void teensy_spd_ctrl(double speed_left, double speed_right) {
     // Compression to go to SPI
     char send[3];
+    char receive[3];
     send[0] = (char) 4; 
     send[1] = (char) (speed_left*255/speed_max);   // speed_left compressed
     send[2] = (char) (speed_right*255/speed_max);   // speed_right compressed
 
-    char receive[3];
     lgSpiXfer(Teensy_handle, send, receive, 3);
 
     #ifdef VERBOSE
@@ -167,4 +167,9 @@ void teensy_spd_ctrl(double speed_left, double speed_right) {
     }
     #endif
     
+}
+
+void teensy_idle() {
+    char send = 0;
+    lgSpiWrite(Teensy_handle, &send, 1);
 }

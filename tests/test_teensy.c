@@ -3,6 +3,7 @@
 
 //#define SPEED_CONTROL
 #define POSITION_CONTROL
+//#define IDLE
 
 const double deg_to_rads = 3.141593/180;
 
@@ -12,40 +13,26 @@ int main(int argc, char const *argv[])
 
     #ifdef SPEED_CONTROL
     double speed_left, speed_right; 
-
-    
-    speed_left = 0; 
-    speed_right = 0; 
+    speed_left = 0.01; 
+    speed_right = 0.01; 
     teensy_spd_ctrl(speed_left, speed_right); 
-    lguSleep(2);
-
-    speed_left = 0; 
-    speed_right = 0; 
-    teensy_spd_ctrl(speed_left, speed_right); 
- 
-
+    lguSleep(10);
+    teensy_idle();
     #endif
 
     #ifdef POSITION_CONTROL
-    double x = 0; 
+    double x = 1; 
     double y = 0; 
-    double t = 0*deg_to_rads; 
-    double xr = 0.4; 
-    double yr = 0.4; 
+    double t = 45*deg_to_rads; 
+    double xr = 0; 
+    double yr = 0; 
     double tr = 0*deg_to_rads;
 
     teensy_pos_ctrl(x, y, t, xr, yr, tr);
-    close_spi();
-    return 0;
-    lguSleep(6);
-    x = 0; 
-    y = 0; 
-    t = 0*deg_to_rads; 
-    xr = 1; 
-    yr = 0; 
-    tr = 0*deg_to_rads;
+    #endif
 
-    teensy_pos_ctrl(x, y, t, xr, yr, tr);
+    #ifdef IDLE
+    teensy_idle();
     #endif
 
     close_spi();
