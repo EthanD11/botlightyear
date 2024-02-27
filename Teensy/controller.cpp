@@ -3,6 +3,7 @@
 #include "controller.h"
 #include <cmath>
 #include <algorithm>
+
 inline int SAT(int x, int limit) {
   return std::clamp(x, -(limit), limit);
 }  // Saturation function for integers
@@ -37,15 +38,15 @@ const uint8_t a1 = 29, a2 = 37;
 
 // Parameters definiton
 // -- T1 --
-const double t1_kp = 1.169378e+00;                     // Proportional coefficient for speed (V/(rad_mot/s))
-const double t1_ki = 1.259762e+00 * REG_DELAY * 1e-3;  // Integral coefficient for speed (V/rad_motor) * Delta t for the integral
+const double t1_kp = 1.754068e+00;                     // Proportional coefficient for speed (V/(rad_mot/s))
+const double t1_ki = 1.889643e+00 * REG_DELAY * 1e-3;  // Integral coefficient for speed (V/rad_motor) * Delta t for the integral
 const double t1_aw = 30;                              // Saturation level of the integral (anti-windup)
 // -- T3 --
 // Note : local  asymptocical stability if ka > kp > 0, kb < 0
 //        strong asymptotical stability if kp > 0 > kb, ka > kp*2/pi - kb*5/3
-const double t3_kp = 0.7;          // Proportional coefficient for distance error
-const double t3_ka = 3.5;          // Proportional coefficient for direction error
-const double t3_kb = -0.7;         // Proportional coefficient for orientation error
+const double t3_kp = 0.5;          // Proportional coefficient for distance error
+const double t3_ka = 2.5;          // Proportional coefficient for direction error
+const double t3_kb = -0.5;         // Proportional coefficient for orientation error
 const double t3_pos_tol = 1e-2;  // Acceptable static error on position (m)
 const double t3_dft_tol = 5e-2;  // Acceptable drift from reference position when reorienting (m)
 const double t3_ang_tol = 8.73e-2; // Acceptable static error on orientation (rad, eq to 5 degrees)
@@ -141,8 +142,8 @@ void t3_position_ctrl(double x, double y, double theta, double xr, double yr, do
     if (std::abs(alpha) > PI) alpha -= ((alpha > 0) ? 1 : -1) * TWO_PI;
     if (std::abs(alpha) > HALF_PI) {
       p = -p;
-      alpha   += (alpha > 0) ? -PI : PI;
-      theta_r += (theta > 0) ? -PI : PI;
+      alpha += (alpha > 0) ? -PI : PI;
+      beta  += (beta  > 0) ? -PI : PI;
     }
   }
 
