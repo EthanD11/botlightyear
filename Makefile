@@ -67,7 +67,7 @@ lidar: lidar_program
 
 # Run the lidar program
 lidar_program:
-	@g++ ./src/lidar.cpp -o ./bin/lidar -lsl_lidar_sdk -lpthread -L./rplidar/output/Linux/Release -I./rplidar/sdk/include -I./rplidar/sdk/src
+	@g++ ./src/lidar.cpp ./rplidar/sdk/src/rplidar_driver.cpp -o ./bin/lidar -lsl_lidar_sdk -lpthread -L./rplidar/output/Linux/Release -I./rplidar/sdk/include -I./rplidar/sdk/src
 
 # Run Camera program
 camera: camera_program
