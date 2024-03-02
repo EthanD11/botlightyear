@@ -7,6 +7,12 @@ const double x_max = 3.0;
 const double y_max = 2.0; 
 const double t_max = 2*3.141593; 
 const double speed_max = 1.0; 
+int servo_raised = 0;
+// TODO : calibrate with flaps
+const char servo_left_dc_deployed = 19;
+const char servo_left_dc_raised = 27;
+const char servo_right_dc_deployed = 19;
+const char servo_right_dc_raised = 27;
 
 // Converts words from big endian to little endian (and vice versa)
 // https://codereview.stackexchange.com/questions/151049/endianness-conversion-in-c
@@ -63,7 +69,7 @@ void get_odo_tick_fast(int32_t *tick_left, int32_t *tick_right) {
 
 }*/
 
-void get_enc_spd(int32_t *spd_left, int32_t*spd_right) {
+/*void get_enc_spd(int32_t *spd_left, int32_t*spd_right) {
     // left
     char send[] = {0x01,0,0,0,0};
     char receive[5];
@@ -77,7 +83,7 @@ void get_enc_spd(int32_t *spd_left, int32_t*spd_right) {
     *spd_right = *((int32_t *)(&(receive[1])));
     *spd_right = Reverse32(*spd_right);
 
-}
+}*/
 
 /*
 void get_enc_spd_fast(int32_t *spd_left, int32_t *spd_right) {
@@ -92,7 +98,7 @@ void get_enc_spd_fast(int32_t *spd_left, int32_t *spd_right) {
 
 }*/
 
-void odo_enc_reset() {
+void odo_reset() {
     char send[] = {0x7F,0,0,0,0};
     char receive[5];
     lgSpiXfer(DE0_handle, send, receive, 5);
@@ -172,4 +178,14 @@ void teensy_spd_ctrl(double speed_left, double speed_right) {
 void teensy_idle() {
     char send = 0;
     lgSpiWrite(Teensy_handle, &send, 1);
+}
+
+int servo_toggle() {
+    servo_raised = 1-servo_raised; // Invert value
+    char send[5];
+    send[0] = 0x80;
+    send[3] = (servo_raised) ? servo_left_dc_raised : servo_left_dc_deployed;
+    send[4] = (servo_raised) ? servo_right_dc_raised : servo_right_dc_deployed;
+    lgSpiWrite(DE0_handle, send, 5);
+    return servo_raised;
 }

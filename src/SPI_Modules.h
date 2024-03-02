@@ -55,7 +55,7 @@ void get_odo_tick_fast(int32_t *tick_left, int32_t *tick_right);*/
  * @param spd_left pointer that contains speed of left wheel after call
  * @param spd_right pointer that contains speed of right wheel after call
  */
-void get_enc_spd(int32_t *spd_left, int32_t*spd_right);
+//void get_enc_spd(int32_t *spd_left, int32_t*spd_right);
 
 /*
  * @brief Get fast the current speed from left and right encoders and update them to given pointers. gpioInitialise() must have been called before.
@@ -69,7 +69,7 @@ void get_enc_spd_fast(int32_t *spd_left, int32_t *spd_right);*/
 /**
  * @brief Resets internal values of DE0-Nano
  */
-void odo_enc_reset();
+void odo_reset();
 
 /**
  * @brief Initializes sonar pins
@@ -82,12 +82,23 @@ void init_sonar();
 double sonar_ask();*/
 
 /**
- * @brief Send 
+ * @brief Send constant speed query to Teensy. Must be called after init_spi.
 */
 void teensy_spd_ctrl(double speed_left, double speed_right);
 
+/**
+ * @brief Send position update (current and reference) to Teensy. Must be called after init_spi. 
+ */
 void teensy_pos_ctrl(double x, double y, double t, double xr, double yr, double tr);
 
+/**
+ * @brief Send query to idle Teensy. It will stop any control effort over the motors. Must be called after init_spi.
+ */
 void teensy_idle();
+
+/**
+ * @brief Toggles servomotors and returns their current position (0 = deployed, 1 = raised)
+ */
+int servo_toggle();
 
 #endif
