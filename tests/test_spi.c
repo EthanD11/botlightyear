@@ -22,8 +22,6 @@ int main(int argc, char const *argv[])
     printf("%d\n", receive[0]);
     lgSpiClose(Teensy_Handle);
 
-    return 0;
-
     int DE0_Handle = lgSpiOpen(0, SPI_DE0, SPI_SPEED_HZ_DEFAULT, 0);
     if (DE0_Handle < 0) return -1;
     send[0] = 0x00; send[1] = 0x00; send[2] = 0x00; send[3] = 0x00; send[4] = 0x00;
@@ -48,8 +46,6 @@ int main(int argc, char const *argv[])
     if (receive[2] != 0x04) {printf("SPI test 2 failed : receive[%d] == %d != %d\n",2,receive[2],0x04); }
     if (receive[3] != 0x03) {printf("SPI test 2 failed : receive[%d] == %d != %d\n",3,receive[3],0x03); }
     if (receive[4] != 0x02) {printf("SPI test 2 failed : receive[%d] == %d != %d\n",4,receive[4],0x02); }
-
-    // TODO : add SPI test for Teensy
 
     lgSpiClose(DE0_Handle);
     return 0;
