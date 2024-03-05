@@ -3,12 +3,11 @@
  * \brief File description
  */
 #include "math.h"
-#include "path_following.h" // adapt it with your headers
-
-NAMESPACE_INIT(ctrlGr2); // where X should be replaced by your group number
+#include "path_follower.h" // adapt it with your headers
+// where X should be replaced by your group number
 
 PathFollower* init_path_follower() {
-    path_follower = (PathFollower *) malloc(sizeof(PathFollower));
+    PathFollower *path_follower = (PathFollower *) malloc(sizeof(PathFollower));
     path_follower->Lspeed_ref = 0;
     path_follower->Rspeed_ref = 0;
     path_follower->kt = 25.0;
@@ -181,16 +180,13 @@ int update_path_follower_ref_speed(
     double vctrl = v;
 
     // use local variables for ease of read
-    dt = cvs->dt;
     kt = pf->kt;  kn = pf->kn; kz = pf->kz; sigma = pf->sigma; // Control gains
     kif = pf->kif; kifdot = pf->kifdot; wn = pf->wn; xsi_n = xsi_n;
     delta = pf->delta;
 
-    theta = cvs->rob_pos->theta;
-
     // Compute error in the fixed reference frame
-    ex = cvs->rob_pos->x - pf->xref;
-    ey = cvs->rob_pos->y - pf->yref;
+    ex = xpos - pf->xref;
+    ey = ypos - pf->yref;
 
     // Compute derivatives at reference point on the curve
     i_spline = pf->i_spline;
