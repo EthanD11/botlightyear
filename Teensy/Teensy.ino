@@ -60,7 +60,6 @@ uint32_t dataBuf[7];
 
 
 // ----- GENERALS -----
-
 // Current and reference x, y and theta
 double x = 0, y = 0, t = 0, xr = 0, yr = 0, tr = 0;
 double fwd, rot;
