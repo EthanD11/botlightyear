@@ -9,15 +9,7 @@
 
 //#define ODOMETERS_ENC
 
-// Parameters definiton
-#define REF_SPEED_LIMIT 0.7 // Saturation level of the reference angular velocity (rad_mot/s, 113*100*2pi/64, 0.9/30e-3*30)
-#define REG_DELAY 20 // Delay between two updates (ms)
-#define SPD_TOL 1e-2 // Max speed at which motors can be turned off (rad_mot/s)
-#ifdef ODOMETERS_ENC
-#define WHEEL_L 126e-3 // Half the distance between the two wheels (m)
-#else
-#define WHEEL_L 88.085e-3 // Half the distance between the two wheels (m)
-#endif
+
 
 /**
  * @brief Type 1 PI control of the speed based on angular velocities (left and right, actual and reference)

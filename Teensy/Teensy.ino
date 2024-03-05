@@ -2,6 +2,8 @@
 #include <Encoder.h>
 #include "SPISlave_T4.h"
 #include "controller.h"
+#include "localization.h"
+#include "path_follower.h"
 
 //#define PARITY_CHECK
 
@@ -23,15 +25,13 @@ Encoder enc_r(30, 31);
 const int LEVEL_SHIFTER = 2;
 
 // Ticks
-int old_tick_left = 0, old_tick_right = 0;
-double speed_left = 0, speed_right = 0;
+// int old_tick_left = 0, old_tick_right = 0;
+// double speed_left = 0, speed_right = 0;
 
-#ifdef ODOMETERS_ENC
-const double TICKS_TO_M = 1.7257e-5; // Multiply to get meters from tick count. pi*45e-3/8192
-#else
-const double TICKS_TO_M = 1.3806e-6; // Multiply to get meters from tick count. pi*72e-3/20/8192
-#endif
 
+
+// ----- Path Follower -----
+PathFollower *path_follower;
 
 // ----- SPI -----
 
@@ -61,7 +61,8 @@ uint32_t dataBuf[7];
 
 // ----- GENERALS -----
 // Current and reference x, y and theta
-double x = 0, y = 0, t = 0, xr = 0, yr = 0, tr = 0;
+RobotPosition *robot_position;
+double xr = 0, yr = 0, tr = 0;
 double fwd, rot;
 double speed_refl, speed_refr;
 
@@ -111,6 +112,9 @@ void setup() {
   enc_l.write(0);
   enc_r.write(0);
 
+  // ----- PATH FOLLOWER -----
+  path_follower = init_path_follower();
+
   // ----- GENERAL -----
 
   control_time = millis();
@@ -126,9 +130,9 @@ void loop() {
       case QueryPositionControl:
         enc_l.write(0); enc_r.write(0); 
         old_tick_left = 0; old_tick_right = 0;
-        x  = ((double)(dataBuf[1]))*3/255;
-        y  = ((double)(dataBuf[2]))*2/255;
-        t  = ((double)(dataBuf[3]))*2*M_PI/255 - M_PI;
+        robot_position->x      = ((double)(dataBuf[1]))*3/255;
+        robot_position->y      = ((double)(dataBuf[2]))*2/255;
+        robot_position->theta  = ((double)(dataBuf[3]))*2*M_PI/255 - M_PI;
         xr = ((double)(dataBuf[4]))*3/255;
         yr = ((double)(dataBuf[5]))*2/255;
         tr = ((double)(dataBuf[6]))*2*M_PI/255 - M_PI;

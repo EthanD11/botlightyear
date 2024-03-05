@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
-
+#include <time.h>
 
 #define PI 3.141592653589793238462643383279502
 #define SATURATE(a,lb,ub) ((a) > (ub) ? (ub) : ((a) < (lb) ? (lb) : (a)))
@@ -27,8 +27,18 @@
 #define TRUE 1
 #define FALSE 0
 
-#define WHEEL_R 30e-3   
-#define WHEEL_L 90e-3
+// Parameters definiton
+#define REF_SPEED_LIMIT 0.7 // Saturation level of the reference angular velocity (rad_mot/s, 113*100*2pi/64, 0.9/30e-3*30)
+#define REG_DELAY 20 // Delay between two updates (ms)
+#define SPD_TOL 1e-2 // Max speed at which motors can be turned off (rad_mot/s)
+
+#ifdef ODOMETERS_ENC
+#define WHEEL_L 126e-3 // Half the distance between the two wheels (m)
+#define TICKS_TO_M = 1.7257e-5; // Multiply to get meters from tick count. pi*45e-3/8192
+#else
+#define WHEEL_L 88.085e-3 // Half the distance between the two wheels (m)
+#define TICKS_TO_M = 1.3806e-6; // Multiply to get meters from tick count. pi*72e-3/20/8192
+#endif
 
 void store_vector(int n, double *x, char *filename);
 void erase_file(char *filename);
