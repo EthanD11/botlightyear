@@ -1,12 +1,8 @@
 SPI bus
- - Teensy : Design instruction encoding (already started a bit in Teensy.ino),
-    could be inspired from DE0 encoding for servomotors/steppers
-    Ideas :  - 8-bit header for query + redundancy check (e.g. parity bit) 
-             - Modes for position control, remote speed control, slow position control, backward movement, turn around, ...
+ - Teensy : 
+   Parity bit & Test read/write
  - DE0 : Design query system for the different functionalities (to be merged with DE0 implem, see other repo)
  - Tests
- - Increase clock frequency (as much as possible)
-    Limiting factor will probably be the DE0 clock of 50MHz, compared to Teensy's 600MHz
 
 Dynamixels : find a good library on github for easy use
 Lidar : balise ok, plant detection is the next step ? Not sure, ask Pauline

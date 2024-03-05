@@ -1,5 +1,4 @@
 #include "lidar.h"
-#include "sl_lidar_driver.h"
 
 #include <rplidar.h>
 #include <cstdio>
@@ -20,47 +19,14 @@ using std::string;
 
 using namespace sl;
 IChannel* channel;
-rp::standalone::rplidar::RPlidarDriver* lidar;
+ILidarDriver *lidar;
+
+
 
 //SLeep
 #include <unistd.h>
 
-
-
-
-void StartLidarTop(){
-    
-	lidar = rp::standalone::rplidar::RPlidarDriver::CreateDriver();
-
-	u_result res = lidar->connect("/dev/ttyUSB0", 256000);
-    if (IS_OK(res)){
-        sl_lidar_response_device_info_t deviceInfo;
-        res = lidar->getDeviceInfo(deviceInfo);
-        if(SL_IS_OK(res)){
-            printf("Model: %d, Firmware Version: %d.%d, Hardware Version: %d\n",
-                deviceInfo.model,
-                deviceInfo.firmware_version >> 8, deviceInfo.firmware_version & 0xffu,
-                deviceInfo.hardware_version);
-            
-            lidar->startMotor();
-            std::vector<LidarScanMode> scanModes;
-            lidar->getAllSupportedScanModes(scanModes);
-
-            LidarScanMode scanMode;
-            lidar->startScan(false, true, 0, &scanMode);
-        }else{
-            fprintf(stderr, "Failed to get device information from LIDAR %08x\r\n", res);
-        }
-
-
-    }
-    else{
-        fprintf(stderr, "Failed to connect to LIDAR %08x\r\n", res);
-    	rp::standalone::rplidar::RPlidarDriver::DisposeDriver(lidar);
-    }
-}
-/*
-void StartLidarTopEchec(){
+void StartLidar(){
     ///  Create a communication channel instance
     //TODO 2 lidar ici modif port chanel ??
     Result<IChannel*> _channel = createSerialPortChannel("/dev/ttyUSB0", 256000); //port série spécifié est "/dev/ttyUSB0" avec un débit de 115200 bps.
@@ -71,55 +37,6 @@ void StartLidarTopEchec(){
     channel = _channel.value;
 
     Result<ILidarDriver *> _lidar = createLidarDriver();
-
-    if (_lidar.err) {
-        fprintf(stderr, "Failed to create Lidar driver\r\n");
-        return;
-    }
-    lidar = _lidar.value;
-
-    //lidar->setMotorSpeed(600);//AAAAAAAAAAAH
-
-
-    u_result res = lidar->connect(channel);
-    if(SL_IS_OK(res)){
-        sl_lidar_response_device_info_t deviceInfo;
-        res = lidar->getDeviceInfo(deviceInfo);
-        if(SL_IS_OK(res)){
-            res = lidar->startMotor();
-            //TODO recup noms lidar ici pour faire la diff entre les 2
-            printf("Model: %d, Firmware Version: %d.%d, Hardware Version: %d\n",
-                   deviceInfo.model,
-                   deviceInfo.firmware_version >> 8, deviceInfo.firmware_version & 0xffu,
-                   deviceInfo.hardware_version);
-
-
-            std::vector<LidarScanMode> scanModes;
-            lidar->getAllSupportedScanModes(scanModes);
-
-            LidarScanMode scanMode;
-            lidar->startScan(false, true, 0, &scanMode);
-
-        }else{
-            fprintf(stderr, "Failed to get device information from LIDAR %08x\r\n", res);
-        }
-    }else{
-        fprintf(stderr, "Failed to connect to LIDAR %08x\r\n", res);
-    }
-}
-
-
-void StartLidarBottom(){
-    ///  Create a communication channel instance
-    //TODO 2 lidar ici modif port chanel ??
-    Result<IChannel*> _channel = createSerialPortChannel("/dev/ttyUSB0", 115200); //port série spécifié est "/dev/ttyUSB0" avec un débit de 115200 bps.
-    if (_channel.err) {
-        fprintf(stderr, "Failed to create communication channel\r\n");
-        return;
-    }
-    channel = _channel.value;
-
-    Result<ILidarDriver *> _lidar = createLidarDriver();
     if (_lidar.err) {
         fprintf(stderr, "Failed to create Lidar driver\r\n");
         return;
@@ -149,22 +66,7 @@ void StartLidarBottom(){
         fprintf(stderr, "Failed to connect to LIDAR %08x\r\n", res);
     }
 }
-*/
 
-
-
-void StopLidarTop(){
-   	lidar->stopMotor();
-    lidar->disconnect();
-
-    rp::standalone::rplidar::RPlidarDriver::DisposeDriver(lidar);
-}
-
-void StopLidarBottom(){
-    lidar->stop();
-    delete lidar;
-    delete channel;
-}
 
 void updateData(double* angles, double* distances, double* quality, int arraySize){
     sl_lidar_response_measurement_node_hq_t nodes[arraySize];
@@ -243,18 +145,37 @@ void DataToFile(string filename){
             double distance_in_meters = nodes[i].dist_mm_q2 / 1000.f / (1 << 2);
 
             ///quality is not taken into account in order to have information for each position in the file
-            fprintf(file,"%f, %f\n", angle_in_degrees, distance_in_meters);
+            fprintf(file,"%f %f\n", angle_in_degrees, distance_in_meters);
         }
         fclose(file);
     }
 }
-int main(int argc, char *argv[]) {
-    StartLidarTop();
-    for (size_t i = 0; i < 1; i++)
-    {
-        DataToFile("test"+std::to_string(i)+".txt");
-    }
-    sleep(30);
-    StopLidarTop();
 
+void StopLidar(){
+    lidar->stop();
+    delete lidar;
+    delete channel;
+}
+
+
+
+int main(int argc, char *argv[]) {
+   /*
+    ILidarDriver* lid = connectLidarL();
+    sleep(10);
+    disconnectLidarL(lid);
+    */
+    
+    
+    
+    StartLidar();
+    for (size_t i = 80; i < 84; i++)
+    {
+        sleep(10);
+        DataToFile("testBottom"+std::to_string(i)+".txt");
+        printf("turn\n");
+    }
+    
+    StopLidar();
+    
 }
