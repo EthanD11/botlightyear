@@ -12,22 +12,8 @@
 // ----- ENCODERS -----
 
 // Create encoder objects with the pins A and B
-// TODO : CHECK PINS
-#ifdef ODOMETERS_ENC
-Encoder enc_l(26, 25);
-Encoder enc_r(31, 30);
-#else
-Encoder enc_l(25, 26);
-Encoder enc_r(30, 31);
-#endif
-
 // Level-shifter pin
 const int LEVEL_SHIFTER = 2;
-
-// Ticks
-// int old_tick_left = 0, old_tick_right = 0;
-// double speed_left = 0, speed_right = 0;
-
 
 
 // ----- Path Follower -----
@@ -58,7 +44,6 @@ uint8_t parity_bit;
 uint32_t dataBuf[7];
 //uint32_t testWriteBuf[4];
 
-
 // ----- GENERALS -----
 // Current and reference x, y and theta
 RobotPosition *robot_position;
@@ -71,12 +56,6 @@ int control_time;
 //int request_time;
 //const int SPI_TTL = 7*8/500;
 
-typedef enum {
-  ModeIdle, // No input from RPi, default is to remain still
-  ModePositionControl,
-  ModeSpeedControl
-} controlmode_t; // Control modes type
-
 controlmode_t mode = ModeIdle;
 
 
@@ -88,9 +67,7 @@ void setup() {
   //Serial.begin(115200);
   //while (!Serial);
 
-
   // ----- SPI -----
-
   mySPI.begin(MSBFIRST, SPI_MODE0);
   mySPI.swapPins();
   mySPI.onReceive(receiveEvent);
@@ -108,31 +85,29 @@ void setup() {
   pinMode(LEVEL_SHIFTER, OUTPUT);
   digitalWrite(LEVEL_SHIFTER, HIGH);
 
-  // Reset encoders
-  enc_l.write(0);
-  enc_r.write(0);
+  robot_position = init_robot_position(0, 0, 0);
 
   // ----- PATH FOLLOWER -----
   path_follower = init_path_follower();
 
   // ----- GENERAL -----
-
   control_time = millis();
   //request_time = -SPI_TTL;
 
 }
 
 void loop() {
+    
+  // Get time
+  int current_time = millis();
+  robot_position->dt = 1e-3*(current_time - control_time);
 
   if (i == n) {
     i = 0;
     switch (dataBuf[0]) {
       case QueryPositionControl:
-        enc_l.write(0); enc_r.write(0); 
-        old_tick_left = 0; old_tick_right = 0;
-        robot_position->x      = ((double)(dataBuf[1]))*3/255;
-        robot_position->y      = ((double)(dataBuf[2]))*2/255;
-        robot_position->theta  = ((double)(dataBuf[3]))*2*M_PI/255 - M_PI;
+        reset_encoders(robot_position);
+        set_position(robot_position, dataBuf);
         xr = ((double)(dataBuf[4]))*3/255;
         yr = ((double)(dataBuf[5]))*2/255;
         tr = ((double)(dataBuf[6]))*2*M_PI/255 - M_PI;
@@ -141,8 +116,7 @@ void loop() {
         break;
 
       case QuerySpeedControl:
-        enc_l.write(0); enc_r.write(0); 
-        old_tick_left = 0; old_tick_right = 0;
+        reset_encoders(robot_position);
         speed_refl = ((double)dataBuf[1])*2/255;
         speed_refr = ((double)dataBuf[2])*2/255;
         mode = ModeSpeedControl;
@@ -161,26 +135,10 @@ void loop() {
     }
   }
 
-
-  // Get time
-  int current_time = millis();
-
+  update_localization(robot_position);
+ 
   // Each 20ms TODO : Restimate REG_DELAY
   if(current_time - control_time > REG_DELAY){
-
-    // Updating values according to encoders
-    int tick_left, tick_right;
-    tick_left = enc_l.read(); tick_right = enc_r.read();
-
-    // Temporarily forget delta t to avoid remultiplying when computing x, y and theta
-    speed_left  = (tick_left  - old_tick_left )*TICKS_TO_M;
-    speed_right = (tick_right - old_tick_right)*TICKS_TO_M;
-
-    old_tick_left = tick_left; old_tick_right = tick_right;
-
-    #ifdef VERBOSE
-    printf("Ticks : %d, %d\n", old_tick_left, old_tick_right);
-    #endif
 
     switch (mode) {
       case ModeIdle:

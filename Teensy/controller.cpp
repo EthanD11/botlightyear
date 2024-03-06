@@ -4,13 +4,6 @@
 #include <cmath>
 #include <algorithm>
 
-inline int SAT(int x, int limit) {
-  return std::clamp(x, -(limit), limit);
-}  // Saturation function for integers
-inline double SAT(double x, double limit) {
-  return std::clamp(x, -(limit), limit);
-}  // Saturation function for doubles
-
 
 #define MOTOR_DUTY_RANGE 256  // Duty cycle range
 #define BUF_STEP 100           // Max step to avoid brutal speed changes
@@ -20,7 +13,7 @@ inline double SAT(double x, double limit) {
 
 
 #ifdef ADZ_ENABLE
-int adz = 35;
+const int adz = 35;
 #endif
 
 

@@ -6,8 +6,9 @@
 typedef struct RobotPosition {
     double x, y, theta;
     double vfwd, omega;
+    double speed_left, speed_right;
 
-    double control_time, current_time, dt;
+    double dt;
 
     Encoder enc_r, enc_l;
     double old_tick_left, old_tick_right;
@@ -15,7 +16,10 @@ typedef struct RobotPosition {
     
 } RobotPosition;
 
-void init_robot_position(RobotPosition *robot_position, double x0, double y0, double theta_0); 
+RobotPosition* init_robot_position(double x0, double y0, double theta_0); 
+void free_robot_position(RobotPosition *robot_position);
 void update_localization(RobotPosition *robot_position);
+inline void reset_encoders(RobotPosition *robot_position);
+inline void set_position(RobotPosition *robot_position, uint32_t dataBuf[3]);
 
 #endif

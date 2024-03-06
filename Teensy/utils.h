@@ -27,7 +27,8 @@
 #define TRUE 1
 #define FALSE 0
 
-// Parameters definiton
+
+// ------ Program parameters -------
 #define REF_SPEED_LIMIT 0.7 // Saturation level of the reference angular velocity (rad_mot/s, 113*100*2pi/64, 0.9/30e-3*30)
 #define REG_DELAY 20 // Delay between two updates (ms)
 #define SPD_TOL 1e-2 // Max speed at which motors can be turned off (rad_mot/s)
@@ -40,8 +41,19 @@
 #define TICKS_TO_M = 1.3806e-6; // Multiply to get meters from tick count. pi*72e-3/20/8192
 #endif
 
+typedef enum {
+  ModeIdle, // No input from RPi, default is to remain still
+  ModePositionControl,
+  ModeSpeedControl
+} controlmode_t; // Control modes type
+
+
+// ------- Useful function -------
+
 void store_vector(int n, double *x, char *filename);
 void erase_file(char *filename);
 void append_to_file(char *filename, double data);
+inline int SAT(int x, int limit);
+inline double SAT(double x, double limit);
 
 #endif
