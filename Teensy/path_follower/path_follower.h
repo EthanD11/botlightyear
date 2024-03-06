@@ -8,6 +8,7 @@
 
 #include "utils.h"
 #include "splines.h"
+#include "localization.h"
 #include <stdlib.h>
 
 
@@ -63,7 +64,7 @@ void init_path_follower(PathFollower *path_follower);
 void free_path_follower(PathFollower *path_follower);
 
 // Set the checkpoints of a PathFollower
-void init_path_following(PathFollower *path_follower, double *x, double *y, int n);
+void init_path_following(PathFollower *path_follower, double *x, double *y, int ncheckpoints, double theta_start);
 
 /* Computes the path by interpolating cubic splines through checkpoints
  * the returned points are approximately equidistant of `dist` [m].
@@ -77,6 +78,10 @@ void compute_entire_path(PathFollower *path_follower, double dist);
 // Update the reference speed within the path follower
 // Returns 1 if the end of the path is reached
 // Returns 0 otherwise
-int update_path_follower_ref_speed(PathFollower *path_follower, double vref, double dist_goal_reached);
+inline int update_path_follower_ref_speed(
+    PathFollower *path_follower,
+    RobotPosition *robot_position, 
+    double vref, 
+    double dist_goal_reached);
 
 #endif

@@ -26,7 +26,7 @@ void free_path_follower(PathFollower *path_follower) {
     free(path_follower);
 }
 
-void init_path_following(PathFollower *path_follower, double *x, double *y, int n, double theta){
+void init_path_following(PathFollower *path_follower, double *x, double *y, int n, double theta_start){
     path_follower->checkpoints_x = x;
     path_follower->checkpoints_y = y;
     path_follower->n = n;
@@ -49,7 +49,7 @@ void init_path_following(PathFollower *path_follower, double *x, double *y, int 
     path_follower->xsi_n = 0;
 
     // Filtered states
-    path_follower->kif = theta;
+    path_follower->kif = theta_start;
     path_follower->kifdot = 0;
     path_follower->curvature_f = 0.0;
     path_follower->curvature_fdot = 0.0;
@@ -161,12 +161,11 @@ int compute_next_point(PathFollower *pf, double delta_s, double dist_goal_reache
 
 // Reference paper:
 // See https://link.springer.com/article/10.1007/s42405-021-00395-7
-int update_path_follower_ref_speed(
+inline int update_path_follower_ref_speed(
     PathFollower *pf, 
+    RobotPosition *rp,
     double vref, 
-    double xpos, double ypos, double theta,
-    double dist_goal_reached, 
-    double dt) 
+    double dist_goal_reached) 
 {
 
     SplineSet *x_splines = pf->x_splines;
@@ -201,7 +200,6 @@ int update_path_follower_ref_speed(
     double tmp = sqrt(dxdq*dxdq+dydq*dydq);
     curvature = (dxdq*d2ydq2 - dydq*d2xdq2) / (tmp*tmp*tmp);
 
-
     // Compute angle of the reference frame with x-axis tangent to trajectory (Serret-Frenet frame)
     kir = atan2(dydq, dxdq);
 
@@ -221,8 +219,9 @@ int update_path_follower_ref_speed(
     kitilde = theta - kir;
 
     // Reference speed correction
-    vref = MAX(vref + SIGMOID(-(et-5e-2))*(25e-2-vref) - fabs(pf->kv_en*en),//fabs(pf->curvature_f)*pf->kv_curv, 
-        15e-2);// + (fabs(en)/pf->kv_en) + 1e-15));
+    vref = MAX(
+        vref + SIGMOID(-(et-5e-2))*(25e-2-vref) - fabs(pf->kv_en*en),
+        15e-2);
 
     // Filters
     pf->curvature_f += pf->curvature_fdot;
@@ -258,7 +257,7 @@ int update_path_follower_ref_speed(
     double step = MIN(delta_s, MAX_DS); // Take step no bigger than MAX_DS
 
     dq = step / sqrt(dxdq*dxdq + dydq*dydq); // Estimation of the dq needed to travel of ds along the spline
-    pf->qref = MAX(pf->qref+dq, 0); // Update the qref
+    pf->qref = MAX(pf->qref + dq, 0); // Update the qref
     if (pf->qref >= q_checkpoints[i_spline+1]){
         i_spline += 1;
     }

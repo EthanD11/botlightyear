@@ -2,9 +2,14 @@
 #define _POSITION_CONTROL_H_
 
 #include "utils.h"
+#include "localization.h"
+#include <stdlib.h>
+#include <stdio.h>
 
 typedef struct PositionController {
-    double speed_refl, speed_refr; // Output speed references of the position controller
+    
+    double xref, yref, theta_ref; // Input position reference
+    double speed_refl, speed_refr; // Output speed references
 
     double kp;  // Proportional coefficient for distance error
     double ka;  // Proportional coefficient for direction error
@@ -17,10 +22,12 @@ typedef struct PositionController {
 } PositionController;
 
 PositionController *init_position_controller();
-void position_control(
+inline void set_position_reference(PositionController *position_controller, uint32_t dataBuf[3]);
+inline void set_position_reference(PositionController *position_controller,
+    double xref, double yref, double theta_ref);
+void control_position(
     PositionController *position_controller,
-    double xref, double yref,
-    double xpos, double ypos, double theta
+    RobotPosition *robot_position
 );
 
 #endif

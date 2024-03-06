@@ -19,12 +19,12 @@ void free_regulator(Regulator *regulator) {
     free(regulator);
 }
 
-void speed_ctrl(
+inline void control_speed(
     Regulator *reg, 
     double speed_l,
     double speed_r,
-    double speed_refr,
-    double speed_refl) {
+    double speed_refl,
+    double speed_refr) {
 
     speed_l = SAT(speed_l, REF_SPEED_LIMIT);
     speed_r = SAT(speed_r, REF_SPEED_LIMIT);

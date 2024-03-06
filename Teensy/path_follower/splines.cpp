@@ -97,15 +97,15 @@ double* interpolate_splines(SplineSet *splines, int m) {
     return interpolation;
 }
 
-double evaluate_spline(double a, double b, double c, double d, double dq) {
+inline double evaluate_spline(double a, double b, double c, double d, double dq) {
     return ((d*dq + c)*dq + b)*dq + a;
 }
 
-double evaluate_spline_derivative(double b, double c, double d, double dq) {
+inline double evaluate_spline_derivative(double b, double c, double d, double dq) {
     return (3*d*dq + 2*c)*dq + b;
 }
 
-double evaluate_spline_second_derivative(double c, double d, double dq) {
+inline double evaluate_spline_second_derivative(double c, double d, double dq) {
     return 6*dq + 2*c;
 }
 

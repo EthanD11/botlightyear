@@ -12,7 +12,7 @@ const int adz = 35;
 #endif
 
 typedef struct Regulator {
-    double duty_cycle_l, duty_cycle_r;
+    int duty_cycle_refl, duty_cycle_refr;
     double isl, isr;
     double kp, ki;
     double imax;
@@ -21,7 +21,7 @@ typedef struct Regulator {
 Regulator *init_regulator();
 void free_regulator(Regulator *regulator);
 
-void speed_ctrl(
+inline void control_speed(
     Regulator *regulator, 
     double speed_l,
     double speed_r,

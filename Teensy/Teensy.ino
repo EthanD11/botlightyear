@@ -1,98 +1,61 @@
 // Import library
 #include <Encoder.h>
 #include "SPISlave_T4.h"
-#include "controller.h"
+#include "SPIInterface.h"
+// #include "controller.h"
 #include "localization.h"
 #include "path_follower.h"
-
-//#define PARITY_CHECK
+#include "position_control.h"
+#include "regulator.h"
+#include "output_interface.h"
 
 // Note : Left = 1, Right = 2
 
-// ----- ENCODERS -----
-
-// Create encoder objects with the pins A and B
-// Level-shifter pin
-const int LEVEL_SHIFTER = 2;
-
-
-// ----- Path Follower -----
-PathFollower *path_follower;
-
-// ----- SPI -----
-
-// Test pin
-const uint8_t a3 = 36;
-
-typedef enum {
-  QueryIdle, // Idle, reset motor voltages to 0V
-  QueryTestRead, // SPI test, answer with [1,2,3,4]
-  QueryTestWrite, // SPI test, answer with data received
-  QueryPositionControl, // Position update, data received = [flag,x,y,t,xr,yr,tr]
-  QuerySpeedControl // Speed control, data received = [flag,left,right]
-} query_t;
-
-// Create spi object
-SPISlave_T4 mySPI(0, SPI_8_BITS);
-
-uint32_t i = 0, n = 1; // Number of bytes received, expected and actual
-query_t query;
-#ifdef PARITY_CHECK
-uint8_t parity_bit;
-#endif
-
-uint32_t dataBuf[7];
-//uint32_t testWriteBuf[4];
-
 // ----- GENERALS -----
 // Current and reference x, y and theta
+OutputInterface *outputs;
+SPIInterface *spi_interface;
+
 RobotPosition *robot_position;
-double xr = 0, yr = 0, tr = 0;
-double fwd, rot;
-double speed_refl, speed_refr;
+PositionController *position_controller;
+PathFollower *path_follower;
+Regulator *speed_regulator;
 
-// Time variables
-int control_time;
-//int request_time;
-//const int SPI_TTL = 7*8/500;
-
+typedef enum {
+  ModeIdle, // No input from RPi, default is to remain still
+  ModePositionControl,
+  ModeSpeedControl
+} controlmode_t; // Control modes type
 controlmode_t mode = ModeIdle;
 
+// ----- TIME -----
+int control_time;
 
 // --------------------------------------------------------------
 
-
 void setup() {
-  // Serial declaration
   //Serial.begin(115200);
-  //while (!Serial);
+
+  // ----- OUTPUTS -----
+  outputs = init_outputs();
 
   // ----- SPI -----
-  mySPI.begin(MSBFIRST, SPI_MODE0);
-  mySPI.swapPins();
-  mySPI.onReceive(receiveEvent);
-  pinMode(a3, OUTPUT);
-  analogWriteFrequency(a3,20e3);
-  analogWrite(a3,0);
+  spi_interface = init_spi_interface();
 
-  // ----- MOTORS -----
-
-  init_motors();
-
-  // ----- ENCODERS -----
-
-  // Enable the level shifter
-  pinMode(LEVEL_SHIFTER, OUTPUT);
-  digitalWrite(LEVEL_SHIFTER, HIGH);
-
+  // ----- POSITION -----
   robot_position = init_robot_position(0, 0, 0);
+
+  // ----- POSITION CONTROLLER -----
+  position_controller = init_position_controller();
+
+  // ----- SPEED REGULATOR -----
+  speed_regulator = init_regulator();
 
   // ----- PATH FOLLOWER -----
   path_follower = init_path_follower();
 
   // ----- GENERAL -----
   control_time = millis();
-  //request_time = -SPI_TTL;
 
 }
 
@@ -104,33 +67,31 @@ void loop() {
 
   if (i == n) {
     i = 0;
-    switch (dataBuf[0]) {
+    switch (spi_interface->query) {
       case QueryPositionControl:
         reset_encoders(robot_position);
-        set_position(robot_position, dataBuf);
-        xr = ((double)(dataBuf[4]))*3/255;
-        yr = ((double)(dataBuf[5]))*2/255;
-        tr = ((double)(dataBuf[6]))*2*M_PI/255 - M_PI;
+        set_position(robot_position, &spi_interface->data_buffer[0]);
+        set_position_reference(position_controller, &spi_interface->data_buffer[4]);
         mode = ModePositionControl;
-        analogWrite(a3, 256);
+        outputs->analog_write_a3pin = 256;
         break;
 
       case QuerySpeedControl:
         reset_encoders(robot_position);
-        speed_refl = ((double)dataBuf[1])*2/255;
-        speed_refr = ((double)dataBuf[2])*2/255;
+        speed_regulator->speed_refl = ((double)dataBuf[1])*2/255;
+        speed_regulator->speed_refr = ((double)dataBuf[2])*2/255;
         mode = ModeSpeedControl;
-        analogWrite(a3, 128);
+        outputs->analog_write_a3pin = 128;
         break;
 
       case QueryIdle:
         mode = ModeIdle;
-        analogWrite(a3, 0);
+        outputs->analog_write_a3pin = 0;
         break;
       
       default: // Idle
         mode = ModeIdle;
-        analogWrite(a3, 0);
+        outputs->analog_write_a3pin = 0;
         break;
     }
   }
@@ -143,87 +104,29 @@ void loop() {
     switch (mode) {
       case ModeIdle:
         control_time = current_time;
-        duty_cycle_update(0,0);
+        duty_cycle_update(motors, 0, 0);
         return;
 
       case ModePositionControl:
-
-        // Update position estimate from encoder data
-        fwd = (speed_left+speed_right)/2;
-        rot = (speed_right-speed_left)/(2*WHEEL_L); // Divided by two, divided by half the distance between the two wheels = 176.17mm
-
-        x += fwd*cos(t+rot/2);
-        y += fwd*sin(t+rot/2);
-        t += rot;
-        t3_position_ctrl(x,y,t,xr,yr,tr, &speed_refl, &speed_refr);
+        control_position(position_controller, robot_position);
+        control_speed(speed_regulator,
+          robot_position->speed_left, robot_position->speed_right,
+          position_controller->speed_refl, position_controller->speed_refr);
         break;
 
       case ModeSpeedControl:
         break;
 
       default: // ModeIdle
-        control_time = current_time;
-        duty_cycle_update(0,0);
+        duty_cycle_update(motors,0,0);
         return;
     }
 
-    speed_left  /= ((current_time - control_time)*1e-3);
-    speed_right /= ((current_time - control_time)*1e-3);
-    if ((std::abs(speed_refl) < SPD_TOL) && (std::abs(speed_refr) < SPD_TOL) && (std::abs(speed_left) < SPD_TOL) && (std::abs(speed_right) < SPD_TOL)) mode = ModeIdle;
-    #ifdef VERBOSE
-    printf("Speed : %.4f\t%.4f\n", speed_left, speed_right);
-    printf("Speed reference : %.4f\t%.4f\n", speed_refl, speed_refr);
-    #endif
-
-    t1_speed_ctrl(speed_left, speed_right, speed_refl, speed_refr);
+    duty_cycle_update(motors, 
+          speed_regulator->duty_cycle_refl,
+          speed_regulator->duty_cycle_refr);
 
     // Update last control time
     control_time = current_time;
-
   }
 }
-
-void receiveEvent() {
-  
-  //When there is data to read
-  while ( mySPI.available() ) {
-
-    uint32_t data = mySPI.popr();
-
-    if (i == 0) {
-      switch (data) {
-        case QueryPositionControl :
-          n = 7;
-          break;
-
-        case QuerySpeedControl:
-          n = 3;
-          break;
-
-        case QueryIdle:
-          n = 1;
-          break;
-
-        default: // Idle
-          n = 1;
-          break;
-      }
-    }
-    // Get data
-    dataBuf[i++] = data;
-
-    #ifdef VERBOSE
-    printf("NEW DATA : %d\n", (int) data);
-    #endif
-  }
-}
-
-#ifdef PARITY_CHECK
-inline uint8_t parity_check() {
-  uint8_t b = 0;
-  for (int j = 0, j < n, i++) {
-    b ^= __builtin_parity(dataBuf[j]);
-  }
-  return b;
-} 
-#endif

@@ -11,6 +11,7 @@
 #include <math.h>
 #include <string.h>
 #include <time.h>
+#include <stdint.h>
 
 #define PI 3.141592653589793238462643383279502
 #define SATURATE(a,lb,ub) ((a) > (ub) ? (ub) : ((a) < (lb) ? (lb) : (a)))
@@ -40,13 +41,6 @@
 #define WHEEL_L 88.085e-3 // Half the distance between the two wheels (m)
 #define TICKS_TO_M = 1.3806e-6; // Multiply to get meters from tick count. pi*72e-3/20/8192
 #endif
-
-typedef enum {
-  ModeIdle, // No input from RPi, default is to remain still
-  ModePositionControl,
-  ModeSpeedControl
-} controlmode_t; // Control modes type
-
 
 // ------- Useful function -------
 
