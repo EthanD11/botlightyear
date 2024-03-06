@@ -24,6 +24,7 @@
 #include <stdint.h>
 #include "robotis_def.h"
 #include "port_handler.h"
+#include <stddef.h>
 
 #if defined(__APPLE__)
 #undef reboot
@@ -79,7 +80,7 @@ typedef struct
   uint8_t     *broadcast_ping_id_list;
 }PacketData;
 
-extern PacketData *packetData;
+PacketData *packetData;
 
 WINDECLSPEC void        packetHandler       ();
 

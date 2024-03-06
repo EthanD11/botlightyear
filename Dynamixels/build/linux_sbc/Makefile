@@ -35,7 +35,7 @@ SYMLINK     = ln -s
 MKDIR       = mkdir
 CC          = gcc
 CX          = g++
-CCFLAGS     = -O2 -O3 -DLINUX -D_GNU_SOURCE -Wall -c $(INCLUDES) -fPIC -g
+CCFLAGS     = -O2 -O3 -DLINUX -D_GNU_SOURCE -Wall -c $(INCLUDES) -fPIC -g -fcommon
 CXFLAGS     = -O2 -O3 -DLINUX -D_GNU_SOURCE -Wall -c $(INCLUDES) -fPIC -g
 INCLUDES    += -I$(DIR_DXL)/include/dynamixel_sdk
 

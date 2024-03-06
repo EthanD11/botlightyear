@@ -41,11 +41,12 @@
 #endif
 
 #include "robotis_def.h"
+#include <stddef.h>
 
 static const int DEFAULT_BAUDRATE = 57600;
 
-extern int     g_used_port_num;
-extern uint8_t    *g_is_using;
+int     g_used_port_num;
+uint8_t    *g_is_using;
 
 WINDECLSPEC int     portHandler             (const char *port_name);
 
