@@ -25,7 +25,7 @@ STRIP       = strip
 AR          = ar
 ARFLAGS     = cr
 LD          = g++
-LDFLAGS     = -shared -fPIC #-Wl,-soname,dxl
+LDFLAGS     = -shared -fPIC -llgpio #-Wl,-soname,dxl
 LD_CONFIG   = ldconfig
 CP          = cp
 CP_ALL      = cp -r
@@ -36,13 +36,14 @@ MKDIR       = mkdir
 CC          = gcc
 CX          = g++
 CCFLAGS     = -O2 -O3 -DLINUX -D_GNU_SOURCE -Wall -c $(INCLUDES) -fPIC -g -fcommon
-CXFLAGS     = -O2 -O3 -DLINUX -D_GNU_SOURCE -Wall -c $(INCLUDES) -fPIC -g
+CXFLAGS     = -O2 -O3 -DLINUX -D_GNU_SOURCE -Wall -c $(INCLUDES) -fPIC -g -fcommon
 INCLUDES    += -I$(DIR_DXL)/include/dynamixel_sdk
 
 #---------------------------------------------------------------------
 # Required external libraries
 #---------------------------------------------------------------------
 LIBRARIES  += -lrt
+LIBRARIES  += -llgpio
 
 #---------------------------------------------------------------------
 # SDK Files

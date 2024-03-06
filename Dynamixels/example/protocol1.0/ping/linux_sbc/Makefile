@@ -43,6 +43,7 @@ LNKFLAGS    = $(CXFLAGS) #-Wl,-rpath,$(DIR_THOR)/lib
 INCLUDES   += -I$(DIR_DXL)/include/dynamixel_sdk
 LIBRARIES  += -ldxl_sbc_c
 LIBRARIES  += -lrt
+LIBRARIES  += -llgpio
 
 #---------------------------------------------------------------------
 # Files

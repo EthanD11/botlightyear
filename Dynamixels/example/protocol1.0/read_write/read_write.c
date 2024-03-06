@@ -36,6 +36,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 #include "dynamixel_sdk.h"                                  // Uses Dynamixel SDK library
 
 // Control table address
@@ -56,7 +57,7 @@
 #define TORQUE_ENABLE                   1                   // Value for enabling the torque
 #define TORQUE_DISABLE                  0                   // Value for disabling the torque
 #define DXL_MINIMUM_POSITION_VALUE      100                 // Dynamixel will rotate between this value
-#define DXL_MAXIMUM_POSITION_VALUE      1023                // and this value (note that the Dynamixel would not move when the position value is out of movable range. Check e-manual about the range of the Dynamixel you use.)
+#define DXL_MAXIMUM_POSITION_VALUE      4000                // and this value (note that the Dynamixel would not move when the position value is out of movable range. Check e-manual about the range of the Dynamixel you use.)
 #define DXL_MOVING_STATUS_THRESHOLD     10                  // Dynamixel moving status threshold
 
 #define ESC_ASCII_VALUE                 0x1b
@@ -122,6 +123,7 @@ int main()
   int index = 0;
   int dxl_comm_result = COMM_TX_FAIL;             // Communication result
   int dxl_goal_position[2] = { DXL_MINIMUM_POSITION_VALUE, DXL_MAXIMUM_POSITION_VALUE };  // Goal position
+  int dxl_speed[2] = { 0, 1024+512 };  // Goal position
 
   uint8_t dxl_error = 0;                          // Dynamixel error
   uint16_t dxl_present_position = 0;              // Present position
@@ -174,7 +176,7 @@ int main()
       break;
 
     // Write goal position
-    write2ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, ADDR_MX_GOAL_POSITION, dxl_goal_position[index]);
+    write2ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, 32, dxl_speed[index]);
     if ((dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION)) != COMM_SUCCESS)
     {
       printf("%s\n", getTxRxResult(PROTOCOL_VERSION, dxl_comm_result));
@@ -186,6 +188,21 @@ int main()
 
     do
     {
+
+      for (uint16_t i = 0; i < 50; i++)
+      {
+        uint8_t res = read1ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, i);
+        if ((dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION)) != COMM_SUCCESS)
+        {
+          printf("%s\n", getTxRxResult(PROTOCOL_VERSION, dxl_comm_result));
+        }
+        else if ((dxl_error = getLastRxPacketError(port_num, PROTOCOL_VERSION)) != 0)
+        {
+          printf("%s\n", getRxPacketError(PROTOCOL_VERSION, dxl_error));
+        }
+        printf("%d : %d\n", i, res);
+      }
+
       // Read present position
       dxl_present_position = read2ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, ADDR_MX_PRESENT_POSITION);
       if ((dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION)) != COMM_SUCCESS)
@@ -199,6 +216,7 @@ int main()
 
       printf("[ID:%03d] GoalPos:%03d  PresPos:%03d\n", DXL_ID, dxl_goal_position[index], dxl_present_position);
 
+      sleep(1);
     } while ((abs(dxl_goal_position[index] - dxl_present_position) > DXL_MOVING_STATUS_THRESHOLD));
 
     // Change goal position

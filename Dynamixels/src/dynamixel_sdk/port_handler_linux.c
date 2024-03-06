@@ -28,6 +28,7 @@
 #include <sys/time.h>
 #include <sys/ioctl.h>
 #include <linux/serial.h>
+#include <lgpio.h>
 
 #include "port_handler_linux.h"
 
@@ -189,7 +190,19 @@ int readPortLinux(int port_num, uint8_t *packet, int length)
 
 int writePortLinux(int port_num, uint8_t *packet, int length)
 {
-  return write(portData[port_num].socket_fd, packet, length);
+  // GPIO HIGH
+  /*int handle = lgGpiochipOpen(0);
+  if (handle < 0) exit(1);
+  int err = lgGpioClaimOutput(handle, 0, 18, LG_HIGH);
+  if (err < 0) exit(1);*/
+  system("pinctrl set 18 dh");
+  ssize_t temp =  write(portData[port_num].socket_fd, packet, length);
+  system("pinctrl set 18 dl");
+  // GPIO LOW
+  /*if (lgGpioWrite(handle, 18, LG_LOW) < 0) exit(1);
+  lgGpioFree(handle, 18);
+  lgGpiochipClose(handle);*/
+  return temp;
 }
 
 void setPacketTimeoutLinux(int port_num, uint16_t packet_length)
