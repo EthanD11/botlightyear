@@ -1,7 +1,4 @@
 #include "localization.h"
-#include "utils.h"
-// #include <Encoder.h>
-
 RobotPosition* init_robot_position(double x0, double y0, double theta_0) 
 {
     RobotPosition* robot_position = (RobotPosition *) malloc(sizeof(RobotPosition));

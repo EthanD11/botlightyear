@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "../utils.h"
+#include "../../utils.h"
 
 #ifndef _OUTPUT_INTERFACE_H_
 #define _OUTPUT_INTERFACE_H_
@@ -22,7 +22,10 @@
 // Test points
 #define A1 29
 #define A2 37
-#define A3 36   
+#define A3 36
+
+#define MOTOR_DUTY_RANGE 256  // Duty cycle range
+#define BUF_STEP 100           // Max step to avoid brutal speed changes
 
 typedef struct OutputInterface {
     int duty_cycle_refl, duty_cycle_refr; // Reference duty cycles
@@ -57,7 +60,7 @@ inline void duty_cycle_update(OutputInterface *outputs)
     outputs->duty_cycle_r = duty_cycle_r;
 
     // Left Direction (forward vs backward)
-    if (duty_cycle_curl < 0) {
+    if (duty_cycle_l < 0) {
         digitalWrite(C_L, HIGH);
         digitalWrite(D_L, LOW);
     } else {
@@ -66,7 +69,7 @@ inline void duty_cycle_update(OutputInterface *outputs)
     }
 
     // Right Direction (forward vs backward)
-    if (duty_cycle_curr < 0) {
+    if (duty_cycle_r < 0) {
         digitalWrite(C_R, LOW);
         digitalWrite(D_R, HIGH);
     } else {

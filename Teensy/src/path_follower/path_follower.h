@@ -6,7 +6,7 @@
 #ifndef _PATH_FOLLOWING_GR2_H_
 #define _PATH_FOLLOWING_GR2_H_
 
-#include "../utils.h"
+#include "../../utils.h"
 #include "splines.h"
 #include "../localization/localization.h"
 #include <stdlib.h>
@@ -55,7 +55,7 @@ typedef struct PathFollower {
     // Angular position at last checkpoint (needed to switch to position control)
     // double theta_ref_last; // not implemented
     // outputs
-    double Rspeed_ref, Lspeed_ref;
+    double speed_refr, speed_refl;
 } PathFollower;
 
 
@@ -78,7 +78,7 @@ void compute_entire_path(PathFollower *path_follower, double dist);
 // Update the reference speed within the path follower
 // Returns 1 if the end of the path is reached
 // Returns 0 otherwise
-inline int update_path_follower_ref_speed(
+int update_path_follower_ref_speed(
     PathFollower *path_follower,
     RobotPosition *robot_position, 
     double vref, 

@@ -8,8 +8,8 @@
 
 PathFollower* init_path_follower() {
     PathFollower *path_follower = (PathFollower *) malloc(sizeof(PathFollower));
-    path_follower->Lspeed_ref = 0;
-    path_follower->Rspeed_ref = 0;
+    path_follower->speed_refl = 0;
+    path_follower->speed_refr = 0;
     path_follower->kt = 25.0;
     path_follower->kn = 0.8; // 0 < kn <= 1
     path_follower->kz = 25.0;
@@ -124,7 +124,6 @@ void compute_entire_path(PathFollower *path_follower, double ds) {
 * returns 0 otherwise
 */
 int compute_next_point(PathFollower *pf, double delta_s, double dist_goal_reached) {
-    double xnext, ynext;
     double delta_q, dq, dxdq, dydq, s, ds;
 
     SplineSet *x_splines = pf->x_splines;
@@ -134,7 +133,7 @@ int compute_next_point(PathFollower *pf, double delta_s, double dist_goal_reache
     int i_spline = pf->i_spline;
     
     s = 0;
-    
+    ds = MIN(MAX_DS, delta_s - s);
     while (s < delta_s) {
         // Compute dq corresponding to ds (1st order approx)
         delta_q = pf->qref - q_checkpoints[i_spline];
@@ -180,13 +179,12 @@ int update_path_follower_ref_speed(
 
     // use local variables for ease of read
     kt = pf->kt;  kn = pf->kn; kz = pf->kz; sigma = pf->sigma; // Control gains
-    kif = pf->kif; kifdot = pf->kifdot; wn = pf->wn; xsi_n = xsi_n;
+    kif = pf->kif; kifdot = pf->kifdot; wn = pf->wn; xsi_n = pf->xsi_n;
     delta = pf->delta;
 
     // Compute error in the fixed reference frame
-    ex = xpos - pf->xref;
-    ey = ypos - pf->yref;
-
+    ex = rp->x - pf->xref;
+    ey = rp->y - pf->yref;
     // Compute derivatives at reference point on the curve
     i_spline = pf->i_spline;
     delta_q = pf->qref - q_checkpoints[i_spline];
@@ -250,8 +248,8 @@ int update_path_follower_ref_speed(
 
     // update reference speeds
     
-    pf->Rspeed_ref = (pf->vref_f + WHEEL_L*omega_ref) / WHEEL_R;
-    pf->Lspeed_ref = (pf->vref_f - WHEEL_L*omega_ref) / WHEEL_R;
+    pf->speed_refr = (pf->vref_f + WHEEL_L*omega_ref);
+    pf->speed_refl = (pf->vref_f - WHEEL_L*omega_ref);
 
     // Compute the point on the path which is at a distance delta_s from the current point
     double step = MIN(delta_s, MAX_DS); // Take step no bigger than MAX_DS

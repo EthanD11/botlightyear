@@ -1,9 +1,9 @@
 #include "output_interface.h"
 
-void init_outputs() {
+OutputInterface *init_outputs() {
     OutputInterface *outputs = (OutputInterface *) malloc(sizeof(OutputInterface));
-    outputs->duty_cycle_curl = 0.0;
-    outputs->duty_cycle_curr = 0.0;
+    outputs->duty_cycle_l = 0.0;
+    outputs->duty_cycle_r = 0.0;
 
     // Output pins
     pinMode(C_L, OUTPUT);
@@ -42,4 +42,6 @@ void init_outputs() {
     analogWrite(A1, 0);
     analogWrite(A2, 0);
     analogWrite(A3,0);
+
+    return outputs;
 }

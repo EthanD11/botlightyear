@@ -7,6 +7,8 @@
 #define _SPLINES_H_
 
 #include <stdlib.h>
+#include "cmath"
+#include <string.h>
 
 /* Stores a set of splines as lists of coefficients `a`, `b`, `c` and `d`
  * Si(q) = ai + bi * (q - qi) + ci * (q - qi)^2 + di * (q - qi)^3

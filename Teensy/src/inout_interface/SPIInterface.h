@@ -1,7 +1,7 @@
 #ifndef _SPIINTERFACE_H_
 #define _SPIINTERFACE_H_
 
-#include "../utils.h"
+#include "../../utils.h"
 #include "SPISlave_T4.h"
 #include "../position_control/position_control.h"
 #include "../regulator/regulator.h"
