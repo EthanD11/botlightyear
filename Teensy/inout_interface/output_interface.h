@@ -1,28 +1,28 @@
 #include <Arduino.h>
-#include "utils.h"
+#include "../utils.h"
 
 #ifndef _OUTPUT_INTERFACE_H_
 #define _OUTPUT_INTERFACE_H_
 
 // Pins
 // IN1
-#define C_L = 14
-#define C_R = 3;
+#define C_L 14
+#define C_R 3
 // IN2
-#define D_L = 15
-#define D_R = 4;
+#define D_L 15
+#define D_R 4
 // Enable
-#define PWM_L = 22
-#define PWM_R = 23;
+#define PWM_L 22
+#define PWM_R 23
 // Current sensors
-#define CURRENT_L = 41
-#define CURRENT_R = 40;
+#define CURRENT_L 41
+#define CURRENT_R 40
 // Encoders
-#define LEVEL_SHIFTER = 2;
+#define LEVEL_SHIFTER 2
 // Test points
-#define A1 = 29;
-#define A2 = 37;
-#define A3 = 36;
+#define A1 29
+#define A2 37
+#define A3 36   
 
 typedef struct OutputInterface {
     int duty_cycle_refl, duty_cycle_refr; // Reference duty cycles
@@ -31,8 +31,55 @@ typedef struct OutputInterface {
 } OutputInterface;
 
 OutputInterface *init_outputs();
-inline void write_outputs(OutputInterface *outputs);
-inline void duty_cycle_update(OutputInterface *outputs);
 
+inline void duty_cycle_update(OutputInterface *outputs)
+{
+    int duty_cycle_l, duty_cycle_r;
+    int duty_cycle_refl, duty_cycle_refr;
+
+    duty_cycle_l = outputs->duty_cycle_l;
+    duty_cycle_r = outputs->duty_cycle_r;
+
+    duty_cycle_refl = outputs->duty_cycle_refl;
+    duty_cycle_refr = outputs->duty_cycle_refr;
+
+    // Left buffered control
+    duty_cycle_l += SAT(duty_cycle_refl - duty_cycle_l, BUF_STEP);
+    analogWrite(PWM_L, std::abs(duty_cycle_l));
+    analogWrite(A1, std::abs(duty_cycle_l));
+
+    // Right buffered control
+    duty_cycle_r += SAT(duty_cycle_refr - duty_cycle_r, BUF_STEP);
+    analogWrite(PWM_R, std::abs(duty_cycle_r));
+    analogWrite(A2, std::abs(duty_cycle_r));
+
+    outputs->duty_cycle_l = duty_cycle_l;
+    outputs->duty_cycle_r = duty_cycle_r;
+
+    // Left Direction (forward vs backward)
+    if (duty_cycle_curl < 0) {
+        digitalWrite(C_L, HIGH);
+        digitalWrite(D_L, LOW);
+    } else {
+        digitalWrite(C_L, LOW);
+        digitalWrite(D_L, HIGH);
+    }
+
+    // Right Direction (forward vs backward)
+    if (duty_cycle_curr < 0) {
+        digitalWrite(C_R, LOW);
+        digitalWrite(D_R, HIGH);
+    } else {
+        digitalWrite(C_R, HIGH);
+        digitalWrite(D_R, LOW);
+    }
+}
+
+inline void write_outputs(OutputInterface *outputs) {
+    analogWrite(A1, outputs->analog_write_a3pin);
+    analogWrite(A2, outputs->analog_write_a3pin);
+    analogWrite(A3, outputs->analog_write_a3pin);
+    duty_cycle_update(outputs);
+}
 
 #endif

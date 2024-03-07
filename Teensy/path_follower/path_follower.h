@@ -6,9 +6,9 @@
 #ifndef _PATH_FOLLOWING_GR2_H_
 #define _PATH_FOLLOWING_GR2_H_
 
-#include "utils.h"
+#include "../utils.h"
 #include "splines.h"
-#include "localization.h"
+#include "../localization/localization.h"
 #include <stdlib.h>
 
 
@@ -60,7 +60,7 @@ typedef struct PathFollower {
 
 
 // Initializes path follower in CtrlStruct
-void init_path_follower(PathFollower *path_follower);
+PathFollower *init_path_follower();
 void free_path_follower(PathFollower *path_follower);
 
 // Set the checkpoints of a PathFollower

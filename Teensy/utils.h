@@ -13,7 +13,7 @@
 #include <time.h>
 #include <stdint.h>
 
-#define PI 3.141592653589793238462643383279502
+// #define PI 3.141592653589793238462643383279502
 #define SATURATE(a,lb,ub) ((a) > (ub) ? (ub) : ((a) < (lb) ? (lb) : (a)))
 #define ABS(a) ((a) >= 0 ? (a) : (-(a)))
 #define PERIODIC(a,lb,ub) ((a)>ub ? ((lb)+(a)-(ub)) : ((a)<(lb) ? (ub)+(a)-(lb) : (a)))
@@ -47,7 +47,12 @@
 void store_vector(int n, double *x, char *filename);
 void erase_file(char *filename);
 void append_to_file(char *filename, double data);
-inline int SAT(int x, int limit);
-inline double SAT(double x, double limit);
+inline int SAT(int x, int limit) {
+  return (x > limit) ? limit: ((x < -limit) ? limit : x);
+}  // Saturation function for integers
+
+inline double SAT(double x, double limit) {
+  return (x > limit) ? limit: ((x < -limit) ? limit : x);
+}  // Saturation function for doubles
 
 #endif

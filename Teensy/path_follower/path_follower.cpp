@@ -161,7 +161,7 @@ int compute_next_point(PathFollower *pf, double delta_s, double dist_goal_reache
 
 // Reference paper:
 // See https://link.springer.com/article/10.1007/s42405-021-00395-7
-inline int update_path_follower_ref_speed(
+int update_path_follower_ref_speed(
     PathFollower *pf, 
     RobotPosition *rp,
     double vref, 

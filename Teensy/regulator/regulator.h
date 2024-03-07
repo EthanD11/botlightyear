@@ -1,5 +1,5 @@
-#include "utils.h"
-#include "localization.h"
+#include "../utils.h"
+#include "../localization/localization.h"
 
 #ifndef _REGULATOR_H_
 #define _REGULATOR_H_
@@ -21,7 +21,7 @@ typedef struct Regulator {
 Regulator *init_regulator();
 void free_regulator(Regulator *regulator);
 
-inline void control_speed(
+void control_speed(
     Regulator *regulator, 
     double speed_l,
     double speed_r,

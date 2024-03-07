@@ -1,8 +1,8 @@
 #ifndef _POSITION_CONTROL_H_
 #define _POSITION_CONTROL_H_
 
-#include "utils.h"
-#include "localization.h"
+#include "../utils.h"
+#include "../localization/localization.h"
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -22,9 +22,6 @@ typedef struct PositionController {
 } PositionController;
 
 PositionController *init_position_controller();
-inline void set_position_reference(PositionController *position_controller, uint32_t dataBuf[3]);
-inline void set_position_reference(PositionController *position_controller,
-    double xref, double yref, double theta_ref);
 void control_position(
     PositionController *position_controller,
     RobotPosition *robot_position

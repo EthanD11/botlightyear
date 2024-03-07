@@ -16,22 +16,6 @@ PositionController *init_position_controller(){
     return pc;
 }
 
-inline void set_position_reference(
-    PositionController *pc, uint32_t dataBuf[3]) 
-{
-    pc->xref      = ((double)(dataBuf[4]))*3/255;
-    pc->yref      = ((double)(dataBuf[5]))*2/255;
-    pc->theta_ref = ((double)(dataBuf[6]))*2*M_PI/255 - M_PI;
-}
-
-inline void set_position_reference(PositionController *pc,
-    double xref, double yref, double theta_ref) 
-{
-    pc->xref      = xref;
-    pc->yref      = yref;
-    pc->theta_ref = theta_ref;
-}
-
 void control_position(
     PositionController *pc,
     RobotPosition *rp) 

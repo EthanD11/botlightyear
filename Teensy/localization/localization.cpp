@@ -27,19 +27,6 @@ void free_robot_position(RobotPosition *robot_position) {
     free(robot_position);
 }
 
-inline void reset_encoders(RobotPosition *robot_position) {
-    robot_position->enc_l.write(0); 
-    robot_position->enc_r.write(0); 
-    robot_position->old_tick_left = 0; 
-    robot_position->old_tick_right = 0;
-}
-
-inline void set_position(RobotPosition *robot_position, uint32_t dataBuf[3]) {
-    robot_position->x      = ((double)(dataBuf[1]))*3/255;
-    robot_position->y      = ((double)(dataBuf[2]))*2/255;
-    robot_position->theta  = ((double)(dataBuf[3]))*2*M_PI/255 - M_PI;
-}
-
 void update_localization(RobotPosition *robot_position) 
 {   
     double theta, dt;

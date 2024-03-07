@@ -19,7 +19,7 @@ void free_regulator(Regulator *regulator) {
     free(regulator);
 }
 
-inline void control_speed(
+void control_speed(
     Regulator *reg, 
     double speed_l,
     double speed_r,

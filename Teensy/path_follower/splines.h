@@ -41,11 +41,17 @@ SplineSet* compute_splines(double *q, double *x, int npoints);
 */
 double* interpolate_splines(SplineSet *splines, int m);
 
-inline double evaluate_spline(double a, double b, double c, double d, double dq);
-inline double evaluate_spline_derivative(double b, double c, double d, double dq);
-inline double evaluate_spline_second_derivative(double c, double d, double dq);
+inline double evaluate_spline(double a, double b, double c, double d, double dq) {
+    return ((d*dq + c)*dq + b)*dq + a;
+}
+inline double evaluate_spline_derivative(double b, double c, double d, double dq) {
+    return (3*d*dq + 2*c)*dq + b;
+}
+inline double evaluate_spline_second_derivative(double c, double d, double dq) {
+    return 6*dq + 2*c;
+}
 
-void test_splines();
+// void test_splines();
 
 
 #endif
