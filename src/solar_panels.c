@@ -28,15 +28,9 @@
 
 #define ESC_ASCII_VALUE                 0x1b
 
-
-void deploy() {
+void init_port() {
   int port_num = portHandler(DEVICENAME);
   packetHandler();
-
-  int index = 0;
-  int dxl_goal_position[2] = {515, 215};  
-
-  uint16_t dxl_present_position = 0;         
 
   // Open port
   if (openPort(port_num)) {
@@ -45,6 +39,13 @@ void deploy() {
   // Set port baudrate
   if (setBaudRate(port_num, BAUDRATE)) {
     printf("Succeeded to change the baudrate!\n"); }
+}
+
+void deploy() {
+  int index = 0;
+  int dxl_goal_position[2] = {515, 215};
+
+  uint16_t dxl_present_position = 0; 
 
   // Enable Dynamixel Torque
   write1ByteTxRx(port_num, PROTOCOL_VERSION, 6, ADDR_MX_TORQUE_ENABLE, TORQUE_ENABLE);
@@ -52,7 +53,6 @@ void deploy() {
   // Write CW/CCW position
   write2ByteTxRx(port_num, PROTOCOL_VERSION, 6, ADDR_CW_ANGLE_LIMIT, 215);
   write2ByteTxRx(port_num, PROTOCOL_VERSION, 6, ADDR_CCW_ANGLE_LIMIT, 515);
-
 
   // Write speed
   write2ByteTxRx(port_num, PROTOCOL_VERSION, 6, ADDR_MX_MOVING_SPEED, 100);
@@ -82,38 +82,22 @@ void deploy() {
     }
     }
 
-
   // Disable Dynamixel Torque
   write1ByteTxRx(port_num, PROTOCOL_VERSION, 6, ADDR_MX_TORQUE_ENABLE, TORQUE_DISABLE);
-
-  //Close port
-  closePort(port_num);
 }
 
 void raise() {
-  int port_num = portHandler(DEVICENAME);
-  packetHandler();
-
   int index = 0;
   int dxl_goal_position[2] = {215, 515};  
 
   uint16_t dxl_present_position = 0;         
 
-  // Open port
-  if (openPort(port_num)) {
-    printf("Succeeded to open the port!\n"); }
-
-  // Set port baudrate
-  if (setBaudRate(port_num, BAUDRATE)) {
-    printf("Succeeded to change the baudrate!\n"); }
-
   // Enable Dynamixel Torque
   write1ByteTxRx(port_num, PROTOCOL_VERSION, 6, ADDR_MX_TORQUE_ENABLE, TORQUE_ENABLE);
 
   // Write CW/CCW position
   write2ByteTxRx(port_num, PROTOCOL_VERSION, 6, ADDR_CW_ANGLE_LIMIT, 215);
   write2ByteTxRx(port_num, PROTOCOL_VERSION, 6, ADDR_CCW_ANGLE_LIMIT, 515);
-
 
   // Write speed
   write2ByteTxRx(port_num, PROTOCOL_VERSION, 6, ADDR_MX_MOVING_SPEED, 100);
@@ -143,30 +127,16 @@ void raise() {
     }
     }
 
-
   // Disable Dynamixel Torque
   write1ByteTxRx(port_num, PROTOCOL_VERSION, 6, ADDR_MX_TORQUE_ENABLE, TORQUE_DISABLE);
 
-  //Close port
-  closePort(port_num);
 }
 
 void multi_turn() {
-  int port_num = portHandler(DEVICENAME);
-  packetHandler();
-
   int index = 0;
   int dxl_goal_position[2] = {0, 3000};  
 
   uint16_t dxl_present_position = 0;         
-
-  // Open port
-  if (openPort(port_num)) {
-    printf("Succeeded to open the port!\n"); }
-
-  // Set port baudrate
-  if (setBaudRate(port_num, BAUDRATE)) {
-    printf("Succeeded to change the baudrate!\n"); }
 
   // Enable Dynamixel Torque
   write1ByteTxRx(port_num, PROTOCOL_VERSION, 8, ADDR_MX_TORQUE_ENABLE, TORQUE_ENABLE);
@@ -174,7 +144,6 @@ void multi_turn() {
   // Write CW/CCW position
   write2ByteTxRx(port_num, PROTOCOL_VERSION, 8, ADDR_CW_ANGLE_LIMIT, 0);
   write2ByteTxRx(port_num, PROTOCOL_VERSION, 8, ADDR_CCW_ANGLE_LIMIT, 0);
-
 
   // Write speed
   write2ByteTxRx(port_num, PROTOCOL_VERSION, 8, ADDR_MX_MOVING_SPEED, 512);
@@ -204,30 +173,15 @@ void multi_turn() {
     }
     }
 
-
   // Disable Dynamixel Torque
   write1ByteTxRx(port_num, PROTOCOL_VERSION, 8, ADDR_MX_TORQUE_ENABLE, TORQUE_DISABLE);
-
-  //Close port
-  closePort(port_num);
 }
 
 void idle() {
-  int port_num = portHandler(DEVICENAME);
-  packetHandler();
-
   int index = 0;
   int dxl_goal_position[2] = {0, 3000};  
 
   uint16_t dxl_present_position = 0;         
-
-  // Open port
-  if (openPort(port_num)) {
-    printf("Succeeded to open the port!\n"); }
-
-  // Set port baudrate
-  if (setBaudRate(port_num, BAUDRATE)) {
-    printf("Succeeded to change the baudrate!\n"); }
 
   // Enable Dynamixel Torque
   write1ByteTxRx(port_num, PROTOCOL_VERSION, 8, ADDR_MX_TORQUE_ENABLE, TORQUE_ENABLE);
@@ -236,13 +190,14 @@ void idle() {
   write2ByteTxRx(port_num, PROTOCOL_VERSION, 8, ADDR_CW_ANGLE_LIMIT, 0);
   write2ByteTxRx(port_num, PROTOCOL_VERSION, 8, ADDR_CCW_ANGLE_LIMIT, 0);
 
-
   // Write speed
   write2ByteTxRx(port_num, PROTOCOL_VERSION, 8, ADDR_MX_MOVING_SPEED, 0);
 
   // Disable Dynamixel Torque
   write1ByteTxRx(port_num, PROTOCOL_VERSION, 8, ADDR_MX_TORQUE_ENABLE, TORQUE_DISABLE);
+}
 
-  //Close port
+void close_port() {
+  int port_num = portHandler(DEVICENAME);
   closePort(port_num);
 }
