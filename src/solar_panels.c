@@ -181,6 +181,9 @@ int dxl_comm_result = COMM_TX_FAIL;
         printf("Dynamixel has been successfully connected \n");
     }
 
+    // Write Status return
+    write2ByteTxRx(port_num, 2.0, 1, 17, 1); 
+
     // Write CW/CCW position
     write2ByteTxRx(port_num, 2.0, 3, 6, 175); 
     write2ByteTxRx(port_num, 2.0, 3, 8, 250);
@@ -229,6 +232,9 @@ int dxl_comm_result = COMM_TX_FAIL;
     } else {
         printf("Dynamixel has been successfully connected \n");
     }
+
+// Write Status return
+    write2ByteTxRx(port_num, 2.0, 1, 17, 1); 
 
     // Write CW/CCW position
     write2ByteTxRx(port_num, 2.0, 3, 6, 175); 
@@ -279,6 +285,9 @@ int dxl_comm_result = COMM_TX_FAIL;
         printf("Dynamixel has been successfully connected \n");
     }
 
+  // Write Status return
+    write2ByteTxRx(port_num, 2.0, 1, 17, 2); 
+
     // Write CW/CCW position
     write2ByteTxRx(port_num, 2.0, 1, 6, 138); 
     write2ByteTxRx(port_num, 2.0, 1, 8, 456);
@@ -327,6 +336,9 @@ int dxl_comm_result = COMM_TX_FAIL;
     } else {
         printf("Dynamixel has been successfully connected \n");
     }
+
+    // Write Status return
+    write2ByteTxRx(port_num, 2.0, 1, 17, 2); 
 
     // Write CW/CCW position
     write2ByteTxRx(port_num, 2.0, 1, 6, 138); 
