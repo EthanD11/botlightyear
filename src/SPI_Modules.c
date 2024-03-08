@@ -9,9 +9,9 @@ const double t_max = 2*3.141593;
 const double speed_max = 1.0; 
 // TODO : calibrate with flaps
 const char servo_left_dc_deployed = 19;
-const char servo_left_dc_raised = 27;
+const char servo_left_dc_raised = 30;
 const char servo_right_dc_deployed = 19;
-const char servo_right_dc_raised = 27;
+const char servo_right_dc_raised = 5;
 
 // Converts words from big endian to little endian (and vice versa)
 // https://codereview.stackexchange.com/questions/151049/endianness-conversion-in-c

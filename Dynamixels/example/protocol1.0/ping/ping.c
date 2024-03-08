@@ -41,7 +41,7 @@
 #define PROTOCOL_VERSION                1.0                 // See which protocol version is used in the Dynamixel
 
 // Default setting
-#define DXL_ID                          8                   // Dynamixel ID: 1
+#define DXL_ID                          6                   // Dynamixel ID: 1
 #define BAUDRATE                        57600
 #define DEVICENAME                      "/dev/ttyAMA0"      // Check which port is being used on your controller
                                                             // ex) Windows: "COM1"   Linux: "/dev/ttyUSB0" Mac: "/dev/tty.usbserial-*"

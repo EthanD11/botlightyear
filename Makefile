@@ -4,7 +4,7 @@
 CC:=gcc
 CXX = g++ #pour le lidar
 CFLAGS:=-Wall -g -std=gnu99
-LIBS:=-llgpio -lm
+LIBS:=-llgpio -lm -ldxl_sbc_c
 # Directories
 HEADERS_DIR:=src
 SOURCES_DIR:=src
