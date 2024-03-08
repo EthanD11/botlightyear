@@ -7,7 +7,6 @@ const double x_max = 3.0;
 const double y_max = 2.0; 
 const double t_max = 2*3.141593; 
 const double speed_max = 1.0; 
-int servo_raised = 0;
 // TODO : calibrate with flaps
 const char servo_left_dc_deployed = 19;
 const char servo_left_dc_raised = 27;
@@ -180,12 +179,26 @@ void teensy_idle() {
     lgSpiWrite(Teensy_handle, &send, 1);
 }
 
-int servo_toggle() {
-    servo_raised = 1-servo_raised; // Invert value
+void servo_raise() {
     char send[5];
     send[0] = 0x80;
-    send[3] = (servo_raised) ? servo_left_dc_raised : servo_left_dc_deployed;
-    send[4] = (servo_raised) ? servo_right_dc_raised : servo_right_dc_deployed;
+    send[3] = servo_left_dc_raised;
+    send[4] = servo_right_dc_raised;
     lgSpiWrite(DE0_handle, send, 5);
-    return servo_raised;
+}
+
+void servo_deploy() {
+    char send[5];
+    send[0] = 0x80;
+    send[3] = servo_left_dc_deployed;
+    send[4] = servo_right_dc_deployed;
+    lgSpiWrite(DE0_handle, send, 5);
+}
+
+void servo_idle() {
+    char send[5];
+    send[0] = 0x80;
+    send[3] = 0;
+    send[4] = 0;
+    lgSpiWrite(DE0_handle, send, 5);
 }

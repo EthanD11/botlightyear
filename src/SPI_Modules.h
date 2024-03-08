@@ -97,8 +97,18 @@ void teensy_pos_ctrl(double x, double y, double t, double xr, double yr, double 
 void teensy_idle();
 
 /**
- * @brief Toggles servomotors and returns their current position (0 = deployed, 1 = raised)
+ * @brief Raises (retracts) flaps. Maintains a constant torque until servo_idle is called
  */
-int servo_toggle();
+void servo_raise();
+
+/**
+ * @brief Deploys flaps. Maintains a constant torque until servo_idle is called
+ */
+void servo_deploy();
+
+/**
+ * @brief Releases torque command from the servomotors
+ */
+void servo_idle();
 
 #endif
