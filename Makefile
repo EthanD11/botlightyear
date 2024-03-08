@@ -4,9 +4,9 @@
 CC:=gcc
 CXX = g++ #pour le lidar
 CFLAGS:=-Wall -g -std=gnu99
-LIBS:=-llgpio -lm -ldxl_sbc_c
+LIBS:=-llgpio -lm -ldxl_sbc_c -lsl_lidar_sdk
 # Directories
-HEADERS_DIR:=src
+HEADERS_DIR:=src -I./Dynamixels/include/dynamixel_sdk
 SOURCES_DIR:=src
 TESTS_DIR:=tests
 OBJ_DIR:=bin
@@ -15,9 +15,6 @@ SOURCES = $(wildcard $(SOURCES_DIR)/*.c)
 TESTS = $(wildcard $(TESTS_DIR)/*.c)
 # List of .o file
 SOURCES_OBJ = $(addprefix $(OBJ_DIR)/,$(notdir $(SOURCES:.c=.o)))
-# List of c++ files for lidar
-LIDAR_SOURCES := ../tests/test_lidar.cpp
-LIDAR_OBJ := $(OBJ_DIR)/test_lidar.o
 # -----------------------------------------------------------------------------------
 # Rules
 
@@ -50,32 +47,21 @@ test_%: $(TESTS_DIR)/test_%.o $(SOURCES_OBJ)
 tests: $(TESTS:.c=.o)
 	$(foreach test, $^, ./$(test);)
 
-test_lidar: lidar_test_program
-	@./bin/test_lidar
-	@rm ./bin/test_lidar
-
-# Run the lidar program
-#    system("g++ ../tests/test_lidar.cpp -o ../tests/test_lidar && ../tests/test_lidar");
-# 	@g++ ./tests/test_lidar.cpp -o ./bin/test_lidar -lsl_lidar_sdk -lpthread -L./rplidar/output/Linux/Release -I./rplidar/sdk/include -I./rplidar/sdk/src
-lidar_test_program:
-	@g++ ./tests/test_lidar.cpp -o ./bin/test_lidar -lsl_lidar_sdk -lpthread -L./rplidar/output/Linux/Release -I./rplidar/sdk/include -I./rplidar/sdk/src
-
-
 lidar: lidar_program
-	@./bin/lidar
+	@./bin/lidar.o
 	@rm ./bin/lidar
 
 # Run the lidar program
 lidar_program:
-	@g++ ./src/lidar.cpp ./rplidar/sdk/src/rplidar_driver.cpp -o ./bin/lidar -lsl_lidar_sdk -lpthread -L./rplidar/output/Linux/Release -I./rplidar/sdk/include -I./rplidar/sdk/src
+	@g++ ./src/lidar.cpp -o ./bin/lidar.o -lsl_lidar_sdk -I./rplidar/sdk/include -I./rplidar/sdk/src
 
 # Run Camera program
 camera: camera_program
-	@./bin/camera
+	@./bin/camera.o
 	@rm ./bin/camera
 
 camera_program:
-	g++ ./src/cameraTag.cpp -o ./bin/camera -lpthread -I/usr/include/opencv4 -I/path/to/raspicam/include -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_aruco -lopencv_videoio -L/usr/local/lib -L/path/to/raspicam/lib -lraspicam -lraspicam_cv
+	@g++ ./src/cameraTag.cpp -o ./bin/camera.o -lpthread -I/usr/include/opencv4 -I/path/to/raspicam/include -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_aruco -lopencv_videoio -L/usr/local/lib -L/path/to/raspicam/lib -lraspicam -lraspicam_cv
 
 
 #Run the project (process the inputs in input_binary/ and write it to "output.txt")
@@ -100,7 +86,6 @@ valgrind : fec
 
 #Clean the project of all object file.
 clean:
-	@rm -f $(HEADERS_DIR)/*.o
 	@rm -f $(SOURCES_DIR)/*.o
 	@rm -f $(TESTS_DIR)/*.o
 	@rm -f *.o

@@ -1,3 +1,4 @@
 lg
 bin
 .vscode
+**/*.o

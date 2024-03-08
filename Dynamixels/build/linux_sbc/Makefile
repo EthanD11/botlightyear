@@ -43,7 +43,6 @@ INCLUDES    += -I$(DIR_DXL)/include/dynamixel_sdk
 # Required external libraries
 #---------------------------------------------------------------------
 LIBRARIES  += -lrt
-LIBRARIES  += -llgpio
 
 #---------------------------------------------------------------------
 # SDK Files

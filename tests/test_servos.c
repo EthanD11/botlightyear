@@ -3,9 +3,9 @@
 int main(int argc, char const *argv[])
 {
     if (init_spi() != 0) return -1;
-    printf("%d\n", servo_toggle());
+    servo_deploy();
     lguSleep(3);
-    printf("%d\n", servo_toggle());
+    servo_raise();
     lguSleep(1);
     servo_idle();
     close_spi();
