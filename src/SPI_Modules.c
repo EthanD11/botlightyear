@@ -7,12 +7,12 @@ const double x_max = 3.0;
 const double y_max = 2.0; 
 const double t_max = 2*3.141593; 
 const double speed_max = 1.0; 
-int servo_raised = 0;
+int servo_deployed = 0;
 // TODO : calibrate with flaps
 const char servo_left_dc_deployed = 19;
-const char servo_left_dc_raised = 27;
+const char servo_left_dc_raised = 30;
 const char servo_right_dc_deployed = 19;
-const char servo_right_dc_raised = 27;
+const char servo_right_dc_raised = 5;
 
 // Converts words from big endian to little endian (and vice versa)
 // https://codereview.stackexchange.com/questions/151049/endianness-conversion-in-c
@@ -181,11 +181,19 @@ void teensy_idle() {
 }
 
 int servo_toggle() {
-    servo_raised = 1-servo_raised; // Invert value
+    servo_deployed = 1-servo_deployed; // Invert value
     char send[5];
     send[0] = 0x80;
-    send[3] = (servo_raised) ? servo_left_dc_raised : servo_left_dc_deployed;
-    send[4] = (servo_raised) ? servo_right_dc_raised : servo_right_dc_deployed;
+    send[3] = (servo_deployed) ? servo_left_dc_deployed : servo_left_dc_raised;
+    send[4] = (servo_deployed) ? servo_right_dc_deployed : servo_right_dc_raised;
     lgSpiWrite(DE0_handle, send, 5);
-    return servo_raised;
+    return servo_deployed;
+}
+
+void servo_idle() {
+    char send[5];
+    send[0] = 0x80;
+    send[3] = 0;
+    send[4] = 0;
+    lgSpiWrite(DE0_handle, send, 5);
 }

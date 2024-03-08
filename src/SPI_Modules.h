@@ -32,6 +32,8 @@ int init_spi();
 */
 void close_spi();
 
+// ----- ODOMETERS -----
+
 /**
  * @brief Get current ticks from left and right odometers and update them to given pointers. gpioInitialise() must have been called before.
  * 
@@ -39,32 +41,6 @@ void close_spi();
  * @param tick_right pointer that contains number of ticks of right wheel after call
  */
 void get_odo_tick(int32_t *tick_left, int32_t *tick_right);
-
-/*
- * @brief Get fast the current ticks form left and right odometers and update them to given pointers. gpioInitialise() must have been called before.
- * Executes in only one SPI query, at the cost of considering only the 16 MSBs of the counter. Handy for large movements.
- * 
- * @param tick_left pointer that contains number of ticks of left wheel after call
- * @param tick_right pointer that contains number of ticks of right wheel after call
- 
-void get_odo_tick_fast(int32_t *tick_left, int32_t *tick_right);*/
-
-/**
- * @brief Get the current speed from left and right encoders and update them to given pointers. gpioInitialise() must have been called before.
- * 
- * @param spd_left pointer that contains speed of left wheel after call
- * @param spd_right pointer that contains speed of right wheel after call
- */
-//void get_enc_spd(int32_t *spd_left, int32_t*spd_right);
-
-/*
- * @brief Get fast the current speed from left and right encoders and update them to given pointers. gpioInitialise() must have been called before.
- * Executes in only one SPI query, at the cost of considering only the 16 LSBs of the counter. Handy for fast speed control.
- * 
- * @param spd_left pointer that contains speed of left wheel after call
- * @param spd_right pointer that contains speed of right wheel after call
-
-void get_enc_spd_fast(int32_t *spd_left, int32_t *spd_right);*/
 
 /**
  * @brief Resets internal values of DE0-Nano
@@ -81,6 +57,8 @@ void init_sonar();
 
 double sonar_ask();*/
 
+// ----- TEENSY -----
+
 /**
  * @brief Send constant speed query to Teensy. Must be called after init_spi.
 */
@@ -96,9 +74,16 @@ void teensy_pos_ctrl(double x, double y, double t, double xr, double yr, double 
  */
 void teensy_idle();
 
+// ------ SERVOS -----
+
 /**
- * @brief Toggles servomotors and returns their current position (0 = deployed, 1 = raised)
+ * @brief Toggles servomotors and returns their current position (0 = raised, 1 = deployed).
  */
 int servo_toggle();
+
+/**
+ * @brief Releases the torque applied to the servos
+*/
+void servo_idle();
 
 #endif

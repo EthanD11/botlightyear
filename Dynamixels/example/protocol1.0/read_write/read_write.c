@@ -43,22 +43,28 @@
 #define ADDR_MX_TORQUE_ENABLE           24                  // Control table address is different in Dynamixel model
 #define ADDR_MX_GOAL_POSITION           30
 #define ADDR_MX_PRESENT_POSITION        36
+#define ADDR_MX_MOVING_SPEED            32
+#define ADDR_CW_ANGLE_LIMIT             6                  // JOINT MODE: neither are 0
+#define ADDR_CCW_ANGLE_LIMIT            8                  // WHEEL MODE: both are 0
 
 // Protocol version
 #define PROTOCOL_VERSION                1.0                 // See which protocol version is used in the Dynamixel
 
 // Default setting
 
-#define DXL_ID                          8                   // Dynamixel ID: 1
+#define DXL_ID                          6                  // Dynamixel ID: 1
 #define BAUDRATE                        57600
 #define DEVICENAME                      "/dev/ttyAMA0"      // Check which port is being used on your controller
                                                             // ex) Windows: "COM1"   Linux: "/dev/ttyUSB0" Mac: "/dev/tty.usbserial-*"
 
 #define TORQUE_ENABLE                   1                   // Value for enabling the torque
 #define TORQUE_DISABLE                  0                   // Value for disabling the torque
-#define DXL_MINIMUM_POSITION_VALUE      100                 // Dynamixel will rotate between this value
-#define DXL_MAXIMUM_POSITION_VALUE      4000                // and this value (note that the Dynamixel would not move when the position value is out of movable range. Check e-manual about the range of the Dynamixel you use.)
+#define DXL_MINIMUM_POSITION_VALUE      215//515                   // Dynamixel will rotate between this value
+#define DXL_MAXIMUM_POSITION_VALUE      515//215               // and this value (note that the Dynamixel would not move when the position value is out of movable range. Check e-manual about the range of the Dynamixel you use.)
 #define DXL_MOVING_STATUS_THRESHOLD     10                  // Dynamixel moving status threshold
+#define DXL_MOVING_SPEED                100         // Dynamixel moving speed:
+#define DXL_CW_ANGLE_LIMIT              215//215 //1
+#define DXL_CCW_ANGLE_LIMIT             515//515 //1023
 
 #define ESC_ASCII_VALUE                 0x1b
 
@@ -123,7 +129,7 @@ int main()
   int index = 0;
   int dxl_comm_result = COMM_TX_FAIL;             // Communication result
   int dxl_goal_position[2] = { DXL_MINIMUM_POSITION_VALUE, DXL_MAXIMUM_POSITION_VALUE };  // Goal position
-  int dxl_speed[2] = { 0, 1024+512 };  // Goal position
+  //int dxl_speed[2] = { 0, 1024+512 };  // Goal position
 
   uint8_t dxl_error = 0;                          // Dynamixel error
   uint16_t dxl_present_position = 0;              // Present position
@@ -175,8 +181,8 @@ int main()
     if (getch() == ESC_ASCII_VALUE)
       break;
 
-    // Write goal position
-    write2ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, 32, dxl_speed[index]);
+    // Write CW/CCW position
+    write2ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, ADDR_CW_ANGLE_LIMIT, DXL_CW_ANGLE_LIMIT);
     if ((dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION)) != COMM_SUCCESS)
     {
       printf("%s\n", getTxRxResult(PROTOCOL_VERSION, dxl_comm_result));
@@ -184,6 +190,38 @@ int main()
     else if ((dxl_error = getLastRxPacketError(port_num, PROTOCOL_VERSION)) != 0)
     {
       printf("%s\n", getRxPacketError(PROTOCOL_VERSION, dxl_error));
+    }
+
+    write2ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, ADDR_CCW_ANGLE_LIMIT, DXL_CCW_ANGLE_LIMIT);
+    if ((dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION)) != COMM_SUCCESS)
+    {
+      printf("%s\n", getTxRxResult(PROTOCOL_VERSION, dxl_comm_result));
+    }
+    else if ((dxl_error = getLastRxPacketError(port_num, PROTOCOL_VERSION)) != 0)
+    {
+      printf("%s\n", getRxPacketError(PROTOCOL_VERSION, dxl_error));
+    }
+
+    // Write speed
+    write2ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, ADDR_MX_MOVING_SPEED, DXL_MOVING_SPEED);
+    if ((dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION)) != COMM_SUCCESS)
+    {
+      printf("%s\n", getTxRxResult(PROTOCOL_VERSION, dxl_comm_result));
+    }
+    else if ((dxl_error = getLastRxPacketError(port_num, PROTOCOL_VERSION)) != 0)
+    {
+      printf("%s\n", getRxPacketError(PROTOCOL_VERSION, dxl_error));
+    }
+
+    // Write goal position
+    write2ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, ADDR_MX_GOAL_POSITION, dxl_goal_position[index]);
+    if ((dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION)) != COMM_SUCCESS)
+    {
+      getTxRxResult(PROTOCOL_VERSION, dxl_comm_result);
+    }
+    else if ((dxl_error = getLastRxPacketError(port_num, PROTOCOL_VERSION)) != 0)
+    {
+      getRxPacketError(PROTOCOL_VERSION, dxl_error);
     }
 
     do
@@ -246,3 +284,4 @@ int main()
 
   return 0;
 }
+
