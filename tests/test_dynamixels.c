@@ -1,4 +1,4 @@
-#include "solar_panels.h"
+#include "dynamixels.h"
 #include <unistd.h>
 
 int main(int argc, char const *argv[])

@@ -1,9 +1,8 @@
 #include "SPI_Modules.h"
-#include <unistd.h>
 
 
 #define REDUCTION_PLATEAU 8.5
-#define ANGLE_OUVERTURE_PLATEAU 96.72
+#define ANGLE_OUVERTURE_PLATEAU 103.33
 #define TIC_STEPPER_PLATEAU 1600
 
 typedef enum {
@@ -18,36 +17,68 @@ typedef enum {
     Pot
 } positions_flaps_t;
 
+// 8x (8 = ecrire)(x = stepper)
+// 1 plateau
+// 2 .. config vitesse
+// 3 .. config reste
+// 4 slider, rail lineaire
+// 5 .. config vitesse
+// 6 .. config reste
+// 7 flaps stepper
+// 8 .. config vitesse
+// 9 .. config reste
+
+// 00(mode) 0(Signe) 00...00(29->step)
+// mode: 
+//      00 OFF     
+//      01 Idle
+//      10 Calibre
+//      11 Step + signe direction du stepper (horlogique/antihorlogique)
+
 int main(int argc, char const *argv[])
 {
-    //steppers_t stepper = Plate; 
-    steppers_t stepper = Slider; 
-    positions_flaps_t position_flaps = Open; 
-    
-    setupStepperSpeed(5,10,stepper); 
-    //sleep(1);
 
-    calibrateStepper(stepper); 
+    
+    //steppers_t stepper = Plate; 
+    steppers_t stepper = Flaps; 
+    positions_flaps_t position_flaps = Plant; 
+
+    setupStepperSpeed(5,10,stepper); 
+    sleep(1);    
+    //resetStepperModule (stepper);
+    calibrateStepper(Flaps);
+    calibrateStepper(Plate);
+    calibrateStepper(Slider);
+
+
+    //resetStepperModule (stepper)
+    /*
+    setupStepperSpeed(5,10,stepper); 
+    sleep(1);
+    calibrateStepper(stepper); */
     //moveFlaps(position_flaps); 
     //moveFlapsSteps(2050); //2220 for plant, 2050 for pot
-
-    /*int DE0_handle = lgSpiOpen(0, SPI_DE0, SPI_SPEED_HZ_DEFAULT, SPI_MODE_DEFAULT);
-    char send[] = {0x87,0xE0,0,0b00000011,0b00100000};
-    lgSpiWrite(DE0_handle, send, 5); //5 = le nombre de bit a ecrire
-    lgSpiClose(DE0_handle);*/
-
-
-    /*for(int i = -3; i<= 3; i++) {
-        int pos = 0;
-        PositionPlateau(i);
-        sleep(5);
-    }*/
-
-    
     //PositionPlateau(0);
-
+    //demoPlateS6();
+    
+    
+    
     return 0;
 }
+
+void demoPlateS6(){
+    steppers_t stepper = Plate; 
+    setupStepperSpeed(2,10,stepper); 
+    PositionPlateau(-3);
+    sleep(4);
+    for(int i = -2; i<= 3; i++) {
+        int pos = 0;
+        PositionPlateau(i);
+        sleep(2);
+    }
+    PositionPlateau(0);
+}
+/*
 void moveFlapsSteps (int steps) {
     int DE0_handle = lgSpiOpen(0, SPI_DE0, SPI_SPEED_HZ_DEFAULT, SPI_MODE_DEFAULT);
     int numberHexa1 = steps/65536; //division entiere
@@ -56,6 +87,40 @@ void moveFlapsSteps (int steps) {
 
     char send[] = {0x87,0xE0,numberHexa1,numberHexa2,numberHexa3};
     lgSpiWrite(DE0_handle, send, 5); //5 = le nombre de bit a ecrire
+    lgSpiClose(DE0_handle);
+}*/
+
+void moveStepperSteps(steppers_t stepperName, int steps, int neg) {
+    int DE0_handle = lgSpiOpen(0, SPI_DE0, SPI_SPEED_HZ_DEFAULT, SPI_MODE_DEFAULT);
+    int request; 
+    int direction; 
+
+    switch (stepperName) {
+        case Plate :
+            request = 0x81; 
+            direction = (neg == 0) ? 0xC0 : 0xE0; 
+            break;
+        case Slider :
+            request = 0x84; 
+            direction = 0xE0;
+            break;
+        case Flaps :
+            request = 0x87; 
+            direction = 0xE0;
+            break;
+        default : 
+            request = 0; 
+            direction = 0;
+            printf("Error : not a stepper"); 
+            break; 
+    }   
+
+    int steps1 = steps/65536; 
+    int steps2 = (steps-steps1*65536) /256;
+    int steps3 = steps-steps1*65536-steps2*256;
+
+    char send[] = {request,direction,steps1,steps2,steps3};
+    lgSpiWrite(DE0_handle, send, 5);
     lgSpiClose(DE0_handle);
 }
 
@@ -76,64 +141,26 @@ void moveFlaps (positions_flaps_t pos) {
         steps = 0; 
         break;
     }
-    moveFlapsSteps(steps); 
+    moveStepperSteps(Flaps, steps, 0); 
 }
-void PositionPlateau(int pot){
-    //pot est une variable allant de -3 à 3 avec 0 la position de repos
-    int DE0_handle = lgSpiOpen(0, SPI_DE0, SPI_SPEED_HZ_DEFAULT, SPI_MODE_DEFAULT);
-    char send[]= {0,0,0,0,0};
-    
-    // 8x (8 = ecrire)(x = stepper)
-    // 1 plateau
-    // 2 .. config vitesse
-    // 3 .. config reste
-    // 4 slider, rail lineaire
-    // 5 .. config vitesse
-    // 6 .. config reste
-    // 7 flaps stepper
-    // 8 .. config vitesse
-    // 9 .. config reste
 
-    // 00(mode) 0(Signe) 00...00(29->step)
-    // mode: 
-    //      00 OFF     
-    //      01 Idle
-    //      10 Calibre
-    //      11 Step + signe direction du stepper (horlogique/antihorlogique)
-    int direction = 192;// 0xC0
+void PositionPlateau(int pot){
+    //pot est une variable allant de -3 Ã  3 avec 0 la position de repos
+    int direction = 0;
     if (pot ==0){
-        //send = {0x81,0xC0,0,0,0}; // Reset position to 0
-        send[0] = 0x81;
-        send[1] = 0xC0;
-        
-    } else if (pot != 0){
+        moveStepperSteps(Plate, 0, 0);   
+    } else {
         if (pot<0) {
-            direction = 224;//0xE0; 1110 0000
             pot = -pot;
+            direction = 1;
         }
         pot = pot - 1;
-        int anglePlateau = (ANGLE_OUVERTURE_PLATEAU)/2 + (pot)* (360-ANGLE_OUVERTURE_PLATEAU)/6;
-        int angleStepper = anglePlateau * REDUCTION_PLATEAU;
-        int ticStepper = angleStepper/360 * TIC_STEPPER_PLATEAU;
-        int numberHexa1 = ticStepper/65536; //division entiere
-        int numberHexa2 = (ticStepper-numberHexa1*65536) /256;
-        int numberHexa3 = ticStepper-numberHexa1*65536-numberHexa2*256;
-        //send[] = {0x81,direction,numberHexa1,numberHexa2,numberHexa3};
-        send[0] = 0x81;
-        send[1] = direction;
-        send[2] = numberHexa1;
-        send[3] = numberHexa2;
-        send[4] = numberHexa3;
+        double anglePlateau = (ANGLE_OUVERTURE_PLATEAU)/2 + (pot)* (360-ANGLE_OUVERTURE_PLATEAU)/5;
+        double angleStepper = anglePlateau * REDUCTION_PLATEAU;
+        double ticStepper = angleStepper/360 * TIC_STEPPER_PLATEAU;
+        moveStepperSteps(Plate,(int)ticStepper,direction);
     }   
-    //char send[] = {0x87,0x40,0,0,0}; // IDLE 
-    //char send[] = {0x83,0x80,0,0,0}; // calibre
-    //char send[] = {0x83,0xC0,0,0b00000110,0b01000000}; // FULL TURN = 1600 steps pour stepper d'Arnaud (17hs16-2004s1)
-    //char send[] = {0x83,0xC0,0,0b00011001,0}; // 4 full turns to test precision
-    //char send[] = {0x83,0xC0,0,0b00110010,0}; // 8 full turns to test precision
-    //char send[] = {0x83,0xC0,0,0b01100100,0}; // 16 full turns to test precision
-    //char send[] = {0x83,0xDF,0xFF,0xF9,0xC0 }; // -1 full turn = -1600
-    lgSpiWrite(DE0_handle, send, 5); //5 = le nombre de bit a ecrire
-    lgSpiClose(DE0_handle);
+
 }
 
 
@@ -175,7 +202,7 @@ void calibrateStepper(steppers_t stepper) {
             break;
         case Slider :
             request = 0x84; 
-            calibDir = 0x80;
+            calibDir = 0xA0;
             break;
         case Flaps :
             request = 0x87; 
@@ -191,14 +218,32 @@ void calibrateStepper(steppers_t stepper) {
     lgSpiWrite(DE0_handle, send, 5);
     lgSpiClose(DE0_handle);
 }
-/*
-int main(int argc, char const *argv[])
-{   
-    // 10 -> 8a ecrire dans le control des switch
-    //si marche pas, envoie un 1 pour trigger en regardant toute les valeurs des switch en mode cyclic
+
+void resetStepperModule (steppers_t stepper) {
     int DE0_handle = lgSpiOpen(0, SPI_DE0, SPI_SPEED_HZ_DEFAULT, SPI_MODE_DEFAULT);
-    char send[] = {0x8a,0,0,0,1};
+    int request; 
+    switch (stepper) {
+        case Plate :
+            request = 0x83; 
+            break;
+        case Slider :
+            request = 0x86; 
+            break;
+        case Flaps :
+            request = 0x89; 
+            break;
+        default : 
+            request = 0; 
+            printf("Error : not a stepper"); 
+            break; 
+    } 
+    char send[] = {request,0,1,0,0};
     lgSpiWrite(DE0_handle, send, 5);
     lgSpiClose(DE0_handle);
-    return 0;
-}*/
+    sleep(1);
+    
+    send[2] = 0; 
+    DE0_handle = lgSpiOpen(0, SPI_DE0, SPI_SPEED_HZ_DEFAULT, SPI_MODE_DEFAULT);
+    lgSpiWrite(DE0_handle, send, 5);
+    lgSpiClose(DE0_handle);
+}

@@ -57,12 +57,14 @@ lidar_program:
 
 # Run Camera program
 camera: camera_program
-	@./bin/camera.o
+	@./bin/camera
 	@rm ./bin/camera
 
 camera_program:
-	@g++ ./src/cameraTag.cpp -o ./bin/camera.o -lpthread -I/usr/include/opencv4 -I/path/to/raspicam/include -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_aruco -lopencv_videoio -L/usr/local/lib -L/path/to/raspicam/lib -lraspicam -lraspicam_cv
+	@g++ ./src/cameraTag.cpp -o ./bin/camera -lpthread -I/usr/include/opencv4 -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_aruco -lopencv_videoio
 
+
+#@g++ ./src/cameraTag.cpp -o ./bin/camera.o -lpthread -I/usr/include/opencv4 -I/path/to/raspicam/include -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_aruco -lopencv_videoio -L/usr/local/lib -L/path/to/raspicam/lib -lraspicam -lraspicam_cv
 
 #Run the project (process the inputs in input_binary/ and write it to "output.txt")
 run: fec 

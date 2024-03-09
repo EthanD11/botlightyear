@@ -1,4 +1,4 @@
-#include "solar_panels.h"
+#include "dynamixels.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -74,7 +74,7 @@ void ping_dxl(int ID, float protocol) {
   }
 
   // Disable Dynamixel Torque
-  write1ByteTxRx(port_num, PROTOCOL_VERSION, ID, ADDR_TORQUE_ENABLE, TORQUE_DISABLE);
+  write1ByteTxRx(port_num, protocol, ID, ADDR_TORQUE_ENABLE, TORQUE_DISABLE);
 }
 
 void deploy_solar_panel() {
@@ -104,7 +104,7 @@ void deploy_solar_panel() {
   write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_MOVING_SPEED, 100);
 
   // Write goal position
-  write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, DXL_ID, ADDR_GOAL_POSITION, dxl_goal_position);
+  write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_GOAL_POSITION, dxl_goal_position);
 
     while ((abs(dxl_goal_position - dxl_present_position) > 10)) {
       // Read present position
