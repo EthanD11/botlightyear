@@ -29,6 +29,7 @@ typedef struct PathFollower {
     double *checkpoints_x;
     double *checkpoints_y;
     int n; // Number of checkpoints
+    double last_x, last_y, last_q;
 
     SplineSet *x_splines;
     SplineSet *y_splines;

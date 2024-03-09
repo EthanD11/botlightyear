@@ -1,18 +1,23 @@
 #include "regulator.h"
 
-
 Regulator *init_regulator() {
     Regulator *reg = (Regulator *) malloc(sizeof(Regulator));
     
-    reg->kp = 7.795856e-01; // Former t1_kp
-    reg->ki = 8.398411e-01 * REG_DELAY * 1e-3; // Former t1_ki
+    // reg->kp = 7.795856e-01; // Former t1_kp
+    // reg->ki = 8.398411e-01 * REG_DELAY * 1e-3; // Former t1_ki
     
-    reg->imax = 30; // Anti windup
+    reg->kp = 3; // Former t1_kp
+    reg->ki = 18; // Former t1_ki
+    
+
+    reg->imax = 1; // Anti windup [V/V]
 
     reg->isl = 0.0; // left integral state
     reg->isr = 0.0; // right integral state
-    reg->duty_cycle_l = 0.0; // left duty cycle command
-    reg->duty_cycle_r = 0.0; // right duty cycle command
+    reg->duty_cycle_refl = 0.0; // left duty cycle command
+    reg->duty_cycle_refr = 0.0; // right duty cycle command
+
+    return reg;
 }
 
 void free_regulator(Regulator *regulator) {
@@ -21,26 +26,30 @@ void free_regulator(Regulator *regulator) {
 
 void control_speed(
     Regulator *reg, 
-    double speed_l,
-    double speed_r,
+    OutputInterface *outputs,
+    RobotPosition *rob_pos,
     double speed_refl,
     double speed_refr) {
-
-    speed_l = SAT(speed_l, REF_SPEED_LIMIT);
-    speed_r = SAT(speed_r, REF_SPEED_LIMIT);
 
     // PI controller
     double esl, esr;        // Errors on speed, left and right
     double vl, vr;          // Voltage output commands, left and right
-    int duty_cycle_left, duty_cycle_right;  // Duty cycles
+    double speed_r, speed_l;
+    double dt;
+
+    speed_l = rob_pos->speed_left;
+    speed_r = rob_pos->speed_right;
+    speed_refl = SAT(speed_refl, REF_SPEED_LIMIT);
+    speed_refr = SAT(speed_refr, REF_SPEED_LIMIT);
+    dt = rob_pos->dt;
 
     // Compute error
-    esl = speed_refl - speed_l;
-    esr = speed_refr - speed_r;
+    esl = speed_refl - rob_pos->speed_left;
+    esr = speed_refr - rob_pos->speed_right;
 
     // Compute integral
-    reg->isl = SAT(reg->isl + esl, reg->imax);
-    reg->isr = SAT(reg->isr + esr, reg->imax);
+    reg->isl = SAT(reg->isl + reg->ki*esl*dt, reg->imax);
+    reg->isr = SAT(reg->isr + reg->ki*esr*dt, reg->imax);
 
     #ifdef VERBOSE
     printf("Left Integral  : %.4f\n", isl);
@@ -48,24 +57,35 @@ void control_speed(
     #endif
 
     // Compute voltages
-    vl = reg->kp * esl + reg->ki * reg->isl;
-    vr = reg->kp * esr + reg->ki * reg->isr;
+    vl = reg->kp * esl + reg->isl;
+    vr = reg->kp * esr + reg->isr;
+
+    printf("P term = %.3e\n", reg->kp*esl);
+    printf("I term = %.3e\n", reg->isl);
+
+    printf("vl = %.3e\n", vl);
+    printf("vr = %.3e\n", vr);
 
     // update duty cycle, assuming duty cycle changes average voltage linearly
     #ifdef ADZ_ENABLE
     // add an anti-deadzone term to compensate the deadzone around 0
     int adz_l = adz * (fabs(speed_refl) > 0.02) * (fabs(speed_l) < 0.01) * (1-2*(vl < 0));
     int adz_r = adz * (fabs(speed_refr) > 0.02) * (fabs(speed_r) < 0.01) * (1-2*(vr < 0));
-    reg->duty_cycle_l = SAT(((int)(vl * MOTOR_DUTY_RANGE)) + adz_l, MOTOR_DUTY_RANGE);
-    reg->duty_cycle_r = SAT(((int)(vr * MOTOR_DUTY_RANGE)) + adz_r, MOTOR_DUTY_RANGE);
+    reg->duty_cycle_refl = SAT(((int)(vl * MOTOR_DUTY_RANGE)) + adz_l, MOTOR_DUTY_RANGE);
+    reg->duty_cycle_refr = SAT(((int)(vr * MOTOR_DUTY_RANGE)) + adz_r, MOTOR_DUTY_RANGE);
     #else
-    reg->duty_cycle_l = SAT((int)(vl * MOTOR_DUTY_RANGE), MOTOR_DUTY_RANGE);
-    reg->duty_cycle_r = SAT((int)(vr * MOTOR_DUTY_RANGE), MOTOR_DUTY_RANGE);
+    reg->duty_cycle_refl = SAT((int)(vl * MOTOR_DUTY_RANGE), MOTOR_DUTY_RANGE);
+    reg->duty_cycle_refr = SAT((int)(vr * MOTOR_DUTY_RANGE), MOTOR_DUTY_RANGE);
     #endif
+    printf("duty_cycle_refl = %d\n", reg->duty_cycle_refl);
+    printf("duty_cycle_refr = %d\n", reg->duty_cycle_refr);
 
     #ifdef VERBOSE
     printf("Voltages : %.4f, %.4f\n", vl*24, vr*24);
-    printf("Updating duty cycles to : %d, %d\n\n", reg->duty_cycle_l, reg->duty_cycle_l);
+    printf("Updating duty cycles to : %d, %d\n\n", reg->duty_cycle_refl, reg->duty_cycle_refl);
     #endif
+
+    outputs->duty_cycle_refl = reg->duty_cycle_refl;
+    outputs->duty_cycle_refr = reg->duty_cycle_refr;
 
 }

@@ -1,7 +1,8 @@
 #include "SPIInterface.h"
+#include "SPISlave_T4.h"
 
 typedef struct SPIInterface {
-    SPISlave_T4 spi_slave;
+    SPISlave_T4 *spi_slave;
     uint32_t i, n; // Number of bytes received, expected and actual
     uint32_t data_buffer[7];
     query_t query;
@@ -11,13 +12,13 @@ SPIInterface *spi_interface;
 
 void init_spi_interface() {
     spi_interface = (SPIInterface *) malloc(sizeof(SPIInterface));
-    spi_interface->spi_slave =  new mySPI(0, SPI_8_BITS);
-    spi->interface->i = 0;
-    spi->interface->n = 0;
+    spi_interface->spi_slave =  new SPISlave_T4(0, SPI_8_BITS);
+    spi_interface->i = 0;
+    spi_interface->n = 0;
 
-    mySPI.begin(MSBFIRST, SPI_MODE0);
-    mySPI.swapPins();
-    mySPI.onReceive(spi_receive_event);
+    spi_interface->spi_slave->begin(MSBFIRST, SPI_MODE0);
+    spi_interface->spi_slave->swapPins();
+    spi_interface->spi_slave->onReceive(spi_receive_event);
 }
 
 query_t spi_get_query() {
@@ -25,15 +26,15 @@ query_t spi_get_query() {
 }
 
 void spi_receive_event() {
-    SPISlave_T4 mySPI = spi_interface->spi_slave;
+    SPISlave_T4 *mySPI = spi_interface->spi_slave;
 
     //When there is data to read
-    while ( mySPI.available() ) {
+    while ( mySPI->available() ) {
 
-        uint32_t data = mySPI.popr();
+        uint32_t data = mySPI->popr();
 
         if (spi_interface->i == 0) {
-            spi_interface->query = data;
+            spi_interface->query = (query_t) data;
             switch (data) {
                 case QueryPositionControl :
                     spi_interface->n = 7;
@@ -62,7 +63,7 @@ void spi_receive_event() {
 }
 
 int spi_valid_transmission() {
-    return (spi_interface->i == spi_interface->n)
+    return (spi_interface->i == spi_interface->n);
 }
 
 void spi_reset_transmission() {
@@ -71,19 +72,19 @@ void spi_reset_transmission() {
 
 void spi_handle_position_control(RobotPosition *rp, PositionController *pc) 
 {
-    uint32_t data_buffer = spi_interface->data_buffer;
-    rp->x         = ((double)(dataBuf[1]))*3/255;
-    rp->y         = ((double)(dataBuf[2]))*2/255;
-    rp->theta     = ((double)(dataBuf[3]))*2*M_PI/255 - M_PI;
-    pc->xref      = ((double)(dataBuf[4]))*3/255;
-    pc->yref      = ((double)(dataBuf[5]))*2/255;
-    pc->theta_ref = ((double)(dataBuf[6]))*2*M_PI/255 - M_PI;
+    uint32_t *data_buffer = spi_interface->data_buffer;
+    rp->x         = ((double)(data_buffer[1]))*3/255;
+    rp->y         = ((double)(data_buffer[2]))*2/255;
+    rp->theta     = ((double)(data_buffer[3]))*2*M_PI/255 - M_PI;
+    pc->xref      = ((double)(data_buffer[4]))*3/255;
+    pc->yref      = ((double)(data_buffer[5]))*2/255;
+    pc->theta_ref = ((double)(data_buffer[6]))*2*M_PI/255 - M_PI;
 }
 
-void spi_handle_speed_control(Regulator *speed_regulator) {
-    uint32_t data_buffer = spi_interface->data_buffer;
-    speed_regulator->speed_refl = ((double)data_buffer[1])*2/255;
-    speed_regulator->speed_refr = ((double)data_buffer[2])*2/255;
+void spi_handle_speed_control(double *speed_refl, double *speed_refr) {
+    uint32_t *data_buffer = spi_interface->data_buffer;
+    speed_refl[0] = ((double)data_buffer[1])*2/255;
+    speed_refr[0] = ((double)data_buffer[2])*2/255;
 }
 
 

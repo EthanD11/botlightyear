@@ -6,14 +6,14 @@
 
 // Pins
 // IN1
-#define C_L 14
-#define C_R 3
+#define D_L 4
+#define D_R 15
 // IN2
-#define D_L 15
-#define D_R 4
+#define C_L 3
+#define C_R 14
 // Enable
-#define PWM_L 22
-#define PWM_R 23
+#define PWM_R 22
+#define PWM_L 23
 // Current sensors
 #define CURRENT_L 41
 #define CURRENT_R 40
@@ -45,6 +45,11 @@ inline void duty_cycle_update(OutputInterface *outputs)
 
     duty_cycle_refl = outputs->duty_cycle_refl;
     duty_cycle_refr = outputs->duty_cycle_refr;
+
+    // printf("duty cycle ref left: %d\n", duty_cycle_refl);
+    // printf("duty cycle ref right: %d\n", duty_cycle_refr);
+    // printf("duty cycle left: %d\n", duty_cycle_l);
+    // printf("duty cycle right: %d\n", duty_cycle_r);
 
     // Left buffered control
     duty_cycle_l += SAT(duty_cycle_refl - duty_cycle_l, BUF_STEP);

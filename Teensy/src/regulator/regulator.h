@@ -1,5 +1,7 @@
 #include "../../utils.h"
 #include "../localization/localization.h"
+#include "../inout_interface/output_interface.h"
+#include "../localization/localization.h"
 
 #ifndef _REGULATOR_H_
 #define _REGULATOR_H_
@@ -22,10 +24,10 @@ Regulator *init_regulator();
 void free_regulator(Regulator *regulator);
 
 void control_speed(
-    Regulator *regulator, 
-    double speed_l,
-    double speed_r,
-    double speed_refr,
-    double speed_refl);
+    Regulator *reg, 
+    OutputInterface *outputs,
+    RobotPosition *rob_pos,
+    double speed_refl,
+    double speed_refr);
 
 #endif

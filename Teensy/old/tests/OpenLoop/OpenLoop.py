@@ -22,7 +22,7 @@ beta = alpha*(time[4]-time[3])/(speed[4]-speed[3])
 alpha *= 256/180
 print(f"(1(t) (*) h(t)) = {format(alpha,'e')}*(1-exp(-t/{format(beta, 'e')}))")
 
-tau = beta/1.5
+tau = beta/10
 print(f"Chosen response time in closed loop : {format(tau,'e')}")
 
 Kp = beta/alpha/tau

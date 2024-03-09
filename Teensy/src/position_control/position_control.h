@@ -14,6 +14,7 @@ typedef struct PositionController {
     double kp;  // Proportional coefficient for distance error
     double ka;  // Proportional coefficient for direction error
     double kb;  // Proportional coefficient for orientation error
+    double kw; // Propoortional coefficient for orientation error when position is reached
     double position_tol;     // Acceptable static error on position (m)
     double drift_tol;   // Acceptable drift from reference position when reorienting (m)
     double angular_tol;     // Acceptable static error on orientation

@@ -4,6 +4,8 @@ OutputInterface *init_outputs() {
     OutputInterface *outputs = (OutputInterface *) malloc(sizeof(OutputInterface));
     outputs->duty_cycle_l = 0.0;
     outputs->duty_cycle_r = 0.0;
+    outputs->duty_cycle_refl = 0.0;
+    outputs->duty_cycle_refr = 0.0;
 
     // Output pins
     pinMode(C_L, OUTPUT);
@@ -37,11 +39,11 @@ OutputInterface *init_outputs() {
 
     analogWriteFrequency(A1, 20e3);
     analogWriteFrequency(A2, 20e3);
-    analogWriteFrequency(A3,20e3);
+    analogWriteFrequency(A3, 20e3);
 
     analogWrite(A1, 0);
     analogWrite(A2, 0);
-    analogWrite(A3,0);
+    analogWrite(A3, 0);
 
     return outputs;
 }

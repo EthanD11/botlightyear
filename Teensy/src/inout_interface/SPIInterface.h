@@ -23,9 +23,9 @@ typedef enum {
 void init_spi_interface();
 void spi_receive_event();
 int spi_valid_transmission();
-int spi_reset_transmission();
+void spi_reset_transmission();
 query_t spi_get_query();
 void spi_handle_position_control(RobotPosition *robot_position, PositionController *position_controller);
-void spi_handle_speed_control(Regulator *speed_regulator);
+void spi_handle_speed_control(double *speed_refl, double *speed_refr);
 
 #endif
