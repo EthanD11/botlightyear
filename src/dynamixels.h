@@ -13,8 +13,8 @@ void raise_solar_panel();
 void multi_turn_solar_panel();
 
 void openG(); 
-void openG_withoutreturn(); 
-void closeG_withoutreturn(); 
+void open_gripper(); 
+void close_gripper(); 
 
 void raiseG_withoutreturn(); 
 void deployG_withoutreturn(); 

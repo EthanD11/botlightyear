@@ -6,16 +6,18 @@ int main(int argc, char const *argv[])
     init_port();
     
     //SOLAR PANELS
+    /*
     deploy_solar_panel(); 
     sleep(0.5);
     multi_turn_solar_panel();
     sleep(0.5);
     raise_solar_panel();
+    */
 
     //GRIPPER OPEN-CLOSE
-    /*openG_withoutreturn(); 
+    open_gripper(); 
     sleep(1); 
-    closeG_withoutreturn();*/
+    close_gripper();
 
     //GRIPPER UP-DOWN
     /*raiseG_withoutreturn(); 
