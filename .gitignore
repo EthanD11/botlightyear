@@ -1,4 +1,8 @@
 lg
 bin
 .vscode
+<<<<<<< HEAD
 Teensy/data/*
+=======
+**/*.o
+>>>>>>> main

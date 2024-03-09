@@ -3,6 +3,7 @@
 
 #include <lgpio.h>
 #include <stdint.h>
+#include <unistd.h>
 
 #define VERBOSE
 #ifdef VERBOSE
@@ -22,6 +23,32 @@
 // Sonars
 
 
+// Steppers
+
+
+#define REDUCTION_PLATEAU 8.5
+#define ANGLE_OUVERTURE_PLATEAU 103.33
+#define TIC_STEPPER_PLATEAU 1600
+
+typedef enum {
+    Plate, 
+    Slider, 
+    Flaps
+} steppers_t;
+
+typedef enum {
+    Open, 
+    Plant, 
+    Pot
+} positions_flaps_t;
+
+typedef enum {
+    Bas,
+    Haut,
+    Plateau
+} position_slider_t;
+
+
 /**
  * @brief Opens the SPI channels with default settings
  */
@@ -32,6 +59,8 @@ int init_spi();
 */
 void close_spi();
 
+// ----- ODOMETERS -----
+
 /**
  * @brief Get current ticks from left and right odometers and update them to given pointers. gpioInitialise() must have been called before.
  * 
@@ -39,32 +68,6 @@ void close_spi();
  * @param tick_right pointer that contains number of ticks of right wheel after call
  */
 void get_odo_tick(int32_t *tick_left, int32_t *tick_right);
-
-/*
- * @brief Get fast the current ticks form left and right odometers and update them to given pointers. gpioInitialise() must have been called before.
- * Executes in only one SPI query, at the cost of considering only the 16 MSBs of the counter. Handy for large movements.
- * 
- * @param tick_left pointer that contains number of ticks of left wheel after call
- * @param tick_right pointer that contains number of ticks of right wheel after call
- 
-void get_odo_tick_fast(int32_t *tick_left, int32_t *tick_right);*/
-
-/**
- * @brief Get the current speed from left and right encoders and update them to given pointers. gpioInitialise() must have been called before.
- * 
- * @param spd_left pointer that contains speed of left wheel after call
- * @param spd_right pointer that contains speed of right wheel after call
- */
-//void get_enc_spd(int32_t *spd_left, int32_t*spd_right);
-
-/*
- * @brief Get fast the current speed from left and right encoders and update them to given pointers. gpioInitialise() must have been called before.
- * Executes in only one SPI query, at the cost of considering only the 16 LSBs of the counter. Handy for fast speed control.
- * 
- * @param spd_left pointer that contains speed of left wheel after call
- * @param spd_right pointer that contains speed of right wheel after call
-
-void get_enc_spd_fast(int32_t *spd_left, int32_t *spd_right);*/
 
 /**
  * @brief Resets internal values of DE0-Nano
@@ -81,6 +84,8 @@ void init_sonar();
 
 double sonar_ask();*/
 
+// ----- TEENSY -----
+
 /**
  * @brief Send constant speed query to Teensy. Must be called after init_spi.
 */
@@ -96,9 +101,45 @@ void teensy_pos_ctrl(double x, double y, double t, double xr, double yr, double 
  */
 void teensy_idle();
 
+// ------ SERVOS -----
+
 /**
- * @brief Toggles servomotors and returns their current position (0 = deployed, 1 = raised)
+ * @brief Raises (retracts) flaps. Maintains a constant torque until servo_idle is called
  */
-int servo_toggle();
+void servo_raise();
+
+/**
+ * @brief Deploys flaps. Maintains a constant torque until servo_idle is called
+ */
+void servo_deploy();
+
+/**
+ * @brief Releases torque command from the servomotors
+ */
+void servo_idle();
+
+
+// ------ STEPPERS -------
+
+
+void moveStepperSteps(steppers_t stepperName, int steps, int neg); 
+void moveFlaps (positions_flaps_t pos); 
+void moveSlider(position_slider_t pos); 
+void PositionPlateau(int pot);
+
+/**
+ * @brief Sets the nominal and calibration speed of the stepper
+ */
+void setupStepperSpeed (int nominalSpeed, int calibrationSpeed, steppers_t stepper); 
+
+/**
+ * @brief Activtes the calibration of given stepper
+ */
+void calibrateStepper(steppers_t stepper); 
+
+/**
+ * @brief Resets stepper module to be ready for another calibration
+ */
+void resetStepperModule (steppers_t stepper); 
 
 #endif
