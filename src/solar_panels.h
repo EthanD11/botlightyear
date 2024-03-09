@@ -4,9 +4,13 @@
 void init_port(); 
 void ping_dxl(int ID, float protocol);
 
-void deployP();
-void raiseP();
-void multi_turnP(); 
+void deploy_solar_panel();
+void raise_solar_panel();
+void multi_turn_solar_panel(); 
+
+void deploy_solar_panel();
+void raise_solar_panel();
+void multi_turn_solar_panel();
 
 void openG(); 
 void openG_withoutreturn(); 

@@ -4,22 +4,34 @@
 #include <unistd.h>
 #include <dynamixel_sdk.h>
 
-// Control table address
-#define ADDR_MX_TORQUE_ENABLE           24                  // Control table address is different in Dynamixel model
-#define ADDR_MX_GOAL_POSITION           30
-#define ADDR_MX_PRESENT_POSITION        36
-#define ADDR_MX_MOVING_SPEED            32
+// Control table address for both Dynamixel AX-12 and XL-320
 #define ADDR_CW_ANGLE_LIMIT             6                  // JOINT MODE: neither are 0
 #define ADDR_CCW_ANGLE_LIMIT            8                  // WHEEL MODE: both are 0
-#define ADDR_MX_TORQUE                  14
-#define ADDR_PRESENT_SPEED              38
+#define ADDR_TORQUE_ENABLE              24                  
+#define ADDR_GOAL_POSITION              30
+#define ADDR_MOVING_SPEED               32
+
+// Control table address for Dynamixel AX-12
+#define ADDR_AX_TORQUE                  14
+#define ADDR_AX_STATUS_RETURN           16
+#define ADDR_AX_PRESENT_POSITION        36
+#define ADDR_AX_PRESENT_SPEED           38
+#define ADDR_AX_REGISTERED              44
+#define ADDR_AX_MOVING_STATUS           46
+
+// Control table address for Dynamixel XL-320
+#define ADDR_XL_TORQUE                  15
+#define ADDR_AX_STATUS_RETURN           17
+#define ADDR_XL_PRESENT_POSITION        37
+#define ADDR_XL_PRESENT_SPEED           39
+#define ADDR_XL_REGISTERED              47
+#define ADDR_XL_MOVING_STATUS           49
 
 // Protocol version
-#define PROTOCOL_VERSION                1.0                 // See which protocol version is used in the Dynamixel
+#define AX_PROTOCOL_VERSION                1.0      
+#define XL_PROTOCOL_VERSION                2.0           
 
 // Default setting
-
-#define DXL_ID                          6                  // Dynamixel ID
 #define BAUDRATE                        57600
 #define DEVICENAME                      "/dev/ttyAMA0"      
 
@@ -28,7 +40,6 @@
 #define DXL_MOVING_STATUS_THRESHOLD     10                  // Dynamixel moving status threshold
 
 int port_num;
-#define ESC_ASCII_VALUE                 0x1b
 
 void init_port() {
   port_num = portHandler(DEVICENAME);
@@ -48,7 +59,7 @@ void ping_dxl(int ID, float protocol) {
   uint8_t dxl_error = 0;   
  
   // Enable Dynamixel Torque
-  write1ByteTxRx(port_num, protocol, ID, ADDR_MX_TORQUE_ENABLE, TORQUE_ENABLE);
+  write1ByteTxRx(port_num, protocol, ID, ADDR_TORQUE_ENABLE, TORQUE_ENABLE);
   if ((dxl_comm_result = getLastTxRxResult(port_num, protocol)) != COMM_SUCCESS)
   {
     printf("%s\n", getTxRxResult(protocol, dxl_comm_result));
@@ -63,52 +74,49 @@ void ping_dxl(int ID, float protocol) {
   }
 
   // Disable Dynamixel Torque
-  write1ByteTxRx(port_num, PROTOCOL_VERSION, 6, ADDR_MX_TORQUE_ENABLE, TORQUE_DISABLE);
+  write1ByteTxRx(port_num, PROTOCOL_VERSION, ID, ADDR_TORQUE_ENABLE, TORQUE_DISABLE);
 }
 
-void deployP() {
+void deploy_solar_panel() {
   int dxl_comm_result = COMM_TX_FAIL;
-  int dxl_goal_position= 515;
+  int dxl_goal_position = 515;
 
   uint8_t dxl_error = 0;    
   uint16_t dxl_present_position = 0; 
 
   // Enable Dynamixel Torque
-  write1ByteTxRx(port_num, PROTOCOL_VERSION, 6, ADDR_MX_TORQUE_ENABLE, TORQUE_ENABLE);
-  if ((dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION)) != COMM_SUCCESS)
-  {
-    printf("%s\n", getTxRxResult(PROTOCOL_VERSION, dxl_comm_result));
+  write1ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_TORQUE_ENABLE, TORQUE_ENABLE);
+  if ((dxl_comm_result = getLastTxRxResult(port_num, AX_PROTOCOL_VERSION)) != COMM_SUCCESS) {
+    printf("%s\n", getTxRxResult(AX_PROTOCOL_VERSION, dxl_comm_result));
   }
-  else if ((dxl_error = getLastRxPacketError(port_num, PROTOCOL_VERSION)) != 0)
-  {
-    printf("%s\n", getRxPacketError(PROTOCOL_VERSION, dxl_error));
+  else if ((dxl_error = getLastRxPacketError(port_num, AX_PROTOCOL_VERSION)) != 0) {
+    printf("%s\n", getRxPacketError(AX_PROTOCOL_VERSION, dxl_error));
   }
-  else
-  {
+  else {
     printf("Dynamixel has been successfully connected \n");
   }
 
   // Write CW/CCW position
-  write2ByteTxRx(port_num, PROTOCOL_VERSION, 6, ADDR_CW_ANGLE_LIMIT, 215);
-  write2ByteTxRx(port_num, PROTOCOL_VERSION, 6, ADDR_CCW_ANGLE_LIMIT, 515);
+  write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_CW_ANGLE_LIMIT, 215);
+  write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_CCW_ANGLE_LIMIT, 515);
 
   // Write speed
-  write2ByteTxRx(port_num, PROTOCOL_VERSION, 6, ADDR_MX_MOVING_SPEED, 100);
+  write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_MOVING_SPEED, 100);
 
- // Write goal position
-  write2ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, ADDR_MX_GOAL_POSITION, dxl_goal_position);
+  // Write goal position
+  write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, DXL_ID, ADDR_GOAL_POSITION, dxl_goal_position);
 
     while ((abs(dxl_goal_position - dxl_present_position) > 10)) {
       // Read present position
-      dxl_present_position = read2ByteTxRx(port_num, PROTOCOL_VERSION, 6, ADDR_MX_PRESENT_POSITION);
-      write2ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, ADDR_MX_GOAL_POSITION, dxl_goal_position);
+      dxl_present_position = read2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_AX_PRESENT_POSITION);
+      write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_GOAL_POSITION, dxl_goal_position);
       //printf("deployP [ID:%03d] GoalPos:%03d  PresPos:%03d\n", 6, dxl_goal_position, dxl_present_position);
-      }
+    }
     
   // Disable Dynamixel Torque
-  write1ByteTxRx(port_num, PROTOCOL_VERSION, 6, ADDR_MX_TORQUE_ENABLE, TORQUE_DISABLE);
+  write1ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_TORQUE_ENABLE, TORQUE_DISABLE);
 }   
-void raiseP() {
+void raise_solar_panel() {
   int dxl_comm_result = COMM_TX_FAIL;
   int dxl_goal_position = 215;  
 
@@ -116,52 +124,51 @@ void raiseP() {
   uint16_t dxl_present_position = 0;         
 
   // Enable Dynamixel Torque
-  write1ByteTxRx(port_num, PROTOCOL_VERSION, 6, ADDR_MX_TORQUE_ENABLE, TORQUE_ENABLE);
+  write1ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_TORQUE_ENABLE, TORQUE_ENABLE);
 
   // Setup Dynamixel Torque
-  write1ByteTxRx(port_num, PROTOCOL_VERSION, 6, ADDR_MX_TORQUE, 750);
+  write1ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_AX_TORQUE, 750);
 
   // Write CW/CCW position
-  write2ByteTxRx(port_num, PROTOCOL_VERSION, 6, ADDR_CW_ANGLE_LIMIT, 215);
-  write2ByteTxRx(port_num, PROTOCOL_VERSION, 6, ADDR_CCW_ANGLE_LIMIT, 515);
+  write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_CW_ANGLE_LIMIT, 215);
+  write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_CCW_ANGLE_LIMIT, 515);
 
   // Write speed
-  write2ByteTxRx(port_num, PROTOCOL_VERSION, 6, ADDR_MX_MOVING_SPEED, 100);
+  write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_MOVING_SPEED, 100);
 
  // Write goal position
-  write2ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, ADDR_MX_GOAL_POSITION, dxl_goal_position);
+  write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_GOAL_POSITION, dxl_goal_position);
 
     while ((abs(dxl_goal_position - dxl_present_position) > 10)) {
-      write2ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, ADDR_MX_GOAL_POSITION, dxl_goal_position);
+      write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_GOAL_POSITION, dxl_goal_position);
       // Read present position
-      dxl_present_position = read2ByteTxRx(port_num, PROTOCOL_VERSION, 6, ADDR_MX_PRESENT_POSITION);
+      dxl_present_position = read2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_AX_PRESENT_POSITION);
       //printf("[ID:%03d] GoalPos:%03d  PresPos:%03d\n", 6, dxl_goal_position[index], dxl_present_position);
     }
 
   // Disable Dynamixel Torque
-  write1ByteTxRx(port_num, PROTOCOL_VERSION, 6, ADDR_MX_TORQUE_ENABLE, TORQUE_DISABLE);
+  write1ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_TORQUE_ENABLE, TORQUE_DISABLE);
 
 }
-void multi_turnP() {
+void multi_turn_solar_panel() {
   // Enable Dynamixel Torque
-  write1ByteTxRx(port_num, PROTOCOL_VERSION, 8, ADDR_MX_TORQUE_ENABLE, TORQUE_ENABLE);
+  write1ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_TORQUE_ENABLE, TORQUE_ENABLE);
 
   // Write CW/CCW position
-  write2ByteTxRx(port_num, PROTOCOL_VERSION, 8, ADDR_CW_ANGLE_LIMIT, 0);
-  write2ByteTxRx(port_num, PROTOCOL_VERSION, 8, ADDR_CCW_ANGLE_LIMIT, 0);
+  write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_CW_ANGLE_LIMIT, 0);
+  write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_CCW_ANGLE_LIMIT, 0);
 
   // Write speed
-  while (read2ByteTxRx(port_num, PROTOCOL_VERSION, 8, ADDR_PRESENT_SPEED)<=0.8*ADDR_MX_MOVING_SPEED){
-    write2ByteTxRx(port_num, PROTOCOL_VERSION, 8, ADDR_MX_MOVING_SPEED, 512);
+  while (read2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_AX_PRESENT_SPEED)<=0.8*ADDR_MOVING_SPEED){
+    write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_MOVING_SPEED, 512);
   }
   sleep(3);
 
   // Write speed
-  
-  write2ByteTxRx(port_num, PROTOCOL_VERSION, 8, ADDR_MX_MOVING_SPEED, 0);
+  write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_MOVING_SPEED, 0);
 
   // Disable Dynamixel Torque
-  write1ByteTxRx(port_num, PROTOCOL_VERSION, 8, ADDR_MX_TORQUE_ENABLE, TORQUE_DISABLE);
+  write1ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_TORQUE_ENABLE, TORQUE_DISABLE);
 }
 
 void openG_withoutreturn() {
@@ -172,7 +179,7 @@ int dxl_comm_result = COMM_TX_FAIL;
     uint16_t dxl_present_position = 0; 
 
     // Enable Dynamixel Torque
-    write1ByteTxRx(port_num, 2.0, 3, ADDR_MX_TORQUE_ENABLE, TORQUE_ENABLE);
+    write1ByteTxRx(port_num, 2.0, 3, ADDR_TORQUE_ENABLE, TORQUE_ENABLE);
     if ((dxl_comm_result = getLastTxRxResult(port_num, 2.0)) != COMM_SUCCESS) {
         printf("%s\n", getTxRxResult(2.0, dxl_comm_result));
     } else if ((dxl_error = getLastRxPacketError(port_num, 2.0)) != 0) {
@@ -192,10 +199,10 @@ int dxl_comm_result = COMM_TX_FAIL;
     write2ByteTxRx(port_num, 2.0, 3, 11, 2); 
 
     // Write speed
-    write2ByteTxRx(port_num, 2.0, 3, ADDR_MX_MOVING_SPEED, 100);
+    write2ByteTxRx(port_num, 2.0, 3, ADDR_MOVING_SPEED, 100);
 
     // Write goal position
-    write2ByteTxRx(port_num, 2.0, 3, ADDR_MX_GOAL_POSITION, dxl_goal_position);
+    write2ByteTxRx(port_num, 2.0, 3, ADDR_GOAL_POSITION, dxl_goal_position);
 
     
         // Read present position
@@ -208,14 +215,13 @@ int dxl_comm_result = COMM_TX_FAIL;
         }*/
 
         // Write goal position inside the loop to keep updating it
-        write2ByteTxRx(port_num, 2.0, 3, ADDR_MX_GOAL_POSITION, dxl_goal_position);
+        write2ByteTxRx(port_num, 2.0, 3, ADDR_GOAL_POSITION, dxl_goal_position);
     printf("abs : %i %i %i \n", dxl_goal_position, dxl_present_position, abs(dxl_goal_position - dxl_present_position));
 
 
     // Disable Dynamixel Torque
-    write1ByteTxRx(port_num, 2.0, 3, ADDR_MX_TORQUE_ENABLE, TORQUE_DISABLE);
+    write1ByteTxRx(port_num, 2.0, 3, ADDR_TORQUE_ENABLE, TORQUE_DISABLE);
 }
-
 void closeG_withoutreturn() {
 int dxl_comm_result = COMM_TX_FAIL;
     int dxl_goal_position = 175;
@@ -224,7 +230,7 @@ int dxl_comm_result = COMM_TX_FAIL;
     uint16_t dxl_present_position = 0; 
 
     // Enable Dynamixel Torque
-    write1ByteTxRx(port_num, 2.0, 3, ADDR_MX_TORQUE_ENABLE, TORQUE_ENABLE);
+    write1ByteTxRx(port_num, 2.0, 3, ADDR_TORQUE_ENABLE, TORQUE_ENABLE);
     if ((dxl_comm_result = getLastTxRxResult(port_num, 2.0)) != COMM_SUCCESS) {
         printf("%s\n", getTxRxResult(2.0, dxl_comm_result));
     } else if ((dxl_error = getLastRxPacketError(port_num, 2.0)) != 0) {
@@ -244,10 +250,10 @@ int dxl_comm_result = COMM_TX_FAIL;
     write2ByteTxRx(port_num, 2.0, 3, 11, 2); 
 
     // Write speed
-    write2ByteTxRx(port_num, 2.0, 3, ADDR_MX_MOVING_SPEED, 100);
+    write2ByteTxRx(port_num, 2.0, 3, ADDR_MOVING_SPEED, 100);
 
     // Write goal position
-    write2ByteTxRx(port_num, 2.0, 3, ADDR_MX_GOAL_POSITION, dxl_goal_position);
+    write2ByteTxRx(port_num, 2.0, 3, ADDR_GOAL_POSITION, dxl_goal_position);
 
     
         // Read present position
@@ -260,14 +266,13 @@ int dxl_comm_result = COMM_TX_FAIL;
         }*/
 
         // Write goal position inside the loop to keep updating it
-        write2ByteTxRx(port_num, 2.0, 3, ADDR_MX_GOAL_POSITION, dxl_goal_position);
+        write2ByteTxRx(port_num, 2.0, 3, ADDR_GOAL_POSITION, dxl_goal_position);
     printf("abs : %i %i %i \n", dxl_goal_position, dxl_present_position, abs(dxl_goal_position - dxl_present_position));
 
 
     // Disable Dynamixel Torque
-    write1ByteTxRx(port_num, 2.0, 3, ADDR_MX_TORQUE_ENABLE, TORQUE_DISABLE);
+    write1ByteTxRx(port_num, 2.0, 3, ADDR_TORQUE_ENABLE, TORQUE_DISABLE);
 }
-
 void raiseG_withoutreturn() {
 int dxl_comm_result = COMM_TX_FAIL;
     int dxl_goal_position = 138;
@@ -276,7 +281,7 @@ int dxl_comm_result = COMM_TX_FAIL;
     uint16_t dxl_present_position = 0; 
 
     // Enable Dynamixel Torque
-    write1ByteTxRx(port_num, 2.0, 1, ADDR_MX_TORQUE_ENABLE, TORQUE_ENABLE);
+    write1ByteTxRx(port_num, 2.0, 1, ADDR_TORQUE_ENABLE, TORQUE_ENABLE);
     if ((dxl_comm_result = getLastTxRxResult(port_num, 2.0)) != COMM_SUCCESS) {
         printf("%s\n", getTxRxResult(2.0, dxl_comm_result));
     } else if ((dxl_error = getLastRxPacketError(port_num, 2.0)) != 0) {
@@ -296,10 +301,10 @@ int dxl_comm_result = COMM_TX_FAIL;
     write2ByteTxRx(port_num, 2.0, 1, 11, 2); 
 
     // Write speed
-    write2ByteTxRx(port_num, 2.0, 1, ADDR_MX_MOVING_SPEED, 100);
+    write2ByteTxRx(port_num, 2.0, 1, ADDR_MOVING_SPEED, 100);
 
     // Write goal position
-    write2ByteTxRx(port_num, 2.0, 1, ADDR_MX_GOAL_POSITION, dxl_goal_position);
+    write2ByteTxRx(port_num, 2.0, 1, ADDR_GOAL_POSITION, dxl_goal_position);
 
     
         // Read present position
@@ -312,14 +317,13 @@ int dxl_comm_result = COMM_TX_FAIL;
         }*/
 
         // Write goal position inside the loop to keep updating it
-        write2ByteTxRx(port_num, 2.0, 1, ADDR_MX_GOAL_POSITION, dxl_goal_position);
+        write2ByteTxRx(port_num, 2.0, 1, ADDR_GOAL_POSITION, dxl_goal_position);
     printf("abs : %i %i %i \n", dxl_goal_position, dxl_present_position, abs(dxl_goal_position - dxl_present_position));
 
 
     // Disable Dynamixel Torque
-    write1ByteTxRx(port_num, 2.0, 1, ADDR_MX_TORQUE_ENABLE, TORQUE_DISABLE);
+    write1ByteTxRx(port_num, 2.0, 1, ADDR_TORQUE_ENABLE, TORQUE_DISABLE);
 }
-
 void deployG_withoutreturn() {
 int dxl_comm_result = COMM_TX_FAIL;
     int dxl_goal_position = 456;
@@ -328,7 +332,7 @@ int dxl_comm_result = COMM_TX_FAIL;
     uint16_t dxl_present_position = 0; 
 
     // Enable Dynamixel Torque
-    write1ByteTxRx(port_num, 2.0, 1, ADDR_MX_TORQUE_ENABLE, TORQUE_ENABLE);
+    write1ByteTxRx(port_num, 2.0, 1, ADDR_TORQUE_ENABLE, TORQUE_ENABLE);
     if ((dxl_comm_result = getLastTxRxResult(port_num, 2.0)) != COMM_SUCCESS) {
         printf("%s\n", getTxRxResult(2.0, dxl_comm_result));
     } else if ((dxl_error = getLastRxPacketError(port_num, 2.0)) != 0) {
@@ -348,10 +352,10 @@ int dxl_comm_result = COMM_TX_FAIL;
     write2ByteTxRx(port_num, 2.0, 1, 11, 2); 
 
     // Write speed
-    write2ByteTxRx(port_num, 2.0, 1, ADDR_MX_MOVING_SPEED, 100);
+    write2ByteTxRx(port_num, 2.0, 1, ADDR_MOVING_SPEED, 100);
 
     // Write goal position
-    write2ByteTxRx(port_num, 2.0, 1, ADDR_MX_GOAL_POSITION, dxl_goal_position);
+    write2ByteTxRx(port_num, 2.0, 1, ADDR_GOAL_POSITION, dxl_goal_position);
 
     
         // Read present position
@@ -364,12 +368,12 @@ int dxl_comm_result = COMM_TX_FAIL;
         }*/
 
         // Write goal position inside the loop to keep updating it
-        write2ByteTxRx(port_num, 2.0, 1, ADDR_MX_GOAL_POSITION, dxl_goal_position);
+        write2ByteTxRx(port_num, 2.0, 1, ADDR_GOAL_POSITION, dxl_goal_position);
     printf("abs : %i %i %i \n", dxl_goal_position, dxl_present_position, abs(dxl_goal_position - dxl_present_position));
 
 
     // Disable Dynamixel Torque
-    write1ByteTxRx(port_num, 2.0, 1, ADDR_MX_TORQUE_ENABLE, TORQUE_DISABLE);
+    write1ByteTxRx(port_num, 2.0, 1, ADDR_TORQUE_ENABLE, TORQUE_DISABLE);
 }
 
 void openG() {
@@ -380,7 +384,7 @@ void openG() {
     uint16_t dxl_present_position = 0; 
 
     // Enable Dynamixel Torque
-    write1ByteTxRx(port_num, 2.0, 3, ADDR_MX_TORQUE_ENABLE, TORQUE_ENABLE);
+    write1ByteTxRx(port_num, 2.0, 3, ADDR_TORQUE_ENABLE, TORQUE_ENABLE);
     if ((dxl_comm_result = getLastTxRxResult(port_num, 2.0)) != COMM_SUCCESS) {
         printf("%s\n", getTxRxResult(2.0, dxl_comm_result));
     } else if ((dxl_error = getLastRxPacketError(port_num, 2.0)) != 0) {
@@ -397,10 +401,10 @@ void openG() {
     write2ByteTxRx(port_num, 2.0, 3, 11, 2); 
 
     // Write speed
-    write2ByteTxRx(port_num, 2.0, 3, ADDR_MX_MOVING_SPEED, 100);
+    write2ByteTxRx(port_num, 2.0, 3, ADDR_MOVING_SPEED, 100);
 
     // Write goal position
-    write2ByteTxRx(port_num, 2.0, 3, ADDR_MX_GOAL_POSITION, dxl_goal_position);
+    write2ByteTxRx(port_num, 2.0, 3, ADDR_GOAL_POSITION, dxl_goal_position);
 
     while (abs(dxl_goal_position - dxl_present_position) > 10) {
         // Read present position
@@ -413,13 +417,13 @@ void openG() {
         }*/
 
         // Write goal position inside the loop to keep updating it
-        write2ByteTxRx(port_num, 2.0, 3, ADDR_MX_GOAL_POSITION, dxl_goal_position);
+        write2ByteTxRx(port_num, 2.0, 3, ADDR_GOAL_POSITION, dxl_goal_position);
     }
     printf("abs : %i %i %i \n", dxl_goal_position, dxl_present_position, abs(dxl_goal_position - dxl_present_position));
 
 
     // Disable Dynamixel Torque
-    write1ByteTxRx(port_num, 2.0, 3, ADDR_MX_TORQUE_ENABLE, TORQUE_DISABLE);
+    write1ByteTxRx(port_num, 2.0, 3, ADDR_TORQUE_ENABLE, TORQUE_DISABLE);
 }  
 
 void close_port() {
