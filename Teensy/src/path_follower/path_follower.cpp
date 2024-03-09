@@ -10,14 +10,14 @@ PathFollower* init_path_follower() {
     PathFollower *path_follower = (PathFollower *) malloc(sizeof(PathFollower));
     path_follower->speed_refl = 0;
     path_follower->speed_refr = 0;
-    path_follower->kt = 5.0 ;
+    path_follower->kt = 10.0 ;
     path_follower->kn = 0.9; // 0 < kn <= 1
     path_follower->kz = 20.0;
     path_follower->delta = 35e-3; // delta is in meters
     path_follower->sigma = .01;
     path_follower->epsilon = 150-3; // epsilon is in meters
     path_follower->wn = 0.15; // Command filter discrete cutoff frequency
-    path_follower->kv_en = 8; // vref = MIN(vref, kv_en/en)
+    path_follower->kv_en = 15; // 
     return path_follower;
 }
 
@@ -141,7 +141,7 @@ int compute_next_point(PathFollower *pf, RobotPosition *rp, double delta_s, doub
         dydq = evaluate_spline_derivative(y_splines->b[i_spline], y_splines->c[i_spline], y_splines->d[i_spline], delta_q);
 
         dq = ds / sqrt(dxdq*dxdq + dydq*dydq); // Estimation of the dq needed to travel of ds along the spline
-        pf->qref += MAX(dq, 0); // Update the qref
+        pf->qref = MIN(pf->qref + MAX(dq, 0), pf->last_q); // Update the qref
 
         // update spline index if we go pass a checkpoint
         if (pf->qref >= q_checkpoints[i_spline+1]) i_spline += 1;
@@ -219,7 +219,7 @@ int update_path_follower_ref_speed(
 
     // Reference speed correction
     vref = MAX(
-        vref + SIGMOID(-(et-4e-2)/2)*(25e-2-vref) - fabs(pf->kv_en*en),
+        vref + SIGMOID(-(et-5e-2)/2)*(25e-2-vref) - fabs(pf->kv_en*en),
         15e-2);
 
     // Filters
@@ -252,7 +252,8 @@ int update_path_follower_ref_speed(
     double step = MIN(delta_s, MAX_DS); // Take step no bigger than MAX_DS
 
     dq = step / sqrt(dxdq*dxdq + dydq*dydq); // Estimation of the dq needed to travel of ds along the spline
-    pf->qref += MAX(dq, 0); // Update the qref
+    pf->qref = MIN(pf->qref + MAX(dq, 0), pf->last_q); // Update the qref
+
     if (pf->qref >= q_checkpoints[i_spline+1]){
         i_spline += 1;
     }
