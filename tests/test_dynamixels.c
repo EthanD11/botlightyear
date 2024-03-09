@@ -4,7 +4,8 @@
 int main(int argc, char const *argv[])
 {
     init_port();
-    
+    //ping_dxl(8, 1.0);
+
     //SOLAR PANELS
     /*
     deploy_solar_panel(); 
@@ -15,9 +16,11 @@ int main(int argc, char const *argv[])
     */
 
     //GRIPPER OPEN-CLOSE
-    open_gripper(); 
+   /* open_gripper(); 
     sleep(1); 
-    close_gripper();
+    close_gripper();*/
+    void openG(); 
+    
 
     //GRIPPER UP-DOWN
     /*raiseG_withoutreturn(); 

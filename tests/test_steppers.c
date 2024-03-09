@@ -40,15 +40,21 @@ int main(int argc, char const *argv[])
 
     
     //steppers_t stepper = Plate; 
-    steppers_t stepper = Flaps; 
+    steppers_t stepper = Slider; 
     positions_flaps_t position_flaps = Plant; 
 
-    setupStepperSpeed(5,10,stepper); 
+    setupStepperSpeed(5,10,Flaps);
+    setupStepperSpeed(5,10,Slider);
+    setupStepperSpeed(2,5,Plate);
+
     sleep(1);    
+
+    //moveStepperSteps(stepper, 5000, 0); //1600 empotage // 5400 max
     //resetStepperModule (stepper);
-    calibrateStepper(Flaps);
-    calibrateStepper(Plate);
-    calibrateStepper(Slider);
+
+    //calibrateStepper(Flaps);
+    //calibrateStepper(Plate);
+    //calibrateStepper(Slider);
 
 
     //resetStepperModule (stepper)
@@ -59,7 +65,7 @@ int main(int argc, char const *argv[])
     //moveFlaps(position_flaps); 
     //moveFlapsSteps(2050); //2220 for plant, 2050 for pot
     //PositionPlateau(0);
-    //demoPlateS6();
+    demoPlateS6();
     
     
     
