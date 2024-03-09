@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <dynamixel_sdk.h>
+#include "../Dynamixels/include/dynamixel_sdk/dynamixel_sdk.h"
 
 // Control table address for both Dynamixel AX-12 and XL-320
 #define ADDR_CW_ANGLE_LIMIT             6                  // JOINT MODE: neither are 0
@@ -77,7 +77,6 @@ void ping_dxl(int ID, float protocol) {
 
   // Disable Dynamixel Torque
   write1ByteTxRx(port_num, protocol, ID, ADDR_TORQUE_ENABLE, TORQUE_DISABLE);
-  
 }
 
 void deploy_solar_panel() {
@@ -130,7 +129,8 @@ void raise_solar_panel() {
   write1ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_TORQUE_ENABLE, TORQUE_ENABLE);
 
   // Setup Dynamixel Torque
-  write1ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_AX_TORQUE, 750);
+  uint32_t max_torque = (uint32_t)750;
+  write1ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_AX_TORQUE, max_torque);
 
   // Write CW/CCW position
   write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_CW_ANGLE_LIMIT, 215);

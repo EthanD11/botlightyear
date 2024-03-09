@@ -3,6 +3,7 @@
 
 #include <lgpio.h>
 #include <stdint.h>
+#include <unistd.h>
 
 #define VERBOSE
 #ifdef VERBOSE
