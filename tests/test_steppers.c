@@ -20,32 +20,13 @@
 
 int main(int argc, char const *argv[])
 {
-    int init = init_spi();
-    
-    setupStepperSpeed(5,10,Flaps); 
-    setupStepperSpeed(2,10,Plate); 
-    setupStepperSpeed(4,10,Slider);
-
-    /*
-    resetStepperModule (Flaps);
-    resetStepperModule (Plate);
-    resetStepperModule (Slider);*/
-
-    //steppers_t stepper = Plate; 
-    steppers_t stepper = Slider; 
-    position_slider_t pos = Bas;
-    //positions_flaps_t position_flaps = Plant; 
-
-
-
-    //resetStepperModule (stepper);
-    /*
-    calibrateStepper(Flaps);
-    calibrateStepper(Plate);
-    calibrateStepper(Slider);*/
+    int init = init_spi();  
 
     demoS6();
+    //demoS6();
+
     
+
     close_spi();
     
     return 0;
@@ -55,6 +36,12 @@ void calibrateAll() {
     calibrateStepper(Flaps);
     calibrateStepper(Plate);
     calibrateStepper(Slider);
+}
+
+void resetAll() {
+    resetStepperModule (Flaps);
+    resetStepperModule (Plate);
+    resetStepperModule (Slider);
 }
 
 void demoPlate(){
@@ -70,17 +57,36 @@ void demoPlate(){
 }
 
 void demoS6(){
+
+    
+    servo_raise();
+
+    resetAll(); 
+    setupStepperSpeed(5,10,Flaps); 
+    setupStepperSpeed(2,10,Plate); 
+    setupStepperSpeed(4,10,Slider);
     calibrateAll();
-    sleep(20);
+    sleep(10);
+    servo_deploy(); 
     moveFlaps(Plant);
     sleep(4);
     moveFlaps(Open);
-    sleep(1);
     moveSlider(Bas);
-    sleep(5);
+    sleep(2);
+    servo_raise();
+    sleep(3);
     moveSlider(Plateau);
     sleep(5);
     demoPlate();
-    sleep(8);
-    moveSlider(Bas);
+    sleep(5);
+    //moveSlider(Bas);
+    moveStepperSteps(Flaps, 600,0);
+    sleep(5);
+    PositionPlateau(1);
+    servo_deploy(); 
+    
+    sleep(5);
+    servo_idle();
+    resetAll(); 
+    calibrateAll();
 }

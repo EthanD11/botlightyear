@@ -380,15 +380,19 @@ void resetStepperModule (steppers_t stepper) {
             printf("Error : not a stepper"); 
             break; 
     } 
+    char sendr[] = {0x8A,0,0,0,1};   // reset switch values
+    lgSpiWrite(DE0_handle, sendr, 5);
+
     char send1[] = {request,0,0,0,0}; // set the Module command to Idle
     lgSpiWrite(DE0_handle, send1, 5);
 
-    sleep(1);
     char send2[] = {request2,0,1,0,0}; // send 1 to reset the module completely
     lgSpiWrite(DE0_handle, send2, 5);
     sleep(1);
     send2[2] = 0; 
     lgSpiWrite(DE0_handle, send2, 5); // send 0 to stop resetting
+    sendr[4] = 0;   // stop resetting
+    lgSpiWrite(DE0_handle, sendr, 5);
 
 }
 
