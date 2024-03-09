@@ -16,10 +16,10 @@ int main(int argc, char const *argv[])
     */
 
     //GRIPPER OPEN-CLOSE
-   /* open_gripper(); 
+    open_gripper(); 
     sleep(1); 
-    close_gripper();*/
-    void openG(); 
+   // close_gripper();*/
+   // void openG(); 
     
 
     //GRIPPER UP-DOWN

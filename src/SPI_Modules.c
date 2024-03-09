@@ -202,3 +202,193 @@ void servo_idle() {
     send[4] = 0;
     lgSpiWrite(DE0_handle, send, 5);
 }
+
+
+// Steppers
+
+
+void moveStepperSteps(steppers_t stepperName, int steps, int neg) {
+    int request; 
+    int direction; 
+
+    switch (stepperName) {
+        case Plate :
+            request = 0x81; 
+            direction = (neg == 0) ? 0xC0 : 0xE0; 
+            break;
+        case Slider :
+            request = 0x84; 
+            direction = 0xE0;
+            break;
+        case Flaps :
+            request = 0x87; 
+            direction = 0xE0;
+            break;
+        default : 
+            request = 0; 
+            direction = 0;
+            printf("Error : not a stepper"); 
+            break; 
+    }   
+
+    int steps1 = steps/65536; 
+    int steps2 = (steps-steps1*65536) /256;
+    int steps3 = steps-steps1*65536-steps2*256;
+
+    char send[] = {request,direction,steps1,steps2,steps3};
+    lgSpiWrite(DE0_handle, send, 5);
+}
+
+void moveFlaps (positions_flaps_t pos) {
+    int steps; 
+    switch (pos)
+    {
+    case Open :
+        steps = 0; 
+        break;
+    case Plant :
+        steps = 2220; 
+        break;
+    case Pot :
+        steps = 2050; 
+        break;  
+    default:
+        printf("Error : not a position \n");
+        steps = 0; 
+        break;
+    }
+    moveStepperSteps(Flaps, steps, 0); 
+}
+
+void moveSlider(position_slider_t pos){
+    int steps;
+    switch(pos)
+    {
+    case Haut :
+        steps = 0;
+        break;
+    case Bas :
+        steps = 5000;
+        break;
+    case Plateau :
+        steps = 1300;
+        break;       
+    default :
+        printf("Error : not a position \n");
+        printf("%d\n", pos);
+        steps = 0; 
+        break;
+    }
+    moveStepperSteps(Slider,steps,0);
+}
+
+
+void PositionPlateau(int pot){
+    //pot est une variable allant de -3 Ã  3 avec 0 la position de repos
+    int direction = 0;
+    if (pot ==0){
+        moveStepperSteps(Plate, 0, 0);   
+    } else {
+        if (pot<0) {
+            pot = -pot;
+            direction = 1;
+        }
+        pot = pot - 1;
+        double anglePlateau = (ANGLE_OUVERTURE_PLATEAU)/2 + (pot)* (360-ANGLE_OUVERTURE_PLATEAU)/5;
+        double angleStepper = anglePlateau * REDUCTION_PLATEAU;
+        double ticStepper = angleStepper/360 * TIC_STEPPER_PLATEAU;
+        moveStepperSteps(Plate,(int)ticStepper,direction);
+    }   
+
+}
+
+
+void setupStepperSpeed (int nominalSpeed, int calibrationSpeed, steppers_t stepper) {
+    int calibrationSpeed1 = calibrationSpeed/256;
+    int calibrationSpeed2 = calibrationSpeed-calibrationSpeed1*256;
+    int nominalSpeed1= nominalSpeed/256;
+    int nominalSpeed2 = nominalSpeed-nominalSpeed1*256;
+    int request; 
+    switch (stepper) {
+        case Plate :
+            request = 0x82; 
+            break;
+        case Slider :
+            request = 0x85; 
+            break;
+        case Flaps :
+            request = 0x88; 
+            break;
+        default : 
+            request = 0; 
+            printf("Error : not a stepper"); 
+            break; 
+    }
+    char send[] = {request,nominalSpeed1,nominalSpeed2, calibrationSpeed1, calibrationSpeed2};//2 premier byte pour vitesse de plateau et 2 dernier vitesse calibration
+    lgSpiWrite(DE0_handle, send, 5); 
+}
+
+
+void calibrateStepper(steppers_t stepper) {
+    int request; 
+    int calibDir;
+    switch (stepper) {
+        case Plate :
+            request = 0x81; 
+            calibDir = 0x80; 
+            break;
+        case Slider :
+            request = 0x84; 
+            calibDir = 0xA0;
+            break;
+        case Flaps :
+            request = 0x87; 
+            calibDir = 0xA0;
+            break;
+        default : 
+            request = 0; 
+            calibDir = 0x80;
+            printf("Error : not a stepper"); 
+            break; 
+    }
+    char send[] = {request,calibDir,0,0,0};
+    lgSpiWrite(DE0_handle, send, 5);
+}
+
+void resetStepperModule (steppers_t stepper) {
+    int request;
+    int request2; 
+
+
+    // Stop steppers
+    switch (stepper) {
+        case Plate :
+            request = 0x81; 
+            request2 = 0x83;
+            break;
+        case Slider :
+            request = 0x84; 
+            request2 = 0x86;
+            break;
+        case Flaps :
+            request = 0x87; 
+            request2 = 0x89;
+            break;
+        default : 
+            request = 0; 
+            request2 = 2; 
+            printf("Error : not a stepper"); 
+            break; 
+    } 
+    char send1[] = {request,0,0,0,0}; // set the Module command to Idle
+    lgSpiWrite(DE0_handle, send1, 5);
+
+    sleep(1);
+    char send2[] = {request2,0,1,0,0}; // send 1 to reset the module completely
+    lgSpiWrite(DE0_handle, send2, 5);
+    sleep(1);
+    send2[2] = 0; 
+    lgSpiWrite(DE0_handle, send2, 5); // send 0 to stop resetting
+
+}
+

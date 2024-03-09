@@ -22,6 +22,32 @@
 // Sonars
 
 
+// Steppers
+
+
+#define REDUCTION_PLATEAU 8.5
+#define ANGLE_OUVERTURE_PLATEAU 103.33
+#define TIC_STEPPER_PLATEAU 1600
+
+typedef enum {
+    Plate, 
+    Slider, 
+    Flaps
+} steppers_t;
+
+typedef enum {
+    Open, 
+    Plant, 
+    Pot
+} positions_flaps_t;
+
+typedef enum {
+    Bas,
+    Haut,
+    Plateau
+} position_slider_t;
+
+
 /**
  * @brief Opens the SPI channels with default settings
  */
@@ -90,5 +116,29 @@ void servo_deploy();
  * @brief Releases torque command from the servomotors
  */
 void servo_idle();
+
+
+// ------ STEPPERS -------
+
+
+void moveStepperSteps(steppers_t stepperName, int steps, int neg); 
+void moveFlaps (positions_flaps_t pos); 
+void moveSlider(position_slider_t pos); 
+void PositionPlateau(int pot);
+
+/**
+ * @brief Sets the nominal and calibration speed of the stepper
+ */
+void setupStepperSpeed (int nominalSpeed, int calibrationSpeed, steppers_t stepper); 
+
+/**
+ * @brief Activtes the calibration of given stepper
+ */
+void calibrateStepper(steppers_t stepper); 
+
+/**
+ * @brief Resets stepper module to be ready for another calibration
+ */
+void resetStepperModule (steppers_t stepper); 
 
 #endif
