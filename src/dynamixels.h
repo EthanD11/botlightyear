@@ -12,7 +12,6 @@ void deploy_solar_panel();
 void raise_solar_panel();
 void multi_turn_solar_panel();
 
-void openG(); 
 void open_gripper(); 
 void close_gripper(); 
 
