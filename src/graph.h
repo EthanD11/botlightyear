@@ -3,25 +3,33 @@
 #include "AStar.h"
 #include <stdint.h>
 
-#define NODE_FREE 0
-#define NODE_BLOCKED 1
-#define NODE_DANGER 2
-#define NODE_DANGER_PENALTY 0.5
 
 typedef struct graph_node
 {
-    int8_t id;
-    float x, y; // X & Y Coordinates ((0,0) being in the bottom left corner)
-    int8_t penalty; // Level of usage penalty of this node (0->free, 1->dangerous, 2->blocked)
-    int8_t nb_neighbors;
-    struct graph_node* neighbors[7];
+    int8_t id; // Index of the node in the 'graph_nodes' array & identifier for the visual graph
+    float x, y; // X & Y Coordinates (refer to the visual graph)
+    int8_t level; // Level of availability of this node (see 'graph_level')
+    int8_t nb_neighbors; // Number of neighbors
+    struct graph_node* neighbors[8]; // List of neighbors
 } graph_node_t;
 
-int8_t graph_nb_nodes;
-graph_node_t* graph_nodes;
+int8_t graph_nb_nodes; // Number of nodes in the graph
+graph_node_t* graph_nodes; // Array of size 'graph_nb_nodes' (after initialization !) containing each node
 
 /**
- * @brief Initializes graph_nodes from file 'filename'
+ * Any node such that node.level > graph_level will be ignored by the graph search
+ *  General idea :
+ * 0 = Free, the node is not obstructed
+ * 1 = Danger, the node is obstructed by game items or close to a large object (typically another robot)
+ * 2 = Blocked, the node is obstructed by a large object (typically another robot) and/or cannot be reached at this time
+*/
+int8_t graph_level;
+
+int8_t graph_bases[6]; // Array of bases ids, first three are blue, last three are yellow, first one of each group is reserved (ie 0 and 3)
+int8_t graph_plants[6]; // Array of plant spots ids
+
+/**
+ * @brief Initializes graph_nodes from file 'filename'. Returns 0 on success, -1 otherwise.
 */
 int init_graph_from_file(const char *filename);
 
@@ -31,9 +39,18 @@ int init_graph_from_file(const char *filename);
 void free_graph();
 
 /**
- * @brief Computes a path sequence from node 'from' to node 'to' (refer to the visual graph)
+ * Computes a path sequence from node 'from' to node 'to' (refer to the visual graph)
+ * The level of 'to' and/or the graph_level must be set accordingly before the call
+ * Returns NULL if no path is found
 */
-ASPath compute_path(const int from, const int to);
+ASPath graph_compute_path(const int from, const int to);
+
+/**
+ * Updates the level of 'node' to 'level'
+ * Propagates 'level'-1 to the neighbors of 'node' if 'propagation' != 0
+ * Plants and bases are not affected by propagation
+*/
+void graph_level_update(const int node, const int level, const int propagation);
 
 /*
 // Total number of nodes

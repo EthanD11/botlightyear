@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <string.h>
 
+// Uncomment to enable
+// When enabled, init_graph_from_file should print out the exact file it has read
 //#define VERBOSE
 
 void node_neighbors(ASNeighborList neighbors, void* node, void* context) {
@@ -10,10 +12,10 @@ void node_neighbors(ASNeighborList neighbors, void* node, void* context) {
     for (int i = 0; i < cur_node->nb_neighbors; i++)
     {
         graph_node_t* neighbor = cur_node->neighbors[i];
-        if (neighbor->penalty == NODE_BLOCKED) continue;
-        float dx = neighbor->x-cur_node->x;
-        float dy = neighbor->y-cur_node->y;
-        float cost = hypot(dx, dy) + (neighbor->penalty == NODE_DANGER) ? NODE_DANGER_PENALTY : 0.0;
+        if (neighbor->level > graph_level) continue;
+        float dx = neighbor->x - cur_node->x;
+        float dy = neighbor->y - cur_node->y;
+        float cost = hypot(dx, dy);
         ASNeighborListAdd(neighbors, neighbor, cost);
     }
 }
@@ -21,13 +23,49 @@ void node_neighbors(ASNeighborList neighbors, void* node, void* context) {
 float path_cost_heuristic(void* fromNode, void* toNode, void* context) {
     graph_node_t* from = (graph_node_t*) fromNode;
     graph_node_t* to = (graph_node_t*) fromNode;
-    float dx = to->x-from->x;
-    float dy = to->y-from->y;
-    return hypot(dx, dy) + (to->penalty == NODE_DANGER) ? NODE_DANGER_PENALTY : 0.0;
+    float dx = to->x - from->x;
+    float dy = to->y - from->y;
+    return hypot(dx, dy);
 }
 
 int node_comparator(void *node1, void *node2, void *context) {
     return ((graph_node_t*) node1)->id - ((graph_node_t*) node2)->id;
+}
+
+ASPath graph_compute_path(const int from, const int to) {
+    if (graph_nodes[to].level > graph_level) return NULL;
+    ASPathNodeSource source;
+    source.nodeSize = sizeof(graph_node_t);
+    source.nodeNeighbors = node_neighbors;
+    source.pathCostHeuristic = path_cost_heuristic;
+    source.earlyExit = NULL;
+    source.nodeComparator = node_comparator;
+    ASPath result = ASPathCreate(&source, NULL, &(graph_nodes[from]), &(graph_nodes[to]));
+    if (ASPathGetCount(result) == 0) {
+        ASPathDestroy(result);
+        return NULL;
+    }
+    return result;
+}
+
+void graph_level_update(const int node, const int level, const int propagation) {
+    graph_node_t *_node = &(graph_nodes[node]);
+    _node->level = level;
+    if (propagation) {
+        for (int8_t i = 0; i < _node->nb_neighbors; i++) {
+
+            int8_t node_affected = 1; // Is this neighbor a plant or a base ?
+            for (int8_t j = 0; j < 6; j++){
+                if (graph_bases[j] == _node->neighbors[i]->id || graph_plants[j] == _node->neighbors[i]->id) {
+                    node_affected = 0; // If yes, its level should not be affected by the propagation
+                    break;
+                }
+            }
+            
+            // If affected, update neighbor to max(0, level-1)
+            if (node_affected) _node->neighbors[i]->level = (level <= 1) ? 0 : level-1;
+        }   
+    }
 }
 
 int init_graph_from_file(const char *filename) {
@@ -46,13 +84,16 @@ int init_graph_from_file(const char *filename) {
 
     for (int8_t i = 0; i < graph_nb_nodes; i++) {
 
-        // Set id
+        // Set id & level
         graph_nodes[i].id = i;
+        graph_nodes[i].level = 0;
 
         // Scan x and y coordinates
         if (fscanf(input_file, "%f,%f\n", &(graph_nodes[i].x), &(graph_nodes[i].y)) != 2) return -1;
         #ifdef VERBOSE
         printf("%.3f,%.3f\n", graph_nodes[i].x, graph_nodes[i].y);
+        // Rotation for recentering based on robot modelling's convention
+        //printf("%.3f,%.3f\n", (graph_nodes[i].y-1), -(graph_nodes[i].x-1.5));
         #endif
     }
 
@@ -88,16 +129,18 @@ int init_graph_from_file(const char *filename) {
         #endif
     }
 
-    // Scan bases nodes, assign danger level penalty
+    // Scan bases nodes, assign level
     if (fscanf(input_file, "Bases : %s\n", list) != 1) return -1;
     #ifdef VERBOSE
     printf("Bases : ");
     #endif
     token = strtok(list, ",");
+    int i = 0;
     while (token != NULL) {
 
         if (sscanf(token, "%hhd", &node_id) != 1) return -1;
-        graph_nodes[node_id].penalty = NODE_DANGER; 
+        graph_nodes[node_id].level = 1; 
+        graph_bases[i] = node_id;
         #ifdef VERBOSE
         printf("%d", node_id);
         #endif
@@ -105,21 +148,24 @@ int init_graph_from_file(const char *filename) {
         #ifdef VERBOSE
         if (token != NULL) printf(",");
         #endif
+        i++;
     }
     #ifdef VERBOSE
     printf("\n");
     #endif
 
-    // Scan plant nodes, assign block level penalty
+    // Scan plant nodes, assign level
     if (fscanf(input_file, "Plants : %s", list) != 1) return -1;
     #ifdef VERBOSE
     printf("Plants : ");
     #endif
     token = strtok(list, ",");
+    i = 0;
     while (token != NULL) {
 
         if (sscanf(token, "%hhd", &node_id) != 1) return -1;
-        graph_nodes[node_id].penalty = NODE_BLOCKED;
+        graph_nodes[node_id].level = 1;
+        graph_plants[i] = node_id;
         #ifdef VERBOSE
         printf("%d", node_id);
         #endif
@@ -127,23 +173,14 @@ int init_graph_from_file(const char *filename) {
         #ifdef VERBOSE
         if (token != NULL) printf(",");
         #endif
+        i++;
     }    
     #ifdef VERBOSE
     printf("\n");
     #endif
 
+    graph_level = 0;
     return 0;
 }
 
 void free_graph() { free(graph_nodes); }
-
-ASPath compute_path(const int from, const int to) {
-    if (graph_nodes[to].penalty == NODE_BLOCKED) return NULL;
-    ASPathNodeSource source;
-    source.nodeSize = sizeof(graph_node_t);
-    source.nodeNeighbors = node_neighbors;
-    source.pathCostHeuristic = path_cost_heuristic;
-    source.earlyExit = NULL;
-    source.nodeComparator = node_comparator;
-    return ASPathCreate(&source, NULL, &(graph_nodes[from]), &(graph_nodes[to]));
-}
