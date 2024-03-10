@@ -1,44 +1,3 @@
-/*
-#include <iostream>
-#include <ctime>
-// #include "../raspicam-master/raspicam-master/src/raspicam_cv.h"
-#include <unistd.h>
-#include <opencv2/opencv.hpp>
-
-int main22() {
-    // Initialiser la caméra
-    raspicam::RaspiCam_Cv camera;
-    if (!camera.open()) {
-        std::cerr << "Erreur : impossible d'ouvrir la caméra." << std::endl;
-        return -1;
-    }
-
-    // Attendre que la caméra se stabilise (temps de démarrage)
-    sleep(1);
-    //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
-    // Capturer une image
-    cv::Mat image;
-    camera.grab();
-    camera.retrieve(image);
-
-    // Vérifier si l'image capturée est vide
-    if (image.empty()) {
-        std::cerr << "Erreur : l'image capturée est vide." << std::endl;
-        return -1;
-    }
-
-    // Sauvegarder l'image capturée
-    std::string filename = "image_capturee.jpg";
-    cv::imwrite(filename, image);
-    std::cout << "Image capturée et sauvegardée sous : " << filename << std::endl;
-
-    // Fermer la caméra
-    camera.release();
-
-    return 0;
-}
-*/
 #include "cameraTag.h"
 
 #include <opencv2/opencv.hpp>
@@ -111,42 +70,35 @@ int tagDetectionOrientation(){
     return 11;
 }
 
+void test(){
+        // Charger l'image depuis un fichier JPEG
+    cv::Mat image = cv::imread("../cam0.jpg");
 
-void capture() {
-    // Ouvrir la webcam
-    cv::VideoCapture cap(1, CAP_V4L);
-    /*if (!cap.isOpened()) {
-        std::cerr << "Erreur : Impossible d'ouvrir la webcam." << std::endl;
+    if (image.empty()) {
+        std::cerr << "Erreur : Impossible de charger l'image." << std::endl;
         return;
     }
 
-    // Capturer une image
-    cv::Mat frame;
-    cap >> frame;
+    // Créer un détecteur de codes ArUco
+    cv::Ptr<cv::aruco::DetectorParameters> parameters = cv::aruco::DetectorParameters::create();
+    std::vector<int> markerIds;
+    std::vector<std::vector<cv::Point2f>> markerCorners;
+    cv::Ptr<cv::aruco::Dictionary> dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
 
-    // Vérifier si l'image est vide
-    if (frame.empty()) {
-        std::cerr << "Erreur : Aucune image capturée." << std::endl;
-        return;
-    }
+    // Détecter les codes ArUco dans l'image
+    cv::aruco::detectMarkers(image, dictionary, markerCorners, markerIds, parameters);
 
-    // Enregistrer l'image sur le disque
-    std::string filename = "captured_image.jpg";
-    bool success = cv::imwrite(filename, frame);
+    // Dessiner les contours des codes ArUco détectés
+    cv::aruco::drawDetectedMarkers(image, markerCorners, markerIds);
 
-    // Vérifier si l'enregistrement a réussi
-    if (!success) {
-        std::cerr << "Erreur : Impossible d'enregistrer l'image." << std::endl;
-        return;
-    }
-
-    std::cout << "L'image a été enregistrée avec succès sous le nom : " << filename << std::endl;
-    */
-    return;
+    // Afficher l'image avec les codes ArUco détectés
+    cv::imshow("Codes ArUco détectés", image);
+    cv::waitKey(0);
 }
 
+
 void tagDetectionValue(int* tag){
-    VideoCapture cap(1, CAP_V4L);
+    VideoCapture cap(0, CAP_V4L);
     if (!cap.isOpened()) {
         std::cerr << "Camera start error" << std::endl;
         return;
@@ -187,21 +139,25 @@ void tagDetectionValue(int* tag){
 
 
 int main() {
-    //capture();
-    
+        test();
+/*
     int tags[50];
     tagDetectionValue(tags);
     int size = tags[0];
-    /*if (size!=0){
-        for (int i = 1; (i <= size && i <=50); ++i) {
-            printf("tag : %i\n", tags[i]);
+    if (size >50){
+        printf("size : %d \n", size);
+        size=50;
+    }
+    if (size!=0){
+        for (int i = 1; i <= size; ++i) {
+            printf("tag : %i ", tags[i]);
         }
     }
     else{
         printf("no tags detect\n");
-    }*/
-    /*
-    int color = tagDetectionOrientation();
+    }
+    
+    /*int color = tagDetectionOrientation();
     if (color==0){
         printf("blue\n");
     } else if (color==1){
