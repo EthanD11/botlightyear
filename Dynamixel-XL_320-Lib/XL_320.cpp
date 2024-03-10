@@ -6,7 +6,7 @@
  *
  */
 
-#include "XL_320.hpp"
+#include "XL_320.h"
 
 using namespace std;
 
@@ -16,15 +16,15 @@ using namespace std;
 //
 // --------------------------------------------------------------------------
 
-XL_320 :: XL_320() : errorcode(0), pEnable(11), id(0x01), model(0), version(0), verbose(false)
+XL_320 :: XL_320() : errorcode(0), pEnable(18), id(0x01), model(0), version(0), verbose(false)
 {
 
-    // Setup wiring Pi
-    wiringPiSetup();
-    pinMode(pEnable, OUTPUT);
+    // Setup wiring Pi //ALEX
+    //wiringPiSetup();
+    //pinMode(pEnable, OUTPUT); 
 
     // Open UART2 serial port
-    serial_port = open("/dev/ttyAMA1", O_RDWR);
+    serial_port = open("/dev/ttyAMA0", O_RDWR);
 
     // Read in existing settings, and handle any error
     if(tcgetattr(this->serial_port, &tty) != 0) {
@@ -171,10 +171,10 @@ int XL_320 :: send(unsigned char Instruction, vector<int> param, bool receive)
 
     // === WRITE INSTRUCTION ================================================
 
-    digitalWrite(pEnable,HIGH);
+    system("pinctrl set 18 dh"); //ALEX
     write(serial_port, msg, sizeof(msg));
     usleep(100);
-    digitalWrite(pEnable,LOW);
+    system("pinctrl set 18 dl"); //ALEX
 
     // === READ STATUS ======================================================
 
@@ -1522,4 +1522,35 @@ vector<unsigned char> int2arg(int i, int n)
     }
 
     return vB;
+}
+
+int main(int argc, char **argv)
+{
+
+    XL_320 Servo;
+    Servo.verbose = true;
+
+    // --- Timing optimization
+
+    /*
+     * Do this only once per Servo, the result is stored in the EEPROM
+     */
+
+    // Servo.setTorqueEnable(0);
+    // Servo.setReturnDelayTime(100);
+    // Servo.setStatusReturnLevel(1);
+    // Servo.setTorqueEnable(0);
+
+    // --- Commands
+
+    // Test ping
+    Servo.ping();
+
+    // Test LED colors
+    for (int i=0; i<8; i++) {
+        Servo.setLED(i);
+        usleep(1000000);
+    }
+
+    return 0;
 }

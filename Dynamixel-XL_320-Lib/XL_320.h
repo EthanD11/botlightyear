@@ -12,7 +12,7 @@
 #include <sys/ioctl.h>
 
 #include <termios.h> // Contains POSIX terminal control definitions
-#include <wiringPi.h>
+#include <lgpio.h> //ALEX
 
 #include <iostream>
 #include <iomanip>

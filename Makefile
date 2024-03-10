@@ -55,6 +55,14 @@ lidar: lidar_program
 lidar_program:
 	@g++ ./src/lidar.cpp -o ./bin/lidar.o -lsl_lidar_sdk -I./rplidar/sdk/include -I./rplidar/sdk/src
 
+dyna: dyna_program
+	@./bin/XL_320.o
+	@rm ./bin/XL_320
+
+# Run the dynamixel xl-320 program
+dyna_program:
+	@g++ ./Dynamixel-XL_320-Lib/main.cpp -o ./bin/XL_320.o -I./Dynamixel-XL_320-Lib
+
 # Run Camera program
 camera: camera_program
 	@./bin/camera

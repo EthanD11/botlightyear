@@ -12,7 +12,10 @@ void multi_turn_solar_panel();
 
 void deploy_solar_panel();
 void raise_solar_panel();
-void multi_turn_solar_panel();
+void multi_turn_solar_panel_cw();
+void multi_turn_solar_panel_ccw(); 
+void position_solar_panel(); 
+void position_solar_panel2();
 
 void open_gripper(); 
 void close_gripper(); 
