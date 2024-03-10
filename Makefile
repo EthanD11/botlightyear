@@ -4,19 +4,29 @@
 CC:=gcc
 CXX = g++ #pour le lidar
 CFLAGS:=-Wall -g -std=gnu99
-LIBS:=-llgpio -lm -ldxl_sbc_c -lsl_lidar_sdk
+CXXFLAGS:=-Wall
+LIBS:=-llgpio -lm -lpthread -ldxl_sbc_c -lsl_lidar_sdk -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_aruco -lopencv_videoio
 # Directories
-HEADERS_DIR:=src -I./Dynamixels/include/dynamixel_sdk
+HEADERS_DIR:=src -I./Dynamixels/include/dynamixel_sdk -I/usr/include/opencv4 -I../rplidar/include -I./rplidar/sdk/include -I./rplidar/sdk/src
 SOURCES_DIR:=src
 TESTS_DIR:=tests
 OBJ_DIR:=bin
 # List of c file
 SOURCES = $(wildcard $(SOURCES_DIR)/*.c)
 TESTS = $(wildcard $(TESTS_DIR)/*.c)
+# List of cpp file
+CPP_SOURCES = $(wildcard $(SOURCES_DIR)/*.cpp)
+CPP_TESTS = $(wildcard $(TESTS_DIR)/*.cpp)
+
 # List of .o file
 SOURCES_OBJ = $(addprefix $(OBJ_DIR)/,$(notdir $(SOURCES:.c=.o)))
+SOURCES_OBJ += $(addprefix $(OBJ_DIR)/,$(notdir $(CPP_SOURCES:.cpp=.o)))
+SOURCES_OBJ := $(filter-out bin/cameraTag.o, $(SOURCES_OBJ))
+
 # -----------------------------------------------------------------------------------
 # Rules
+all:
+	echo $(SOURCES_OBJ)
 
 #Create the OBJ_DIR directory
 $(OBJ_DIR):
@@ -25,6 +35,10 @@ $(OBJ_DIR):
 # Compiling a binary file from a source file
 $(OBJ_DIR)/%.o: $(SOURCES_DIR)/%.c | $(OBJ_DIR)
 	@$(CC) -I$(HEADERS_DIR) $(CFLAGS) -o $@ -c $< $(LIBS)
+
+# Compiling a binary file from a source file
+$(OBJ_DIR)/%.o: $(SOURCES_DIR)/%.cpp | $(OBJ_DIR)
+	@$(CXX) -I$(HEADERS_DIR) $(CXXFLAGS) -o $@ -c $< $(LIBS)
 
 # Compiling a binary file from a c++ source file (for lidar)
 $(OBJ_DIR)/%.o: ../rplidar/%.cpp | $(OBJ_DIR)
@@ -37,6 +51,9 @@ compile: $(SOURCES_OBJ)
 #Compiling a random file that use SOURCES file
 %.o: %.c $(SOURCES_OBJ)
 	@$(CC) -I$(HEADERS_DIR) $(CFLAGS) $^ -o $@ $(LIBS)
+
+%.o: %.cpp $(SOURCES_OBJ)
+	@$(CXX) -I$(HEADERS_DIR) $(CXXFLAGS) $^ -o $@ $(LIBS)
 
 #Do an individual test
 test_%: $(TESTS_DIR)/test_%.o $(SOURCES_OBJ)

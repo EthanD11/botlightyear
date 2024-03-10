@@ -13,6 +13,8 @@ const char servo_left_dc_raised = 30;
 const char servo_right_dc_deployed = 19;
 const char servo_right_dc_raised = 5;
 
+// #define M_PI 3.14159265358979323846264338327950288419716939937510
+
 // Converts words from big endian to little endian (and vice versa)
 // https://codereview.stackexchange.com/questions/151049/endianness-conversion-in-c
 static inline int32_t Reverse32(int32_t value) 
@@ -131,7 +133,7 @@ void init_sonar() {
 // -------- Teensy ------------
 // ############################
 
-char *teensy_path_following(double *x, double *y, double ncheckpoints, double theta_current) {
+void teensy_path_following(double *x, double *y, int ncheckpoints, double theta_current) {
 
     size_t message_size = sizeof(char)*2 + sizeof(uint16_t)*(2*ncheckpoints+1);
     // Send vector. Needs to be malloced since it is variabel size
