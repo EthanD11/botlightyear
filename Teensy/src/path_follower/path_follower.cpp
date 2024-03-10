@@ -40,8 +40,6 @@ void init_path_following(PathFollower *path_follower, double *x, double *y, int 
 
     path_follower->x_splines = compute_splines(q_checkpoints, path_follower->checkpoints_x, n);
     path_follower->y_splines = compute_splines(q_checkpoints, path_follower->checkpoints_y, n);
-    
-
 
     path_follower->i_spline = 0;
     path_follower->qref = path_follower->x_splines->q[0];
@@ -181,7 +179,6 @@ int update_path_follower_ref_speed(
     kif = pf->kif; kifdot = pf->kifdot; wn = pf->wn; xsi_n = pf->xsi_n;
     delta = pf->delta;
     dt = rp->dt;
-
 
     // Compute error in the fixed reference frame
     ex = rp->x - pf->xref;

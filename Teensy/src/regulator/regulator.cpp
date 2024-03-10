@@ -23,10 +23,8 @@ Regulator *init_regulator() {
 void free_regulator(Regulator *regulator) {
     free(regulator);
 }
-
 void control_speed(
-    Regulator *reg, 
-    OutputInterface *outputs,
+    Regulator *reg,
     RobotPosition *rob_pos,
     double speed_refl,
     double speed_refr) {
@@ -60,12 +58,6 @@ void control_speed(
     vl = reg->kp * esl + reg->isl;
     vr = reg->kp * esr + reg->isr;
 
-    printf("P term = %.3e\n", reg->kp*esl);
-    printf("I term = %.3e\n", reg->isl);
-
-    printf("vl = %.3e\n", vl);
-    printf("vr = %.3e\n", vr);
-
     // update duty cycle, assuming duty cycle changes average voltage linearly
     #ifdef ADZ_ENABLE
     // add an anti-deadzone term to compensate the deadzone around 0
@@ -77,15 +69,10 @@ void control_speed(
     reg->duty_cycle_refl = SAT((int)(vl * MOTOR_DUTY_RANGE), MOTOR_DUTY_RANGE);
     reg->duty_cycle_refr = SAT((int)(vr * MOTOR_DUTY_RANGE), MOTOR_DUTY_RANGE);
     #endif
-    printf("duty_cycle_refl = %d\n", reg->duty_cycle_refl);
-    printf("duty_cycle_refr = %d\n", reg->duty_cycle_refr);
 
     #ifdef VERBOSE
     printf("Voltages : %.4f, %.4f\n", vl*24, vr*24);
     printf("Updating duty cycles to : %d, %d\n\n", reg->duty_cycle_refl, reg->duty_cycle_refl);
     #endif
-
-    outputs->duty_cycle_refl = reg->duty_cycle_refl;
-    outputs->duty_cycle_refr = reg->duty_cycle_refr;
 
 }

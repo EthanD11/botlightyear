@@ -131,6 +131,38 @@ void init_sonar() {
 // -------- Teensy ------------
 // ############################
 
+char *teensy_path_following(double *x, double *y, double ncheckpoints, double theta_current) {
+
+    size_t message_size = sizeof(char)*2 + sizeof(uint16_t)*(2*ncheckpoints+1);
+    // Send vector. Needs to be malloced since it is variabel size
+    char *send = malloc(message_size);
+    char *receive = malloc(message_size);
+
+    // Send the query over a single byte
+    char *send_query = (char *) send;
+    send_query[0] = (char) QueryDoPathFollowing;
+
+    // Send the number of points over a single byte. Hence limited to 255 points
+    char *send_n =(char *) (send_query + sizeof(char));
+    send_n[0] = (char) ncheckpoints;
+    
+    // Send each points over two bytes
+    uint16_t *send_points = (uint16_t *) (send_n + sizeof(char)); // Send points over 2 bytes   
+    for (int i = 0; i < ncheckpoints; i++)              send_points[i] = (uint16_t) (UINT16_MAX*(x[i]/2.0));
+    for (int i = ncheckpoints; i < 2*ncheckpoints; i++) send_points[i] = (uint16_t) (UINT16_MAX*(y[i]/3.0));
+
+    
+    lgSpiXfer(Teensy_handle, send, receive, message_size);
+
+    #ifdef VERBOSE
+    printf("Sending path following\n");
+    for (int i = 0; i < message_size; i++)
+    {
+        printf("%d, %d\n",send[i], receive[i]);
+    }
+    #endif
+}
+
 void teensy_pos_ctrl(double x, double y, double t, double xr, double yr, double tr) {
     // Compression to go to SPI
     char send[7];

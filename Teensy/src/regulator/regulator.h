@@ -23,11 +23,21 @@ typedef struct Regulator {
 Regulator *init_regulator();
 void free_regulator(Regulator *regulator);
 
+
+/* Updates the duty cycle references of the speed controller
+ * in order to reach the given reference speed
+ */
 void control_speed(
-    Regulator *reg, 
-    OutputInterface *outputs,
+    Regulator *reg,
     RobotPosition *rob_pos,
     double speed_refl,
     double speed_refr);
+
+inline int get_duty_cycle_refl(Regulator *speed_regulator) {
+    return speed_regulator->duty_cycle_refl;
+}
+inline int get_duty_cycle_refr(Regulator *speed_regulator) {
+    return speed_regulator->duty_cycle_refr;
+}
 
 #endif

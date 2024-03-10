@@ -7,54 +7,51 @@ typedef struct SPIInterface {
     uint32_t data_buffer[7];
     query_t query;
 } SPIInterface;
+void __spi_receive_event();
 
-SPIInterface *spi_interface;
+SPIInterface *__spi_interface;
 
 void init_spi_interface() {
-    spi_interface = (SPIInterface *) malloc(sizeof(SPIInterface));
-    spi_interface->spi_slave =  new SPISlave_T4(0, SPI_8_BITS);
-    spi_interface->i = 0;
-    spi_interface->n = 0;
+    __spi_interface = (SPIInterface *) malloc(sizeof(SPIInterface));
+    __spi_interface->spi_slave =  new SPISlave_T4(0, SPI_8_BITS);
+    __spi_interface->i = 0;
+    __spi_interface->n = -1;
 
-    spi_interface->spi_slave->begin(MSBFIRST, SPI_MODE0);
-    spi_interface->spi_slave->swapPins();
-    spi_interface->spi_slave->onReceive(spi_receive_event);
+    __spi_interface->spi_slave->begin(MSBFIRST, SPI_MODE0);
+    __spi_interface->spi_slave->swapPins();
+    __spi_interface->spi_slave->onReceive(__spi_receive_event);
 }
 
 query_t spi_get_query() {
-    return spi_interface->query;
+    return __spi_interface->query;
 }
 
-void spi_receive_event() {
-    SPISlave_T4 *mySPI = spi_interface->spi_slave;
+void __spi_receive_event() {
+    SPISlave_T4 *mySPI = __spi_interface->spi_slave;
 
     //When there is data to read
     while ( mySPI->available() ) {
 
         uint32_t data = mySPI->popr();
 
-        if (spi_interface->i == 0) {
-            spi_interface->query = (query_t) data;
+        if (__spi_interface->i == 0) {
+            __spi_interface->query = (query_t) data;
             switch (data) {
-                case QueryPositionControl :
-                    spi_interface->n = 7;
-                    break;
-
-                case QuerySpeedControl:
-                    spi_interface->n = 3;
+                case QueryDoPositionControl :
+                    __spi_interface->n = 7;
                     break;
 
                 case QueryIdle:
-                    spi_interface->n = 1;
+                    __spi_interface->n = 1;
                     break;
 
                 default: // Idle
-                    spi_interface->n = 1;
+                    __spi_interface->n = 1;
                     break;
             }
         }
         // Get data
-        spi_interface->data_buffer[spi_interface->i++] = data;
+        __spi_interface->data_buffer[__spi_interface->i++] = data;
 
         #ifdef VERBOSE
         printf("NEW DATA : %d\n", (int) data);
@@ -63,16 +60,16 @@ void spi_receive_event() {
 }
 
 int spi_valid_transmission() {
-    return (spi_interface->i == spi_interface->n);
+    return (__spi_interface->i == __spi_interface->n);
 }
 
 void spi_reset_transmission() {
-    spi_interface->i = 0;
+    __spi_interface->i = 0;
 }
 
 void spi_handle_position_control(RobotPosition *rp, PositionController *pc) 
 {
-    uint32_t *data_buffer = spi_interface->data_buffer;
+    uint32_t *data_buffer = __spi_interface->data_buffer;
     rp->x         = ((double)(data_buffer[1]))*3/255;
     rp->y         = ((double)(data_buffer[2]))*2/255;
     rp->theta     = ((double)(data_buffer[3]))*2*M_PI/255 - M_PI;
@@ -81,12 +78,10 @@ void spi_handle_position_control(RobotPosition *rp, PositionController *pc)
     pc->theta_ref = ((double)(data_buffer[6]))*2*M_PI/255 - M_PI;
 }
 
-void spi_handle_speed_control(double *speed_refl, double *speed_refr) {
-    uint32_t *data_buffer = spi_interface->data_buffer;
-    speed_refl[0] = ((double)data_buffer[1])*2/255;
-    speed_refr[0] = ((double)data_buffer[2])*2/255;
-}
 
+void spi_handle_path_following(PathFollower *path_follower) {
+
+}
 
 
 
