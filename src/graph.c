@@ -1,4 +1,5 @@
 #include "graph.h"
+#include "AStar.h"
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
@@ -32,19 +33,35 @@ int node_comparator(void *node1, void *node2, void *context) {
     return ((graph_node_t*) node1)->id - ((graph_node_t*) node2)->id;
 }
 
-ASPath graph_compute_path(const int from, const int to) {
+graph_path_t *graph_compute_path(const int from, const int to) {
     if (graph_nodes[to].level > graph_level) return NULL;
+
     ASPathNodeSource source;
     source.nodeSize = sizeof(graph_node_t);
     source.nodeNeighbors = node_neighbors;
     source.pathCostHeuristic = path_cost_heuristic;
     source.earlyExit = NULL;
     source.nodeComparator = node_comparator;
-    ASPath result = ASPathCreate(&source, NULL, &(graph_nodes[from]), &(graph_nodes[to]));
-    if (ASPathGetCount(result) == 0) {
-        ASPathDestroy(result);
+    ASPath path = ASPathCreate(&source, NULL, &(graph_nodes[from]), &(graph_nodes[to]));
+    if (ASPathGetCount(path) == 0) {
+        ASPathDestroy(path);
         return NULL;
     }
+
+    int8_t count = ASPathGetCount(path);
+    void *temp = malloc(sizeof(graph_path_t) + 2*count*sizeof(double));
+    graph_path_t *result = (graph_path_t*) temp;
+    result->x = (double *) (temp + sizeof(graph_path_t));
+    result->y = (double *) (temp + sizeof(graph_path_t) + count*sizeof(double));
+
+    result->nb_nodes = count;
+    for (size_t i = 0; i < count; i++)
+    {
+        graph_node_t *node = (graph_node_t*) ASPathGetNode(path, i);
+        result->x[i] = node->x;
+        result->y[i] = node->y;
+    }
+    
     return result;
 }
 
@@ -79,7 +96,7 @@ int init_graph_from_file(const char *filename) {
     #endif
     
     // Malloc graph
-    graph_nodes = malloc(graph_nb_nodes*sizeof(graph_node_t));
+    graph_nodes = (graph_node_t*) malloc(graph_nb_nodes*sizeof(graph_node_t));
     if (graph_nodes == NULL) return -1;
 
     for (int8_t i = 0; i < graph_nb_nodes; i++) {
