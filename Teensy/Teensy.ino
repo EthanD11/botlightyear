@@ -1,9 +1,16 @@
-#include "Teensy.h"
+// #include <Arduino.h>
+#include "src/inout_interface/SPISlave_T4.h"
+#include "src/inout_interface/output_interface.h"
+#include "src/inout_interface/SPIInterface.h"
+#include "src/localization/localization.h"
+#include "src/path_follower/path_follower.h"
+#include "src/position_control/position_control.h"
+#include "src/regulator/regulator.h"
+#include "utils.h"
 
 typedef enum {
   ModeIdle, // No input from RPi, default is to remain still
   ModePositionControl,
-  ModeSpeedControl,
   ModePathFollowingInit,
   ModePathFollowing
 } controlmode_t; // Control modes type
@@ -16,10 +23,11 @@ RobotPosition *robot_position;
 PositionController *position_controller;
 PathFollower *path_follower;
 Regulator *speed_regulator;
-double spi_speed_refl = 0.0;
-double spi_speed_refr = 0.0;
+// double spi_speed_refl = 0.0;
+// double spi_speed_refr = 0.0;
 
 controlmode_t mode = ModePathFollowingInit;
+controlmode_t nextmode;
 
 // ----- TIME -----
 int control_time;
@@ -35,10 +43,10 @@ void setup() {
   outputs = init_outputs();
   // ----- POSITION -----
   robot_position = init_robot_position(0, 0, 0);
-  // ----- POSITION CONTROLLER -----
-  position_controller = init_position_controller();
   // ----- SPEED REGULATOR -----
   speed_regulator = init_regulator();
+  // ----- POSITION CONTROLLER -----
+  position_controller = init_position_controller();
   // ----- PATH FOLLOWER -----
   path_follower = init_path_follower();
   // ----- GENERAL -----
@@ -53,104 +61,117 @@ void loop() {
   if (spi_valid_transmission()) {
     spi_reset_transmission();   
     switch (spi_get_query()) {
-      case QueryPositionControl:
+      case QueryDoPositionControl:
         spi_handle_position_control(robot_position, position_controller);
-        mode = ModePositionControl;
-        outputs->analog_write_a3pin = 0;
-        break;
-
-      case QuerySpeedControl:
-        spi_handle_speed_control(&spi_speed_refl, &spi_speed_refr);
-        mode = ModeSpeedControl;
-        outputs->analog_write_a3pin = 0;
+        set_a3pin_duty_cycle(outputs, 0);
+        nextmode = ModePositionControl;
         break;
 
       case QueryIdle:
-        mode = ModeIdle;
-        outputs->analog_write_a3pin = 255;
-        Serial.print("Mode Idle");
+        set_a3pin_duty_cycle(outputs, 128);
+        nextmode = ModeIdle;
         break;
       
-      default: // Idle
-        mode = mode;
-        outputs->analog_write_a3pin = 255;
+      default:
+        set_a3pin_duty_cycle(outputs, 255);
+        nextmode = mode;
         break;
     }
-  }
-
-  
-  // printf("speed left: %.3e\n", robot_position->speed_left);
-  // printf("speed right: %.3e\n", robot_position->speed_right);
-  int ncheckpoints = 5;
-  double x[5] = {0, 0.4, .8, 0.4, 0.0};
-  double y[5] = {0, 0.20, 0.0, -0.20, 0.0};
-  // Each 20ms TODO : Restimate REG_DELAY
-  if(current_time - control_time > REG_DELAY){
+    mode = nextmode;
+  } 
+  else if (current_time - control_time > REG_DELAY) {
+    
     update_localization(robot_position);
-    
-    
+
+    int ncheckpoints = 5;
+    int path_following_goal_reached = 0;
+    double x[5] = {0, 0.4, 0.8,  0.4, 0.0};
+    double y[5] = {0, 0.2, 0.0, -0.2, 0.0};
+
     switch (mode) {
       case ModeIdle:
-        // printf("\nMode idle\n");
+        #ifdef VERBOSE
+        printf("\nMode idle\n");
+        #endif
         control_time = current_time;
-        outputs->analog_write_a3pin = 128;
         break;
 
       case ModePositionControl:
+        #ifdef VERBOSE
         printf("\nMode position control\n");
+        #endif
         control_position(position_controller, robot_position);
-        control_speed(
-          speed_regulator, outputs, robot_position,
-          position_controller->speed_refl, 
-          position_controller->speed_refr);
-        break;
-
-      case ModeSpeedControl:
-        printf("Mode speed control\n");
-        control_speed(speed_regulator, outputs, robot_position, 0.1, 0.1);
+        control_speed(speed_regulator, robot_position,
+          get_speed_refl(position_controller), 
+          get_speed_refr(position_controller));
+        set_motors_duty_cycle(outputs, 
+          get_duty_cycle_refl(speed_regulator), 
+          get_duty_cycle_refr(speed_regulator))
         break;
 
       case ModePathFollowingInit:
+        #ifdef VERBOSE
         printf("\nMode path following INIT\n");
+        #endif
         init_path_following(path_follower, x, y, ncheckpoints, 0.0);
         compute_entire_path(path_follower, 2e-3);
-        // for (int i = 0; i < path_follower->m; i++) {
-        //   printf("%d,%.6e,%.6e\n",i, path_follower->path[2*i], path_follower->path[2*i+1]);
-        // }
         delay(1);
         mode = ModePathFollowing;
         break;
 
       case ModePathFollowing:
+        #ifdef VERBOSE
         printf("\nMode path following\n");
         printf("time = %d\n", current_time);
-        int retval;
-        retval = update_path_follower_ref_speed(path_follower, robot_position, 40e-2, 5e-2);
-        control_speed(speed_regulator, outputs, robot_position,
-          path_follower->speed_refl,
-          path_follower->speed_refr);
+        #endif
+        path_following_goal_reached = update_path_follower_ref_speed(path_follower, 
+          robot_position, 40e-2, 5e-2);
+        control_speed(speed_regulator, 
+          outputs, 
+          robot_position,
+          get_speed_refl(path_follower),
+          get_speed_refr(path_follower));
+
         if (retval == 1) {
-          position_controller->xref = path_follower->checkpoints_x[path_follower->n-1];
-          position_controller->yref = path_follower->checkpoints_y[path_follower->n-1];
-          position_controller->theta_ref = M_PI;
+          set_ref(position_controller, path_follower->last_x, path_follower->last_y, M_PI);
           mode = ModePositionControl;
         }
         break;
 
       default: // ModeIdle
-        outputs->duty_cycle_refl = 0;
-        outputs->duty_cycle_refr = 0;
+        set_motors_duty_cycle(outputs, 0, 0)
+        break;
+    }
+    write_outputs(outputs);
+
+    // Next state logic
+    switch (mode) {
+      case ModeIdle:
+        nextmode = ModeIdle;
+        break;
+      case ModePositionControl:
+        nextmode = ModePositionControl;
+        break;
+      case ModePathFollowingInit:
+        nextmode = ModePathFollowing;
+        break;
+      case ModePathFollowing:
+        if (path_following_goal_reached) {
+          nextmode = ModePositionControl;
+        } else {
+          nextmode = ModePathFollowing;
+        }
+        break;
+
+      default:
+        nextmode = ModeIdle;
         break;
     }
 
-    // outputs->duty_cycle_refl = 0;
-    // outputs->duty_cycle_refr = 0;
-    // printf("outputs->duty_cycle_left =%d\n", outputs->duty_cycle_l);
-    // printf("outputs->duty_cycle_right =%d\n", outputs->duty_cycle_r);
-
-    write_outputs(outputs);
-
-    // Update last control time
+    
     control_time = current_time;
+    
   }
+
+  
 }

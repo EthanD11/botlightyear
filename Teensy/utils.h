@@ -32,7 +32,7 @@
 
 // ------ Program parameters -------
 #define REF_SPEED_LIMIT 0.4 // Reference speed max value in m/s
-#define REG_DELAY 10 // Delay between two updates (ms)
+#define REG_DELAY 8 // Delay between two updates (ms)
 #define SPD_TOL 1e-2 // Max speed at which motors can be turned off (rad_mot/s)
 
 #ifdef ODOMETERS_ENC

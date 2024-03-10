@@ -25,7 +25,7 @@
 #define A3 36
 
 #define MOTOR_DUTY_RANGE 256  // Duty cycle range
-#define BUF_STEP 100           // Max step to avoid brutal speed changes
+#define BUF_STEP 50           // Max step to avoid brutal speed changes
 
 typedef struct OutputInterface {
     int duty_cycle_refl, duty_cycle_refr; // Reference duty cycles
@@ -34,6 +34,25 @@ typedef struct OutputInterface {
 } OutputInterface;
 
 OutputInterface *init_outputs();
+
+/*
+ * Updates the duty cycle reference of the motors
+ * The duty cycle references are numbers between -256 and 256
+ * The duty cycle is thus DC= dcref / 255
+ */
+inline void set_motors_duty_cycle(OutputInterface *outputs, int dcref_left, int dcref_right) {
+    outputs->duty_cycle_refl = dcref_left;
+    outputs->duty_cycle_refr = dcref_right;
+}
+
+/*
+ * Updates the duty cycle reference of the motors
+ * The duty cycle references are numbers between -256 and 256
+ * The duty cycle is thus DC= dcref / 255
+ */
+inline void set_a3pin_duty_cycle(OutputInterface *outputs, int value) {
+    outputs->analog_write_a3pin = value;
+} 
 
 inline void duty_cycle_update(OutputInterface *outputs)
 {
@@ -44,12 +63,7 @@ inline void duty_cycle_update(OutputInterface *outputs)
     duty_cycle_r = outputs->duty_cycle_r;
 
     duty_cycle_refl = outputs->duty_cycle_refl;
-    duty_cycle_refr = outputs->duty_cycle_refr;
-
-    // printf("duty cycle ref left: %d\n", duty_cycle_refl);
-    // printf("duty cycle ref right: %d\n", duty_cycle_refr);
-    // printf("duty cycle left: %d\n", duty_cycle_l);
-    // printf("duty cycle right: %d\n", duty_cycle_r);
+    duty_cycle_refr = outputs->duty_cycle_refr;;
 
     // Left buffered control
     duty_cycle_l += SAT(duty_cycle_refl - duty_cycle_l, BUF_STEP);
@@ -84,8 +98,8 @@ inline void duty_cycle_update(OutputInterface *outputs)
 }
 
 inline void write_outputs(OutputInterface *outputs) {
-    analogWrite(A1, outputs->analog_write_a3pin);
-    analogWrite(A2, outputs->analog_write_a3pin);
+    analogWrite(A1, outputs->duty_cycle_l);
+    analogWrite(A2, outputs->duty_cycle_r);
     analogWrite(A3, outputs->analog_write_a3pin);
     duty_cycle_update(outputs);
 }

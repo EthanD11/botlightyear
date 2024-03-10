@@ -20,12 +20,36 @@ typedef struct PositionController {
     double angular_tol;     // Acceptable static error on orientation
 
     int flag_position_reached;
-} PositionController;
+} PositionController; 
 
 PositionController *init_position_controller();
+// TODO FREE
+
 void control_position(
     PositionController *position_controller,
     RobotPosition *robot_position
 );
+
+inline void set_ref(PositionController *position_controller, double xref, double yref, double theta_ref) {
+    position_controller->xref = xref;
+    position_controller->yref = yref;
+    position_controller->theta_ref = theta_ref;
+}
+inline void set_xref(PositionController *position_controller, double xref) {
+    position_controller->xref = xref;
+}
+inline void set_yref(PositionController *position_controller, double yref) {
+    position_controller->yref = yref;
+}
+inline void set_theta_ref(PositionController *position_controller, double theta_ref) {
+    position_controller->theta_ref = theta_ref;
+}
+
+inline double get_speed_refl(PositionController *position_controller) {
+    return position_controller->speed_refl;
+}
+inline double get_speed_refr(PositionController *position_controller) {
+    return position_controller->speed_refr;
+}
 
 #endif
