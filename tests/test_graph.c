@@ -24,31 +24,28 @@ int main(int argc, char const *argv[])
     int from = 0;
     int to = 44;
     graph_level = 0;
-    graph_level_update(24,2,1);
-    graph_level_update(3,1,0);
-    graph_level_update(42,0,0);
-    //graph_nodes[graph_bases[0]].level = 0; // equivalent
-    graph_nodes[44].level = 0;
+    graph_level_update(24,NODE_BLOCKED,ENABLE_PROPAGATION);
+    graph_level_update(3,NODE_DANGER,DISABLE_PROPAGATION);
+    graph_level_update(42,NODE_FREE,DISABLE_PROPAGATION);
+    graph_level_update(44, NODE_FREE, DISABLE_PROPAGATION);
 
     printf("Searching for a path between %d and %d with graph level %d\n", from, to, graph_level);
 
     clock_t start = clock();
-    ASPath result = graph_compute_path(from,to);
+    graph_path_t* result = graph_compute_path(from,to);
     clock_t stop = clock();
 
     if (result == NULL) {
         printf("No path was found\n");
         return 0;
     }
-    size_t count = ASPathGetCount(result);
-    float cost = ASPathGetCost(result);
-    printf("Found a path in %ld points, total length = %.3f\n", count, cost);
-    for (size_t i = 0; i < count; i++)
+    printf("Found a path in %d points\n", result->nb_nodes);
+    for (size_t i = 0; i < result->nb_nodes; i++)
     {
-        printf("%d ", ((graph_node_t*)ASPathGetNode(result, i))->id);
+        printf("(%.3f,%.3f) ", result->x[i], result->y[i]);
     }
     printf("\nTime taken : %ld clock cycles\n", stop-start);
-    ASPathDestroy(result);
+    free(result);
     free_graph();
 
     return 0;
