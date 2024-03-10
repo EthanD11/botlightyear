@@ -200,6 +200,17 @@ int main()
       printf("%s\n", getRxPacketError(PROTOCOL_VERSION, dxl_error));
     }
 
+    // Write mode
+    write1ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, 11, 2);
+    if ((dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION)) != COMM_SUCCESS)
+    {
+      printf("%s\n", getTxRxResult(PROTOCOL_VERSION, dxl_comm_result));
+    }
+    else if ((dxl_error = getLastRxPacketError(port_num, PROTOCOL_VERSION)) != 0)
+    {
+      printf("%s\n", getRxPacketError(PROTOCOL_VERSION, dxl_error));
+    }
+
     // Write speed
     write2ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, ADDR_MX_MOVING_SPEED, DXL_MOVING_SPEED);
     if ((dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION)) != COMM_SUCCESS)
@@ -212,7 +223,7 @@ int main()
     }
 
     // Write goal position
-    write4ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, ADDR_PRO_GOAL_POSITION, dxl_goal_position[index]);
+    write2ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, ADDR_PRO_GOAL_POSITION, dxl_goal_position[index]);
     if ((dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION)) != COMM_SUCCESS)
     {
       printf("%s\n", getTxRxResult(PROTOCOL_VERSION, dxl_comm_result));
@@ -239,7 +250,7 @@ int main()
       }
 
       // Read present position
-      dxl_present_position = read4ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, ADDR_PRO_PRESENT_POSITION);
+      dxl_present_position = read2ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, ADDR_PRO_PRESENT_POSITION);
       if ((dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION)) != COMM_SUCCESS)
       {
         printf("%s\n", getTxRxResult(PROTOCOL_VERSION, dxl_comm_result));

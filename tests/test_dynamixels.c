@@ -3,12 +3,13 @@
 
 int main(int argc, char const *argv[])
 {
-    init_port();
+    ax_init_port();
+    //xl_init_port();
 
-    ping_dxl(1, 2.0);
-    ping_dxl(3, 2.0);
-    ping_dxl(6, 1.0);
-    ping_dxl(8, 1.0);
+    xl_ping(1);
+    xl_ping(3);
+    ax_ping(6);
+    ax_ping(8);
 
     //SOLAR PANELS
     /*deploy_solar_panel(); 
@@ -20,14 +21,36 @@ int main(int argc, char const *argv[])
 
     //GRIPPER OPEN-CLOSE
     /*open_gripper(); 
-    sleep(1); 
     close_gripper();*/
 
     //GRIPPER UP-DOWN
-    /*raiseG_withoutreturn(); 
-    sleep(1); 
-    deployG_withoutreturn();*/
+    /*raise_gripper(); 
+    deploy_gripper();*/
 
-    close_port();
+    //GRIPPER HELLO
+    mid_gripper();
+    deploy_gripper(); 
+    mid_gripper();
+    deploy_gripper(); 
+    open_gripper(); 
+    close_gripper(); 
+    open_gripper(); 
+    close_gripper(); 
+    raise_gripper();
+
+    //TAKE PLANT
+    /*open_gripper(); 
+    deploy_gripper(); */
+    /*sleep(2);
+    close_gripper_plant();
+    sleep(10);
+    open_gripper(); 
+    sleep(2);
+    close_gripper(); 
+    raise_gripper();*/
+
+
+    ax_close_port();
+    //xl_close_port();
     return 0;
 }
