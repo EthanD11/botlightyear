@@ -168,13 +168,13 @@ void StopLidar(){
     
     
     
-    StartLidar();
-    for (size_t i = 102; i < 106; i++)
-    {
-        sleep(10);
-        DataToFile("testBottom"+std::to_string(i)+".txt");
-        printf("turn\n");
-    }
+//     StartLidar();
+//     for (size_t i = 88; i < 92; i++)
+//     {
+//         sleep(10);
+//         DataToFile("testBottom"+std::to_string(i)+".txt");
+//         printf("turn\n");
+//     }
     
 //     StopLidar();
     
