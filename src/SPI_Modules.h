@@ -4,6 +4,7 @@
 #include <lgpio.h>
 #include <stdint.h>
 #include <unistd.h>
+#include "math.h"
 
 #define VERBOSE
 #ifdef VERBOSE

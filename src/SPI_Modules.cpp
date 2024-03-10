@@ -135,8 +135,8 @@ char *teensy_path_following(double *x, double *y, double ncheckpoints, double th
 
     size_t message_size = sizeof(char)*2 + sizeof(uint16_t)*(2*ncheckpoints+1);
     // Send vector. Needs to be malloced since it is variabel size
-    char *send = malloc(message_size);
-    char *receive = malloc(message_size);
+    char *send = (char *) malloc(message_size);
+    char *receive = (char *) malloc(message_size);
 
     // Send the query over a single byte
     char *send_query = (char *) send;
@@ -150,8 +150,8 @@ char *teensy_path_following(double *x, double *y, double ncheckpoints, double th
     uint16_t *send_points = (uint16_t *) (send_n + sizeof(char)); // Send points over 2 bytes   
     for (int i = 0; i < ncheckpoints; i++)              send_points[i] = (uint16_t) (UINT16_MAX*(x[i]/2.0));
     for (int i = ncheckpoints; i < 2*ncheckpoints; i++) send_points[i] = (uint16_t) (UINT16_MAX*(y[i]/3.0));
+    send_points[2*ncheckpoints] = (uint16_t) (UINT16_MAX*((theta_current+M_PI)/(M_PI*2)));
 
-    
     lgSpiXfer(Teensy_handle, send, receive, message_size);
 
     #ifdef VERBOSE
@@ -161,6 +161,9 @@ char *teensy_path_following(double *x, double *y, double ncheckpoints, double th
         printf("%d, %d\n",send[i], receive[i]);
     }
     #endif
+
+    free(send);
+    free(receive);
 }
 
 void teensy_pos_ctrl(double x, double y, double t, double xr, double yr, double tr) {

@@ -131,10 +131,12 @@ void loop() {
           robot_position,
           get_speed_refl(path_follower),
           get_speed_refr(path_follower));
-
-        if (retval == 1) {
-          set_ref(position_controller, path_follower->last_x, path_follower->last_y, M_PI);
-          mode = ModePositionControl;
+        if (path_following_goal_reached) {
+          close_path_following(path_follower);
+          set_ref(position_controller, 
+            path_follower->last_x, 
+            path_follower->last_y, 
+            M_PI);
         }
         break;
 

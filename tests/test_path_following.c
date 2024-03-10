@@ -8,5 +8,4 @@ int main(int argc, char const *argv[]){
 
     init_spi();
     teensy_path_following(x, y, ncheckpoints, theta);
-
 }

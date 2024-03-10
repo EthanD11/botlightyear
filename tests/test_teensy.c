@@ -2,7 +2,8 @@
 #include <stdio.h>
 
 //#define SPEED_CONTROL
-#define POSITION_CONTROL
+// #define POSITION_CONTROL
+#define PATH_FOLLOWING
 //#define IDLE
 
 const double deg_to_rads = 3.141593/180;
@@ -29,6 +30,15 @@ int main(int argc, char const *argv[])
     double tr = 0*deg_to_rads;
 
     teensy_pos_ctrl(x, y, t, xr, yr, tr);
+    #endif
+
+    #ifdef PATH_FOLLOWING
+    int ncheckpoints = 4;
+    double x[4] = {1,2,3,4};
+    double y[4] = {4,3,2,1};
+    double theta = 0.0;
+
+    teensy_path_following(x, y, ncheckpoints, theta);
     #endif
 
     #ifdef IDLE

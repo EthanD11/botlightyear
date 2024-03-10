@@ -97,6 +97,7 @@ void free_path_follower(PathFollower *path_follower);
  * `double * theta_start`: the current orientation of the robot (just before the robot starts to follow the trajectory) 
  */
 void init_path_following(PathFollower *path_follower, double *x, double *y, int ncheckpoints, double theta_start);
+void close_path_following(PathFollower *pf);
 
 // Update the reference speed within the path follower
 // Returns 1 if the end of the path is reached

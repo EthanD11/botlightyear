@@ -61,6 +61,15 @@ void init_path_following(PathFollower *path_follower, double *x, double *y, int 
     free(q_checkpoints);
 }
 
+void close_path_following(PathFollower *pf) {
+    free_spline_set(pf->x_splines);
+    free_spline_set(pf->y_splines);
+    free(pf->x_splines);
+    free(pf->y_splines);
+    free(pf->checkpoints_x);
+    free(pf->checkpoints_y);
+}
+
 
 /*
 * Compute directly the entire path from checkpoints
