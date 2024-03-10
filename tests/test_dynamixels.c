@@ -12,11 +12,11 @@ int main(int argc, char const *argv[])
     ax_ping(8);
 
     //SOLAR PANELS
-    /*deploy_solar_panel(); 
+    deploy_solar_panel(); 
     sleep(0.5);
     multi_turn_solar_panel();
     sleep(0.5);
-    raise_solar_panel();*/
+    raise_solar_panel();
     
 
     //GRIPPER OPEN-CLOSE
@@ -28,7 +28,7 @@ int main(int argc, char const *argv[])
     deploy_gripper();*/
 
     //GRIPPER HELLO
-    mid_gripper();
+    /*mid_gripper();
     deploy_gripper(); 
     mid_gripper();
     deploy_gripper(); 
@@ -36,7 +36,7 @@ int main(int argc, char const *argv[])
     close_gripper(); 
     open_gripper(); 
     close_gripper(); 
-    raise_gripper();
+    raise_gripper();*/
 
     //TAKE PLANT
     /*open_gripper(); 
