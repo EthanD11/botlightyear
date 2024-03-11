@@ -10,14 +10,14 @@ PathFollower* init_path_follower() {
     PathFollower *path_follower = (PathFollower *) malloc(sizeof(PathFollower));
     path_follower->speed_refl = 0;
     path_follower->speed_refr = 0;
-    path_follower->kt = 10.0 ;
-    path_follower->kn = 0.9; // 0 < kn <= 1
-    path_follower->kz = 20.0;
-    path_follower->delta = 35e-3; // delta is in meters
-    path_follower->sigma = .01;
+    path_follower->kt = 0.1;
+    path_follower->kn = 1.0; // 0 < kn <= 1
+    path_follower->kz = 100.0;
+    path_follower->delta = 40e-3; // delta is in meters
+    path_follower->sigma = 1.0;
     path_follower->epsilon = 150-3; // epsilon is in meters
-    path_follower->wn = 0.15; // Command filter discrete cutoff frequency
-    path_follower->kv_en = 15; // 
+    path_follower->wn = 0.3; // Command filter discrete cutoff frequency
+    path_follower->kv_en = 12; // 
     return path_follower;
 }
 
@@ -27,10 +27,12 @@ void free_path_follower(PathFollower *path_follower) {
 }
 
 void init_path_following(PathFollower *path_follower, double *x, double *y, int n, double theta_start){
-    path_follower->checkpoints_x = x;
-    path_follower->checkpoints_y = y;
+    path_follower->checkpoints_x = (double *) malloc(sizeof(double)*n);
+    path_follower->checkpoints_y = (double *) malloc(sizeof(double)*n);
     path_follower->n = n;
 
+    memcpy(path_follower->checkpoints_x, x, sizeof(double)*n);
+    memcpy(path_follower->checkpoints_y, y, sizeof(double)*n);
     double *q_checkpoints = (double *) malloc(sizeof(double)*n);
     for (int i = 0; i < n; i++) q_checkpoints[i] = (double) i;
 
@@ -148,7 +150,8 @@ int compute_next_point(PathFollower *pf, RobotPosition *rp, double delta_s, doub
         dydq = evaluate_spline_derivative(y_splines->b[i_spline], y_splines->c[i_spline], y_splines->d[i_spline], delta_q);
 
         dq = ds / sqrt(dxdq*dxdq + dydq*dydq); // Estimation of the dq needed to travel of ds along the spline
-        pf->qref = MIN(pf->qref + MAX(dq, 0), pf->last_q); // Update the qref
+        pf->qref = pf->qref + MAX(dq, 0);
+        pf->qref = MIN(pf->qref, pf->last_q); // Update the qref
 
         // update spline index if we go pass a checkpoint
         if (pf->qref >= q_checkpoints[i_spline+1]) i_spline += 1;
@@ -156,6 +159,7 @@ int compute_next_point(PathFollower *pf, RobotPosition *rp, double delta_s, doub
 
         double dist = hypot(rp->x - pf->last_x, rp->y - pf->last_y);
         if ((dist <= dist_goal_reached) && (pf->qref > pf->last_q - 5e-1)) {
+            // printf("Goal ")
             return 1;
         }
         ds = MIN(MAX_DS, delta_s - s);
@@ -225,7 +229,7 @@ int update_path_follower_ref_speed(
 
     // Reference speed correction
     vref = MAX(
-        vref + SIGMOID(-(et-5e-2)/2)*(25e-2-vref) - fabs(pf->kv_en*en),
+        vref + SIGMOID(-(et-5e-2)/2)*(30e-2-vref) - fabs(pf->kv_en*en),
         15e-2);
 
     // Filters
@@ -260,11 +264,13 @@ int update_path_follower_ref_speed(
     dq = step / sqrt(dxdq*dxdq + dydq*dydq); // Estimation of the dq needed to travel of ds along the spline
     pf->qref = MIN(pf->qref + MAX(dq, 0), pf->last_q); // Update the qref
 
-    if (pf->qref >= q_checkpoints[i_spline+1]){
+    if (pf->qref >= q_checkpoints[i_spline+1] && i_spline < pf->n){
         i_spline += 1;
     }
 
     double dist = hypot(rp->x - pf->last_x, rp->y - pf->last_y);
+
+    #ifdef VERBOSE
     printf("et = %.3e\n", et);
     printf("en = %.3e\n", en);
     printf("ispline = %d\n", i_spline);
@@ -286,7 +292,11 @@ int update_path_follower_ref_speed(
     printf("omega_ref = %.3e\n", omega_ref);
     printf("kir = %.3e\n", kir);
     printf("xsi_n = %.3e\n", xsi_n);
-
+    printf("speed_refl = %.3e\n", pf->speed_refl);
+    printf("speed_refr = %.3e\n", pf->speed_refr);
+    printf("last x = %.3e\n", pf->last_x);
+    printf("last y = %.3e\n", pf->last_y);
+    #endif
     
     if ((dist <= dist_goal_reached) && (pf->qref > pf->last_q - 5e-1)) {
         printf("Switch mode\n");

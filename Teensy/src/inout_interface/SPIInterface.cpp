@@ -49,8 +49,10 @@ void __spi_receive_event() {
 
             case QueryDoPathFollowing:
                 if (i == 1) {
+                    printf("QueryDoPathFollowing\n");
                     int ncheckpoints = (int) data;
-                    __spi_interface->n = (2*ncheckpoints+1)*sizeof(uint32_t) + 2*sizeof(char);
+                    __spi_interface->n = 2*(2*ncheckpoints+1) + 2;
+                    printf("message expected size=%d\n", (int) __spi_interface->n);
                 }
                 break;
 
@@ -91,10 +93,10 @@ void spi_handle_position_control(RobotPosition *rp, PositionController *pc)
 
 void spi_handle_path_following(PathFollower *path_follower) {
     int ncheckpoints = (int) __spi_interface->data_buffer[1];
-    uint32_t data = __spi_interface->data_buffer+2;
+    uint32_t *data = __spi_interface->data_buffer+2;
     
-    double *x = (double *) malloc(sizeof(double)*ncheckpoints*2);
-    double *y = x+ncheckpoints;
+    double *x = (double *) malloc(sizeof(double)*ncheckpoints);
+    double *y = (double *) malloc(sizeof(double)*ncheckpoints);
 
     char tmp_bytes[2];
     uint16_t tmp_16;
@@ -106,15 +108,18 @@ void spi_handle_path_following(PathFollower *path_follower) {
     }
     for (int i = 0; i < ncheckpoints; i++) {
         tmp_bytes[0] = (char) data[2*(i+ncheckpoints)]; // First byte
-        tmp_bytes[1] = (char) data[2*(i+ncheckpoints+1)]; // Second byte
+        tmp_bytes[1] = (char) data[2*(i+ncheckpoints)+1]; // Second byte
         tmp_16 = *((uint16_t *) tmp_bytes); // Merge bytes
         y[i] = 3.0*(((double) tmp_16)/UINT16_MAX); // Decode
     }
     tmp_bytes[0] = (char) data[4*ncheckpoints]; // First byte
     tmp_bytes[1] = (char) data[4*ncheckpoints+1]; // Second byte
     tmp_16 = *((uint16_t *) tmp_bytes); // Merge bytes
-    theta = (((double) tmp_16)/UINT16_MAX)*2*M_PI - M_PI; // Decode
-    
+    double theta = (((double) tmp_16)/UINT16_MAX)*2*M_PI - M_PI; // Decode
+    for (int i = 0; i < ncheckpoints; i++) {
+        printf("(x[%d], y[%d]) = (%f,%f)\n", i, i, x[i], y[i]);
+    }
+    printf("theta0 = %f\n", theta);
     init_path_following(path_follower, x, y, ncheckpoints, theta);
 }
 

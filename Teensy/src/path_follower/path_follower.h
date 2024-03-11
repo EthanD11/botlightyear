@@ -36,8 +36,8 @@
 #include "../localization/localization.h"
 #include <stdlib.h>
 
-
-#define MAX_DS 1e-3
+#define VERBOSE
+#define MAX_DS 5e-3
 
 /*
     `double *checkpoints_x`: X coordinates of checkpoints

@@ -8,6 +8,8 @@
 #include "src/regulator/regulator.h"
 #include "utils.h"
 
+// #define VERBOSE
+
 typedef enum {
   ModeIdle, // No input from RPi, default is to remain still
   ModePositionControl,
@@ -43,6 +45,7 @@ void setup() {
   outputs = init_outputs();
   // ----- POSITION -----
   robot_position = init_robot_position(0, 0, 0);
+  // robot_position = init_robot_position(0, 1.5, 0);
   // ----- SPEED REGULATOR -----
   speed_regulator = init_regulator();
   // ----- POSITION CONTROLLER -----
@@ -59,8 +62,15 @@ void loop() {
   robot_position->dt = 1e-3*((double)(current_time - control_time));
 
   if (spi_valid_transmission()) {
-    spi_reset_transmission();   
+    spi_reset_transmission(); 
+    printf("SPI received transmission\n");  
     switch (spi_get_query()) {
+      case QueryDoPathFollowing:
+        spi_handle_path_following(path_follower);
+        nextmode = ModePathFollowing;
+        printf("SPI QueryDoPathFollowing\n");
+        break;
+
       case QueryDoPositionControl:
         spi_handle_position_control(robot_position, position_controller);
         set_a3pin_duty_cycle(outputs, 0);
@@ -80,20 +90,18 @@ void loop() {
     mode = nextmode;
   } 
   else if (current_time - control_time > REG_DELAY) {
-    
     update_localization(robot_position);
 
     int ncheckpoints = 5;
     int path_following_goal_reached = 0;
     double x[5] = {0, 0.4, 0.8,  0.4, 0.0};
-    double y[5] = {0, 0.2, 0.0, -0.2, 0.0};
+    double y[5] = {0, 0.18, 0.0, -0.18, 0.0};
 
     switch (mode) {
       case ModeIdle:
         #ifdef VERBOSE
         printf("\nMode idle\n");
         #endif
-        control_time = current_time;
         break;
 
       case ModePositionControl:
@@ -106,7 +114,7 @@ void loop() {
           get_speed_refr(position_controller));
         set_motors_duty_cycle(outputs, 
           get_duty_cycle_refl(speed_regulator), 
-          get_duty_cycle_refr(speed_regulator))
+          get_duty_cycle_refr(speed_regulator));
         break;
 
       case ModePathFollowingInit:
@@ -120,17 +128,19 @@ void loop() {
         break;
 
       case ModePathFollowing:
-        #ifdef VERBOSE
+        // #ifdef VERBOSE
         printf("\nMode path following\n");
         printf("time = %d\n", current_time);
-        #endif
+        // #endif
         path_following_goal_reached = update_path_follower_ref_speed(path_follower, 
           robot_position, 40e-2, 5e-2);
         control_speed(speed_regulator, 
-          outputs, 
           robot_position,
           get_speed_refl(path_follower),
           get_speed_refr(path_follower));
+        set_motors_duty_cycle(outputs,  
+          get_duty_cycle_refl(speed_regulator), 
+          get_duty_cycle_refr(speed_regulator));
         if (path_following_goal_reached) {
           close_path_following(path_follower);
           set_ref(position_controller, 
@@ -141,7 +151,7 @@ void loop() {
         break;
 
       default: // ModeIdle
-        set_motors_duty_cycle(outputs, 0, 0)
+        set_motors_duty_cycle(outputs, 0, 0);
         break;
     }
     write_outputs(outputs);
@@ -160,6 +170,7 @@ void loop() {
       case ModePathFollowing:
         if (path_following_goal_reached) {
           nextmode = ModePositionControl;
+          printf("Mode Position control is next\n");
         } else {
           nextmode = ModePathFollowing;
         }
@@ -170,7 +181,7 @@ void loop() {
         break;
     }
 
-    
+    mode = nextmode;
     control_time = current_time;
     
   }

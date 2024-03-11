@@ -6,10 +6,10 @@ PositionController *init_position_controller(){
     pc->speed_refl = 0.0;
     pc->speed_refr = 0.0;
 
-    pc->kp =  0.4; // Proportional coefficient for distance error
-    pc->ka =  2.8; // Proportional coefficient for direction error
-    pc->kb = -2.0; // Proportional coefficient for orientation error
-    pc->kw = 6.0;
+    pc->kp =  1.0; // Proportional coefficient for distance error
+    pc->ka =  4.0; // Proportional coefficient for direction error
+    pc->kb = -1.0; // Proportional coefficient for orientation error
+    pc->kw = 10.0;
     pc->position_tol = 1e-2;      // Acceptable static error on position (m)
     pc->drift_tol    = 2e-1;      // Acceptable drift from reference position when reorienting (m)
     pc->angular_tol  = 1*M_PI/180; // Acceptable static error on orientation (rad, eq to 5 degrees)
