@@ -1,8 +1,14 @@
 #ifndef _GRAPH_H_
 #define _GRAPH_H_
-#include "AStar.h"
 #include <stdint.h>
+#include <stdlib.h>
 
+#define NODE_FREE 0
+#define NODE_DANGER 1
+#define NODE_BLOCKED 2
+
+#define DISABLE_PROPAGATION 0
+#define ENABLE_PROPAGATION 1
 
 typedef struct graph_node
 {
@@ -13,11 +19,19 @@ typedef struct graph_node
     struct graph_node* neighbors[8]; // List of neighbors
 } graph_node_t;
 
+typedef struct graph_path
+{
+    int8_t nb_nodes; // Number of nodes in the path
+    double *x; // Array of x coordinates
+    double *y; // Array of y coordinates
+} graph_path_t;
+
 int8_t graph_nb_nodes; // Number of nodes in the graph
 graph_node_t* graph_nodes; // Array of size 'graph_nb_nodes' (after initialization !) containing each node
 
 /**
  * Any node such that node.level > graph_level will be ignored by the graph search
+ * A higher graph_level therefore means a higher tolerance of obstacles near the path (more risky but faster)
  *  General idea :
  * 0 = Free, the node is not obstructed
  * 1 = Danger, the node is obstructed by game items or close to a large object (typically another robot)
@@ -42,8 +56,10 @@ void free_graph();
  * Computes a path sequence from node 'from' to node 'to' (refer to the visual graph)
  * The level of 'to' and/or the graph_level must be set accordingly before the call
  * Returns NULL if no path is found
+ * Note that the arrays of x and y coordinates are directly next to the structure in the memory
+ * Only the pointer returned must be passed to free() after the call, not the x and y arrays of the structure
 */
-ASPath graph_compute_path(const int from, const int to);
+graph_path_t *graph_compute_path(const int from, const int to);
 
 /**
  * Updates the level of 'node' to 'level'

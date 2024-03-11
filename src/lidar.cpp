@@ -159,23 +159,23 @@ void StopLidar(){
 
 
 
-int main(int argc, char *argv[]) {
-   /*
-    ILidarDriver* lid = connectLidarL();
-    sleep(10);
-    disconnectLidarL(lid);
-    */
+// int main(int argc, char *argv[]) {
+//    /*
+//     ILidarDriver* lid = connectLidarL();
+//     sleep(10);
+//     disconnectLidarL(lid);
+//     */
     
     
     
     StartLidar();
-    for (size_t i = 88; i < 92; i++)
+    for (size_t i = 102; i < 106; i++)
     {
         sleep(10);
         DataToFile("testBottom"+std::to_string(i)+".txt");
         printf("turn\n");
     }
     
-    StopLidar();
+//     StopLidar();
     
-}
+// }

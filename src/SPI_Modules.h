@@ -110,7 +110,7 @@ void teensy_pos_ctrl(double x, double y, double t, double xr, double yr, double 
  * @brief Ask the teensy to enter the path following mode with the specified checkpoints. 
  * Must be called after init_spi. 
  */
-void teensy_path_following(double *x, double *y, double ncheckpoints, double theta_current);
+void teensy_path_following(double *x, double *y, int ncheckpoints, double theta_current);
 
 /**
  * @brief Send query to idle Teensy. It will stop any control effort over the motors. Must be called after init_spi.
