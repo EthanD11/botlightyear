@@ -18,6 +18,8 @@ int main(int argc, char const *argv[])
     sleep(0.5);
     raise_solar_panel();*/
 
+    
+
     //EXTENDED SOLAR PANELS
     deploy_solar_panel(); 
     sleep(0.5);
@@ -45,6 +47,7 @@ int main(int argc, char const *argv[])
     deploy_gripper();*/
 
     //GRIPPER HELLO
+    sleep(5);
     mid_gripper();
     deploy_gripper(); 
     mid_gripper();
