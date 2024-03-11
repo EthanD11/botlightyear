@@ -8,7 +8,7 @@
 #include "src/regulator/regulator.h"
 #include "utils.h"
 
-// #define VERBOSE
+#define VERBOSE
 
 typedef enum {
   ModeIdle, // No input from RPi, default is to remain still
@@ -28,7 +28,7 @@ Regulator *speed_regulator;
 // double spi_speed_refl = 0.0;
 // double spi_speed_refr = 0.0;
 
-controlmode_t mode = ModePathFollowingInit;
+controlmode_t mode = ModeIdle;
 controlmode_t nextmode;
 
 // ----- TIME -----
@@ -44,7 +44,7 @@ void setup() {
   // ----- OUTPUTS -----
   outputs = init_outputs();
   // ----- POSITION -----
-  robot_position = init_robot_position(0, 0, 0);
+  robot_position = init_robot_position(0, 1.5, 0);
   // robot_position = init_robot_position(0, 1.5, 0);
   // ----- SPEED REGULATOR -----
   speed_regulator = init_regulator();
@@ -63,12 +63,16 @@ void loop() {
 
   if (spi_valid_transmission()) {
     spi_reset_transmission(); 
-    printf("SPI received transmission\n");  
+    #ifdef VERBOSE
+    printf("SPI received transmission\n");
+    #endif  
     switch (spi_get_query()) {
       case QueryDoPathFollowing:
         spi_handle_path_following(path_follower);
         nextmode = ModePathFollowing;
+        #ifdef VERBOSE
         printf("SPI QueryDoPathFollowing\n");
+        #endif
         break;
 
       case QueryDoPositionControl:
@@ -128,12 +132,12 @@ void loop() {
         break;
 
       case ModePathFollowing:
-        // #ifdef VERBOSE
+        #ifdef VERBOSE
         printf("\nMode path following\n");
         printf("time = %d\n", current_time);
-        // #endif
+        #endif
         path_following_goal_reached = update_path_follower_ref_speed(path_follower, 
-          robot_position, 40e-2, 5e-2);
+          robot_position, 30e-2, 10e-2);
         control_speed(speed_regulator, 
           robot_position,
           get_speed_refl(path_follower),
