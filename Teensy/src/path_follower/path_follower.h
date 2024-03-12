@@ -36,7 +36,7 @@
 #include "../localization/localization.h"
 #include <stdlib.h>
 
-// #define VERBOSE
+#define VERBOSE
 #define MAX_DS 5e-3
 
 /*
