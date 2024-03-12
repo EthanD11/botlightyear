@@ -33,9 +33,9 @@ int main(int argc, char const *argv[])
     #endif
 
     #ifdef PATH_FOLLOWING
-    int ncheckpoints = 4;
-    double x[4] = {1,2,3,4};
-    double y[4] = {4,3,2,1};
+    int ncheckpoints = 5;
+    double x[5] = {0.0,0.4,0.8,0.4,0.0};
+    double y[5] = {1.5,1.7,1.5,1.3,1.5};
     double theta = 0.0;
 
     teensy_path_following(x, y, ncheckpoints, theta);
