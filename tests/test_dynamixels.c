@@ -1,6 +1,7 @@
 #include "../src/dynamixels.h"
 #include <unistd.h>
 
+
 int main(int argc, char const *argv[])
 {
     ax_init_port();
@@ -21,7 +22,7 @@ int main(int argc, char const *argv[])
     
 
     //EXTENDED SOLAR PANELS
-    deploy_solar_panel(); 
+    /*deploy_solar_panel(); 
     sleep(0.5);
     multi_turn_solar_panel_cw();
     sleep(1);
@@ -29,10 +30,14 @@ int main(int argc, char const *argv[])
     sleep(1);
     position_solar_panel();
     sleep(0.5);
+    raise_solar_panel();
+    sleep(2); 
+    deploy_solar_panel(); 
+    sleep(0.5);
     position_solar_panel2();
     sleep(1);
-    raise_solar_panel();
-    
+    raise_solar_panel();*/
+
     
 
     //GRIPPER OPEN-CLOSE
@@ -47,8 +52,8 @@ int main(int argc, char const *argv[])
     deploy_gripper();*/
 
     //GRIPPER HELLO
-    sleep(5);
-    mid_gripper();
+    //sleep(5);
+    /*mid_gripper();
     deploy_gripper(); 
     mid_gripper();
     deploy_gripper(); 
@@ -58,7 +63,7 @@ int main(int argc, char const *argv[])
     close_gripper(); 
     raise_gripper();
     sleep(1);
-    deploy_gripper();
+    deploy_gripper();*/
 
     //TAKE PLANT
     /*open_gripper(); 
@@ -71,6 +76,14 @@ int main(int argc, char const *argv[])
     raise_gripper();
     close_gripper(); */
 
+   // idle(8, 1.0);
+
+   open_gripper(); 
+   sleep(3);
+   close_gripper_pot();
+   sleep(5); 
+   open_gripper(); 
+   close_gripper();
 
     ax_close_port();
     //xl_close_port();
