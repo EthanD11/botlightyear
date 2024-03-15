@@ -28,8 +28,8 @@ ILidarDriver *lidar;
 
 void StartLidar(){
     ///  Create a communication channel instance
-    //TODO 2 lidar ici modif port chanel ??
-    Result<IChannel*> _channel = createSerialPortChannel("/dev/ttyUSB0", 256000); //port série spécifié est "/dev/ttyUSB0" avec un débit de 115200 bps.
+    //TODO 2 lidar ici modif port chanel ?? 256000
+    Result<IChannel*> _channel = createSerialPortChannel("/dev/ttyUSB0", 115200); //port série spécifié est "/dev/ttyUSB0" avec un débit de 115200 bps.
     if (_channel.err) {
         fprintf(stderr, "Failed to create communication channel\r\n");
         return;
@@ -168,13 +168,13 @@ void StopLidar(){
     
     
     
-//     StartLidar();
-//     for (size_t i = 88; i < 92; i++)
-//     {
-//         sleep(10);
-//         DataToFile("testBottom"+std::to_string(i)+".txt");
-//         printf("turn\n");
-//     }
+    StartLidar();
+    for (size_t i = 118; i < 119; i++)
+    {
+        //sleep(10);
+        DataToFile("testBottom"+std::to_string(i)+".txt");
+        printf("turn\n");
+    }
     
 //     StopLidar();
     

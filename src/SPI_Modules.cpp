@@ -8,9 +8,9 @@ const double y_max = 2.0;
 const double t_max = 2*3.141593; 
 const double speed_max = 1.0; 
 // TODO : calibrate with flaps
-const char servo_left_dc_deployed = 19;
+const char servo_left_dc_deployed = 26;
 const char servo_left_dc_raised = 30;
-const char servo_right_dc_deployed = 19;
+const char servo_right_dc_deployed = 16;
 const char servo_right_dc_raised = 5;
 
 // #define M_PI 3.14159265358979323846264338327950288419716939937510
@@ -305,11 +305,14 @@ void moveSlider(position_slider_t pos){
         steps = 0;
         break;
     case Bas :
-        steps = 5000;
+        steps = 5300;
         break;
     case Plateau :
-        steps = 1300;
-        break;       
+        steps = 250;
+        break; 
+    case Take :
+        steps = 1500;
+        break;      
     default :
         printf("Error : not a position \n");
         printf("%d\n", pos);

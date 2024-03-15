@@ -21,7 +21,7 @@
 int main(int argc, char const *argv[])
 {
     int init = init_spi();  
-
+    //calibrateStepper(Flaps);
     demoS6();
     //demoS6();
 

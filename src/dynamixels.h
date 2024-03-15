@@ -20,11 +20,13 @@ void position_solar_panel2();
 void open_gripper(); 
 void close_gripper(); 
 void close_gripper_plant();
+void close_gripper_pot(); 
 
 void raise_gripper(); 
 void deploy_gripper(); 
 void mid_gripper();
 
+void idle(int ID, float protocol);
 
 void ax_close_port();
 void xl_close_port();

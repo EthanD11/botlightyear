@@ -46,7 +46,8 @@ typedef enum {
 typedef enum {
     Bas,
     Haut,
-    Plateau
+    Plateau, 
+    Take
 } position_slider_t;
 
 
