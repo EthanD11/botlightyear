@@ -13,12 +13,12 @@ int main(int argc, char const *argv[])
     ax_ping(8);
 
     //SOLAR PANELS
-    deploy_solar_panel(); 
+    /*deploy_solar_panel(); 
     sleep(0.5);
     //multi_turn_solar_panel_ccw();
     position_solar_panel();
     sleep(0.5);
-    raise_solar_panel();
+    raise_solar_panel();*/
 
     
 
@@ -87,6 +87,8 @@ int main(int argc, char const *argv[])
    sleep(0.5);
    close_gripper();*/
 
+   close_gripper_plant();
+   
     ax_close_port();
     //xl_close_port();
     return 0;

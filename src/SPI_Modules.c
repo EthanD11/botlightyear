@@ -272,7 +272,10 @@ void moveSlider(position_slider_t pos){
         break;
     case Plateau :
         steps = 250;
-        break;       
+        break; 
+    case Take :
+        steps = 1500;
+        break;      
     default :
         printf("Error : not a position \n");
         printf("%d\n", pos);
