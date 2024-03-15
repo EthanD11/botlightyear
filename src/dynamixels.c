@@ -236,10 +236,11 @@ void multi_turn_solar_panel_ccw() {
 void position_solar_panel() {
   int port_num = ax_port_num; 
   //int dxl_comm_result = COMM_TX_FAIL;
-  int dxl_goal_position = 500;  
+  uint16_t dxl_present_position = read2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_AX_PRESENT_POSITION);
+  int dxl_goal_position = dxl_present_position + 350;  
 
   //uint8_t dxl_error = 0;    
-  uint16_t dxl_present_position = read2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_AX_PRESENT_POSITION);
+  //uint16_t dxl_present_position = read2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_AX_PRESENT_POSITION);
   printf("[%03d] Pres Pos: %03d\n", 8, dxl_present_position);      
 
   // Enable Dynamixel Torque
@@ -254,7 +255,7 @@ void position_solar_panel() {
   write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_CCW_ANGLE_LIMIT, 1023);
 
   // Write speed
-  write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_MOVING_SPEED, 100);
+  write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_MOVING_SPEED, 512);
 
  // Write goal position
   write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_GOAL_POSITION, dxl_goal_position);
@@ -263,7 +264,7 @@ void position_solar_panel() {
       write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_GOAL_POSITION, dxl_goal_position);
       // Read present position
       dxl_present_position = read2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_AX_PRESENT_POSITION);
-      //printf("[ID:%03d] GoalPos:%03d  PresPos:%03d\n", 8, dxl_goal_position, dxl_present_position);
+      printf("[ID:%03d] GoalPos:%03d  PresPos:%03d\n", 8, dxl_goal_position, dxl_present_position);
     }
 
   // Disable Dynamixel Torque
@@ -272,7 +273,7 @@ void position_solar_panel() {
 void position_solar_panel2() {
   int port_num = ax_port_num; 
   //int dxl_comm_result = COMM_TX_FAIL;
-  int dxl_goal_position = 750;  
+  int dxl_goal_position = 450;  
 
   //uint8_t dxl_error = 0;    
   uint16_t dxl_present_position = read2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_AX_PRESENT_POSITION);;         
@@ -308,7 +309,7 @@ void position_solar_panel2() {
 void open_gripper() {
     int port_num = xl_port_num;
     int dxl_comm_result = COMM_TX_FAIL;
-    int dxl_goal_position = 250;
+    int dxl_goal_position = 270;
 
     uint8_t dxl_error = 0;    
     uint16_t dxl_present_position = 0; 
@@ -327,48 +328,23 @@ void open_gripper() {
     write2ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, ADDR_XL_CONTROL_MODE, 2); 
 
     // Write speed
-    write2ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, ADDR_MOVING_SPEED, 150);
+    write2ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, ADDR_MOVING_SPEED, 200);
+
+    // Write punch
+    write2ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, 51, 100);
 
     //Write Max Torque
-    write2ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, 15, 750);
+    write2ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, 15, 1023);
     
     // Write goal position
     write2ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, ADDR_GOAL_POSITION, dxl_goal_position);
 
-    /*
-        // Read present position
-        dxl_present_position = read2ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, ADDR_XL_PRESENT_POSITION);
-      printf("abs : %i %i %i \n", dxl_goal_position, dxl_present_position, abs(dxl_goal_position - dxl_present_position));
-      //printf("t %i \n", read1ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, 46));
-        // Check if goal position is reached within a tolerance of 10
-        if (abs(dxl_goal_position - dxl_present_position) <= 10) {
-            break; // Exit loop if goal position reached
-        }
-
-        // Write goal position inside the loop to keep updating it
-        write2ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, ADDR_GOAL_POSITION, dxl_goal_position);
-    printf("abs : %i %i %i \n", dxl_goal_position, dxl_present_position, abs(dxl_goal_position - dxl_present_position));
-    */
 
    while ((abs(dxl_goal_position - dxl_present_position) > 10)) {
       // Read present position
       dxl_present_position = read2ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, ADDR_XL_PRESENT_POSITION);
       write2ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, ADDR_GOAL_POSITION, dxl_goal_position);
       printf("open_gripper [ID:%03d] GoalPos:%03d  PresPos:%03d\n", 3, dxl_goal_position, dxl_present_position);
-      
-      /*for (uint16_t i = 0; i < 50; i++)
-      {
-        uint8_t res = read1ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, i);
-        /*if ((dxl_comm_result = getLastTxRxResult(port_num, XL_PROTOCOL_VERSION)) != COMM_SUCCESS)
-        {
-          printf("%s\n", getTxRxResult(XL_PROTOCOL_VERSION, dxl_comm_result));
-        }
-        else if ((dxl_error = getLastRxPacketError(port_num, XL_PROTOCOL_VERSION)) != 0)
-        {
-          printf("%s\n", getRxPacketError(XL_ROTOCOL_VERSION, dxl_error));
-        }
-        printf("%d : %d\n", i, res);
-      }*/
     }
 
     // Disable Dynamixel Torque
@@ -397,6 +373,9 @@ void close_gripper() {
 
     // Write speed
     write2ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, ADDR_MOVING_SPEED, 100);
+
+     // Write punch
+    write2ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, 51, 30);
 
     // Write goal position
     write2ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, ADDR_GOAL_POSITION, dxl_goal_position);
@@ -648,7 +627,7 @@ void deploy_gripper() {
 void mid_gripper() {
     int port_num = xl_port_num;
     int dxl_comm_result = COMM_TX_FAIL;
-    int dxl_goal_position = 325;
+    int dxl_goal_position = 350;
 
     uint8_t dxl_error = 0;    
     uint16_t dxl_present_position = 0; 
@@ -676,7 +655,7 @@ void mid_gripper() {
       // Read present position
       dxl_present_position = read2ByteTxRx(port_num, XL_PROTOCOL_VERSION, 1, ADDR_XL_PRESENT_POSITION);
       write2ByteTxRx(port_num, XL_PROTOCOL_VERSION, 1, ADDR_GOAL_POSITION, dxl_goal_position);
-      
+      //printf("[ID:%03d] GoalPos:%03d  PresPos:%03d\n", 1, dxl_goal_position, dxl_present_position);
     }
 
     // Disable Dynamixel Torque

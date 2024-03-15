@@ -22,23 +22,44 @@ int main(int argc, char const *argv[])
 
     sleep(10);
     servo_deploy(); 
-    moveFlaps(Plant);
+    moveFlaps(Pot);
     sleep(3);
     moveFlaps(Open);
     deploy_gripper();
     open_gripper();
     moveSlider(Bas);
     sleep(6);
-    close_gripper_plant();
+    close_gripper_pot();
     sleep(1);
     moveSlider(Plateau);
     sleep(6);
-    //printf("J'ai fini, viens m'essuyer le fion");
-    PositionPlateau(3);
+    PositionPlateau(2);
     sleep(4); 
     open_gripper(); 
     raise_gripper(); 
     close_gripper();
+    PositionPlateau(0);
+    sleep(5); 
+    open_gripper();
+    deploy_gripper();
+    servo_deploy(); 
+    moveFlaps(Plant); 
+    sleep(3); 
+    moveFlaps(Open);
+    moveSlider(Bas); 
+    sleep(6); 
+    close_gripper_plant(); 
+    sleep(1);
+    moveSlider(Plateau); 
+    sleep(6); 
+    mid_gripper(); 
+    PositionPlateau(2); 
+    sleep(4); 
+    deploy_gripper(); 
+    open_gripper();
+    raise_gripper();
+    close_gripper();
+
     //resetStepperModule(Plate); 
     
     ax_close_port();
