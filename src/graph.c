@@ -55,7 +55,7 @@ graph_path_t *graph_compute_path(const int from, const int to) {
     result->y = (double *) (temp + sizeof(graph_path_t) + count*sizeof(double));
 
     result->nb_nodes = count;
-    for (size_t i = 0; i < count; i++)
+    for (int8_t i = 0; i < count; i++)
     {
         graph_node_t *node = (graph_node_t*) ASPathGetNode(path, i);
         result->x[i] = node->x;

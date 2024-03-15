@@ -4,7 +4,7 @@
 
 int main(int argc, char const *argv[])
 {
-    char *filename = "./graphs/MB_V1.txt";
+    char filename[] = "./graphs/MB_V1.txt";
     if (init_graph_from_file(filename)) return -1;
     printf("Graph initialised from file %s\n", filename);
     /*for (size_t i = 0; i < graph_nb_nodes; i++)
@@ -40,7 +40,7 @@ int main(int argc, char const *argv[])
         return 0;
     }
     printf("Found a path in %d points\n", result->nb_nodes);
-    for (size_t i = 0; i < result->nb_nodes; i++)
+    for (int8_t i = 0; i < result->nb_nodes; i++)
     {
         printf("(%.3f,%.3f) ", result->x[i], result->y[i]);
     }

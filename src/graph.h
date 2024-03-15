@@ -26,8 +26,8 @@ typedef struct graph_path
     double *y; // Array of y coordinates
 } graph_path_t;
 
-int8_t graph_nb_nodes; // Number of nodes in the graph
-graph_node_t* graph_nodes; // Array of size 'graph_nb_nodes' (after initialization !) containing each node
+inline int8_t graph_nb_nodes; // Number of nodes in the graph
+inline graph_node_t* graph_nodes; // Array of size 'graph_nb_nodes' (after initialization !) containing each node
 
 /**
  * Any node such that node.level > graph_level will be ignored by the graph search
@@ -37,10 +37,10 @@ graph_node_t* graph_nodes; // Array of size 'graph_nb_nodes' (after initializati
  * 1 = Danger, the node is obstructed by game items or close to a large object (typically another robot)
  * 2 = Blocked, the node is obstructed by a large object (typically another robot) and/or cannot be reached at this time
 */
-int8_t graph_level;
+inline int8_t graph_level;
 
-int8_t graph_bases[6]; // Array of bases ids, first three are blue, last three are yellow, first one of each group is reserved (ie 0 and 3)
-int8_t graph_plants[6]; // Array of plant spots ids
+inline int8_t graph_bases[6]; // Array of bases ids, first three are blue, last three are yellow, first one of each group is reserved (ie 0 and 3)
+inline int8_t graph_plants[6]; // Array of plant spots ids
 
 /**
  * @brief Initializes graph_nodes from file 'filename'. Returns 0 on success, -1 otherwise.
