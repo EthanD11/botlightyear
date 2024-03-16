@@ -18,20 +18,6 @@
 //      10 Calibre
 //      11 Step + signe direction du stepper (horlogique/antihorlogique)
 
-int main(int argc, char const *argv[])
-{
-    init_spi();  
-    //calibrateStepper(Flaps);
-    //demoS6();
-    resetAll(); 
-    calibrateStepper(Slider);
-    
-
-    close_spi();
-    
-    return 0;
-}
-
 void calibrateAll() {
     calibrateStepper(Flaps);
     calibrateStepper(Plate);
@@ -90,3 +76,22 @@ void demoS6(){
     resetAll(); 
     calibrateAll();
 }
+
+int main(int argc, char const *argv[])
+{
+    init_spi();  
+    //demoS6();
+    //resetAll(); 
+    //calibrateAll();
+    //lguSleep(2);
+    setupStepperSpeed(200,500,Plate);
+    //stepper_setup_acc(Plate, 5);
+    PositionPlateau(3);
+    PositionPlateau(-3);
+    //moveSlider(Haut);
+    //moveFlaps(Open);
+    close_spi();
+    
+    return 0;
+}
+

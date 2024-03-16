@@ -159,4 +159,9 @@ void calibrateStepper(steppers_t stepper);
  */
 void resetStepperModule (steppers_t stepper); 
 
+/**
+ * @brief Sets up the acceleration of a stepper (lower 'acc' -> higher acceleration)
+*/
+void stepper_setup_acc(steppers_t stepper, uint8_t acc);
+
 #endif

@@ -2,22 +2,34 @@
 #include "SPI_Modules.h"
 #include <unistd.h>
 
+void calibrateAll() {
+    calibrateStepper(Flaps);
+    calibrateStepper(Plate);
+    calibrateStepper(Slider);
+}
+
+void resetAll() {
+    resetStepperModule (Flaps);
+    resetStepperModule (Plate);
+    resetStepperModule (Slider);
+}
+
 int main(int argc, char const *argv[])
 {
-    int init = init_spi();
+    init_spi();
     ax_init_port();
 
-    xl_ping(1);
-    xl_ping(3);
-    ax_ping(6);
-    ax_ping(8);
+    if (xl_ping(1) != 0) return -1;
+    if (xl_ping(3) != 0) return -1;
+    if (ax_ping(6) != 0) return -1;
+    if (ax_ping(8) != 0) return -1;
 
     servo_raise();
 
     resetAll(); 
-    setupStepperSpeed(500,1000,Flaps); 
-    setupStepperSpeed(200,1000,Plate); 
-    setupStepperSpeed(400,1000,Slider);
+    setupStepperSpeed(5,10,Flaps); 
+    setupStepperSpeed(2,10,Plate); 
+    setupStepperSpeed(4,10,Slider);
     calibrateAll();
     sleep(10);
 
@@ -133,19 +145,8 @@ int main(int argc, char const *argv[])
     //resetStepperModule(Plate); 
     
     ax_close_port();
+    xl_close_port();
     close_spi();
     
     return 0;
-}
-
-void calibrateAll() {
-    calibrateStepper(Flaps);
-    calibrateStepper(Plate);
-    calibrateStepper(Slider);
-}
-
-void resetAll() {
-    resetStepperModule (Flaps);
-    resetStepperModule (Plate);
-    resetStepperModule (Slider);
 }

@@ -3,7 +3,7 @@
 # Arguments for the compilation
 CC:=g++
 FLAGS:=-Wall -g -O3
-LIBS:=-llgpio -lm -ldxl_sbc_c -lsl_lidar_sdk
+LIBS:=-llgpio -lm -ldxl_sbc_c -lsl_lidar_sdk -lpthread -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_aruco -lopencv_videoio
 # Directories
 HEADERS_DIR:=headers
 SOURCES_DIR:=src

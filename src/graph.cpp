@@ -10,7 +10,7 @@
 
 void node_neighbors(ASNeighborList neighbors, void* node, void* context) {
     graph_node_t* cur_node = (graph_node_t*) node;
-    for (int i = 0; i < cur_node->nb_neighbors; i++)
+    for (uint8_t i = 0; i < cur_node->nb_neighbors; i++)
     {
         graph_node_t* neighbor = cur_node->neighbors[i];
         if (neighbor->level > graph_level) continue;
@@ -48,14 +48,14 @@ graph_path_t *graph_compute_path(const int from, const int to) {
         return NULL;
     }
 
-    int8_t count = ASPathGetCount(path);
+    uint8_t count = ASPathGetCount(path);
     void *temp = malloc(sizeof(graph_path_t) + 2*count*sizeof(double));
     graph_path_t *result = (graph_path_t*) temp;
-    result->x = (double *) (temp + sizeof(graph_path_t));
-    result->y = (double *) (temp + sizeof(graph_path_t) + count*sizeof(double));
+    result->x = (double *) (((uint8_t*)temp) + sizeof(graph_path_t));
+    result->y = (double *) (((uint8_t*)temp) + sizeof(graph_path_t) + count*sizeof(double));
 
     result->nb_nodes = count;
-    for (int8_t i = 0; i < count; i++)
+    for (uint8_t i = 0; i < count; i++)
     {
         graph_node_t *node = (graph_node_t*) ASPathGetNode(path, i);
         result->x[i] = node->x;
@@ -69,10 +69,10 @@ void graph_level_update(const int node, const int level, const int propagation) 
     graph_node_t *_node = &(graph_nodes[node]);
     _node->level = level;
     if (propagation) {
-        for (int8_t i = 0; i < _node->nb_neighbors; i++) {
+        for (uint8_t i = 0; i < _node->nb_neighbors; i++) {
 
-            int8_t node_affected = 1; // Is this neighbor a plant or a base ?
-            for (int8_t j = 0; j < 6; j++){
+            uint8_t node_affected = 1; // Is this neighbor a plant or a base ?
+            for (uint8_t j = 0; j < 6; j++){
                 if (graph_bases[j] == _node->neighbors[i]->id || graph_plants[j] == _node->neighbors[i]->id) {
                     node_affected = 0; // If yes, its level should not be affected by the propagation
                     break;
@@ -120,7 +120,7 @@ int init_graph_from_file(const char *filename) {
     for (size_t i = 0; i < 64; i++){ list[i] = 0; }
     char *token;
     int8_t node_id;
-    for (int8_t i = 0; i < graph_nb_nodes; i++)
+    for (uint8_t i = 0; i < graph_nb_nodes; i++)
     {
         graph_nodes[i].nb_neighbors = 0;
         for (size_t i = 0; i < 64; i++){ list[i] = 0; }

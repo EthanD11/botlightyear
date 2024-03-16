@@ -1,10 +1,10 @@
 #ifndef BLY_SOLAR_PANELS_H
 #define BLY_SOLAR_PANELS_H
 
-void ax_init_port(); 
-void xl_init_port(); 
-void ax_ping(int ID);
-void xl_ping(int ID);
+int ax_init_port(); 
+int xl_init_port(); 
+int ax_ping(int ID);
+int xl_ping(int ID);
 
 void deploy_solar_panel();
 void raise_solar_panel();

@@ -15,18 +15,18 @@ typedef struct graph_node
     int8_t id; // Index of the node in the 'graph_nodes' array & identifier for the visual graph
     float x, y; // X & Y Coordinates (refer to the visual graph)
     int8_t level; // Level of availability of this node (see 'graph_level')
-    int8_t nb_neighbors; // Number of neighbors
+    uint8_t nb_neighbors; // Number of neighbors
     struct graph_node* neighbors[8]; // List of neighbors
 } graph_node_t;
 
 typedef struct graph_path
 {
-    int8_t nb_nodes; // Number of nodes in the path
+    uint8_t nb_nodes; // Number of nodes in the path
     double *x; // Array of x coordinates
     double *y; // Array of y coordinates
 } graph_path_t;
 
-inline int8_t graph_nb_nodes; // Number of nodes in the graph
+inline uint8_t graph_nb_nodes; // Number of nodes in the graph
 inline graph_node_t* graph_nodes; // Array of size 'graph_nb_nodes' (after initialization !) containing each node
 
 /**

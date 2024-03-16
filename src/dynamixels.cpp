@@ -44,34 +44,44 @@
 int xl_port_num;
 int ax_port_num;
 
-void ax_init_port() {
+int ax_init_port() {
   ax_port_num = portHandler(AX_DEVICENAME);
   packetHandler();
 
   // Open port
-  if (openPort(ax_port_num)) {
-    printf("Succeeded to open the port!\n"); }
+  if (!openPort(ax_port_num)) {
+    printf("Failed to open the port!\n");
+    return -1;  
+  }
 
   // Set port baudrate
-  if (setBaudRate(ax_port_num, BAUDRATE)) {
-    printf("Succeeded to change the baudrate!\n"); }
+  if (!setBaudRate(ax_port_num, BAUDRATE)) {
+    printf("Failed to change the baudrate!\n"); 
+    return -1;
+  }
 
-    write1ByteTxRx(ax_port_num, XL_PROTOCOL_VERSION, 1, ADDR_TORQUE_ENABLE, TORQUE_ENABLE);
+  return 0;
+
 }
-void xl_init_port() {
+int xl_init_port() {
   xl_port_num = portHandler(XL_DEVICENAME);
   packetHandler();
 
   // Open port
-  if (openPort(xl_port_num)) {
-    printf("Succeeded to open the port!\n"); }
+  if (!openPort(xl_port_num)) {
+    printf("Failed to open the port!\n");
+    return -1;
+  }
 
   // Set port baudrate
-  if (setBaudRate(xl_port_num, BAUDRATE)) {
-    printf("Succeeded to change the baudrate!\n"); }
+  if (!setBaudRate(xl_port_num, BAUDRATE)) {
+    printf("Failed to change the baudrate!\n"); 
+    return -1;
+  }
+  return 0;
 }
 
-void ax_ping(int ID) {
+int ax_ping(int ID) {
   int protocol = AX_PROTOCOL_VERSION;
   //ping(port_num, protocol, ID);
   int dxl_comm_result = COMM_TX_FAIL;
@@ -82,20 +92,18 @@ void ax_ping(int ID) {
   if ((dxl_comm_result = getLastTxRxResult(ax_port_num, protocol)) != COMM_SUCCESS)
   {
     printf("%s\n", getTxRxResult(protocol, dxl_comm_result));
+    return -1;
   }
-  else if ((dxl_error = getLastRxPacketError(ax_port_num, protocol)) != 0)
+  if ((dxl_error = getLastRxPacketError(ax_port_num, protocol)) != 0)
   {
     printf("%s\n", getRxPacketError(protocol, dxl_error));
+    return -1;
   }
-  else
-  {
-    printf("Dynamixel %03d has been successfully connected \n", ID);
-  }
+  printf("Dynamixel %03d has been successfully connected \n", ID);
 
-  // Disable Dynamixel Torque
-  write1ByteTxRx(ax_port_num, protocol, ID, ADDR_TORQUE_ENABLE, TORQUE_DISABLE);
+  return 0;
 }
-void xl_ping(int ID) {
+int xl_ping(int ID) {
   int protocol = XL_PROTOCOL_VERSION;
   //ping(port_num, protocol, ID);
   int dxl_comm_result = COMM_TX_FAIL;
@@ -106,25 +114,20 @@ void xl_ping(int ID) {
   if ((dxl_comm_result = getLastTxRxResult(xl_port_num, protocol)) != COMM_SUCCESS)
   {
     printf("%s\n", getTxRxResult(protocol, dxl_comm_result));
+    return -1;
   }
-  else if ((dxl_error = getLastRxPacketError(xl_port_num, protocol)) != 0)
+  if ((dxl_error = getLastRxPacketError(xl_port_num, protocol)) != 0)
   {
     printf("%s\n", getRxPacketError(protocol, dxl_error));
+    return -1;
   }
-  else
-  {
-    printf("Dynamixel %03d has been successfully connected \n", ID);
-  }
+  printf("Dynamixel %03d has been successfully connected \n", ID);
 
-  // Disable Dynamixel Torque
-  write1ByteTxRx(xl_port_num, protocol, ID, ADDR_TORQUE_ENABLE, TORQUE_DISABLE);
+  return 0;
 }
 
 void deploy_solar_panel() {
-  int dxl_comm_result = COMM_TX_FAIL;
-  int dxl_goal_position = 515;
-
-  uint8_t dxl_error = 0;    
+  uint16_t dxl_goal_position = 515;    
   uint16_t dxl_present_position = 0; 
 
   // Enable Dynamixel Torque
@@ -148,11 +151,10 @@ void deploy_solar_panel() {
     }
     
   // Disable Dynamixel Torque
-  write1ByteTxRx(ax_port_num, AX_PROTOCOL_VERSION, 6, ADDR_TORQUE_ENABLE, TORQUE_DISABLE);
+  //write1ByteTxRx(ax_port_num, AX_PROTOCOL_VERSION, 6, ADDR_TORQUE_ENABLE, TORQUE_DISABLE);
 }   
 void raise_solar_panel() {
   int port_num = ax_port_num; 
-  //int dxl_comm_result = COMM_TX_FAIL;
   int dxl_goal_position = 215;  
 
   //uint8_t dxl_error = 0;    
@@ -183,7 +185,7 @@ void raise_solar_panel() {
     }
 
   // Disable Dynamixel Torque
-  write1ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_TORQUE_ENABLE, TORQUE_DISABLE);
+  //write1ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_TORQUE_ENABLE, TORQUE_DISABLE);
 
 }
 void multi_turn_solar_panel_cw() {
@@ -205,10 +207,9 @@ void multi_turn_solar_panel_cw() {
   write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_MOVING_SPEED, 0);
 
   // Disable Dynamixel Torque
-  write1ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_TORQUE_ENABLE, TORQUE_DISABLE);
+  //write1ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_TORQUE_ENABLE, TORQUE_DISABLE);
 }
 void multi_turn_solar_panel_ccw() {
-  uint16_t dxl_present_position = 0; 
   int port_num = ax_port_num;
   // Enable Dynamixel Torque
   write1ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_TORQUE_ENABLE, TORQUE_ENABLE);
@@ -229,7 +230,7 @@ void multi_turn_solar_panel_ccw() {
   // Disable Dynamixel Torque
   //write1ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_TORQUE_ENABLE, TORQUE_DISABLE);
 
-  dxl_present_position = read2ByteTxRx(ax_port_num, AX_PROTOCOL_VERSION, 8, ADDR_AX_PRESENT_POSITION);
+  //uint16_t dxl_present_position = read2ByteTxRx(ax_port_num, AX_PROTOCOL_VERSION, 8, ADDR_AX_PRESENT_POSITION);
       //printf("deployP [ID:%03d] PresPos:%03d\n", 8, dxl_present_position);
 }
 
@@ -237,7 +238,7 @@ void position_solar_panel() {
   int port_num = ax_port_num; 
   //int dxl_comm_result = COMM_TX_FAIL;
   uint16_t dxl_present_position = read2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_AX_PRESENT_POSITION);
-  int dxl_goal_position = dxl_present_position + 350;  
+  int dxl_goal_position = 512;  
 
   //uint8_t dxl_error = 0;    
   //uint16_t dxl_present_position = read2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_AX_PRESENT_POSITION);
@@ -308,10 +309,7 @@ void position_solar_panel2() {
 
 void open_gripper() {
     int port_num = xl_port_num;
-    int dxl_comm_result = COMM_TX_FAIL;
-    int dxl_goal_position = 270;
-
-    uint8_t dxl_error = 0;    
+    uint16_t dxl_goal_position = 270;
     uint16_t dxl_present_position = 0; 
 
     // Enable Dynamixel Torque
@@ -348,14 +346,11 @@ void open_gripper() {
     }
 
     // Disable Dynamixel Torque
-    write1ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, ADDR_TORQUE_ENABLE, TORQUE_DISABLE);
+    //write1ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, ADDR_TORQUE_ENABLE, TORQUE_DISABLE);
 }
 void close_gripper() {
     int port_num = xl_port_num;
-    int dxl_comm_result = COMM_TX_FAIL;
-    int dxl_goal_position = 190; //175
-
-    uint8_t dxl_error = 0;    
+    uint16_t dxl_goal_position = 190; //175
     uint16_t dxl_present_position = 0; 
 
     // Enable Dynamixel Torque
@@ -405,11 +400,9 @@ void close_gripper() {
 }
 void close_gripper_plant() {
     int port_num = xl_port_num;
-    int dxl_comm_result = COMM_TX_FAIL;
-    int dxl_goal_position = 200;
+    uint16_t dxl_goal_position = 200;
 
-    uint8_t dxl_error = 0;    
-    uint16_t dxl_present_position = 0; 
+    //uint16_t dxl_present_position = 0; 
 
     // Enable Dynamixel Torque
     write1ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, ADDR_TORQUE_ENABLE, TORQUE_ENABLE);
@@ -457,10 +450,7 @@ void close_gripper_plant() {
 }
 void close_gripper_pot() {
     int port_num = xl_port_num;
-    int dxl_comm_result = COMM_TX_FAIL;
-    int dxl_goal_position = 215;
-
-    uint8_t dxl_error = 0;    
+    uint16_t dxl_goal_position = 215;
     uint16_t dxl_present_position = 0; 
 
     // Enable Dynamixel Torque
@@ -508,10 +498,7 @@ void close_gripper_pot() {
 
 void raise_gripper() {
     int port_num = xl_port_num;
-    int dxl_comm_result = COMM_TX_FAIL;
-    int dxl_goal_position = 220; //138
-
-    uint8_t dxl_error = 0;    
+    uint16_t dxl_goal_position = 220; //138
     uint16_t dxl_present_position = 0; 
 
     // Enable Dynamixel Torque
@@ -574,10 +561,7 @@ void raise_gripper() {
 }
 void deploy_gripper() {
     int port_num = xl_port_num;
-    int dxl_comm_result = COMM_TX_FAIL;
-    int dxl_goal_position = 440;
-
-    uint8_t dxl_error = 0;    
+    uint16_t dxl_goal_position = 440;
     uint16_t dxl_present_position = 0; 
 
     // Enable Dynamixel Torque
@@ -626,10 +610,7 @@ void deploy_gripper() {
 }
 void mid_gripper() {
     int port_num = xl_port_num;
-    int dxl_comm_result = COMM_TX_FAIL;
-    int dxl_goal_position = 350;
-
-    uint8_t dxl_error = 0;    
+    uint16_t dxl_goal_position = 350;
     uint16_t dxl_present_position = 0; 
 
     // Enable Dynamixel Torque

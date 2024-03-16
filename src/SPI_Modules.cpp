@@ -7,11 +7,11 @@ const double x_max = 3.0;
 const double y_max = 2.0; 
 const double t_max = 2*3.141593; 
 const double speed_max = 1.0; 
-// TODO : calibrate with flaps
-const char servo_left_dc_deployed = 26;
-const char servo_left_dc_raised = 30;
-const char servo_right_dc_deployed = 16;
-const char servo_right_dc_raised = 5;
+
+const char servo_left_dc_deployed = 15;
+const char servo_left_dc_raised = 21;
+const char servo_right_dc_deployed = 23;
+const char servo_right_dc_raised = 17;
 
 // #define M_PI 3.14159265358979323846264338327950288419716939937510
 
@@ -374,7 +374,7 @@ void resetStepperModule (steppers_t stepper) {
             request = 0; 
             request2 = 2; 
             printf("Error : not a stepper"); 
-            break; 
+            return; 
     } 
     char sendr[] = {0x8A,0,0,0,1};   // reset switch values
     lgSpiWrite(DE0_handle, sendr, 5);
@@ -392,3 +392,26 @@ void resetStepperModule (steppers_t stepper) {
 
 }
 
+void stepper_setup_acc(steppers_t stepper, uint8_t acc) {
+    char request;
+    // Stop steppers
+    switch (stepper) {
+        case Plate :
+            request = 0x83;
+            break;
+        case Slider :
+            request = 0x86;
+            break;
+        case Flaps :
+            request = 0x89;
+            break;
+        default : 
+            request = 0; 
+            printf("Error : not a stepper"); 
+            return; 
+    } 
+
+    char send[] = {request,0,0,0,acc}; // send 1 to reset the module completely
+    lgSpiWrite(DE0_handle, send, 5);
+
+}
