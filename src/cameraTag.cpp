@@ -153,9 +153,9 @@ void tagFromJpg(std::string filename){
     }
 
     //printf("\n");
-    cv::aruco::drawDetectedMarkers(image, markerCorners, markerIds); //TODO DELETE juste utile pour voir ce qu'il se passe (dessine contour tag)
+    /*cv::aruco::drawDetectedMarkers(image, markerCorners, markerIds); //TODO DELETE juste utile pour voir ce qu'il se passe (dessine contour tag)
     cv::imshow("Codes ArUco détectés", image);  //TODO DELETE juste utile pour voir ce qu'il se passe (affiche image)
-    cv::waitKey(0);
+    cv::waitKey(0);*/
     return;
 }
 
@@ -200,10 +200,10 @@ void tagDetectionValue(int* tag){
     return ;
 }
 
-
+/*
 int main(int argc, char const *argv[]) {
     for (int i = 0; i < 14; ++i) {
         tagFromJpg(std::to_string(i)+".jpg");
 
     }
-}
+}*/

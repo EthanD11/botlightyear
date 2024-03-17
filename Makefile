@@ -3,7 +3,7 @@
 # Arguments for the compilation
 CC:=g++
 FLAGS:=-Wall -g -O3
-LIBS:=-llgpio -lm -ldxl_sbc_c -lsl_lidar_sdk -lpthread -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_aruco -lopencv_videoio
+LIBS:=-llgpio -lm -ldxl_sbc_c -lsl_lidar_sdk -lpthread -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_aruco -lopencv_videoio -lopencv_imgcodecs
 # Directories
 HEADERS_DIR:=headers
 SOURCES_DIR:=src
@@ -47,7 +47,7 @@ camera: camera_program
 	@rm ./bin/camera
 
 camera_program:
-	@g++ ./src/cameraTag.cpp -o ./bin/camera.o -lpthread -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_aruco -lopencv_videoio -I$(HEADERS_DIR)
+	@g++ ./src/cameraTag.cpp -o ./bin/camera -lpthread -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_aruco -lopencv_videoio -lopencv_imgcodecs -I$(HEADERS_DIR)
 #@g++ ./src/cameraTag.cpp -o ./bin/camera.o -lpthread -I/usr/include/opencv4 -I/path/to/raspicam/include -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_aruco -lopencv_videoio -L/usr/local/lib -L/path/to/raspicam/lib -lraspicam -lraspicam_cv
 
 #Run valgrind on the project
