@@ -1,8 +1,7 @@
 #ifndef BLY_CAMERATAG_H
 #define BLY_CAMERATAG_H
+#include <iostream>
 
-
-namespace caminibot{
 
   /**
  * check the orientation of the aruco tag
@@ -23,6 +22,10 @@ int tagDetectionOrientation();
  * 71 to 90 : jaune
  */
 void tagDetectionValue(int* tag);  
-}
+
+
+void tagFromJpg(std::string filename);
+
+
 
 #endif //MECATROMINIBOT_CAMERATAG_H
