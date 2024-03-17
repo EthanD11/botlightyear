@@ -1,19 +1,17 @@
 #include "SPI_Modules.h"
 
 int DE0_handle, Teensy_handle;
-const unsigned int sonar_GPIO_Trig = 16;
-const unsigned int sonar_GPIO_Echo = 19;
+//const unsigned int sonar_GPIO_Trig = 16;
+//const unsigned int sonar_GPIO_Echo = 19;
 const double x_max = 3.0; 
 const double y_max = 2.0; 
-const double t_max = 2*3.141593; 
+const double t_max = 2*M_PI; 
 const double speed_max = 1.0; 
 
 const char servo_left_dc_deployed = 15;
 const char servo_left_dc_raised = 21;
 const char servo_right_dc_deployed = 23;
 const char servo_right_dc_raised = 17;
-
-// #define M_PI 3.14159265358979323846264338327950288419716939937510
 
 // Converts words from big endian to little endian (and vice versa)
 // https://codereview.stackexchange.com/questions/151049/endianness-conversion-in-c
@@ -36,9 +34,7 @@ void close_spi() {
     lgSpiClose(Teensy_handle);
 }
 
-// ############################################
-// -------- Odometers and Encoders ------------
-// ############################################
+// ----- Odometers -----
 
 void odo_get_tick(int32_t *tick_left, int32_t *tick_right) {
 
@@ -63,9 +59,8 @@ void odo_reset() {
     lgSpiXfer(DE0_handle, send, receive, 5);
 }
 
-// ############################
-// -------- Sonars ------------
-// ############################
+// ----- Sonars -----
+
 /*
 double sonar_ask() {
 
@@ -87,9 +82,7 @@ void init_sonar() {
     gpioSetMode(sonar_GPIO_Trig, PI_OUTPUT);
 }*/
 
-// ############################
-// -------- Teensy ------------
-// ############################
+// ----- Teensy -----
 
 void teensy_path_following(double *x, double *y, int ncheckpoints, double theta_current) {
 
@@ -172,32 +165,34 @@ void teensy_idle() {
     lgSpiWrite(Teensy_handle, &send, 1);
 }
 
-void servo_raise() {
+void servo_cmd(servo_cmd_t command) {
     char send[5];
     send[0] = 0x80;
-    send[3] = servo_left_dc_raised;
-    send[4] = servo_right_dc_raised;
+    switch (command)
+    {
+
+    case ServoIdle: 
+        send[3] = 0;
+        send[4] = 0;
+        break;
+
+    case ServoDeploy:
+        send[3] = servo_left_dc_deployed;
+        send[4] = servo_right_dc_deployed;
+        break;
+    
+    case ServoRaise:
+        send[3] = servo_left_dc_raised;
+        send[4] = servo_right_dc_raised;
+        break;
+
+    default:
+        return;
+    }
     lgSpiWrite(DE0_handle, send, 5);
 }
 
-void servo_deploy() {
-    char send[5];
-    send[0] = 0x80;
-    send[3] = servo_left_dc_deployed;
-    send[4] = servo_right_dc_deployed;
-    lgSpiWrite(DE0_handle, send, 5);
-}
-
-void servo_idle() {
-    char send[5];
-    send[0] = 0x80;
-    send[3] = 0;
-    send[4] = 0;
-    lgSpiWrite(DE0_handle, send, 5);
-}
-
-
-// Steppers
+// ----- Steppers -----
 
 // 8x (8 = ecrire)(x = stepper)
 // 1 plateau

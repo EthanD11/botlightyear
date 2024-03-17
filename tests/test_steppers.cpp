@@ -71,13 +71,13 @@ int main(int argc, char const *argv[])
     #endif
 
     #ifdef DEMO_S6
-    servo_deploy(); 
+    servo_cmd(ServoDeploy); 
     flaps_move(FlapsPlant);
     sleep(4);
     flaps_move(FlapsOpen);
     slider_move(SliderLow);
     sleep(2);
-    servo_raise();
+    servo_cmd(ServoRaise);
     sleep(3);
     slider_move(SliderPlate);
     sleep(5);
@@ -87,10 +87,10 @@ int main(int argc, char const *argv[])
     stpr_move(StprFlaps, 600,0);
     sleep(5);
     plate_move(1);
-    servo_deploy(); 
+    servo_cmd(ServoDeploy); 
     
     sleep(5);
-    servo_idle();
+    servo_cmd(ServoIdle);
     resetAll(); 
     calibrateAll();
     #endif
