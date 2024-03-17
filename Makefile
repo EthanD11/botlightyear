@@ -1,20 +1,19 @@
 # -----------------------------------------------------------------------------------
 #Variables
 # Arguments for the compilation
-CC:=gcc
-CXX = g++ #pour le lidar
-CFLAGS:=-Wall -g -std=gnu99
-LIBS:=-llgpio -lm -ldxl_sbc_c -lsl_lidar_sdk
+CC:=g++
+FLAGS:=-Wall -g -O3
+LIBS:=-llgpio -lm -ldxl_sbc_c -lsl_lidar_sdk -lpthread -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_aruco -lopencv_videoio
 # Directories
-HEADERS_DIR:=src -I./Dynamixels/include/dynamixel_sdk
+HEADERS_DIR:=headers
 SOURCES_DIR:=src
 TESTS_DIR:=tests
 OBJ_DIR:=bin
 # List of c file
-SOURCES = $(wildcard $(SOURCES_DIR)/*.c)
-TESTS = $(wildcard $(TESTS_DIR)/*.c)
+SOURCES = $(wildcard $(SOURCES_DIR)/*.cpp)
+TESTS = $(wildcard $(TESTS_DIR)/*.cpp)
 # List of .o file
-SOURCES_OBJ = $(addprefix $(OBJ_DIR)/,$(notdir $(SOURCES:.c=.o)))
+SOURCES_OBJ = $(addprefix $(OBJ_DIR)/,$(notdir $(SOURCES:.cpp=.o)))
 # -----------------------------------------------------------------------------------
 # Rules
 
@@ -23,15 +22,15 @@ $(OBJ_DIR):
 	@mkdir -p $(OBJ_DIR)
 
 # Compiling a binary file from a source file
-$(OBJ_DIR)/%.o: $(SOURCES_DIR)/%.c | $(OBJ_DIR)
-	@$(CC) -I$(HEADERS_DIR) $(CFLAGS) -o $@ -c $< $(LIBS)
+$(OBJ_DIR)/%.o: $(SOURCES_DIR)/%.cpp | $(OBJ_DIR)
+	@$(CC) -I$(HEADERS_DIR) $(FLAGS) -o $@ -c $< $(LIBS)
 
 # Compiling all the sources
 compile: $(SOURCES_OBJ)
 
 #Compiling a random file that use SOURCES file
-%.o: %.c $(SOURCES_OBJ)
-	@$(CC) -I$(HEADERS_DIR) $(CFLAGS) $^ -o $@ $(LIBS)
+%.o: %.cpp $(SOURCES_OBJ)
+	@$(CC) -I$(HEADERS_DIR) $(FLAGS) $^ -o $@ $(LIBS)
 
 #Do an individual test
 test_%: $(TESTS_DIR)/test_%.o $(SOURCES_OBJ)
@@ -39,16 +38,8 @@ test_%: $(TESTS_DIR)/test_%.o $(SOURCES_OBJ)
 	@rm $<
 
 #Run all the tests
-tests: $(TESTS:.c=.o)
+tests: $(TESTS:.cpp=.o)
 	$(foreach test, $^, ./$(test);)
-
-lidar: lidar_program
-	@./bin/lidar.o
-	@rm ./bin/lidar
-
-# Run the lidar program
-lidar_program:
-	@g++ ./src/lidar.cpp -o ./bin/lidar.o -lsl_lidar_sdk -I./rplidar/sdk/include -I./rplidar/sdk/src
 
 # Run Camera program
 camera: camera_program
@@ -56,7 +47,7 @@ camera: camera_program
 	@rm ./bin/camera
 
 camera_program:
-	@g++ ./src/cameraTag.cpp -o ./bin/camera -lpthread -I/usr/include/opencv4 -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_aruco -lopencv_videoio
+	@g++ ./src/cameraTag.cpp -o ./bin/camera.o -lpthread -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_aruco -lopencv_videoio -I$(HEADERS_DIR)
 #@g++ ./src/cameraTag.cpp -o ./bin/camera.o -lpthread -I/usr/include/opencv4 -I/path/to/raspicam/include -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_aruco -lopencv_videoio -L/usr/local/lib -L/path/to/raspicam/lib -lraspicam -lraspicam_cv
 
 #Run valgrind on the project
