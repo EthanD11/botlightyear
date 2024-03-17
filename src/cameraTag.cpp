@@ -112,7 +112,17 @@ void tagFromJpg(std::string filename){
                 double a1 = rvecs[i][0];
                 double a2 = rvecs[i][1];
                 printf("%f %f\n",a1*180/M_PI, a2*180/M_PI);
-                /*if (blue){
+                //double a = asin(((a1*180/M_PI)-120)/120)*180/M_PI;
+                //double a = asin((a1-2)/2)*180/M_PI;
+                /*if (a2>0&&a2<M_PI){
+                    a=180-a;
+                }
+                if (blue){
+                    printf("turn %f°\n",a);
+                }else{
+                    printf("turn %f°\n",(a-180));
+                }*/
+                if (blue){
                     if (std::abs(a1+a2)<0.25){
                         printf("blue\n");
                         break;
@@ -147,7 +157,7 @@ void tagFromJpg(std::string filename){
                         printf("-90");
                         break;
                     }
-                }*/
+                }
             }
         }
     }
@@ -203,7 +213,7 @@ void tagDetectionValue(int* tag){
 /*
 int main(int argc, char const *argv[]) {
     for (int i = 0; i < 14; ++i) {
-        tagFromJpg(std::to_string(i)+".jpg");
+        tagFromJpg("CameraTest/"+std::to_string(i)+".jpg");
 
     }
 }*/

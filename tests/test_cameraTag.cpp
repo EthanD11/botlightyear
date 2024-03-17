@@ -2,7 +2,7 @@
 
 int main(int argc, char const *argv[]){
     for (int i = 0; i < 14; ++i) {
-        tagFromJpg(std::to_string(i)+".jpg");
+        tagFromJpg("CameraTest/"+std::to_string(i)+".jpg");
 
     }
 
@@ -23,7 +23,7 @@ int main(int argc, char const *argv[]){
             printf("no tags detect\n");
         }
 
-        /*int color = tagDetectionOrientation();
+        int color = tagDetectionOrientation();
         if (color==0){
             printf("blue\n");
         } else if (color==1){
