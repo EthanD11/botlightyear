@@ -3,15 +3,15 @@
 #include <unistd.h>
 
 void calibrateAll() {
-    calibrateStepper(Flaps);
-    calibrateStepper(Plate);
-    calibrateStepper(Slider);
+    stpr_calibrate(StprFlaps);
+    stpr_calibrate(StprPlate);
+    stpr_calibrate(StprSlider);
 }
 
 void resetAll() {
-    resetStepperModule (Flaps);
-    resetStepperModule (Plate);
-    resetStepperModule (Slider);
+    stpr_reset(StprFlaps);
+    stpr_reset(StprPlate);
+    stpr_reset(StprSlider);
 }
 
 int main(int argc, char const *argv[])
@@ -24,126 +24,128 @@ int main(int argc, char const *argv[])
     if (ax_ping(6) != 0) return -1;
     if (ax_ping(8) != 0) return -1;
 
-    servo_raise();
+    servo_cmd(ServoRaise);
 
     resetAll(); 
-    setupStepperSpeed(5,10,Flaps); 
-    setupStepperSpeed(2,10,Plate); 
-    setupStepperSpeed(4,10,Slider);
+    stpr_setup_speed(5,10,StprFlaps); 
+    stpr_setup_speed(2,10,StprPlate); 
+    stpr_setup_speed(4,10,StprSlider);
     calibrateAll();
     sleep(10);
 
     
-    servo_deploy(); 
-    moveFlaps(Pot);
+    servo_cmd(ServoDeploy); 
+    flaps_move(FlapsPot);
     sleep(3);
-    moveFlaps(Open);
+    flaps_move(FlapsOpen);
     sleep(1);
-    servo_raise();
+    servo_cmd(ServoRaise);
     open_gripper();
     deploy_gripper();
-    moveSlider(Bas);
+    slider_move(SliderLow);
     sleep(6);
     close_gripper_pot();
     sleep(1);
-    moveSlider(Plateau);
+    slider_move(SliderPlate);
     sleep(6);
-    PositionPlateau(2);
+    plate_move(2);
     sleep(4); 
     open_gripper(); 
     raise_gripper(); 
     close_gripper();
-    PositionPlateau(0);
+    plate_move(0);
     sleep(5); 
 
     open_gripper();
     deploy_gripper(); 
-    servo_deploy(); 
-    moveFlaps(Pot); 
+    servo_cmd(ServoDeploy); 
+    flaps_move(FlapsPot); 
     sleep(3); 
-    moveFlaps(Open); 
+    flaps_move(FlapsOpen); 
     sleep(1); 
-    servo_raise(); 
-    moveSlider(Bas); 
+    servo_cmd(ServoRaise); 
+    slider_move(SliderLow); 
     sleep(6); 
     close_gripper_pot(); 
     sleep(1); 
-    moveSlider(Plateau); 
+    slider_move(SliderPlate); 
     sleep(6); 
-    PositionPlateau(1); 
+    plate_move(1); 
     sleep(3); 
     open_gripper(); 
     raise_gripper(); 
-    PositionPlateau(0);
+    plate_move(0);
     sleep(3);
 
     open_gripper();
     deploy_gripper();
-    servo_deploy(); 
-    moveFlaps(Plant); 
+    servo_cmd(ServoDeploy); 
+    flaps_move(FlapsPlant); 
     sleep(3); 
-    moveFlaps(Open);
+    flaps_move(FlapsOpen);
     sleep(1);
-    servo_raise(); 
-    moveSlider(Bas); 
+    servo_cmd(ServoRaise); 
+    slider_move(SliderLow); 
     sleep(6); 
     close_gripper_plant(); 
     sleep(1);
-    moveSlider(Plateau); 
+    slider_move(SliderPlate); 
     sleep(6); 
     mid_gripper(); 
-    PositionPlateau(2); 
+    plate_move(2); 
     sleep(4); 
     deploy_gripper(); 
     open_gripper();
     raise_gripper();
     close_gripper();
-    PositionPlateau(0); 
+    plate_move(0); 
     sleep(3);
 
     open_gripper();
     deploy_gripper();
-    servo_deploy(); 
-    moveFlaps(Plant); 
+    servo_cmd(ServoDeploy); 
+    flaps_move(FlapsPlant); 
     sleep(3); 
-    moveFlaps(Open);
+    flaps_move(FlapsOpen);
     sleep(1);
-    servo_raise(); 
-    moveSlider(Bas); 
+    servo_cmd(ServoRaise); 
+    slider_move(SliderLow); 
     sleep(6); 
     close_gripper_plant(); 
     sleep(1);
-    moveSlider(Plateau); 
+    slider_move(SliderPlate); 
     sleep(6); 
     mid_gripper(); 
-    PositionPlateau(1); 
+    plate_move(1); 
     sleep(4); 
     deploy_gripper(); 
     open_gripper();
     raise_gripper();
     close_gripper();
-    PositionPlateau(0); 
+    plate_move(0); 
     sleep(3);
 
-    PositionPlateau(1); 
+    plate_move(1); 
     open_gripper(); 
     deploy_gripper();
     sleep(5);
-    moveSlider(Take);
+    slider_move(SliderTake);
     sleep(3); 
     close_gripper_pot(); 
     sleep(1);
     mid_gripper(); 
-    PositionPlateau(0); 
+    plate_move(0); 
     sleep(2);
     deploy_gripper(); 
-    moveSlider(Bas); 
+    slider_move(SliderLow); 
     sleep(5); 
     open_gripper(); 
     raise_gripper(); 
-    moveSlider(Take); 
-    //resetStepperModule(Plate); 
+    slider_move(SliderTake); 
+    //stpr_reset(StprPlate); 
     
+    idle(1, 2.0);
+    idle(3, 2.0);
     ax_close_port();
     xl_close_port();
     close_spi();

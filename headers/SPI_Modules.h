@@ -7,9 +7,7 @@
 #include "math.h"
 
 #define VERBOSE
-#ifdef VERBOSE
 #include <stdio.h>
-#endif
 
 // SPI
 #define SPI_DE0 1
@@ -17,39 +15,19 @@
 #define SPI_MODE_DEFAULT 0
 #define SPI_SPEED_HZ_DEFAULT 1000000 // Arbitrary, but 500000 is reasonable
 
-// Odometers and encoders conversion factors
-#define TICKS_TO_METERS 1.7257283863713464e-05 // Conversion factor ticks to meters. (theoretical : pi*45e-3/8192; practical : 610e-3/(2**3+2**4+2**6+4*2**11))
-#define TICKS_TO_RADS 9.817477042468104 // Conversion factor ticks to rad_motor/s (theoretical : 100/64*2*pi)
+// Odometers conversion factors
+#define ODO_TICKS_TO_M 1.7257283863713464e-05 // Conversion factor ticks to meters. (theoretical : pi*45e-3/8192; practical : 610e-3/(2**3+2**4+2**6+4*2**11))
 
 // Sonars
 
 
 // Steppers
+#define PLATEAU_REDUCTION 8.5
+#define PLATEAU_ANGLE_OUVERTURE 103.33
+#define PLATEAU_TIC_STEPPER 1600
 
 
-#define REDUCTION_PLATEAU 8.5
-#define ANGLE_OUVERTURE_PLATEAU 103.33
-#define TIC_STEPPER_PLATEAU 1600
-
-typedef enum {
-    Plate, 
-    Slider, 
-    Flaps
-} steppers_t;
-
-typedef enum {
-    Open, 
-    Plant, 
-    Pot
-} positions_flaps_t;
-
-typedef enum {
-    Bas,
-    Haut,
-    Plateau, 
-    Take
-} position_slider_t;
-
+// ----- SPI -----
 
 /**
  * @brief Opens the SPI channels with default settings
@@ -69,7 +47,7 @@ void close_spi();
  * @param tick_left pointer that contains number of ticks of left wheel after call
  * @param tick_right pointer that contains number of ticks of right wheel after call
  */
-void get_odo_tick(int32_t *tick_left, int32_t *tick_right);
+void odo_get_tick(int32_t *tick_left, int32_t *tick_right);
 
 /**
  * @brief Resets internal values of DE0-Nano
@@ -120,48 +98,76 @@ void teensy_idle();
 
 // ------ SERVOS -----
 
+typedef enum {
+    ServoIdle,
+    ServoDeploy,
+    ServoRaise,
+} servo_cmd_t; // Commands for flaps servomotor
+
 /**
  * @brief Raises (retracts) flaps. Maintains a constant torque until servo_idle is called
  */
-void servo_raise();
-
-/**
- * @brief Deploys flaps. Maintains a constant torque until servo_idle is called
- */
-void servo_deploy();
-
-/**
- * @brief Releases torque command from the servomotors
- */
-void servo_idle();
-
+void servo_cmd(servo_cmd_t command);
 
 // ------ STEPPERS -------
 
+typedef enum {
+    StprPlate, 
+    StprSlider, 
+    StprFlaps
+} steppers_t;
 
-void moveStepperSteps(steppers_t stepperName, int steps, int neg); 
-void moveFlaps (positions_flaps_t pos); 
-void moveSlider(position_slider_t pos); 
-void PositionPlateau(int pot);
+typedef enum {
+    FlapsOpen, 
+    FlapsPlant, 
+    FlapsPot
+} flaps_pos_t;
+
+typedef enum {
+    SliderLow,
+    SliderHigh,
+    SliderPlate, 
+    SliderTake
+} slider_pos_t;
+
+/**
+ * @brief Move the stepper 'stepperName' of 'steps' steps in the 'neg' direction (0 for positive, 1 for negative)
+*/
+void stpr_move(steppers_t stepperName, uint32_t steps, int neg);
+
+/**
+ * @brief Move flaps to 'pos' (FlapsOpen, FlapsPlant or FlapsPot)
+*/
+void flaps_move(flaps_pos_t pos);
+
+/**
+ * @brief Move slider to 'pos' (SliderLow, SliderHigh, SliderPlate or SliderTake)
+*/
+void slider_move(slider_pos_t pos);
+
+/**
+ * @brief Move plate to slot number 'slot' ([-3 ; 3], 0 is neutral)
+*/
+void plate_move(int slot);
 
 /**
  * @brief Sets the nominal and calibration speed of the stepper
  */
-void setupStepperSpeed (int nominalSpeed, int calibrationSpeed, steppers_t stepper); 
+void stpr_setup_speed(int nominalSpeed, int calibrationSpeed, steppers_t stepper); 
 
 /**
- * @brief Activtes the calibration of given stepper
+ * @brief Activates the calibration of given stepper
  */
-void calibrateStepper(steppers_t stepper); 
+void stpr_calibrate(steppers_t stepper); 
 
 /**
  * @brief Resets stepper module to be ready for another calibration
  */
-void resetStepperModule (steppers_t stepper); 
+void stpr_reset(steppers_t stepper); 
 
 /**
  * @brief Sets up the acceleration of a stepper (lower 'acc' -> higher acceleration)
 */
-void stepper_setup_acc(steppers_t stepper, uint8_t acc);
+void stpr_setup_acc(steppers_t stepper, uint8_t acc);
 
 #endif
