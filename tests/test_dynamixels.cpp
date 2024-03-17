@@ -6,25 +6,25 @@
 //#define EXTENDED_SOLAR_PANELS
 //#define GRIPPER_OPEN_CLOSE
 //#define GRIPPER_UP_DOWN
-//#define GRIPPER_HELLO
+#define GRIPPER_HELLO
 //#define TAKE_PLANT
-#define TAKE_POT
+//#define TAKE_POT
 
 int main(int argc, char const *argv[])
 {
 
     // Init ports, and test ping
-    #if defined(SOLAR_PANELS) || defined(EXTENDED_SOLAR_PANELS)
+    //#if defined(SOLAR_PANELS) || defined(EXTENDED_SOLAR_PANELS)
     if (ax_init_port() != 0) return -1;
     if (ax_ping(6) != 0) return -1;
     if (ax_ping(8) != 0) return -1;
-    #endif
+    //#endif
 
-    #if defined(GRIPPER_OPEN_CLOSE) || defined(GRIPPER_UP_DOWN) || defined(GRIPPER_HELLO) || defined(TAKE_PLANT) || defined(TAKE_POT) 
+    //#if defined(GRIPPER_OPEN_CLOSE) || defined(GRIPPER_UP_DOWN) || defined(GRIPPER_HELLO) || defined(TAKE_PLANT) || defined(TAKE_POT) 
     if (xl_init_port() != 0) return -1;
     if (xl_ping(1) != 0) return -1;
     if (xl_ping(3) != 0) return -1;
-    #endif
+    //#endif
 
     #ifdef SOLAR_PANELS
     deploy_solar_panel();
@@ -105,15 +105,15 @@ int main(int argc, char const *argv[])
     close_gripper();
     #endif
 
-    #if defined(SOLAR_PANELS) || defined(EXTENDED_SOLAR_PANELS)
+    //#if defined(SOLAR_PANELS) || defined(EXTENDED_SOLAR_PANELS)
     idle(6, 1.0);
     idle(8, 1.0);
     ax_close_port();
-    #endif
-    #if defined(GRIPPER_OPEN_CLOSE) || defined(GRIPPER_UP_DOWN) || defined(GRIPPER_HELLO) || defined(TAKE_PLANT)
+    //#endif
+    //#if defined(GRIPPER_OPEN_CLOSE) || defined(GRIPPER_UP_DOWN) || defined(GRIPPER_HELLO) || defined(TAKE_PLANT)
     idle(1, 2.0);
     idle(3, 2.0);
     xl_close_port();
-    #endif
+    //#endif
     return 0;
 }

@@ -1,5 +1,10 @@
 #include "SPI_Modules.h"
 
+#define RESET_CALIBRATE
+#define SETUP_CUSTOM_SPEED_OLD
+//#define SETUP_CUSTOM_SPEED_NEW
+#define DEMO_S6
+
 // 8x (8 = ecrire)(x = stepper)
 // 1 plateau
 // 2 .. config vitesse
@@ -19,77 +24,77 @@
 //      11 Step + signe direction du stepper (horlogique/antihorlogique)
 
 void calibrateAll() {
-    calibrateStepper(Flaps);
-    calibrateStepper(Plate);
-    calibrateStepper(Slider);
+    stpr_calibrate(StprFlaps);
+    stpr_calibrate(StprPlate);
+    stpr_calibrate(StprSlider);
 }
 
 void resetAll() {
-    resetStepperModule (Flaps);
-    resetStepperModule (Plate);
-    resetStepperModule (Slider);
+    stpr_reset(StprFlaps);
+    stpr_reset(StprPlate);
+    stpr_reset(StprSlider);
 }
 
 void demoPlate(){
-    steppers_t stepper = Plate; 
-    setupStepperSpeed(2,10,stepper); 
-    PositionPlateau(-3);
+    steppers_t stepper = StprPlate; 
+    stpr_setup_speed(2,10,stepper); 
+    plate_move(-3);
     sleep(4);
     for(int i = -2; i<= 3; i++) {
-        PositionPlateau(i);
+        plate_move(i);
         sleep(2);
     }
-    PositionPlateau(0);
+    plate_move(0);
 }
 
-void demoS6(){
+int main(int argc, char const *argv[])
+{
+    if (init_spi() != 0) return -1;  
 
-    
-    servo_raise();
-
+    #ifdef RESET_CALIBRATE
     resetAll(); 
-    setupStepperSpeed(500,1000,Flaps); 
-    setupStepperSpeed(200,1000,Plate); 
-    setupStepperSpeed(400,1000,Slider);
     calibrateAll();
-    sleep(10);
+    lguSleep(10);
+    #endif
+
+    #ifdef SETUP_CUSTOM_SPEED_OLD
+    stpr_setup_speed(5,10,StprFlaps); 
+    stpr_setup_speed(2,10,StprPlate); 
+    stpr_setup_speed(4,10,StprSlider);
+    #endif 
+
+    #ifdef SETUP_CUSTOM_SPEED_NEW
+    stpr_setup_speed(500,1000,StprFlaps); 
+    stpr_setup_speed(200,1000,StprPlate); 
+    stpr_setup_speed(400,1000,StprSlider);
+    stepper_setup_acc(StprPlate, 5);
+    #endif
+
+    #ifdef DEMO_S6
     servo_deploy(); 
-    moveFlaps(Plant);
+    flaps_move(FlapsPlant);
     sleep(4);
-    moveFlaps(Open);
-    moveSlider(Bas);
+    flaps_move(FlapsOpen);
+    slider_move(SliderLow);
     sleep(2);
     servo_raise();
     sleep(3);
-    moveSlider(Plateau);
+    slider_move(SliderPlate);
     sleep(5);
     demoPlate();
     sleep(5);
-    //moveSlider(Bas);
-    moveStepperSteps(Flaps, 600,0);
+    //slider_move(SliderLow);
+    stpr_move(StprFlaps, 600,0);
     sleep(5);
-    PositionPlateau(1);
+    plate_move(1);
     servo_deploy(); 
     
     sleep(5);
     servo_idle();
     resetAll(); 
     calibrateAll();
-}
+    #endif
 
-int main(int argc, char const *argv[])
-{
-    init_spi();  
-    //demoS6();
-    //resetAll(); 
-    //calibrateAll();
-    //lguSleep(2);
-    setupStepperSpeed(200,500,Plate);
-    //stepper_setup_acc(Plate, 5);
-    PositionPlateau(3);
-    PositionPlateau(-3);
-    //moveSlider(Haut);
-    //moveFlaps(Open);
     close_spi();
     
     return 0;
