@@ -218,15 +218,15 @@ void stpr_move(steppers_t stepperName, uint32_t steps, int neg) {
 
     switch (stepperName) {
         case StprPlate :
-            request = 0x81; 
+            request = 0x82; 
             direction = (neg == 0) ? 0xC0 : 0xE0; 
             break;
         case StprSlider :
-            request = 0x84; 
+            request = 0x86; 
             direction = 0xE0;
             break;
         case StprFlaps :
-            request = 0x87; 
+            request = 0x8A; 
             direction = 0xE0;
             break;
         default : 
@@ -311,46 +311,73 @@ void plate_move(int pot){
 }
 
 
-void stpr_setup_speed(int nominalSpeed, int calibrationSpeed, steppers_t stepper) {
-    char calibrationSpeed1 = calibrationSpeed/256;
-    char calibrationSpeed2 = calibrationSpeed-calibrationSpeed1*256;
-    char nominalSpeed1= nominalSpeed/256;
-    char nominalSpeed2 = nominalSpeed-nominalSpeed1*256;
+void stpr_setup_speed(int nominalSpeed, int initialSpeed, steppers_t stepper) {
+    char initialSpeed1 = (initialSpeed & 0xFF00) >> 8; 
+    char initialSpeed2 = initialSpeed & 0xFF;
+    char nominalSpeed1= (nominalSpeed & 0xFF00) >> 8;
+    char nominalSpeed2 = nominalSpeed & 0xFF;
     char request; 
+    printf("Init speed 1 : %d, Init speed 2 : %d", initialSpeed1, initialSpeed2);
     switch (stepper) {
         case StprPlate :
-            request = 0x82; 
+            request = 0x83; 
             break;
         case StprSlider :
-            request = 0x85; 
+            request = 0x87; 
             break;
         case StprFlaps :
-            request = 0x88; 
+            request = 0x8B; 
             break;
         default : 
             request = 0; 
             printf("Error : not a stepper"); 
             return; 
     }
-    char send[] = {request,nominalSpeed1,nominalSpeed2, calibrationSpeed1, calibrationSpeed2};//2 premier byte pour vitesse de plateau et 2 dernier vitesse calibration
+    
+    char send[] = {request,nominalSpeed1,nominalSpeed2, initialSpeed1, initialSpeed2};//2 premier byte pour vitesse de plateau et 2 dernier vitesse calibration
     lgSpiWrite(DE0_handle, send, 5); 
 }
 
+
+void stpr_setup_calib_speed(int calibrationSpeed, int smallCalibrationSpeed, steppers_t stepper) {
+    char calibrationSpeed1 = calibrationSpeed/256;
+    char calibrationSpeed2 = calibrationSpeed-calibrationSpeed1*256;
+    char smallCalibrationSpeed1= smallCalibrationSpeed/256;
+    char smallCalibrationSpeed2 = smallCalibrationSpeed-smallCalibrationSpeed1*256;
+    char request; 
+    switch (stepper) {
+        case StprPlate :
+            request = 0x84; 
+            break;
+        case StprSlider :
+            request = 0x88; 
+            break;
+        case StprFlaps :
+            request = 0x8C; 
+            break;
+        default : 
+            request = 0; 
+            printf("Error : not a stepper"); 
+            return; 
+    }
+    char send[] = {request,calibrationSpeed1, calibrationSpeed2, smallCalibrationSpeed1, smallCalibrationSpeed2};//2 premier byte pour vitesse de plateau et 2 dernier vitesse calibration
+    lgSpiWrite(DE0_handle, send, 5); 
+}
 
 void stpr_calibrate(steppers_t stepper) {
     char request; 
     char calibDir;
     switch (stepper) {
         case StprPlate :
-            request = 0x81; 
+            request = 0x82; 
             calibDir = 0x80; 
             break;
         case StprSlider :
-            request = 0x84; 
+            request = 0x86; 
             calibDir = 0xA0;
             break;
         case StprFlaps :
-            request = 0x87; 
+            request = 0x8A; 
             calibDir = 0xA0;
             break;
         default : 
@@ -371,16 +398,16 @@ void stpr_reset(steppers_t stepper) {
     // Stop steppers
     switch (stepper) {
         case StprPlate :
-            request = 0x81; 
-            request2 = 0x83;
+            request = 0x82; 
+            request2 = 0x85;
             break;
         case StprSlider :
-            request = 0x84; 
-            request2 = 0x86;
+            request = 0x86; 
+            request2 = 0x89;
             break;
         case StprFlaps :
-            request = 0x87; 
-            request2 = 0x89;
+            request = 0x8A; 
+            request2 = 0x8D;
             break;
         default : 
             request = 0; 
@@ -388,19 +415,14 @@ void stpr_reset(steppers_t stepper) {
             printf("Error : not a stepper"); 
             return; 
     } 
-    char sendr[] = {0x8A,0,0,0,1};   // reset switch values
-    lgSpiWrite(DE0_handle, sendr, 5);
-
     char send1[] = {request,0,0,0,0}; // set the Module command to Idle
     lgSpiWrite(DE0_handle, send1, 5);
 
     char send2[] = {request2,0,1,0,0}; // send 1 to reset the module completely
     lgSpiWrite(DE0_handle, send2, 5);
-    sleep(1);
+    //sleep(1);
     send2[2] = 0; 
     lgSpiWrite(DE0_handle, send2, 5); // send 0 to stop resetting
-    sendr[4] = 0;   // stop resetting
-    lgSpiWrite(DE0_handle, sendr, 5);
 
 }
 
@@ -409,13 +431,13 @@ void stepper_setup_acc(steppers_t stepper, uint8_t acc) {
     // Stop steppers
     switch (stepper) {
         case StprPlate :
-            request = 0x83;
+            request = 0x85;
             break;
         case StprSlider :
-            request = 0x86;
+            request = 0x89;
             break;
         case StprFlaps :
-            request = 0x89;
+            request = 0x8D;
             break;
         default : 
             request = 0; 

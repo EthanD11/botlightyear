@@ -1,9 +1,10 @@
 #include "SPI_Modules.h"
 
-#define RESET_CALIBRATE
-#define SETUP_CUSTOM_SPEED_OLD
+//#define RESET_CALIBRATE
+//#define SETUP_CUSTOM_SPEED_OLD
 //#define SETUP_CUSTOM_SPEED_NEW
-#define DEMO_S6
+//#define DEMO_S6
+#define TESTS
 
 // 8x (8 = ecrire)(x = stepper)
 // 1 plateau
@@ -36,10 +37,8 @@ void resetAll() {
 }
 
 void demoPlate(){
-    steppers_t stepper = StprPlate; 
-    stpr_setup_speed(2,10,stepper); 
     plate_move(-3);
-    sleep(4);
+    sleep(3);
     for(int i = -2; i<= 3; i++) {
         plate_move(i);
         sleep(2);
@@ -50,6 +49,30 @@ void demoPlate(){
 int main(int argc, char const *argv[])
 {
     if (init_spi() != 0) return -1;  
+
+    #ifdef TESTS
+    
+    
+    resetAll();
+    stpr_calibrate(StprPlate);
+    stpr_calibrate(StprFlaps);
+
+    
+    //stpr_setup_speed(60,500,StprPlate); //60 max
+    //demoPlate();
+    //plate_move(-3);
+    //plate_move(3);
+
+    
+
+    /*
+    stpr_setup_speed(100,400,StprFlaps);
+    flaps_move(FlapsPlant);
+    flaps_move(FlapsOpen);
+    flaps_move(FlapsPot);
+    flaps_move(FlapsOpen);*/
+
+    #endif
 
     #ifdef RESET_CALIBRATE
     resetAll(); 
