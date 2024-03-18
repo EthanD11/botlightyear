@@ -163,7 +163,7 @@ void faussemain()
 {      
     
     StartLidar();
-    for (size_t i = 118; i < 119; i++)
+    for (size_t i = 119; i < 119; i++)
     {
         //sleep(10);
         DataToFile("testBottom"+std::to_string(i)+".txt");
