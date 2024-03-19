@@ -1,6 +1,7 @@
 # -----------------------------------------------------------------------------------
 #Variables
 # Arguments for the compilation
+<<<<<<< HEAD
 CC:=gcc
 CXX = g++ #pour le lidar
 CFLAGS:=-Wall -g -std=gnu99
@@ -8,10 +9,18 @@ CXXFLAGS:=-Wall
 LIBS:=-llgpio -lm -lpthread -ldxl_sbc_c -lsl_lidar_sdk -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_aruco -lopencv_videoio
 # Directories
 HEADERS_DIR:=src -I./Dynamixels/include/dynamixel_sdk -I/usr/include/opencv4 -I../rplidar/include -I./rplidar/sdk/include -I./rplidar/sdk/src
+=======
+CC:=g++
+FLAGS:=-Wall -g -O3
+LIBS:=-llgpio -lm -ldxl_sbc_c -lsl_lidar_sdk -lpthread -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_aruco -lopencv_videoio -lopencv_imgcodecs
+# Directories
+HEADERS_DIR:=headers
+>>>>>>> f558d75f005c06c6bac1bed7ab13982647f476ae
 SOURCES_DIR:=src
 TESTS_DIR:=tests
 OBJ_DIR:=bin
 # List of c file
+<<<<<<< HEAD
 SOURCES = $(wildcard $(SOURCES_DIR)/*.c)
 TESTS = $(wildcard $(TESTS_DIR)/*.c)
 # List of cpp file
@@ -23,6 +32,12 @@ SOURCES_OBJ = $(addprefix $(OBJ_DIR)/,$(notdir $(SOURCES:.c=.o)))
 SOURCES_OBJ += $(addprefix $(OBJ_DIR)/,$(notdir $(CPP_SOURCES:.cpp=.o)))
 SOURCES_OBJ := $(filter-out bin/cameraTag.o, $(SOURCES_OBJ))
 
+=======
+SOURCES = $(wildcard $(SOURCES_DIR)/*.cpp)
+TESTS = $(wildcard $(TESTS_DIR)/*.cpp)
+# List of .o file
+SOURCES_OBJ = $(addprefix $(OBJ_DIR)/,$(notdir $(SOURCES:.cpp=.o)))
+>>>>>>> f558d75f005c06c6bac1bed7ab13982647f476ae
 # -----------------------------------------------------------------------------------
 # Rules
 all:
@@ -33,6 +48,7 @@ $(OBJ_DIR):
 	@mkdir -p $(OBJ_DIR)
 
 # Compiling a binary file from a source file
+<<<<<<< HEAD
 $(OBJ_DIR)/%.o: $(SOURCES_DIR)/%.c | $(OBJ_DIR)
 	@$(CC) -I$(HEADERS_DIR) $(CFLAGS) -o $@ -c $< $(LIBS)
 
@@ -44,13 +60,17 @@ $(OBJ_DIR)/%.o: $(SOURCES_DIR)/%.cpp | $(OBJ_DIR)
 $(OBJ_DIR)/%.o: ../rplidar/%.cpp | $(OBJ_DIR)
 	@$(CXX) -I../rplidar/include $(CXXFLAGS) -o $@ -c $<
 
+=======
+$(OBJ_DIR)/%.o: $(SOURCES_DIR)/%.cpp | $(OBJ_DIR)
+	@$(CC) -I$(HEADERS_DIR) $(FLAGS) -o $@ -c $< $(LIBS)
+>>>>>>> f558d75f005c06c6bac1bed7ab13982647f476ae
 
 # Compiling all the sources
 compile: $(SOURCES_OBJ)
 
 #Compiling a random file that use SOURCES file
-%.o: %.c $(SOURCES_OBJ)
-	@$(CC) -I$(HEADERS_DIR) $(CFLAGS) $^ -o $@ $(LIBS)
+%.o: %.cpp $(SOURCES_OBJ)
+	@$(CC) -I$(HEADERS_DIR) $(FLAGS) $^ -o $@ $(LIBS)
 
 %.o: %.cpp $(SOURCES_OBJ)
 	@$(CXX) -I$(HEADERS_DIR) $(CXXFLAGS) $^ -o $@ $(LIBS)
@@ -61,24 +81,8 @@ test_%: $(TESTS_DIR)/test_%.o $(SOURCES_OBJ)
 	@rm $<
 
 #Run all the tests
-tests: $(TESTS:.c=.o)
+tests: $(TESTS:.cpp=.o)
 	$(foreach test, $^, ./$(test);)
-
-lidar: lidar_program
-	@./bin/lidar.o
-	@rm ./bin/lidar
-
-# Run the lidar program
-lidar_program:
-	@g++ ./src/lidar.cpp -o ./bin/lidar.o -lsl_lidar_sdk -I./rplidar/sdk/include -I./rplidar/sdk/src
-
-dyna: dyna_program
-	@./bin/XL_320.o
-	@rm ./bin/XL_320
-
-# Run the dynamixel xl-320 program
-dyna_program:
-	@g++ ./Dynamixel-XL_320-Lib/main.cpp -o ./bin/XL_320.o -I./Dynamixel-XL_320-Lib
 
 # Run Camera program
 camera: camera_program
@@ -86,30 +90,12 @@ camera: camera_program
 	@rm ./bin/camera
 
 camera_program:
-	@g++ ./src/cameraTag.cpp -o ./bin/camera -lpthread -I/usr/include/opencv4 -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_aruco -lopencv_videoio
-
-
+	@g++ ./src/cameraTag.cpp -o ./bin/camera -lpthread -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_aruco -lopencv_videoio -lopencv_imgcodecs -I$(HEADERS_DIR)
 #@g++ ./src/cameraTag.cpp -o ./bin/camera.o -lpthread -I/usr/include/opencv4 -I/path/to/raspicam/include -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_aruco -lopencv_videoio -L/usr/local/lib -L/path/to/raspicam/lib -lraspicam -lraspicam_cv
 
-#Run the project (process the inputs in input_binary/ and write it to "output.txt")
-run: fec 
-	@./fec input_binary -f output.txt
-	@rm fec
-	@echo "The project has ran sucessfully !"
-
-#Run the project with verbose (process the inputs in input_binary/ and write it to "output.txt")
-run-v: fec
-	@./fec input_binary -v -f output.txt
-	@rm fec
-	@echo "The project has ran sucessfully !"
-
-#Compile the project and create a "fec" executable
-fec: speedcontroller.c $(SOURCES_OBJ)
-	@$(CC) -I$(HEADERS_DIR) $(CFLAGS) $^ -o fec $(LIBS) -O3
-
 #Run valgrind on the project
-valgrind : fec
-	@valgrind --leak-check=yes --show-leak-kinds=all ./fec input_binary -f output.txt
+#valgrind : fec
+#	@valgrind --leak-check=yes --show-leak-kinds=all ./fec input_binary -f output.txt
 
 #Clean the project of all object file.
 clean:

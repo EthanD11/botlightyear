@@ -1,6 +1,6 @@
 #include "lidar.h"
 
-#include <rplidar.h>
+#include "rplidar_sdk/rplidar.h"
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
@@ -28,8 +28,8 @@ ILidarDriver *lidar;
 
 void StartLidar(){
     ///  Create a communication channel instance
-    //TODO 2 lidar ici modif port chanel ??
-    Result<IChannel*> _channel = createSerialPortChannel("/dev/ttyUSB0", 256000); //port série spécifié est "/dev/ttyUSB0" avec un débit de 115200 bps.
+    //TODO 2 lidar ici modif port chanel ?? 256000
+    Result<IChannel*> _channel = createSerialPortChannel("/dev/ttyUSB0", 115200); //port série spécifié est "/dev/ttyUSB0" avec un débit de 115200 bps.
     if (_channel.err) {
         fprintf(stderr, "Failed to create communication channel\r\n");
         return;
@@ -75,7 +75,7 @@ void updateData(double* angles, double* distances, double* quality, int arraySiz
 
     if (SL_IS_OK(res)){
         lidar->ascendScanData(nodes, nodeCount);//cfr sl_lidar_driver.cpp
-        for(int i = 0; i < nodeCount; i++){
+        for(size_t i = 0; i < nodeCount; i++){
             double angle_in_degrees = nodes[i].angle_z_q14 * 90.f / (1 << 14);//cfr readme pour avoir les angles en degré
             double distance_in_meters = nodes[i].dist_mm_q2 / 1000.f / (1 << 2);
 
@@ -140,7 +140,7 @@ void DataToFile(string filename){
 
         fprintf(file,"Angle, Distance\n");
 
-        for(int i = 0; i < nodeCount; i++){
+        for(size_t i = 0; i < nodeCount; i++){
             double angle_in_degrees = nodes[i].angle_z_q14 * 90.f / (1 << 14);//cfr readme angles in degree
             double distance_in_meters = nodes[i].dist_mm_q2 / 1000.f / (1 << 2);
 
@@ -159,6 +159,7 @@ void StopLidar(){
 
 
 
+<<<<<<< HEAD
 // int main(int argc, char *argv[]) {
 //    /*
 //     ILidarDriver* lid = connectLidarL();
@@ -175,7 +176,24 @@ void StopLidar(){
 //         DataToFile("testBottom"+std::to_string(i)+".txt");
 //         printf("turn\n");
 //     }
+=======
+void faussemain()
+{      
+    
+    StartLidar();
+    for (size_t i = 119; i < 119; i++)
+    {
+        //sleep(10);
+        DataToFile("testBottom"+std::to_string(i)+".txt");
+        printf("turn\n");
+    }
+>>>>>>> f558d75f005c06c6bac1bed7ab13982647f476ae
     
 //     StopLidar();
     
+<<<<<<< HEAD
 // }
+=======
+ }
+
+>>>>>>> f558d75f005c06c6bac1bed7ab13982647f476ae

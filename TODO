@@ -1,12 +1,9 @@
 SPI bus
  - Teensy : 
    Parity bit & Test read/write
- - DE0 : Design query system for the different functionalities (to be merged with DE0 implem, see other repo)
- - Tests
 
-Dynamixels : find a good library on github for easy use
-Lidar : balise ok, plant detection is the next step ? Not sure, ask Pauline
-Path planning (soon)
+Dynamixels : cleanup code
+Lidar + position control + actuators = actions
 Strategy (soon)
 Homologation constraints implem + verif
 Fun stuff (eg, live control with keyboard, OLED screen)
