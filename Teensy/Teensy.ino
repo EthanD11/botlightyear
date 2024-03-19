@@ -99,7 +99,7 @@ void loop() {
     int ncheckpoints = 5;
     int path_following_goal_reached = 0;
     double x[5] = {0, 0.4, 0.8,  0.4, 0.0};
-    double y[5] = {0, 0.18, 0.0, -0.18, 0.0};
+    double y[5] = {1.5, 1.65, 1.5, 1.35, 1.5};
 
     switch (mode) {
       case ModeIdle:
@@ -137,7 +137,7 @@ void loop() {
         printf("time = %d\n", current_time);
         #endif
         path_following_goal_reached = update_path_follower_ref_speed(path_follower, 
-          robot_position, 30e-2, 10e-2);
+          robot_position, 25e-2, 10e-2);
         control_speed(speed_regulator, 
           robot_position,
           get_speed_refl(path_follower),
@@ -159,7 +159,8 @@ void loop() {
         break;
     }
     write_outputs(outputs);
-
+    printf("dc left = %d\n", outputs->duty_cycle_l);
+    printf("dc right = %d\n", outputs->duty_cycle_r);
     // Next state logic
     switch (mode) {
       case ModeIdle:

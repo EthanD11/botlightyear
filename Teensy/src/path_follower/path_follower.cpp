@@ -10,10 +10,10 @@ PathFollower* init_path_follower() {
     PathFollower *path_follower = (PathFollower *) malloc(sizeof(PathFollower));
     path_follower->speed_refl = 0;
     path_follower->speed_refr = 0;
-    path_follower->kt = 0.1;
+    path_follower->kt = 3.0;
     path_follower->kn = 1.0; // 0 < kn <= 1
-    path_follower->kz = 100.0;
-    path_follower->delta = 40e-3; // delta is in meters
+    path_follower->kz = 80.0;
+    path_follower->delta = 30e-3; // delta is in meters
     path_follower->sigma = 1.0;
     path_follower->epsilon = 150-3; // epsilon is in meters
     path_follower->wn = 0.3; // Command filter discrete cutoff frequency
@@ -229,7 +229,7 @@ int update_path_follower_ref_speed(
 
     // Reference speed correction
     vref = MAX(
-        vref - SIGMOID(-(et-5e-2)/2)*(0.75*vref) - fabs(pf->kv_en*en),
+        vref - SIGMOID(-(et-5e-2)/2)*(0.25*vref) - fabs(pf->kv_en*en),
         15e-2);
 
     // Filters
@@ -237,8 +237,8 @@ int update_path_follower_ref_speed(
     pf->curvature_fdot = wn*wn*(curvature - pf->curvature_f) - SQRT2 * wn * pf->curvature_fdot;
     pf->kif = PIPERIODIC(pf->kif+kifdot);
     pf->kifdot = wn*wn*PIPERIODIC(kid - kif) - SQRT2 * wn * kifdot;
-    pf->vref_f = vctrl;//pf->vref_fdot;
-    // pf->vref_fdot = wn*wn*(vref - pf->vref_f) - SQRT2 * wn * pf->vref_fdot;
+    pf->vref_f += pf->vref_fdot;
+    pf->vref_fdot = wn*wn*(vref - pf->vref_f) - SQRT2 * wn * pf->vref_fdot;
     
 
     // Auxiliary signal (xsi_n = en in steady state)
