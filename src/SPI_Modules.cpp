@@ -109,7 +109,7 @@ void teensy_path_following(double *x, double *y, int ncheckpoints, double theta_
 
     #ifdef VERBOSE
     printf("Sending path following\n");
-    for (int i = 0; i < message_size; i++)
+    for (size_t i = 0; i < message_size; i++)
     {
         printf("%d, %d\n",send[i], receive[i]);
     }
