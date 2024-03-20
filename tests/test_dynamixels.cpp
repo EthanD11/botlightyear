@@ -6,7 +6,7 @@
 //#define EXTENDED_SOLAR_PANELS
 //#define GRIPPER_OPEN_CLOSE
 //#define GRIPPER_UP_DOWN
-#define GRIPPER_HELLO
+//#define GRIPPER_HELLO
 //#define TAKE_PLANT
 //#define TAKE_POT
 
@@ -30,13 +30,13 @@ int main(int argc, char const *argv[])
     #endif
 
     #ifdef EXTENDED_SOLAR_PANELS
-    position_solar(Down);
+    position_solar(DownS);
     sleep(0.5);
     multiturn_solar(CCW);
-    sleep(0.5);
+    sleep(1);
     multiturn_solar(CW);
     sleep(0.5);
-    position_solar(Up);
+    position_solar(UpS);
     #endif
 
     #ifdef GRIPPER_OPEN_CLOSE
@@ -68,31 +68,22 @@ int main(int argc, char const *argv[])
 
     #ifdef TAKE_PLANT
     gripper(Open);
-    position_gripper(Down);
-    sleep(4);
+    sleep(2);
     gripper(Plant);
-    sleep(10);
+    sleep(5);
     gripper(Open);
     sleep(2);
-    position_gripper(Up);
     gripper(Close);
     #endif
 
     #ifdef TAKE_POT
-    gripper(Open);
-    position_gripper(Down);
-    sleep(3);
-    gripper(Pot);
-    sleep(5);
-    gripper(Open);
-    gripper(Close);
 
     gripper(Open);
     sleep(2);
     gripper(Pot);
-    sleep(2);
+    sleep(5);
     gripper(Open);
-    sleep(0.5);
+    sleep(2);
     gripper(Close);
     #endif
 

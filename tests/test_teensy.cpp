@@ -3,8 +3,8 @@
 
 //#define SPEED_CONTROL
 // #define POSITION_CONTROL
-#define PATH_FOLLOWING
-//#define IDLE
+//#define PATH_FOLLOWING
+#define IDLE
 
 const double deg_to_rads = 3.141593/180;
 

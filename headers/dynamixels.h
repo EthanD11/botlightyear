@@ -17,12 +17,12 @@ typedef enum {
 
 typedef enum {
     CCW,
-    cw,
+    CW,
 } direction_t;
 
 typedef enum {
-    Up,
-    Down,
+    UpS,
+    DownS,
 } position_s;
 
 void dxl_init_port(); 
@@ -31,10 +31,10 @@ void dxl_close_port();
 void dxl_ping(int ID, float PROTOCOL); 
 void dxl_idle(int ID, float PROTOCOL);
 
-void gripper(object_t);
-void position_gripper(position_t);
+void gripper(object_t objet);
+void position_gripper(position_t position);
 
-void position_solar(position_s);
-void multiturn_solar(direction_t);
+void position_solar(position_s position);
+void multiturn_solar(direction_t direction);
 
 #endif

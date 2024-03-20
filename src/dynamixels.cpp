@@ -71,16 +71,14 @@ void dxl_ping(int ID, float PROTOCOL) {
     if ((dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL)) != COMM_SUCCESS)
     {
         printf("%s\n", getTxRxResult(PROTOCOL, dxl_comm_result));
-        return -1;
+        exit(1);
     }
     if ((dxl_error = getLastRxPacketError(port_num, PROTOCOL)) != 0)
     {
         printf("%s\n", getRxPacketError(PROTOCOL, dxl_error));
-        return -1;
+        exit(1);
     }
     printf("Dynamixel %03d has been successfully connected \n", ID);
-
-    return 0;
 }
 
 void dxl_idle(int ID, float PROTOCOL) { 
@@ -92,12 +90,12 @@ void dxl_idle(int ID, float PROTOCOL) {
     if ((dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL)) != COMM_SUCCESS)
     {
         printf("%s\n", getTxRxResult(PROTOCOL, dxl_comm_result));
-        return -1;
+        exit(1);
     }
     if ((dxl_error = getLastRxPacketError(port_num, PROTOCOL)) != 0)
     {
         printf("%s\n", getRxPacketError(PROTOCOL, dxl_error));
-        return -1;
+        exit(1);
     }
     printf("Dynamixel %03d has been successfully idled \n", ID);
 }
@@ -108,16 +106,16 @@ void gripper(object_t object) {
 
     switch(object) {
         case Open: 
-            dxl_goal_position = 270;
+            dxl_goal_position = 275;
             break;
         case Close:
-            dxl_goal_position = 190;
+            dxl_goal_position = 185;
             break;
         case Plant:
-            dxl_goal_position = 200;
+            dxl_goal_position = 220;
             break;
         case Pot:
-            dxl_goal_position = 215;
+            dxl_goal_position = 230;
             break;
     }
 
@@ -125,8 +123,8 @@ void gripper(object_t object) {
     write1ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, ADDR_TORQUE_ENABLE, TORQUE_ENABLE);
 
     // Write CW/CCW position
-    write2ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, ADDR_CW_ANGLE_LIMIT, 175); 
-    write2ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, ADDR_CCW_ANGLE_LIMIT, 280);
+    write2ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, ADDR_CW_ANGLE_LIMIT, 160); 
+    write2ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, ADDR_CCW_ANGLE_LIMIT, 290);
 
     //Write Joint Mode
     write2ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, ADDR_XL_CONTROL_MODE, 2); 
@@ -135,7 +133,7 @@ void gripper(object_t object) {
     write2ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, ADDR_MOVING_SPEED, 200);
 
     // Write punch
-    write2ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, ADDR_XL_PUNCH, 100);
+    write2ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, ADDR_XL_PUNCH, 60);
 
     //Write Max Torque
     write2ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, ADDR_XL_TORQUE, 1023);
@@ -157,7 +155,7 @@ void position_gripper(position_t position) {
 
     switch(position) {
         case Up: 
-            dxl_goal_position = 220;
+            dxl_goal_position = 210;
             break;
         case Down:
             dxl_goal_position = 440;
@@ -199,10 +197,10 @@ void position_solar(position_s position) {
     uint16_t dxl_present_position = 0;
 
     switch(position) {
-        case Up: 
+        case UpS: 
             dxl_goal_position = 215;
             break;
-        case Down:
+        case DownS:
             dxl_goal_position = 515;
             break;
     }
