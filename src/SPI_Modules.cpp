@@ -1,21 +1,6 @@
 #include "SPI_Modules.h"
 
 int DE0_handle, Teensy_handle;
-<<<<<<< HEAD
-const unsigned int sonar_GPIO_Trig = 16;
-const unsigned int sonar_GPIO_Echo = 19;
-const double x_max = 3.0; 
-const double y_max = 2.0; 
-const double t_max = 2*3.141593; 
-const double speed_max = 1.0; 
-// TODO : calibrate with flaps
-const char servo_left_dc_deployed = 19;
-const char servo_left_dc_raised = 30;
-const char servo_right_dc_deployed = 19;
-const char servo_right_dc_raised = 5;
-
-// #define M_PI 3.14159265358979323846264338327950288419716939937510
-=======
 //const unsigned int sonar_GPIO_Trig = 16;
 //const unsigned int sonar_GPIO_Echo = 19;
 const double x_max = 3.0; 
@@ -27,7 +12,6 @@ const char servo_left_dc_deployed = 15;
 const char servo_left_dc_raised = 21;
 const char servo_right_dc_deployed = 23;
 const char servo_right_dc_raised = 17;
->>>>>>> f558d75f005c06c6bac1bed7ab13982647f476ae
 
 // Converts words from big endian to little endian (and vice versa)
 // https://codereview.stackexchange.com/questions/151049/endianness-conversion-in-c
@@ -50,17 +34,9 @@ void close_spi() {
     lgSpiClose(Teensy_handle);
 }
 
-<<<<<<< HEAD
-// ############################################
-// -------- Odometers and Encoders ------------
-// ############################################
-
-void get_odo_tick(int32_t *tick_left, int32_t *tick_right) {
-=======
 // ----- Odometers -----
 
 void odo_get_tick(int32_t *tick_left, int32_t *tick_right) {
->>>>>>> f558d75f005c06c6bac1bed7ab13982647f476ae
 
     // left
     char send[] = {0x03,0,0,0,0};
@@ -77,65 +53,14 @@ void odo_get_tick(int32_t *tick_left, int32_t *tick_right) {
 
 }
 
-<<<<<<< HEAD
-/*
-void get_odo_tick_fast(int32_t *tick_left, int32_t *tick_right) {
-
-    
-    char send[] = {0x20,0,0,0,0};
-    char receive[5];
-    lgSpiXfer(DE0_handle, send, receive, 5);
-    
-    *tick_left  = (receive[1] << 8) + (receive[2] << 16);
-    *tick_right = (receive[3] << 8) + (receive[4] << 16);
-
-}*/
-
-/*void get_enc_spd(int32_t *spd_left, int32_t*spd_right) {
-    // left
-    char send[] = {0x01,0,0,0,0};
-    char receive[5];
-    lgSpiXfer(DE0_handle, send, receive, 5);
-    *spd_left = *((int32_t *)(&(receive[1])));
-    *spd_left = Reverse32(*spd_left);
-
-    // right
-    send[0] = 0x02;
-    lgSpiXfer(DE0_handle, send, receive, 5);
-    *spd_right = *((int32_t *)(&(receive[1])));
-    *spd_right = Reverse32(*spd_right);
-
-}*/
-
-/*
-void get_enc_spd_fast(int32_t *spd_left, int32_t *spd_right) {
-
-    
-    char send[] = {0x10,0,0,0,0};
-    char receive[5];
-    lgSpiXfer(DE0_handle, send, receive, 5);
-
-    *spd_left  = (receive[1] << 16) + (receive[2] << 24);
-    *spd_right = (receive[3] << 16) + (receive[4] << 24);
-
-}*/
-
-=======
->>>>>>> f558d75f005c06c6bac1bed7ab13982647f476ae
 void odo_reset() {
     char send[] = {0x7F,0,0,0,0};
     char receive[5];
     lgSpiXfer(DE0_handle, send, receive, 5);
 }
 
-<<<<<<< HEAD
-// ############################
-// -------- Sonars ------------
-// ############################
-=======
 // ----- Sonars -----
 
->>>>>>> f558d75f005c06c6bac1bed7ab13982647f476ae
 /*
 double sonar_ask() {
 
@@ -157,26 +82,14 @@ void init_sonar() {
     gpioSetMode(sonar_GPIO_Trig, PI_OUTPUT);
 }*/
 
-<<<<<<< HEAD
-// ############################
-// -------- Teensy ------------
-// ############################
-=======
 // ----- Teensy -----
->>>>>>> f558d75f005c06c6bac1bed7ab13982647f476ae
 
 void teensy_path_following(double *x, double *y, int ncheckpoints, double theta_current) {
 
     size_t message_size = sizeof(char)*2 + sizeof(uint16_t)*(2*ncheckpoints+1);
-<<<<<<< HEAD
     // Send vector. Needs to be malloced since it is variabel size
     char *send = (char *) malloc(message_size);
     char *receive = (char *) malloc(message_size);
-=======
-    // Send vector
-    char send[message_size];
-    char receive[message_size];
->>>>>>> f558d75f005c06c6bac1bed7ab13982647f476ae
 
     // Send the query over a single byte
     char *send_query = (char *) send;
@@ -189,32 +102,21 @@ void teensy_path_following(double *x, double *y, int ncheckpoints, double theta_
     // Send each points over two bytes
     uint16_t *send_points = (uint16_t *) (send_n + sizeof(char)); // Send points over 2 bytes   
     for (int i = 0; i < ncheckpoints; i++)              send_points[i] = (uint16_t) (UINT16_MAX*(x[i]/2.0));
-<<<<<<< HEAD
     for (int i = 0; i < ncheckpoints; i++) send_points[i+ncheckpoints] = (uint16_t) (UINT16_MAX*(y[i]/3.0));
-=======
-    for (int i = ncheckpoints; i < 2*ncheckpoints; i++) send_points[i] = (uint16_t) (UINT16_MAX*(y[i]/3.0));
->>>>>>> f558d75f005c06c6bac1bed7ab13982647f476ae
     send_points[2*ncheckpoints] = (uint16_t) (UINT16_MAX*((theta_current+M_PI)/(M_PI*2)));
 
     lgSpiXfer(Teensy_handle, send, receive, message_size);
 
     #ifdef VERBOSE
     printf("Sending path following\n");
-<<<<<<< HEAD
     for (int i = 0; i < message_size; i++)
-=======
-    for (size_t i = 0; i < message_size; i++)
->>>>>>> f558d75f005c06c6bac1bed7ab13982647f476ae
     {
         printf("%d, %d\n",send[i], receive[i]);
     }
     #endif
 
-<<<<<<< HEAD
     free(send);
     free(receive);
-=======
->>>>>>> f558d75f005c06c6bac1bed7ab13982647f476ae
 }
 
 void teensy_pos_ctrl(double x, double y, double t, double xr, double yr, double tr) {
@@ -265,51 +167,6 @@ void teensy_idle() {
     lgSpiWrite(Teensy_handle, &send, 1);
 }
 
-<<<<<<< HEAD
-void servo_raise() {
-    char send[5];
-    send[0] = 0x80;
-    send[3] = servo_left_dc_raised;
-    send[4] = servo_right_dc_raised;
-    lgSpiWrite(DE0_handle, send, 5);
-}
-
-void servo_deploy() {
-    char send[5];
-    send[0] = 0x80;
-    send[3] = servo_left_dc_deployed;
-    send[4] = servo_right_dc_deployed;
-    lgSpiWrite(DE0_handle, send, 5);
-}
-
-void servo_idle() {
-    char send[5];
-    send[0] = 0x80;
-    send[3] = 0;
-    send[4] = 0;
-    lgSpiWrite(DE0_handle, send, 5);
-}
-
-
-// Steppers
-
-
-void moveStepperSteps(steppers_t stepperName, int steps, int neg) {
-    int request; 
-    int direction; 
-
-    switch (stepperName) {
-        case Plate :
-            request = 0x81; 
-            direction = (neg == 0) ? 0xC0 : 0xE0; 
-            break;
-        case Slider :
-            request = 0x84; 
-            direction = 0xE0;
-            break;
-        case Flaps :
-            request = 0x87; 
-=======
 void servo_cmd(servo_cmd_t command) {
     char send[5];
     send[0] = 0x80;
@@ -372,46 +229,23 @@ void stpr_move(steppers_t stepperName, uint32_t steps, int neg) {
             break;
         case StprFlaps :
             request = 0x8A; 
->>>>>>> f558d75f005c06c6bac1bed7ab13982647f476ae
             direction = 0xE0;
             break;
         default : 
             request = 0; 
             direction = 0;
             printf("Error : not a stepper"); 
-<<<<<<< HEAD
-            break; 
-    }   
-
-    int steps1 = steps/65536; 
-    int steps2 = (steps-steps1*65536) /256;
-    int steps3 = steps-steps1*65536-steps2*256;
-=======
             return; 
     }   
 
     char steps1 = (steps & 0xFF0000) >> 16; 
     char steps2 = (steps & 0xFF00) >> 8;
     char steps3 = steps & 0xFF;
->>>>>>> f558d75f005c06c6bac1bed7ab13982647f476ae
 
     char send[] = {request,direction,steps1,steps2,steps3};
     lgSpiWrite(DE0_handle, send, 5);
 }
 
-<<<<<<< HEAD
-void moveFlaps (positions_flaps_t pos) {
-    int steps; 
-    switch (pos)
-    {
-    case Open :
-        steps = 0; 
-        break;
-    case Plant :
-        steps = 2220; 
-        break;
-    case Pot :
-=======
 void flaps_move(flaps_pos_t pos) {
     uint32_t steps; 
     switch (pos)
@@ -423,32 +257,11 @@ void flaps_move(flaps_pos_t pos) {
         steps = 2220; 
         break;
     case FlapsPot :
->>>>>>> f558d75f005c06c6bac1bed7ab13982647f476ae
         steps = 2050; 
         break;  
     default:
         printf("Error : not a position \n");
         steps = 0; 
-<<<<<<< HEAD
-        break;
-    }
-    moveStepperSteps(Flaps, steps, 0); 
-}
-
-void moveSlider(position_slider_t pos){
-    int steps;
-    switch(pos)
-    {
-    case Haut :
-        steps = 0;
-        break;
-    case Bas :
-        steps = 5000;
-        break;
-    case Plateau :
-        steps = 1300;
-        break;       
-=======
         return;
     }
     stpr_move(StprFlaps, steps, 0); 
@@ -470,24 +283,10 @@ void slider_move(slider_pos_t pos){
     case SliderTake :
         steps = 1500;
         break;      
->>>>>>> f558d75f005c06c6bac1bed7ab13982647f476ae
     default :
         printf("Error : not a position \n");
         printf("%d\n", pos);
         steps = 0; 
-<<<<<<< HEAD
-        break;
-    }
-    moveStepperSteps(Slider,steps,0);
-}
-
-
-void PositionPlateau(int pot){
-    //pot est une variable allant de -3 Ã  3 avec 0 la position de repos
-    int direction = 0;
-    if (pot ==0){
-        moveStepperSteps(Plate, 0, 0);   
-=======
         return;
     }
     stpr_move(StprSlider,steps,0);
@@ -499,46 +298,21 @@ void plate_move(int pot){
     int direction = 0;
     if (pot ==0){
         stpr_move(StprPlate, 0, 0);   
->>>>>>> f558d75f005c06c6bac1bed7ab13982647f476ae
     } else {
         if (pot<0) {
             pot = -pot;
             direction = 1;
         }
         pot = pot - 1;
-<<<<<<< HEAD
-        double anglePlateau = (ANGLE_OUVERTURE_PLATEAU)/2 + (pot)* (360-ANGLE_OUVERTURE_PLATEAU)/5;
-        double angleStepper = anglePlateau * REDUCTION_PLATEAU;
-        double ticStepper = angleStepper/360 * TIC_STEPPER_PLATEAU;
-        moveStepperSteps(Plate,(int)ticStepper,direction);
-=======
         double anglePlateau = (PLATEAU_ANGLE_OUVERTURE)/2 + (pot)* (360-PLATEAU_ANGLE_OUVERTURE)/5;
         double angleStepper = anglePlateau * PLATEAU_REDUCTION;
         double ticStepper = angleStepper/360 * PLATEAU_TIC_STEPPER;
         stpr_move(StprPlate,(int)ticStepper,direction);
->>>>>>> f558d75f005c06c6bac1bed7ab13982647f476ae
     }   
 
 }
 
 
-<<<<<<< HEAD
-void setupStepperSpeed (int nominalSpeed, int calibrationSpeed, steppers_t stepper) {
-    int calibrationSpeed1 = calibrationSpeed/256;
-    int calibrationSpeed2 = calibrationSpeed-calibrationSpeed1*256;
-    int nominalSpeed1= nominalSpeed/256;
-    int nominalSpeed2 = nominalSpeed-nominalSpeed1*256;
-    int request; 
-    switch (stepper) {
-        case Plate :
-            request = 0x82; 
-            break;
-        case Slider :
-            request = 0x85; 
-            break;
-        case Flaps :
-            request = 0x88; 
-=======
 void stpr_setup_speed(int nominalSpeed, int initialSpeed, steppers_t stepper) {
     char initialSpeed1 = (initialSpeed & 0xFF00) >> 8; 
     char initialSpeed2 = initialSpeed & 0xFF;
@@ -555,41 +329,18 @@ void stpr_setup_speed(int nominalSpeed, int initialSpeed, steppers_t stepper) {
             break;
         case StprFlaps :
             request = 0x8B; 
->>>>>>> f558d75f005c06c6bac1bed7ab13982647f476ae
             break;
         default : 
             request = 0; 
             printf("Error : not a stepper"); 
-<<<<<<< HEAD
-            break; 
-    }
-    char send[] = {request,nominalSpeed1,nominalSpeed2, calibrationSpeed1, calibrationSpeed2};//2 premier byte pour vitesse de plateau et 2 dernier vitesse calibration
-=======
             return; 
     }
     
     char send[] = {request,nominalSpeed1,nominalSpeed2, initialSpeed1, initialSpeed2};//2 premier byte pour vitesse de plateau et 2 dernier vitesse calibration
->>>>>>> f558d75f005c06c6bac1bed7ab13982647f476ae
     lgSpiWrite(DE0_handle, send, 5); 
 }
 
 
-<<<<<<< HEAD
-void calibrateStepper(steppers_t stepper) {
-    int request; 
-    int calibDir;
-    switch (stepper) {
-        case Plate :
-            request = 0x81; 
-            calibDir = 0x80; 
-            break;
-        case Slider :
-            request = 0x84; 
-            calibDir = 0xA0;
-            break;
-        case Flaps :
-            request = 0x87; 
-=======
 void stpr_setup_calib_speed(int calibrationSpeed, int smallCalibrationSpeed, steppers_t stepper) {
     char calibrationSpeed1 = calibrationSpeed/256;
     char calibrationSpeed2 = calibrationSpeed-calibrationSpeed1*256;
@@ -629,50 +380,25 @@ void stpr_calibrate(steppers_t stepper) {
             break;
         case StprFlaps :
             request = 0x8A; 
->>>>>>> f558d75f005c06c6bac1bed7ab13982647f476ae
             calibDir = 0xA0;
             break;
         default : 
             request = 0; 
             calibDir = 0x80;
             printf("Error : not a stepper"); 
-<<<<<<< HEAD
-            break; 
-=======
             return; 
->>>>>>> f558d75f005c06c6bac1bed7ab13982647f476ae
     }
     char send[] = {request,calibDir,0,0,0};
     lgSpiWrite(DE0_handle, send, 5);
 }
 
-<<<<<<< HEAD
-void resetStepperModule (steppers_t stepper) {
-    int request;
-    int request2; 
-=======
 void stpr_reset(steppers_t stepper) {
     char request;
     char request2; 
->>>>>>> f558d75f005c06c6bac1bed7ab13982647f476ae
 
 
     // Stop steppers
     switch (stepper) {
-<<<<<<< HEAD
-        case Plate :
-            request = 0x81; 
-            request2 = 0x83;
-            break;
-        case Slider :
-            request = 0x84; 
-            request2 = 0x86;
-            break;
-        case Flaps :
-            request = 0x87; 
-            request2 = 0x89;
-            break;
-=======
         case StprPlate :
             request = 0x82; 
             request2 = 0x85;
@@ -685,36 +411,17 @@ void stpr_reset(steppers_t stepper) {
             request = 0x8A; 
             request2 = 0x8D;
             break;
->>>>>>> f558d75f005c06c6bac1bed7ab13982647f476ae
         default : 
             request = 0; 
             request2 = 2; 
             printf("Error : not a stepper"); 
-<<<<<<< HEAD
-            break; 
-    } 
-    char sendr[] = {0x8A,0,0,0,1};   // reset switch values
-    lgSpiWrite(DE0_handle, sendr, 5);
-
-=======
             return; 
     } 
->>>>>>> f558d75f005c06c6bac1bed7ab13982647f476ae
     char send1[] = {request,0,0,0,0}; // set the Module command to Idle
     lgSpiWrite(DE0_handle, send1, 5);
 
     char send2[] = {request2,0,1,0,0}; // send 1 to reset the module completely
     lgSpiWrite(DE0_handle, send2, 5);
-<<<<<<< HEAD
-    sleep(1);
-    send2[2] = 0; 
-    lgSpiWrite(DE0_handle, send2, 5); // send 0 to stop resetting
-    sendr[4] = 0;   // stop resetting
-    lgSpiWrite(DE0_handle, sendr, 5);
-
-}
-
-=======
     //sleep(1);
     send2[2] = 0; 
     lgSpiWrite(DE0_handle, send2, 5); // send 0 to stop resetting
@@ -744,4 +451,3 @@ void stepper_setup_acc(steppers_t stepper, uint8_t acc) {
     lgSpiWrite(DE0_handle, send, 5);
 
 }
->>>>>>> f558d75f005c06c6bac1bed7ab13982647f476ae

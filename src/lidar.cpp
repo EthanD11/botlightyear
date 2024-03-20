@@ -159,24 +159,6 @@ void StopLidar(){
 
 
 
-<<<<<<< HEAD
-// int main(int argc, char *argv[]) {
-//    /*
-//     ILidarDriver* lid = connectLidarL();
-//     sleep(10);
-//     disconnectLidarL(lid);
-//     */
-    
-    
-    
-//     StartLidar();
-//     for (size_t i = 88; i < 92; i++)
-//     {
-//         sleep(10);
-//         DataToFile("testBottom"+std::to_string(i)+".txt");
-//         printf("turn\n");
-//     }
-=======
 void faussemain()
 {      
     
@@ -187,13 +169,8 @@ void faussemain()
         DataToFile("testBottom"+std::to_string(i)+".txt");
         printf("turn\n");
     }
->>>>>>> f558d75f005c06c6bac1bed7ab13982647f476ae
     
 //     StopLidar();
     
-<<<<<<< HEAD
-// }
-=======
  }
 
->>>>>>> f558d75f005c06c6bac1bed7ab13982647f476ae

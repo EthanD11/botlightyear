@@ -210,41 +210,6 @@ void tagDetectionValue(int* tag){
     return ;
 }
 
-<<<<<<< HEAD
-
-// int main() {
-//         test();
-// /*
-//     int tags[50];
-//     tagDetectionValue(tags);
-//     int size = tags[0];
-//     if (size >50){
-//         printf("size : %d \n", size);
-//         size=50;
-//     }
-//     if (size!=0){
-//         for (int i = 1; i <= size; ++i) {
-//             printf("tag : %i ", tags[i]);
-//         }
-//     }
-//     else{
-//         printf("no tags detect\n");
-//     }
-    
-//     /*int color = tagDetectionOrientation();
-//     if (color==0){
-//         printf("blue\n");
-//     } else if (color==1){
-//         printf("yellow\n");
-//     } else if (color==10){
-//         printf("blue and yellow\n");
-//     } else {
-//         printf("no tag\n");
-//     }*/
-    
-//     return 0;
-// }
-=======
 /*
 int main(int argc, char const *argv[]) {
     for (int i = 0; i < 14; ++i) {
@@ -252,4 +217,3 @@ int main(int argc, char const *argv[]) {
 
     }
 }*/
->>>>>>> f558d75f005c06c6bac1bed7ab13982647f476ae

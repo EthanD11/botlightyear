@@ -28,7 +28,7 @@ Regulator *speed_regulator;
 // double spi_speed_refl = 0.0;
 // double spi_speed_refr = 0.0;
 
-controlmode_t mode = ModeIdle;
+controlmode_t mode = ModePathFollowingInit;
 controlmode_t nextmode;
 
 // ----- TIME -----
