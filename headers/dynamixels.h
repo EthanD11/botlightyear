@@ -1,34 +1,40 @@
-#ifndef BLY_SOLAR_PANELS_H
-#define BLY_SOLAR_PANELS_H
+#ifndef MECATROMINIBOT_DYNAMIXELS_H
+#define MECATROMINIBOT_DYNAMIXELS_H
 
-int ax_init_port(); 
-int xl_init_port(); 
-int ax_ping(int ID);
-int xl_ping(int ID);
+typedef enum {
+    Plant, 
+    Pot, 
+    Open, 
+    Close,
+} object_t; 
 
-void deploy_solar_panel();
-void raise_solar_panel();
-void multi_turn_solar_panel(); 
+typedef enum {
+    Up, 
+    Down,
+    MidPlant,
+    MidPot, 
+} position_t;
 
-void deploy_solar_panel();
-void raise_solar_panel();
-void multi_turn_solar_panel_cw();
-void multi_turn_solar_panel_ccw(); 
-void position_solar_panel(); 
-void position_solar_panel2();
+typedef enum {
+    CCW,
+    cw,
+} direction_t;
 
-void open_gripper(); 
-void close_gripper(); 
-void close_gripper_plant();
-void close_gripper_pot(); 
+typedef enum {
+    Up,
+    Down,
+} position_s;
 
-void raise_gripper(); 
-void deploy_gripper(); 
-void mid_gripper();
+void dxl_init_port(); 
+void dxl_close_port(); 
 
-void idle(int ID, float protocol);
+void dxl_ping(int ID, float PROTOCOL); 
+void dxl_idle(int ID, float PROTOCOL);
 
-void ax_close_port();
-void xl_close_port();
+void gripper(object_t);
+void position_gripper(position_t);
+
+void position_solar(position_s);
+void multiturn_solar(direction_t);
 
 #endif
