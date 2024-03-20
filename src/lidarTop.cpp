@@ -2,7 +2,7 @@
 // Created by pauline on 20/03/24.
 //
 
-#include "../headers/lidarTop.h"
+#include "lidarTop.h"
 
 ///global variable to find out the size of the file
 size_t arraySize;
@@ -55,14 +55,14 @@ void rotationPosition(double *db, double *x, double *y, double * robot, double* 
 
     ///calculating the angle of rotation for the second transformation
     double alpha = atan(std::abs(beacon2[1])/std::abs(beacon2[0]));
-    if ((beacon2[0]>0 & beacon2[1]>0)){
+    if (((beacon2[0]>0) & (beacon2[1]>0))){
         alpha *=-1;
     }
-    if ((beacon2[0]<0 & beacon2[1]>0)){
+    if (((beacon2[0]<0) & (beacon2[1]>0))){
         alpha=M_PI-alpha;
         alpha*=-1;
     }
-    if ((beacon2[0]<0 & beacon2[1]<0)){
+    if (((beacon2[0]<0) & (beacon2[1]<0))){
         alpha=M_PI-alpha;
     }
 
@@ -377,7 +377,7 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
                 if (std::abs((db1 + db2 + db3) - dref1 - 2 * dref2) < 0.2) {//TODO check precision
 
                     /// 2 size sides ok (3rd also ok because sum ok)
-                    if ((std::abs(db1 - dref1) < 0.15 | std::abs(db2 - dref1) < 0.15 | std::abs(db3 - dref1) < 0.15)&&(std::abs(db1 - dref2) < 0.15 | std::abs(db2 - dref2) < 0.15 | std::abs(db3 - dref2) < 0.15)) {
+                    if (((std::abs(db1 - dref1) < 0.15) | (std::abs(db2 - dref1) < 0.15) | (std::abs(db3 - dref1) < 0.15))&&((std::abs(db1 - dref2) < 0.15 )| (std::abs(db2 - dref2) < 0.15) | (std::abs(db3 - dref2) < 0.15))) {
                         rotationPosition(new double[3]{db1, db2, db3} , new double[3]{x1,x2,x3}, new double[3]{y1,y2,y3}, robot, transfo, new double[3]{aObj[b1],aObj[b2],aObj[b3]});
 
                         /// we save in blabla the number of elements that could possibly be beacon (opponent)
@@ -406,32 +406,14 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
 }
 
 void lidarGetRobotPosition(double * robot, double* adv, double* beaconAdv) {
-    arraySize = 1000;
-    //StartLidar(); TODO local decom
-    double angles[arraySize];
-    double dist[arraySize];
-    double quality[arraySize];
-    int count = 0;
-    size_t * size = new size_t [2]{arraySize,arraySize};
-    //TODO faire meilleure boucle
-    while (robot[0]==0 && robot[1]==0 && count<1){//TODO remodif count
-        //updateData(angles, dist, quality, arraysize);//TODO local : rechangez le updatedata
-        updateDataFile(angles, dist, quality, "src/TestPaulineLidar/baliseNonVisible12.txt", size);
-        arraySize = size[0];
-        checkBeacon(angles, dist, quality, robot, adv, true, beaconAdv);
-        printf("%f %f\n", robot[0], robot[1]);
-        printf("%f %f\n", adv[0], adv[1]);
-        for (int i = 11; i > 0; --i) {
-            printf("\n\n%i\n",i);
-            updateDataFile(angles, dist, quality, "src/TestPaulineLidar/baliseNonVisible" + std::to_string(i) + ".txt", size);
-            arraySize= size[0];
-            checkBeacon(angles, dist, quality, robot, adv, false, beaconAdv);
-            printf("%f %f\n", robot[0], robot[1]);
-            printf("%f %f\n", adv[0], adv[1]);
-        }
-        count ++;
-    }
-    //StopLidar();TODO local decom
+    StartLidar();
+    double* angles = new double[1000];
+    double* distances = new double[1000];
+    double* quality = new double[1000];
+    //updateData(angles, distances, quality, 1000);
+    //checkBeacon(angles, distances, quality, robot, adv, true, beaconAdv);
+    DataToFile("testBottom1.txt");
+    StopLidar();
 }
 
 
