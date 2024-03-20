@@ -1,4 +1,4 @@
-#include "../src/SPI_Modules.h"
+#include "../headers/SPI_Modules.h"
 #include <stdio.h>
 
 //#define SPEED_CONTROL
