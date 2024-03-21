@@ -6,6 +6,9 @@ typedef struct SPIInterface {
     uint32_t i, n; // Number of bytes received, expected and actual
     uint32_t data_buffer[2*(2*256+2)+2]; // Max is obtained when 256 points are sent for path following (plus 2 angles and 2 starting bytes)
     query_t query;
+
+	char mode;
+	double x, y, theta;
 } SPIInterface;
 void __spi_receive_event();
 
@@ -16,10 +19,15 @@ void init_spi_interface() {
     __spi_interface->spi_slave =  new SPISlave_T4(0, SPI_8_BITS);
     __spi_interface->i = 0;
     __spi_interface->n = -1;
+	__spi_interface->query = NoQuery;
 
     __spi_interface->spi_slave->begin(MSBFIRST, SPI_MODE0);
     __spi_interface->spi_slave->swapPins();
     __spi_interface->spi_slave->onReceive(__spi_receive_event);
+}
+
+void spi_send_data(char mode) {
+	__spi_interface->mode = mode;
 }
 
 query_t spi_get_query() {
@@ -28,46 +36,73 @@ query_t spi_get_query() {
 
 void __spi_receive_event() {
     SPISlave_T4 *mySPI = __spi_interface->spi_slave;
-    int i = __spi_interface->i;
-    uint32_t data;
-    uint32_t *data_buffer = __spi_interface->data_buffer;
+	uint32_t data;
+	uint32_t *data_buffer = __spi_interface->data_buffer;
 
-    //When there is data to read
-    while ( mySPI->available() ) {
-        data = mySPI->popr();
-        data_buffer[i] = data;
+	while (mySPI->available()) {
+		int i = __spi_interface->i;
+		printf("i = %d\n", i);
+		data = mySPI->popr();
+		data_buffer[i] = data;
+		mySPI->pushr(data);
 
-        if (i == 0) __spi_interface->query = (query_t) data;
-        switch(__spi_interface->query) {
-            case QueryIdle:
-                if (i == 0) __spi_interface->n = 1;
-                break;
-                
-            case QueryDoPositionControl:
-                if (i == 0) __spi_interface->n = 7;
-                break;
+		if (i == 0) {
+			__spi_interface->query = (query_t) data;
+			printf("query = %d\n", (int) data);
+			switch(__spi_interface->query) {
+				case QueryIdle:
+					__spi_interface->n = 1; // 1 of query
+					break;
+					
+				case QueryDoPositionControl:
+					__spi_interface->n = 7; // 1 of query, 6 of data
+					break;
 
-            case QueryDoPathFollowing:
-                if (i == 1) {
-                    printf("QueryDoPathFollowing\n");
-                    int ncheckpoints = (int) data;
-                    __spi_interface->n = 2*(2*ncheckpoints+2) + 2;
-                    printf("message expected size=%d\n", (int) __spi_interface->n);
-                }
-                break;
+				case QuerySetPosition:
+					__spi_interface->n = 7; // 1 of query, 6 of data
+					break;
 
-            default:
-                break;
-        }
-        
-        i += 1;
+				case QueryAskState:
+					printf("Pushing the number 12 to the SPI slave handle\n");
+					__spi_interface->n = 3; // It only need to receive 1 data, although it needs to send more
+					// mySPI->pushr(((uint32_t) 4));
+					break;
 
-        #ifdef VERBOSE
-        printf("NEW DATA : %d\n", (int) data);
-        #endif
-    }
+				case QueryDoPathFollowing:
+					break;            
 
-    __spi_interface->i = i;
+				default:
+					break;
+			}
+		}
+		else {
+			switch(__spi_interface->query) {				
+				case QueryAskState:
+					if (i == 1) {
+						// mySPI->pushr((uint32_t) (__spi_interface->mode));
+						data = mySPI->popr();
+					}
+					break;
+
+				case QueryDoPathFollowing:
+					if (i == 1) {
+						int ncheckpoints = (int) data;
+						data = mySPI->popr(); 
+						__spi_interface->n = 2*(2*ncheckpoints+2) + 2; // 1 of query, 1 of npoints, 2*npoints of 2 bytes, 2 theta of 2 bytes
+					}
+					#ifdef VERBOSE
+					printf("QueryDoPathFollowing\n");
+					printf("message expected size=%d\n", (int) __spi_interface->n);
+					#endif
+					break;            
+
+				default:
+					break;
+			}
+		}
+		i += 1;
+		__spi_interface->i = i;
+	}
 }
 
 int spi_valid_transmission() {
@@ -79,17 +114,54 @@ void spi_reset_transmission() {
     __spi_interface->n = -1;
 }
 
-void spi_handle_position_control(RobotPosition *rp, PositionController *pc) 
-{
-    uint32_t *data_buffer = __spi_interface->data_buffer;
-    rp->x         = ((double)(data_buffer[1]))*3/255;
-    rp->y         = ((double)(data_buffer[2]))*2/255;
-    rp->theta     = ((double)(data_buffer[3]))*2*M_PI/255 - M_PI;
-    pc->xref      = ((double)(data_buffer[4]))*3/255;
-    pc->yref      = ((double)(data_buffer[5]))*2/255;
-    pc->theta_ref = ((double)(data_buffer[6]))*2*M_PI/255 - M_PI;
+void spi_handle_set_position(RobotPosition *rp) {
+    uint32_t *data = __spi_interface->data_buffer+1; // skips query
+    
+    char two_bytes[2];
+    uint16_t double_byte;
+
+	two_bytes[0] = data[0];
+    two_bytes[1] = data[1];
+    double_byte = *((uint16_t *) two_bytes);
+    rp->x = 2.0*((double) double_byte)/UINT16_MAX;
+    
+    two_bytes[0] = data[2];
+    two_bytes[1] = data[3];
+    double_byte = *((uint16_t *) two_bytes);
+    rp->y = 3.0*((double) double_byte)/UINT16_MAX;
+
+    two_bytes[0] = data[4];
+    two_bytes[1] = data[5];
+    double_byte = *((uint16_t *) two_bytes);
+    rp->theta = (((double) double_byte)/UINT16_MAX)*2*M_PI - M_PI;
+
+	printf("x = %f\ny = %f\ntheta = %f\n", rp->x, rp->y, rp->theta);
 }
 
+void spi_handle_position_control(PositionController *pc) 
+{
+    uint32_t *data = __spi_interface->data_buffer+1; // skips query
+    
+    char two_bytes[2];
+    uint16_t double_byte;
+
+    two_bytes[0] = data[0];
+    two_bytes[1] = data[1];
+    double_byte = *((uint16_t *) two_bytes);
+    pc->xref      = 2.0*((double) double_byte)/UINT16_MAX;
+    
+    two_bytes[0] = data[2];
+    two_bytes[1] = data[3];
+    double_byte = *((uint16_t *) two_bytes);
+    pc->yref      = 3.0*((double) double_byte)/UINT16_MAX;
+
+    two_bytes[0] = data[4];
+    two_bytes[1] = data[5];
+    double_byte = *((uint16_t *) two_bytes);
+    pc->theta_ref = (((double) double_byte)/UINT16_MAX)*2*M_PI - M_PI;
+
+	printf("xref = %f\nyref = %f\ntheta_ref = %f\n", pc->xref, pc->yref, pc->theta_ref);
+}
 
 void spi_handle_path_following(PathFollower *path_follower) {
     int ncheckpoints = (int) __spi_interface->data_buffer[1];
@@ -129,9 +201,12 @@ void spi_handle_path_following(PathFollower *path_follower) {
     }
     printf("theta_start = %f\n", theta_start);
     printf("theta_end = %f\n", theta_stop);
-    init_path_following(path_follower, x, y, ncheckpoints, theta_start, theta_stop);
-}
 
+    init_path_following(path_follower, x, y, ncheckpoints, theta_start, theta_stop);
+    
+    free(x);
+    free(y);
+}
 
 
 #ifdef PARITY_CHECK

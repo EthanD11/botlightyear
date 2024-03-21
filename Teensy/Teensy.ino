@@ -62,9 +62,7 @@ void loop() {
 
   if (spi_valid_transmission()) {
     spi_reset_transmission(); 
-    #ifdef VERBOSE
     printf("SPI received transmission\n");
-    #endif  
     switch (spi_get_query()) {
       case QueryDoPathFollowing:
         printf("SPI QueryDoPathFollowing\n");
@@ -73,8 +71,8 @@ void loop() {
         break;
 
       case QueryDoPositionControl:
-        printf("SPI QueryDoPathFollowing\n");
-        spi_handle_position_control(robot_position, position_controller);
+        printf("SPI QueryDoPositionControl\n");
+        spi_handle_position_control(position_controller);
         set_a3pin_duty_cycle(outputs, 0);
         nextmode = ModePositionControl;
         break;
@@ -84,14 +82,27 @@ void loop() {
         set_a3pin_duty_cycle(outputs, 128);
         nextmode = ModeIdle;
         break;
+
+      case QueryAskState:
+        printf("SPI QueryAskState\n");
+        nextmode = mode;
+        break;
+
+      case QuerySetPosition:
+        printf("SPI QuerySetPosition\n");
+        spi_handle_set_position(robot_position);
+        nextmode = mode;
+        break;
       
       default:
+        printf("SPI QueryDefault\n");
         set_a3pin_duty_cycle(outputs, 255);
         nextmode = mode;
         break;
     }
     mode = nextmode;
   } 
+
   else if (current_time - control_time > REG_DELAY) {
     update_localization(robot_position);
 
@@ -105,6 +116,7 @@ void loop() {
         #ifdef VERBOSE
         printf("\nMode idle\n");
         #endif
+        set_motors_duty_cycle(outputs, 0, 0);
         break;
 
       case ModePositionControl:
@@ -145,7 +157,6 @@ void loop() {
           get_duty_cycle_refl(speed_regulator), 
           get_duty_cycle_refr(speed_regulator));
         if (path_following_goal_reached) {
-          close_path_following(path_follower);
           set_ref(position_controller, 
             path_follower->last_x, 
             path_follower->last_y, 
@@ -157,11 +168,12 @@ void loop() {
         set_motors_duty_cycle(outputs, 0, 0);
         break;
     }
-    write_outputs(outputs);
+    
     #ifdef VERBOSE
     printf("dc left = %d\n", outputs->duty_cycle_l);
     printf("dc right = %d\n", outputs->duty_cycle_r);
     #endif
+
     // Next state logic
     switch (mode) {
       case ModeIdle:
@@ -186,11 +198,22 @@ void loop() {
         nextmode = ModeIdle;
         break;
     }
-
-    mode = nextmode;
-    control_time = current_time;
-    
+    write_outputs(outputs);
   }
 
-  
+  // Leave the current mode cleanly (free all malloc'd arrays and structs)
+  if (nextmode != mode) {
+    switch (mode) {
+      case ModePathFollowing:
+        close_path_following(path_follower);
+        break;
+
+      default:
+        break;
+    }
+  }
+
+  // Go to next mode and write outputs
+  mode = nextmode;
+  control_time = current_time;
 }
