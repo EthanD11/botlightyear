@@ -6,7 +6,7 @@ int DE0_handle, Teensy_handle;
 const double x_max = 3.0; 
 const double y_max = 2.0; 
 const double t_max = 2*M_PI; 
-const double speed_max = 1.0; 
+const double speed_max = 2.0; 
 
 const char servo_left_dc_deployed = 15;
 const char servo_left_dc_raised = 21;
@@ -162,6 +162,49 @@ void teensy_pos_ctrl(double xr, double yr, double theta_r) {
     }
     #endif
 }
+
+/*void teensy_pos_ctrl(double x, double y, double t, double xr, double yr, double tr) {
+    // Compression to go to SPI
+    char send[7];
+    send[0] = (char) QueryDoPositionControl; 
+    send[1] = (char) (x*255/x_max);   // x compressed
+    send[2] = (char) (y*255/y_max);   // y compressed
+    send[3] = (char) ((t+t_max/2)*255/t_max);   // t compressed
+    send[4] = (char) (xr*255/x_max);  // xr compressed
+    send[5] = (char) (yr*255/y_max);  // yr compressed
+    send[6] = (char) ((tr+t_max/2)*255/t_max);  // tr compressed
+
+    char receive[7];
+    lgSpiXfer(Teensy_handle, send, receive, 7);
+
+    #ifdef VERBOSE
+    printf("Sending Position ctrl \n");
+    for (int i = 0; i < 7; i++)
+    {
+        printf("%d, %d\n",send[i], receive[i]);
+    }
+    #endif
+}
+
+void teensy_spd_ctrl(double speed_left, double speed_right) {
+    // Compression to go to SPI
+    char send[3];
+    char receive[3];
+    send[0] = (char) 4; 
+    send[1] = (char) (speed_left*255/speed_max);   // speed_left compressed
+    send[2] = (char) (speed_right*255/speed_max);   // speed_right compressed
+
+    lgSpiXfer(Teensy_handle, send, receive, 3);
+
+    #ifdef VERBOSE
+    printf("Sending Speed ctrl \n");
+    for (int i = 0; i < 3; i++)
+    {
+        printf("%d, %d\n",send[i], receive[i]);
+    }
+    #endif
+    
+}*/
 
 void teensy_idle() {
     char send = (char) QueryIdle;

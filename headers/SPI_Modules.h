@@ -13,7 +13,7 @@
 #define SPI_DE0 1
 #define SPI_TEENSY 0
 #define SPI_MODE_DEFAULT 0
-#define SPI_SPEED_HZ_DEFAULT 1000000 // Arbitrary, but 500000 is reasonable
+#define SPI_SPEED_HZ_DEFAULT 100000 // Arbitrary, but 500000 is reasonable
 
 // Odometers conversion factors
 #define ODO_TICKS_TO_M 1.7257283863713464e-05 // Conversion factor ticks to meters. (theoretical : pi*45e-3/8192; practical : 610e-3/(2**3+2**4+2**6+4*2**11))
@@ -86,6 +86,10 @@ void teensy_spd_ctrl(double speed_left, double speed_right);
  * Must be called after init_spi. 
  */
 void teensy_pos_ctrl(double xr, double yr, double tr);
+
+//void teensy_pos_ctrl(double x, double y, double t, double xr, double yr, double tr); 
+
+//void teensy_spd_ctrl(double speed_left, double speed_right);
 
 /**
  * @brief Ask the teensy to enter the path following mode with the specified checkpoints. 

@@ -1,11 +1,11 @@
 #include "../headers/SPI_Modules.h"
 #include <stdio.h>
 
-// #define POSITION_CONTROL
-// #define PATH_FOLLOWING
-// #define IDLE
+#define POSITION_CONTROL
+//#define PATH_FOLLOWING
+//#define IDLE
 // #define SET_POSITION
-#define ASK_MODE
+//#define ASK_MODE
 
 
 const double deg_to_rads = 3.141593/180;
@@ -15,11 +15,18 @@ int main(int argc, char const *argv[])
     init_spi(); 
 
     #ifdef POSITION_CONTROL
+    /*double x = 0; 
+    double y = 0; 
+    double t = 0;*/
     double xr = 1.22; 
     double yr = 0; 
     double tr = 1.0;
 
     teensy_pos_ctrl(xr, yr, tr);
+    /*lguSleep(1);
+    teensy_spd_ctrl(0.3,0.3);*/
+    lguSleep(5);
+    teensy_idle();
     #endif
 
     #ifdef PATH_FOLLOWING
