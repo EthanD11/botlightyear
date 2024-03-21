@@ -1,8 +1,15 @@
 // Includes and inlines
 #include <Arduino.h>
-#include "controller.h"
+#include "old_controller.h"
 #include <cmath>
 #include <algorithm>
+
+inline int SAT(int x, int limit) {
+  return std::clamp(x, -(limit), limit);
+}  // Saturation function for integers
+inline double SAT(double x, double limit) {
+  return std::clamp(x, -(limit), limit);
+}  // Saturation function for doubles
 
 
 #define MOTOR_DUTY_RANGE 256  // Duty cycle range
@@ -13,17 +20,17 @@
 
 
 #ifdef ADZ_ENABLE
-const int adz = 35;
+int adz = 35;
 #endif
 
 
 // Pins
 // IN1
-const uint8_t C_L = 14, C_R = 3;
+const uint8_t C_R = 14, C_L = 3;
 // IN2
-const uint8_t D_L = 15, D_R = 4;
+const uint8_t D_R = 15, D_L = 4;
 // Enable
-const uint8_t PWM_L = 22, PWM_R = 23;
+const uint8_t PWM_R = 22, PWM_L = 23;
 // Current sensors
 //const uint8_t CURRENT_L = 41, CURRENT_R = 40;
 // Test points
