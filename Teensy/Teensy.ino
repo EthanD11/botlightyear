@@ -28,7 +28,7 @@ Regulator *speed_regulator;
 // double spi_speed_refl = 0.0;
 // double spi_speed_refr = 0.0;
 
-controlmode_t mode = ModePathFollowingInit;
+controlmode_t mode = ModeIdle;
 controlmode_t nextmode;
 
 // ----- TIME -----
@@ -45,7 +45,6 @@ void setup() {
   outputs = init_outputs();
   // ----- POSITION -----
   robot_position = init_robot_position(0, 1.5, 0);
-  // robot_position = init_robot_position(0, 1.5, 0);
   // ----- SPEED REGULATOR -----
   speed_regulator = init_regulator();
   // ----- POSITION CONTROLLER -----
@@ -96,10 +95,10 @@ void loop() {
   else if (current_time - control_time > REG_DELAY) {
     update_localization(robot_position);
 
-    int ncheckpoints = 5;
+    int ncheckpoints = 3;
     int path_following_goal_reached = 0;
-    double x[5] = {0, 0.4, 0.8,  0.4, 0.0};
-    double y[5] = {1.5, 1.65, 1.5, 1.35, 1.5};
+    double x[5] = {0, 0.4, 0.5};
+    double y[5] = {1.5, 1.5, 1.3};
 
     switch (mode) {
       case ModeIdle:
@@ -150,7 +149,7 @@ void loop() {
           set_ref(position_controller, 
             path_follower->last_x, 
             path_follower->last_y, 
-            M_PI);
+            robot_position->theta);
         }
         break;
 
@@ -159,8 +158,10 @@ void loop() {
         break;
     }
     write_outputs(outputs);
+    #ifdef VERBOSE
     printf("dc left = %d\n", outputs->duty_cycle_l);
     printf("dc right = %d\n", outputs->duty_cycle_r);
+    #endif
     // Next state logic
     switch (mode) {
       case ModeIdle:

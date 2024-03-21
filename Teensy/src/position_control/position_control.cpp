@@ -8,8 +8,8 @@ PositionController *init_position_controller(){
 
     pc->kp =  1.0; // Proportional coefficient for distance error
     pc->ka =  4.0; // Proportional coefficient for direction error
-    pc->kb = -1.0; // Proportional coefficient for orientation error
-    pc->kw = 10.0;
+    pc->kb = -0.5; // Proportional coefficient for orientation error
+    pc->kw = 2.0;
     pc->position_tol = 1e-2;      // Acceptable static error on position (m)
     pc->drift_tol    = 2e-1;      // Acceptable drift from reference position when reorienting (m)
     pc->angular_tol  = 1*M_PI/180; // Acceptable static error on orientation (rad, eq to 5 degrees)
@@ -48,7 +48,7 @@ void control_position(
     dy = y_ref - y;
     p = hypot(dx, dy);
     int flag_goal_reached = (p < pc->position_tol); // Stop at 1cm
-    int flag_too_far_away = (p > 0.5); // Stop if further than 50cm away from the target
+    int flag_too_far_away = (p > 1.0); // Stop if further than 50cm away from the target
     
     switch (flag_goal_reached)
     {
