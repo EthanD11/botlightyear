@@ -71,8 +71,10 @@ typedef enum {
 	QueryTestWrite, // SPI test, answer with data received
 	QueryDoPositionControl, // Position update, data received = [flag,x,y,t,xr,yr,tr]
 	QueryDoPathFollowing,
-	QueryAskGoalReached
-} teensy_query_t;
+	QueryAskGoalReached,
+	QueryAskState,
+	QuerySetPosition
+} query_t;
 
 /**
  * @brief Send constant speed query to Teensy. Must be called after init_spi.
@@ -83,7 +85,7 @@ void teensy_spd_ctrl(double speed_left, double speed_right);
  * @brief Ask the teensy to enter the position control mode with the specified reference position.
  * Must be called after init_spi. 
  */
-void teensy_pos_ctrl(double x, double y, double t, double xr, double yr, double tr);
+void teensy_pos_ctrl(double xr, double yr, double tr);
 
 /**
  * @brief Ask the teensy to enter the path following mode with the specified checkpoints. 
@@ -95,6 +97,16 @@ void teensy_path_following(double *x, double *y, int ncheckpoints, double theta_
  * @brief Send query to idle Teensy. It will stop any control effort over the motors. Must be called after init_spi.
  */
 void teensy_idle();
+
+/**
+ * @brief Set the position of the teensy
+*/
+void teensy_set_position(double x, double y, double theta);
+
+/**
+ * @brief Return in which mode the teensy is currently
+*/
+void teensy_ask_mode();
 
 // ------ SERVOS -----
 

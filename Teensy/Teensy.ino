@@ -106,13 +106,14 @@ void loop() {
   else if (current_time - control_time > REG_DELAY) {
     update_localization(robot_position);
 
-    int ncheckpoints = 3;
+    //int ncheckpoints = 3;
     int path_following_goal_reached = 0;
-    double x[5] = {0, 0.4, 0.5};
-    double y[5] = {1.5, 1.5, 1.3};
+    //double x[5] = {0, 0.4, 0.5};
+    //double y[5] = {1.5, 1.5, 1.3};
 
     switch (mode) {
       case ModeIdle:
+        set_motors_duty_cycle(outputs, 0, 0);
         #ifdef VERBOSE
         printf("\nMode idle\n");
         #endif

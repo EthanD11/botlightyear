@@ -6,10 +6,10 @@ PositionController *init_position_controller(){
     pc->speed_refl = 0.0;
     pc->speed_refr = 0.0;
 
-    pc->kp =  1.0; // Proportional coefficient for distance error
-    pc->ka =  4.0; // Proportional coefficient for direction error
+    pc->kp =  0.5; // Proportional coefficient for distance error
+    pc->ka =  2.5; // Proportional coefficient for direction error
     pc->kb = -0.5; // Proportional coefficient for orientation error
-    pc->kw = 2.0;
+    pc->kw =  2.0; // Propoortional coefficient for orientation error when position is reached
     pc->position_tol = 1e-2;      // Acceptable static error on position (m)
     pc->drift_tol    = 2e-1;      // Acceptable drift from reference position when reorienting (m)
     pc->angular_tol  = 1*M_PI/180; // Acceptable static error on orientation (rad, eq to 5 degrees)
@@ -48,7 +48,7 @@ void control_position(
     dy = y_ref - y;
     p = hypot(dx, dy);
     int flag_goal_reached = (p < pc->position_tol); // Stop at 1cm
-    int flag_too_far_away = (p > 1.0); // Stop if further than 50cm away from the target
+    //int flag_too_far_away = (p > 1.0); // Stop if further than 50cm away from the target
     
     switch (flag_goal_reached)
     {
@@ -63,9 +63,9 @@ void control_position(
             if (fabs(a) > M_PI_2) {
                 p = -p;
                 a += (a > 0) ? -PI : PI;
-                b += (b  > 0) ? -PI : PI;
+                b += (b > 0) ? -PI : PI;
             }
-            vref = kp*p*SMOOTH_WINDOW(a, 0.8*M_PI/2, 5);
+            vref = kp*p; //*SMOOTH_WINDOW(a, 0.8*M_PI/2, 5);
             omega_ref = ka*a + kb*b;
             break;
         }
@@ -85,13 +85,8 @@ void control_position(
         }
     }
 
-    if (!flag_too_far_away){
-        pc->speed_refr = (vref + WHEEL_L*omega_ref);
-        pc->speed_refl = (vref - WHEEL_L*omega_ref);
-    } else {
-        pc->speed_refr = 0;
-        pc->speed_refl = 0;
-    }
+    pc->speed_refr = (vref + WHEEL_L*omega_ref);
+    pc->speed_refl = (vref - WHEEL_L*omega_ref);
 
 
 }

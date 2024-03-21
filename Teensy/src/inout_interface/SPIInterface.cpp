@@ -19,7 +19,11 @@ void init_spi_interface() {
     __spi_interface->spi_slave =  new SPISlave_T4(0, SPI_8_BITS);
     __spi_interface->i = 0;
     __spi_interface->n = -1;
+<<<<<<< HEAD
 	__spi_interface->query = NoQuery;
+=======
+    __spi_interface->query = QueryIdle;
+>>>>>>> 4a463190d80c217910cf7be6fa92a0f5a66bb549
 
     __spi_interface->spi_slave->begin(MSBFIRST, SPI_MODE0);
     __spi_interface->spi_slave->swapPins();
@@ -62,11 +66,19 @@ void __spi_receive_event() {
 					__spi_interface->n = 7; // 1 of query, 6 of data
 					break;
 
+<<<<<<< HEAD
 				case QueryAskState:
 					printf("Pushing the number 12 to the SPI slave handle\n");
 					__spi_interface->n = 3; // It only need to receive 1 data, although it needs to send more
 					// mySPI->pushr(((uint32_t) 4));
 					break;
+=======
+            default:
+                break;
+        }
+        
+        i++;
+>>>>>>> 4a463190d80c217910cf7be6fa92a0f5a66bb549
 
 				case QueryDoPathFollowing:
 					break;            

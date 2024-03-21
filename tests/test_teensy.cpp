@@ -1,10 +1,12 @@
 #include "../headers/SPI_Modules.h"
 #include <stdio.h>
 
-//#define SPEED_CONTROL
-#define POSITION_CONTROL
+// #define POSITION_CONTROL
 // #define PATH_FOLLOWING
 // #define IDLE
+// #define SET_POSITION
+#define ASK_MODE
+
 
 const double deg_to_rads = 3.141593/180;
 
@@ -12,24 +14,12 @@ int main(int argc, char const *argv[])
 {
     init_spi(); 
 
-    #ifdef SPEED_CONTROL
-    double speed_left, speed_right; 
-    speed_left = 0.01; 
-    speed_right = 0.01; 
-    teensy_spd_ctrl(speed_left, speed_right); 
-    lguSleep(10);
-    teensy_idle();
-    #endif
-
     #ifdef POSITION_CONTROL
-    double x = 1; 
-    double y = 0; 
-    double t = 45*deg_to_rads; 
-    double xr = 0; 
+    double xr = 1.22; 
     double yr = 0; 
-    double tr = 0*deg_to_rads;
+    double tr = 1.0;
 
-    teensy_pos_ctrl(x, y, t, xr, yr, tr);
+    teensy_pos_ctrl(xr, yr, tr);
     #endif
 
     #ifdef PATH_FOLLOWING
@@ -42,8 +32,19 @@ int main(int argc, char const *argv[])
     teensy_path_following(x, y, ncheckpoints, theta_start, theta_end);
     #endif
 
+    #ifdef SET_POSITION
+    double x = 0.123456789;
+    double y = 0.987654321;
+    double theta = -3.123456789;
+    teensy_set_position(x, y, theta);
+    #endif
+
     #ifdef IDLE
     teensy_idle();
+    #endif
+
+    #ifdef ASK_MODE
+    teensy_ask_mode();
     #endif
 
     close_spi();
