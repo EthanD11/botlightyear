@@ -8,7 +8,7 @@
 #include "src/regulator/regulator.h"
 #include "utils.h"
 
-#define VERBOSE
+// #define VERBOSE
 
 typedef enum {
   ModeIdle, // No input from RPi, default is to remain still
@@ -67,20 +67,20 @@ void loop() {
     #endif  
     switch (spi_get_query()) {
       case QueryDoPathFollowing:
+        printf("SPI QueryDoPathFollowing\n");
         spi_handle_path_following(path_follower);
         nextmode = ModePathFollowing;
-        #ifdef VERBOSE
-        printf("SPI QueryDoPathFollowing\n");
-        #endif
         break;
 
       case QueryDoPositionControl:
+        printf("SPI QueryDoPathFollowing\n");
         spi_handle_position_control(robot_position, position_controller);
         set_a3pin_duty_cycle(outputs, 0);
         nextmode = ModePositionControl;
         break;
 
       case QueryIdle:
+        printf("SPI QueryIdle\n");
         set_a3pin_duty_cycle(outputs, 128);
         nextmode = ModeIdle;
         break;
@@ -124,7 +124,7 @@ void loop() {
         #ifdef VERBOSE
         printf("\nMode path following INIT\n");
         #endif
-        init_path_following(path_follower, x, y, ncheckpoints, 0.0);
+        init_path_following(path_follower, x, y, ncheckpoints, 0.0, M_PI);
         compute_entire_path(path_follower, 2e-3);
         delay(1);
         mode = ModePathFollowing;
@@ -149,7 +149,7 @@ void loop() {
           set_ref(position_controller, 
             path_follower->last_x, 
             path_follower->last_y, 
-            robot_position->theta);
+            path_follower->last_theta);
         }
         break;
 

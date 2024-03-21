@@ -36,7 +36,6 @@
 #include "../localization/localization.h"
 #include <stdlib.h>
 
-#define VERBOSE
 #define MAX_DS 5e-3
 
 /*
@@ -54,7 +53,7 @@ typedef struct PathFollower {
     double *checkpoints_x;
     double *checkpoints_y;
     int n; // Number of checkpoints
-    double last_x, last_y, last_q;
+    double last_x, last_y, last_q, last_theta;
 
     SplineSet *x_splines;
     SplineSet *y_splines;
@@ -96,7 +95,7 @@ void free_path_follower(PathFollower *path_follower);
  * `int ncheckpoints`: the number of checkpoints
  * `double * theta_start`: the current orientation of the robot (just before the robot starts to follow the trajectory) 
  */
-void init_path_following(PathFollower *path_follower, double *x, double *y, int ncheckpoints, double theta_start);
+void init_path_following(PathFollower *path_follower, double *x, double *y, int ncheckpoints, double theta_start, double theta_stop);
 void close_path_following(PathFollower *pf);
 
 // Update the reference speed within the path follower

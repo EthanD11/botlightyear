@@ -4,7 +4,7 @@
 typedef struct SPIInterface {
     SPISlave_T4 *spi_slave;
     uint32_t i, n; // Number of bytes received, expected and actual
-    uint32_t data_buffer[2*(2*256+1)+2]; // Max is obtained when 256 points are sent for path following
+    uint32_t data_buffer[2*(2*256+2)+2]; // Max is obtained when 256 points are sent for path following (plus 2 angles and 2 starting bytes)
     query_t query;
 } SPIInterface;
 void __spi_receive_event();
@@ -51,7 +51,7 @@ void __spi_receive_event() {
                 if (i == 1) {
                     printf("QueryDoPathFollowing\n");
                     int ncheckpoints = (int) data;
-                    __spi_interface->n = 2*(2*ncheckpoints+1) + 2;
+                    __spi_interface->n = 2*(2*ncheckpoints+2) + 2;
                     printf("message expected size=%d\n", (int) __spi_interface->n);
                 }
                 break;
@@ -112,15 +112,24 @@ void spi_handle_path_following(PathFollower *path_follower) {
         tmp_16 = *((uint16_t *) tmp_bytes); // Merge bytes
         y[i] = 3.0*(((double) tmp_16)/UINT16_MAX); // Decode
     }
+
     tmp_bytes[0] = (char) data[4*ncheckpoints]; // First byte
     tmp_bytes[1] = (char) data[4*ncheckpoints+1]; // Second byte
     tmp_16 = *((uint16_t *) tmp_bytes); // Merge bytes
-    double theta = (((double) tmp_16)/UINT16_MAX)*2*M_PI - M_PI; // Decode
+    double theta_start = (((double) tmp_16)/UINT16_MAX)*2*M_PI - M_PI; // Decode
+
+    tmp_bytes[0] = (char) data[4*ncheckpoints+2]; // First byte
+    tmp_bytes[1] = (char) data[4*ncheckpoints+3]; // Second byte
+    tmp_16 = *((uint16_t *) tmp_bytes); // Merge bytes
+    double theta_stop  = (((double) tmp_16)/UINT16_MAX)*2*M_PI - M_PI; // Decode
+
+
     for (int i = 0; i < ncheckpoints; i++) {
         printf("(x[%d], y[%d]) = (%f,%f)\n", i, i, x[i], y[i]);
     }
-    printf("theta0 = %f\n", theta);
-    init_path_following(path_follower, x, y, ncheckpoints, theta);
+    printf("theta_start = %f\n", theta_start);
+    printf("theta_end = %f\n", theta_stop);
+    init_path_following(path_follower, x, y, ncheckpoints, theta_start, theta_stop);
 }
 
 

@@ -26,7 +26,7 @@ void free_path_follower(PathFollower *path_follower) {
     free(path_follower);
 }
 
-void init_path_following(PathFollower *path_follower, double *x, double *y, int n, double theta_start){
+void init_path_following(PathFollower *path_follower, double *x, double *y, int n, double theta_start, double theta_stop){
     path_follower->checkpoints_x = (double *) malloc(sizeof(double)*n);
     path_follower->checkpoints_y = (double *) malloc(sizeof(double)*n);
     path_follower->n = n;
