@@ -84,10 +84,10 @@ void init_sonar() {
 
 // ----- Teensy -----
 
-void teensy_path_following(double *x, double *y, int ncheckpoints, double theta_current) {
+void teensy_path_following(double *x, double *y, int ncheckpoints, double theta_start, double theta_end) {
 
-    size_t message_size = sizeof(char)*2 + sizeof(uint16_t)*(2*ncheckpoints+1);
-    // Send vector. Needs to be malloced since it is variabel size
+    size_t message_size = sizeof(char)*2 + sizeof(uint16_t)*(2*ncheckpoints+2);
+    // Send vector. Needs to be malloced since it is variable size
     char *send = (char *) malloc(message_size);
     char *receive = (char *) malloc(message_size);
 
@@ -103,7 +103,8 @@ void teensy_path_following(double *x, double *y, int ncheckpoints, double theta_
     uint16_t *send_points = (uint16_t *) (send_n + sizeof(char)); // Send points over 2 bytes   
     for (int i = 0; i < ncheckpoints; i++)              send_points[i] = (uint16_t) (UINT16_MAX*(x[i]/2.0));
     for (int i = 0; i < ncheckpoints; i++) send_points[i+ncheckpoints] = (uint16_t) (UINT16_MAX*(y[i]/3.0));
-    send_points[2*ncheckpoints] = (uint16_t) (UINT16_MAX*((theta_current+M_PI)/(M_PI*2)));
+    send_points[2*ncheckpoints] = (uint16_t) (UINT16_MAX*((theta_start+M_PI)/(M_PI*2)));
+    send_points[2*ncheckpoints+1] = (uint16_t) (UINT16_MAX*((theta_end+M_PI)/(M_PI*2)));
 
     lgSpiXfer(Teensy_handle, send, receive, message_size);
 
@@ -122,7 +123,7 @@ void teensy_path_following(double *x, double *y, int ncheckpoints, double theta_
 void teensy_pos_ctrl(double x, double y, double t, double xr, double yr, double tr) {
     // Compression to go to SPI
     char send[7];
-    send[0] = (char) 3; 
+    send[0] = (char) QueryDoPositionControl; 
     send[1] = (char) (x*255/x_max);   // x compressed
     send[2] = (char) (y*255/y_max);   // y compressed
     send[3] = (char) ((t+t_max/2)*255/t_max);   // t compressed
