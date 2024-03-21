@@ -16,6 +16,7 @@ void init_spi_interface() {
     __spi_interface->spi_slave =  new SPISlave_T4(0, SPI_8_BITS);
     __spi_interface->i = 0;
     __spi_interface->n = -1;
+    __spi_interface->query = QueryIdle;
 
     __spi_interface->spi_slave->begin(MSBFIRST, SPI_MODE0);
     __spi_interface->spi_slave->swapPins();
@@ -60,7 +61,7 @@ void __spi_receive_event() {
                 break;
         }
         
-        i += 1;
+        i++;
 
         #ifdef VERBOSE
         printf("NEW DATA : %d\n", (int) data);

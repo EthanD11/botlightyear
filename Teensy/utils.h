@@ -16,7 +16,7 @@
 // #define PI 3.141592653589793238462643383279502
 #define SATURATE(a,lb,ub) ((a) > (ub) ? (ub) : ((a) < (lb) ? (lb) : (a)))
 #define ABS(a) ((a) >= 0 ? (a) : (-(a)))
-#define PERIODIC(a,lb,ub) ((a)>ub ? ((lb)+(a)-(ub)) : ((a)<(lb) ? (ub)+(a)-(lb) : (a)))
+#define PERIODIC(a,lb,ub) ((a)>(ub) ? ((lb)+(a)-(ub)) :    ((a)<(lb) ? (ub)+(a)-(lb) : (a)))
 #define PIPERIODIC(a) PERIODIC(a, -M_PI, M_PI)
 #define SIGMOID(a) (1/(1+exp(-(a))))
 #define SMOOTH_WINDOW(a,T,steepness) (SIGMOID(steepness*(a+T))-SIGMOID(steepness*(a-T)))
