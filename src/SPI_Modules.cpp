@@ -3,10 +3,6 @@
 int DE0_handle, Teensy_handle;
 //const unsigned int sonar_GPIO_Trig = 16;
 //const unsigned int sonar_GPIO_Echo = 19;
-const double x_max = 3.0; 
-const double y_max = 2.0; 
-const double t_max = 2*M_PI; 
-const double speed_max = 2.0; 
 
 const char servo_left_dc_deployed = 15;
 const char servo_left_dc_raised = 21;
@@ -163,47 +159,48 @@ void teensy_pos_ctrl(double xr, double yr, double theta_r) {
     #endif
 }
 
-void teensy_pos_ctrl(double x, double y, double t, double xr, double yr, double tr) {
-    // Compression to go to SPI
-    char send[7];
-    send[0] = (char) QueryDoPositionControl; 
-    send[1] = (char) (x*255/x_max);   // x compressed
-    send[2] = (char) (y*255/y_max);   // y compressed
-    send[3] = (char) ((t+t_max/2)*255/t_max);   // t compressed
-    send[4] = (char) (xr*255/x_max);  // xr compressed
-    send[5] = (char) (yr*255/y_max);  // yr compressed
-    send[6] = (char) ((tr+t_max/2)*255/t_max);  // tr compressed
-
-    char receive[7];
-    lgSpiXfer(Teensy_handle, send, receive, 7);
-
-    #ifdef VERBOSE
-    printf("Sending Position ctrl \n");
-    for (int i = 0; i < 7; i++)
-    {
-        printf("%d, %d\n",send[i], receive[i]);
-    }
-    #endif
-}
 
 void teensy_spd_ctrl(double speed_left, double speed_right) {
     // Compression to go to SPI
-    char send[3];
-    char receive[3];
-    send[0] = (char) 4; 
-    send[1] = (char) (speed_left*255/speed_max);   // speed_left compressed
-    send[2] = (char) (speed_right*255/speed_max);   // speed_right compressed
+    char send[5];
+    char receive[5];
+    send[0] = (char) QueryDoSpeedControl;
 
-    lgSpiXfer(Teensy_handle, send, receive, 3);
+    uint16_t *send_ref = (uint16_t *) (send + sizeof(char));
+    send_ref[0] = (uint16_t) ((speed_left/2.0)*UINT16_MAX);   // speed_left compressed
+    send_ref[1] = (uint16_t) ((speed_right/2.0)*UINT16_MAX);   // speed_right compressed
+
+    lgSpiXfer(Teensy_handle, send, receive, 5);
 
     #ifdef VERBOSE
     printf("Sending Speed ctrl \n");
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 5; i++)
     {
         printf("%d, %d\n",send[i], receive[i]);
     }
     #endif
     
+}
+
+void teensy_constant_dc(int dc_refl, int dc_refr) {
+    
+    // Compression to go to SPI
+    char send[5];
+    char receive[5];
+    send[0] = (char) QueryDoConstantDutyCycle;
+    uint16_t *send_ref = (uint16_t*) (send + sizeof(char));
+    send_ref[0] = (uint16_t) (((double) SATURATE(dc_refl, -255,255))+255.0);  // speed_left compressed
+    send_ref[1] = (uint16_t) (((double) SATURATE(dc_refr, -255, 255))+255.0);   // speed_right compressed
+
+    lgSpiXfer(Teensy_handle, send, receive, 5);
+
+    #ifdef VERBOSE
+    printf("Sending Speed ctrl \n");
+    for (int i = 0; i < 5; i++)
+    {
+        printf("%d, %d\n",send[i], receive[i]);
+    }
+    #endif
 }
 
 void teensy_idle() {
@@ -212,14 +209,15 @@ void teensy_idle() {
 }
 
 void teensy_ask_mode() {
-    char send[3];
-    char receive[3];
+    char send[4];
+    char receive[4];
     send[0] = QueryAskState;
     send[1] = 0; // Not needed
     send[2] = 1; // Not needed
-    int retval = lgSpiXfer(Teensy_handle, send, receive, 3);
+    send[3] = 2; // Not needed
+    int retval = lgSpiXfer(Teensy_handle, send, receive, 4);
     printf("Xfer return value: %d\n", retval);
-    for (int i = 0; i < 3; i++){
+    for (int i = 0; i < 4; i++){
         printf("%d, %d\n", send[i], receive[i]);
     }
 }
