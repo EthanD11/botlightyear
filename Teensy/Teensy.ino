@@ -14,7 +14,9 @@ typedef enum {
   ModeIdle, // No input from RPi, default is to remain still
   ModePositionControl,
   ModePathFollowingInit,
-  ModePathFollowing
+  ModePathFollowing,
+  ModeSpeedControl,
+  ModeConstantDC
 } controlmode_t; // Control modes type
 // Note : Left = 1, Right = 2
 
@@ -77,6 +79,12 @@ void loop() {
         nextmode = ModePositionControl;
         break;
 
+      case QueryDoSpeedControl:
+        printf("SPI SpeedControl\n");
+        spi_handle_speed_control();
+        nextmode = ModeSpeedControl;
+        break;
+
       case QueryIdle:
         printf("SPI QueryIdle\n");
         set_a3pin_duty_cycle(outputs, 128);
@@ -93,6 +101,12 @@ void loop() {
         spi_handle_set_position(robot_position);
         nextmode = mode;
         break;
+
+      case QueryDoConstantDutyCycle:
+        printf("SPI Constant DC\n");
+        spi_handle_constant_duty_cycle();
+        nextmode = ModeConstantDC;
+        break;
       
       default:
         printf("SPI QueryDefault\n");
@@ -106,10 +120,10 @@ void loop() {
   else if (current_time - control_time > REG_DELAY) {
     update_localization(robot_position);
 
-    //int ncheckpoints = 3;
+    int ncheckpoints = 3;
     int path_following_goal_reached = 0;
-    //double x[5] = {0, 0.4, 0.5};
-    //double y[5] = {1.5, 1.5, 1.3};
+    double x[3] = {0, 0.4, 0.5};
+    double y[3] = {1.5, 1.5, 1.3};
 
     switch (mode) {
       case ModeIdle:
@@ -131,6 +145,19 @@ void loop() {
         set_motors_duty_cycle(outputs, 
           get_duty_cycle_refl(speed_regulator), 
           get_duty_cycle_refr(speed_regulator));
+        break;
+
+      case ModeSpeedControl:
+        control_speed(speed_regulator, robot_position,
+          spi_get_speed_refl(), spi_get_dc_refr());
+        set_motors_duty_cycle(outputs,
+          get_duty_cycle_refl(speed_regulator), 
+          get_duty_cycle_refr(speed_regulator));
+        break;
+
+      case ModeConstantDC:
+        set_motors_duty_cycle(outputs,
+          spi_get_dc_refl(), spi_get_dc_refr());
         break;
 
       case ModePathFollowingInit:
@@ -165,6 +192,7 @@ void loop() {
         }
         break;
 
+
       default: // ModeIdle
         set_motors_duty_cycle(outputs, 0, 0);
         break;
@@ -193,6 +221,9 @@ void loop() {
         } else {
           nextmode = ModePathFollowing;
         }
+        break;
+      case ModeSpeedControl:
+        nextmode = ModeSpeedControl;
         break;
 
       default:

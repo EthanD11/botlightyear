@@ -9,6 +9,10 @@ typedef struct SPIInterface {
 
 	char mode;
 	double x, y, theta;
+
+    double speed_refl, speed_refr;
+
+    int dc_refl, dc_refr;
 } SPIInterface;
 void __spi_receive_event();
 
@@ -19,7 +23,7 @@ void init_spi_interface() {
     __spi_interface->spi_slave =  new SPISlave_T4(0, SPI_8_BITS);
     __spi_interface->i = 0;
     __spi_interface->n = -1;
-	__spi_interface->query = NoQuery;
+	__spi_interface->query = QueryIdle;
 
     __spi_interface->spi_slave->begin(MSBFIRST, SPI_MODE0);
     __spi_interface->spi_slave->swapPins();
@@ -41,11 +45,10 @@ void __spi_receive_event() {
 
 	while (mySPI->available()) {
 		int i = __spi_interface->i;
-		printf("i = %d\n", i);
 		data = mySPI->popr();
 		data_buffer[i] = data;
 		mySPI->pushr(data);
-
+        
 		if (i == 0) {
 			__spi_interface->query = (query_t) data;
 			printf("query = %d\n", (int) data);
@@ -58,14 +61,20 @@ void __spi_receive_event() {
 					__spi_interface->n = 7; // 1 of query, 6 of data
 					break;
 
+                case QueryDoSpeedControl:
+                    __spi_interface->n = 5;
+                    break;
+
 				case QuerySetPosition:
 					__spi_interface->n = 7; // 1 of query, 6 of data
 					break;
 
+                case QueryDoConstantDutyCycle:
+                    __spi_interface->n = 5; // 1 of query, 2 of data
+                    break;
+
 				case QueryAskState:
-					printf("Pushing the number 12 to the SPI slave handle\n");
-					__spi_interface->n = 3; // It only need to receive 1 data, although it needs to send more
-					// mySPI->pushr(((uint32_t) 4));
+                    // Not implemented
 					break;
 
 				case QueryDoPathFollowing:
@@ -78,10 +87,7 @@ void __spi_receive_event() {
 		else {
 			switch(__spi_interface->query) {				
 				case QueryAskState:
-					if (i == 1) {
-						// mySPI->pushr((uint32_t) (__spi_interface->mode));
-						data = mySPI->popr();
-					}
+					// Not implemented
 					break;
 
 				case QueryDoPathFollowing:
@@ -101,7 +107,7 @@ void __spi_receive_event() {
 			}
 		}
 		i += 1;
-		__spi_interface->i = i;
+		__spi_interface->i = (uint32_t) i;
 	}
 }
 
@@ -207,6 +213,61 @@ void spi_handle_path_following(PathFollower *path_follower) {
     free(x);
     free(y);
 }
+
+void spi_handle_speed_control() {
+    uint32_t *data = __spi_interface->data_buffer+1; // skips query
+    
+    char two_bytes[2];
+    uint16_t double_byte;
+
+    two_bytes[0] = data[0];
+    two_bytes[1] = data[1];
+    double_byte = *((uint16_t *) two_bytes);
+    __spi_interface->speed_refl = 2.0*((double) double_byte)/UINT16_MAX;
+    
+    two_bytes[0] = data[2];
+    two_bytes[1] = data[3];
+    double_byte = *((uint16_t *) two_bytes);
+    __spi_interface->speed_refr = 2.0*((double) double_byte)/UINT16_MAX;
+
+	printf("speed_refl = %f\nspeed_refr = %f\n", __spi_interface->speed_refl, __spi_interface->speed_refr);
+}
+
+double spi_get_speed_refl() {
+    return __spi_interface->speed_refl;
+}
+double spi_get_speed_refr() {
+    return __spi_interface->speed_refr;
+}
+
+
+void spi_handle_constant_duty_cycle() {
+    uint32_t *data = __spi_interface->data_buffer+1; // skips query
+    
+    char two_bytes[2];
+    uint16_t double_byte;
+
+    two_bytes[0] = data[0];
+    two_bytes[1] = data[1];
+    double_byte = *((uint16_t *) two_bytes);
+    __spi_interface->dc_refl = (int) (((double) double_byte) - 255.0);
+    
+    two_bytes[0] = data[2];
+    two_bytes[1] = data[3];
+    double_byte = *((uint16_t *) two_bytes);
+   __spi_interface->dc_refr = (int) (((double) double_byte) - 255.0);
+
+	printf("dc_refl = %d\ndc_refr = %d\n", __spi_interface->dc_refl, __spi_interface->dc_refr);
+}
+
+double spi_get_dc_refl() {
+    return __spi_interface->dc_refl;
+}
+
+double spi_get_dc_refr() {
+    return __spi_interface->dc_refr;
+}
+
 
 
 #ifdef PARITY_CHECK
