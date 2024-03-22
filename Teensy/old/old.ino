@@ -11,8 +11,8 @@
 
 // Create encoder objects with the pins A and B
 // TODO : CHECK PINS
-Encoder enc_r(26, 25);
-Encoder enc_l(31, 30);
+Encoder enc_l(25, 26);
+Encoder enc_r(30, 31);
 
 
 // Level-shifter pin

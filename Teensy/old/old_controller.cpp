@@ -13,7 +13,7 @@ inline double SAT(double x, double limit) {
 
 
 #define MOTOR_DUTY_RANGE 256  // Duty cycle range
-#define BUF_STEP 100           // Max step to avoid brutal speed changes
+#define BUF_STEP 75           // Max step to avoid brutal speed changes
 
 // Uncomment to enable Anti-Dead Zone (ADZ)
 #define ADZ_ENABLE

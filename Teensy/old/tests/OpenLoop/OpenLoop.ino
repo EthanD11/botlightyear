@@ -36,19 +36,19 @@ void setup() {
   pinMode(D_R, OUTPUT);
   pinMode(PWM_R, OUTPUT);
 
-  // FWD
+  // BWD
   
-  digitalWrite(C_L, LOW);
+  /*digitalWrite(C_L, LOW);
   digitalWrite(D_L, HIGH);
-  digitalWrite(C_R, LOW);
-  digitalWrite(D_R, HIGH);
+  digitalWrite(C_R, HIGH);
+  digitalWrite(D_R, LOW);*/
 
-  // BWD 
-  /*
+  // FWD 
+  
   digitalWrite(C_L, HIGH);
   digitalWrite(D_L, LOW);
   digitalWrite(C_R, LOW);
-  digitalWrite(D_R, HIGH);*/
+  digitalWrite(D_R, HIGH);
   
   analogWriteFrequency(PWM_L, 20e3);
   analogWriteFrequency(PWM_R, 20e3);
@@ -64,14 +64,14 @@ void loop() {
   // Get time
   current_time = millis();
   
-  if (current_time - sens_time > 10000) {
+  if (current_time - sens_time > 100) {
     sens_time = current_time;
 
-    if (current_time > 100000){
+    if (current_time > 1000000){
         analogWrite(PWM_L, 0);
         //analogWrite(PWM_R, 0);
     } else {
-        i++;
+        //if (i < 100) i += 10;
         analogWrite(PWM_L, i);
         analogWrite(PWM_R, i);
         //Serial.printf("left : %.4f\n", enc_l.read()*1.003/58131);
