@@ -13,18 +13,18 @@ const double deg_to_rads = 3.141593/180;
 int main(int argc, char const *argv[])
 {
     init_spi(); 
+    lguSleep(1);
 
     #ifdef POSITION_CONTROL
-    /*double x = 0; 
+    double x = 0; 
     double y = 0; 
-    double t = 0;*/
+    double t = 0;
     double xr = 1.22; 
     double yr = 0; 
-    double tr = 1.0;
+    double tr = 45*deg_to_rads;
 
-    teensy_pos_ctrl(xr, yr, tr);
-    /*lguSleep(1);
-    teensy_spd_ctrl(0.3,0.3);*/
+    teensy_pos_ctrl(x,y,t,xr, yr, tr);
+    //teensy_spd_ctrl(0.3,0.3);
     lguSleep(5);
     teensy_idle();
     #endif

@@ -163,7 +163,7 @@ void teensy_pos_ctrl(double xr, double yr, double theta_r) {
     #endif
 }
 
-/*void teensy_pos_ctrl(double x, double y, double t, double xr, double yr, double tr) {
+void teensy_pos_ctrl(double x, double y, double t, double xr, double yr, double tr) {
     // Compression to go to SPI
     char send[7];
     send[0] = (char) QueryDoPositionControl; 
@@ -204,7 +204,7 @@ void teensy_spd_ctrl(double speed_left, double speed_right) {
     }
     #endif
     
-}*/
+}
 
 void teensy_idle() {
     char send = (char) QueryIdle;
