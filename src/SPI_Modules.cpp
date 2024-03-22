@@ -3,10 +3,6 @@
 int DE0_handle, Teensy_handle;
 //const unsigned int sonar_GPIO_Trig = 16;
 //const unsigned int sonar_GPIO_Echo = 19;
-const double x_max = 3.0; 
-const double y_max = 2.0; 
-const double t_max = 2*M_PI; 
-const double speed_max = 1.0; 
 
 const char servo_left_dc_deployed = 15;
 const char servo_left_dc_raised = 21;
@@ -84,12 +80,12 @@ void init_sonar() {
 
 // ----- Teensy -----
 
-void teensy_path_following(double *x, double *y, int ncheckpoints, double theta_current) {
+void teensy_path_following(double *x, double *y, int ncheckpoints, double theta_start, double theta_end) {
 
-    size_t message_size = sizeof(char)*2 + sizeof(uint16_t)*(2*ncheckpoints+1);
-    // Send vector
-    char send[message_size];
-    char receive[message_size];
+    size_t message_size = sizeof(char)*2 + sizeof(uint16_t)*(2*ncheckpoints+2);
+    // Send vector. Needs to be malloced since it is variable size
+    char *send = (char *) malloc(message_size);
+    char *receive = (char *) malloc(message_size);
 
     // Send the query over a single byte
     char *send_query = (char *) send;
@@ -102,8 +98,9 @@ void teensy_path_following(double *x, double *y, int ncheckpoints, double theta_
     // Send each points over two bytes
     uint16_t *send_points = (uint16_t *) (send_n + sizeof(char)); // Send points over 2 bytes   
     for (int i = 0; i < ncheckpoints; i++)              send_points[i] = (uint16_t) (UINT16_MAX*(x[i]/2.0));
-    for (int i = ncheckpoints; i < 2*ncheckpoints; i++) send_points[i] = (uint16_t) (UINT16_MAX*(y[i]/3.0));
-    send_points[2*ncheckpoints] = (uint16_t) (UINT16_MAX*((theta_current+M_PI)/(M_PI*2)));
+    for (int i = 0; i < ncheckpoints; i++) send_points[i+ncheckpoints] = (uint16_t) (UINT16_MAX*(y[i]/3.0));
+    send_points[2*ncheckpoints] = (uint16_t) (UINT16_MAX*((theta_start+M_PI)/(M_PI*2)));
+    send_points[2*ncheckpoints+1] = (uint16_t) (UINT16_MAX*((theta_end+M_PI)/(M_PI*2)));
 
     lgSpiXfer(Teensy_handle, send, receive, message_size);
 
@@ -115,18 +112,18 @@ void teensy_path_following(double *x, double *y, int ncheckpoints, double theta_
     }
     #endif
 
+    free(send);
+    free(receive);
 }
 
-void teensy_pos_ctrl(double x, double y, double t, double xr, double yr, double tr) {
-    // Compression to go to SPI
+void teensy_set_position(double x, double y, double theta) {
     char send[7];
-    send[0] = (char) 3; 
-    send[1] = (char) (x*255/x_max);   // x compressed
-    send[2] = (char) (y*255/y_max);   // y compressed
-    send[3] = (char) ((t+t_max/2)*255/t_max);   // t compressed
-    send[4] = (char) (xr*255/x_max);  // xr compressed
-    send[5] = (char) (yr*255/y_max);  // yr compressed
-    send[6] = (char) ((tr+t_max/2)*255/t_max);  // tr compressed
+    send[0] = (char) QuerySetPosition; 
+    
+    uint16_t *send_ref = (uint16_t *) (send + sizeof(char));
+    send_ref[0] = (uint16_t) (UINT16_MAX*(x/2.0));  // xr compressed
+    send_ref[1] = (uint16_t) (UINT16_MAX*(y/3.0));  // yr compressed
+    send_ref[2] = (uint16_t) (UINT16_MAX*((theta+M_PI)/(M_PI*2)));  // tr compressed
 
     char receive[7];
     lgSpiXfer(Teensy_handle, send, receive, 7);
@@ -140,19 +137,44 @@ void teensy_pos_ctrl(double x, double y, double t, double xr, double yr, double 
     #endif
 }
 
+void teensy_pos_ctrl(double xr, double yr, double theta_r) {
+    // Compression to go to SPI
+    char send[7];
+    send[0] = (char) QueryDoPositionControl; 
+    
+    uint16_t *send_ref = (uint16_t *) (send + sizeof(char));
+    send_ref[0] = (uint16_t) (UINT16_MAX*(xr/2.0));  // xr compressed
+    send_ref[1] = (uint16_t) (UINT16_MAX*(yr/3.0));  // yr compressed
+    send_ref[2] = (uint16_t) (UINT16_MAX*((theta_r+M_PI)/(M_PI*2)));  // tr compressed
+
+    char receive[7];
+    lgSpiXfer(Teensy_handle, send, receive, 7);
+
+    #ifdef VERBOSE
+    printf("Sending Position ctrl \n");
+    for (int i = 0; i < 7; i++)
+    {
+        printf("%d, %d\n",send[i], receive[i]);
+    }
+    #endif
+}
+
+
 void teensy_spd_ctrl(double speed_left, double speed_right) {
     // Compression to go to SPI
-    char send[3];
-    char receive[3];
-    send[0] = (char) 4; 
-    send[1] = (char) (speed_left*255/speed_max);   // speed_left compressed
-    send[2] = (char) (speed_right*255/speed_max);   // speed_right compressed
+    char send[5];
+    char receive[5];
+    send[0] = (char) QueryDoSpeedControl;
 
-    lgSpiXfer(Teensy_handle, send, receive, 3);
+    uint16_t *send_ref = (uint16_t *) (send + sizeof(char));
+    send_ref[0] = (uint16_t) ((speed_left/2.0)*UINT16_MAX);   // speed_left compressed
+    send_ref[1] = (uint16_t) ((speed_right/2.0)*UINT16_MAX);   // speed_right compressed
+
+    lgSpiXfer(Teensy_handle, send, receive, 5);
 
     #ifdef VERBOSE
     printf("Sending Speed ctrl \n");
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 5; i++)
     {
         printf("%d, %d\n",send[i], receive[i]);
     }
@@ -160,9 +182,44 @@ void teensy_spd_ctrl(double speed_left, double speed_right) {
     
 }
 
+void teensy_constant_dc(int dc_refl, int dc_refr) {
+    
+    // Compression to go to SPI
+    char send[5];
+    char receive[5];
+    send[0] = (char) QueryDoConstantDutyCycle;
+    uint16_t *send_ref = (uint16_t*) (send + sizeof(char));
+    send_ref[0] = (uint16_t) (((double) SATURATE(dc_refl, -255,255))+255.0);  // speed_left compressed
+    send_ref[1] = (uint16_t) (((double) SATURATE(dc_refr, -255, 255))+255.0);   // speed_right compressed
+
+    lgSpiXfer(Teensy_handle, send, receive, 5);
+
+    #ifdef VERBOSE
+    printf("Sending Speed ctrl \n");
+    for (int i = 0; i < 5; i++)
+    {
+        printf("%d, %d\n",send[i], receive[i]);
+    }
+    #endif
+}
+
 void teensy_idle() {
-    char send = 0;
+    char send = (char) QueryIdle;
     lgSpiWrite(Teensy_handle, &send, 1);
+}
+
+void teensy_ask_mode() {
+    char send[4];
+    char receive[4];
+    send[0] = QueryAskState;
+    send[1] = 0; // Not needed
+    send[2] = 1; // Not needed
+    send[3] = 2; // Not needed
+    int retval = lgSpiXfer(Teensy_handle, send, receive, 4);
+    printf("Xfer return value: %d\n", retval);
+    for (int i = 0; i < 4; i++){
+        printf("%d, %d\n", send[i], receive[i]);
+    }
 }
 
 void servo_cmd(servo_cmd_t command) {

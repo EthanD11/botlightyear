@@ -13,7 +13,8 @@
 #define SPI_DE0 1
 #define SPI_TEENSY 0
 #define SPI_MODE_DEFAULT 0
-#define SPI_SPEED_HZ_DEFAULT 1000000 // Arbitrary, but 500000 is reasonable
+#define SPI_SPEED_HZ_DEFAULT 100000 // Arbitrary, but 500000 is reasonable
+
 
 // Odometers conversion factors
 #define ODO_TICKS_TO_M 1.7257283863713464e-05 // Conversion factor ticks to meters. (theoretical : pi*45e-3/8192; practical : 610e-3/(2**3+2**4+2**6+4*2**11))
@@ -25,6 +26,9 @@
 #define PLATEAU_REDUCTION 8.5
 #define PLATEAU_ANGLE_OUVERTURE 103.33
 #define PLATEAU_TIC_STEPPER 1600
+
+// Other
+#define SATURATE(a,lb,ub) ((a) > (ub) ? (ub) : ((a) < (lb) ? (lb) : (a)))
 
 
 // ----- SPI -----
@@ -67,12 +71,14 @@ double sonar_ask();*/
 // ----- TEENSY -----
 typedef enum {
 	QueryIdle, // Idle, reset motor voltages to 0V
-	QueryTestRead, // SPI test, answer with [1,2,3,4]
-	QueryTestWrite, // SPI test, answer with data received
 	QueryDoPositionControl, // Position update, data received = [flag,x,y,t,xr,yr,tr]
+	QueryDoSpeedControl,
+	QueryDoSetDutyCycle,
 	QueryDoPathFollowing,
-	QueryAskGoalReached
-} teensy_query_t;
+	QueryDoConstantDutyCycle,
+	QueryAskState,
+	QuerySetPosition
+} query_t;
 
 /**
  * @brief Send constant speed query to Teensy. Must be called after init_spi.
@@ -83,18 +89,32 @@ void teensy_spd_ctrl(double speed_left, double speed_right);
  * @brief Ask the teensy to enter the position control mode with the specified reference position.
  * Must be called after init_spi. 
  */
-void teensy_pos_ctrl(double x, double y, double t, double xr, double yr, double tr);
+void teensy_pos_ctrl(double xr, double yr, double tr); 
+
+void teensy_spd_ctrl(double speed_left, double speed_right);
+
+void teensy_constant_dc(int dc_refl, int dc_refr);
 
 /**
  * @brief Ask the teensy to enter the path following mode with the specified checkpoints. 
  * Must be called after init_spi. 
  */
-void teensy_path_following(double *x, double *y, int ncheckpoints, double theta_current);
+void teensy_path_following(double *x, double *y, int ncheckpoints, double theta_start, double theta_end);
 
 /**
  * @brief Send query to idle Teensy. It will stop any control effort over the motors. Must be called after init_spi.
  */
 void teensy_idle();
+
+/**
+ * @brief Set the position of the teensy
+*/
+void teensy_set_position(double x, double y, double theta);
+
+/**
+ * @brief Return in which mode the teensy is currently
+*/
+void teensy_ask_mode();
 
 // ------ SERVOS -----
 
