@@ -119,7 +119,7 @@ void loop() {
 
   else if (current_time - control_time > REG_DELAY) {
     update_localization(robot_position);
-
+    spi_set_state((uint32_t) mode);
     int ncheckpoints = 3;
     int path_following_goal_reached = 0;
     double x[3] = {0, 0.4, 0.5};

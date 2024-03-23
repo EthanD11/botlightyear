@@ -13,6 +13,8 @@ typedef struct SPIInterface {
     double speed_refl, speed_refr;
 
     int dc_refl, dc_refr;
+
+    uint32_t state;
 } SPIInterface;
 void __spi_receive_event();
 
@@ -38,6 +40,10 @@ query_t spi_get_query() {
     return __spi_interface->query;
 }
 
+void spi_set_state(uint32_t state_id) {
+    __spi_interface->state = state_id;
+}
+
 void __spi_receive_event() {
     SPISlave_T4 *mySPI = __spi_interface->spi_slave;
 	uint32_t data;
@@ -47,7 +53,6 @@ void __spi_receive_event() {
 		int i = __spi_interface->i;
 		data = mySPI->popr();
 		data_buffer[i] = data;
-		mySPI->pushr(data);
         
 		if (i == 0) {
 			__spi_interface->query = (query_t) data;
@@ -74,7 +79,8 @@ void __spi_receive_event() {
                     break;
 
 				case QueryAskState:
-                    // Not implemented
+                    mySPI->pushr(__spi_interface->state);
+                    __spi_interface->n = 4;
 					break;
 
 				case QueryDoPathFollowing:
@@ -267,6 +273,7 @@ double spi_get_dc_refl() {
 double spi_get_dc_refr() {
     return __spi_interface->dc_refr;
 }
+
 
 
 
