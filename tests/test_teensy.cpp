@@ -29,7 +29,7 @@ int main(int argc, char const *argv[])
     teensy_pos_ctrl(xr, yr, tr);
     //teensy_spd_ctrl(0.3,0.3);
     lguSleep(5);
-    teensy_idle();
+    // teensy_idle();
     #endif
 
     #ifdef PATH_FOLLOWING

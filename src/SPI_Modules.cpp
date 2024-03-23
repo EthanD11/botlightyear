@@ -129,7 +129,7 @@ void teensy_set_position(double x, double y, double theta) {
     lgSpiXfer(Teensy_handle, send, receive, 7);
 
     #ifdef VERBOSE
-    printf("Sending Position ctrl \n");
+    printf("Sending Set Position\n");
     for (int i = 0; i < 7; i++)
     {
         printf("%d, %d\n",send[i], receive[i]);
