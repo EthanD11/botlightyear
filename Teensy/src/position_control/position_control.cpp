@@ -1,20 +1,29 @@
 #include "position_control.h"
 
-PositionController *init_position_controller(){
+PositionController *init_position_controller() {
     PositionController* pc = (PositionController *) malloc(sizeof(PositionController));
     
     pc->speed_refl = 0.0;
     pc->speed_refr = 0.0;
 
-    pc->kp =  0.5; // Proportional coefficient for distance error
-    pc->ka =  2.5; // Proportional coefficient for direction error
+    pc->kp =  1.0; // Proportional coefficient for distance error
+    pc->ka =  4.0; // Proportional coefficient for direction error
     pc->kb = -0.5; // Proportional coefficient for orientation error
-    pc->kw =  2.0; // Propoortional coefficient for orientation error when position is reached
+    pc->kw =  4.0; // Propoortional coefficient for orientation error when position is reached
     pc->position_tol = 1e-2;      // Acceptable static error on position (m)
     pc->drift_tol    = 2e-1;      // Acceptable drift from reference position when reorienting (m)
     pc->angular_tol  = 1*M_PI/180; // Acceptable static error on orientation (rad, eq to 5 degrees)
 
     return pc;
+}
+
+void set_position_controller_gains(PositionController *pc,
+    double kp, double ka, double kb, double kw) 
+{
+    pc->kp =  kp; // Proportional coefficient for distance error
+    pc->ka =  ka; // Proportional coefficient for direction error
+    pc->kb =  kb; // Proportional coefficient for orientation error
+    pc->kw =  kw; // Propoortional coefficient for orientation error when position is reached
 }
 
 void control_position(

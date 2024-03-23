@@ -69,8 +69,10 @@ typedef struct PathFollower {
     double kif, kifdot; // Filtered command and its derivative
     double xsi_n; // Auxiliary signal that asymptotically reaches the cross-track error en in steady state
     double curvature_f, curvature_fdot;
+    double vref;
     double vref_f;
     double vref_fdot;
+    double dist_goal_reached;
     // State of the path_follower along trajectory
     int i_spline;
     double qref;
@@ -83,10 +85,13 @@ typedef struct PathFollower {
     double speed_refr, speed_refl;
 } PathFollower;
 
-
 // Initializes path follower in CtrlStruct
 PathFollower *init_path_follower();
 void free_path_follower(PathFollower *path_follower);
+void set_path_follower_gains(PathFollower *path_follower,
+    double kt, double kn, double kz, 
+    double sigma, double epsilon, double kv_en,
+    double delta, double wn);
 
 /* 
  * Initializes a new path and reset all the internal variables
@@ -94,8 +99,10 @@ void free_path_follower(PathFollower *path_follower);
  * `double * y`: y coordinates of the checkpoints
  * `int ncheckpoints`: the number of checkpoints
  * `double * theta_start`: the current orientation of the robot (just before the robot starts to follow the trajectory) 
+ * `double * theta_stop`
+ * `double * dist_goal_reached`
  */
-void init_path_following(PathFollower *path_follower, double *x, double *y, int ncheckpoints, double theta_start, double theta_stop);
+void init_path_following(PathFollower *path_follower, double *x, double *y, int ncheckpoints, double theta_start, double theta_stop, double vref, double dist_goal_reached);
 void close_path_following(PathFollower *pf);
 
 // Update the reference speed within the path follower
@@ -103,9 +110,7 @@ void close_path_following(PathFollower *pf);
 // Returns 0 otherwise
 int update_path_follower_ref_speed(
     PathFollower *path_follower,
-    RobotPosition *robot_position, 
-    double vref, 
-    double dist_goal_reached);
+    RobotPosition *robot_position);
 
 inline double get_speed_refl(PathFollower *path_follower) {
     return path_follower->speed_refl;

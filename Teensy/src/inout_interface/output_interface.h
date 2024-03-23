@@ -63,7 +63,7 @@ inline void duty_cycle_update(OutputInterface *outputs)
     duty_cycle_r = outputs->duty_cycle_r;
 
     duty_cycle_refl = outputs->duty_cycle_refl;
-    duty_cycle_refr = outputs->duty_cycle_refr;;
+    duty_cycle_refr = outputs->duty_cycle_refr;
 
     // Left buffered control
     duty_cycle_l += SAT(duty_cycle_refl - duty_cycle_l, BUF_STEP);
