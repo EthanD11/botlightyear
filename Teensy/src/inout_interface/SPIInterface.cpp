@@ -64,22 +64,27 @@ void __spi_receive_event() {
 			switch(__spi_interface->query) {
 				case QueryIdle:
 					__spi_interface->n = 1; // 1 of query
+                    mySPI->pushr(data);
 					break;
 					
 				case QueryDoPositionControl:
 					__spi_interface->n = 7; // 1 of query, 6 of data
+                    mySPI->pushr(data);
 					break;
 
                 case QueryDoSpeedControl:
                     __spi_interface->n = 5;
+                    mySPI->pushr(data);
                     break;
 
 				case QuerySetPosition:
 					__spi_interface->n = 7; // 1 of query, 6 of data
+                    mySPI->pushr(data);
 					break;
 
                 case QueryDoConstantDutyCycle:
                     __spi_interface->n = 5; // 1 of query, 2 of data
+                    mySPI->pushr(data);
                     break;
 
 				case QueryAskState:
@@ -89,14 +94,17 @@ void __spi_receive_event() {
 					break;
 
 				case QueryDoPathFollowing:
+                    mySPI->pushr(data);
 					break;
 
                 case QuerySetPositionControlGains:
+                    mySPI->pushr(data);
                     __spi_interface->n = 9;
                     break;
                 
                 case QuerySetPathFollowerGains:
-                    __spi_interface->n = 15;
+                    mySPI->pushr(data);
+                    __spi_interface->n = 17;
                     break;
 
 				default:
@@ -338,35 +346,40 @@ void spi_handle_set_path_follower_gains(PathFollower *pf) {
 	two_bytes[0] = data[0];
     two_bytes[1] = data[1];
     double_byte = *((uint16_t *) two_bytes);
-    pf->kt = 100.0*((double) double_byte)/UINT16_MAX;
+    pf->kt = 50.0*((double) double_byte)/UINT16_MAX;
     
     two_bytes[0] = data[2];
     two_bytes[1] = data[3];
     double_byte = *((uint16_t *) two_bytes);
-    pf->kn = 100.0*((double) double_byte)/UINT16_MAX;
+    pf->kn = ((double) double_byte)/UINT16_MAX;
 
     two_bytes[0] = data[4];
     two_bytes[1] = data[5];
     double_byte = *((uint16_t *) two_bytes);
-    pf->sigma = 100.0*(((double) double_byte)/UINT16_MAX);
+    pf->kz = 200.0*((double) double_byte)/UINT16_MAX;
 
     two_bytes[0] = data[6];
     two_bytes[1] = data[7];
     double_byte = *((uint16_t *) two_bytes);
-    pf->epsilon = 100.0*(((double) double_byte)/UINT16_MAX);
+    pf->sigma = 20*(((double) double_byte)/UINT16_MAX);
 
     two_bytes[0] = data[8];
     two_bytes[1] = data[9];
     double_byte = *((uint16_t *) two_bytes);
-    pf->kv_en = 100.0*(((double) double_byte)/UINT16_MAX);
+    pf->epsilon = (((double) double_byte)/UINT16_MAX);
 
     two_bytes[0] = data[10];
     two_bytes[1] = data[11];
     double_byte = *((uint16_t *) two_bytes);
-    pf->delta = 100.0*(((double) double_byte)/UINT16_MAX);
+    pf->kv_en = 100.0*(((double) double_byte)/UINT16_MAX);
 
     two_bytes[0] = data[12];
     two_bytes[1] = data[13];
+    double_byte = *((uint16_t *) two_bytes);
+    pf->delta = (((double) double_byte)/UINT16_MAX);
+
+    two_bytes[0] = data[14];
+    two_bytes[1] = data[15];
     double_byte = *((uint16_t *) two_bytes);
     pf->wn = 100.0*(((double) double_byte)/UINT16_MAX);
 
