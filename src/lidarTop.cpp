@@ -222,8 +222,6 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
             }
         }
 
-
-
         ///union find
         ///if 2 objects are too close, the two intervals will overlap and there is a risk of seeing the objects twice
         int i = 0;
@@ -282,8 +280,8 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
                             countObj++;
                         }
                         if (size < 0.11){//adv ?
-                            aObj_adv[countObj] = (a1 + a2) / 2;
-                            dObj_adv[countObj] = (d1 + d2) / 2;
+                            aObj_adv[countObj_adv] = (a1 + a2) / 2;
+                            dObj_adv[countObj_adv] = (d1 + d2) / 2;
                             countObj_adv++;
                         }
                         /// new object : initial values are stored
@@ -311,8 +309,8 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
                     countObj++;
                 }
                 if (size < 0.11&& d1>0){
-                    aObj_adv[countObj] = (a1 + a2) / 2;
-                    dObj_adv[countObj] = (d1 + d2) / 2;
+                    aObj_adv[countObj_adv] = (a1 + a2) / 2;
+                    dObj_adv[countObj_adv] = (d1 + d2) / 2;
                     countObj_adv++;
                 }
                 d1 = 0;
@@ -381,8 +379,8 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
                         rotationPosition(new double[3]{db1, db2, db3} , new double[3]{x1,x2,x3}, new double[3]{y1,y2,y3}, robot, transfo, new double[3]{aObj[b1],aObj[b2],aObj[b3]});
 
                         /// we save in blabla the number of elements that could possibly be beacon (opponent)
-                        transfo[3] = countObj;
-                        Adversary(aObj,dObj,transfo, adversaryCoordinates);
+                        transfo[3] = countObj_adv;
+                        Adversary(aObj_adv,dObj_adv,transfo, adversaryCoordinates);
 
 
                         previousBeaconAdv[0] = aObj[b1];
