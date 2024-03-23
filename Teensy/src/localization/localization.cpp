@@ -14,8 +14,8 @@ RobotPosition* init_robot_position(double x0, double y0, double theta_0)
     robot_position->enc_l = new Encoder(26,25);
     robot_position->enc_r = new Encoder(31,30);
     #else
-    robot_position->enc_l = new Encoder(31, 30);
-    robot_position->enc_r = new Encoder(26, 25);
+    robot_position->enc_l = new Encoder(25, 26);
+    robot_position->enc_r = new Encoder(30, 31);
     #endif
 
     return robot_position;

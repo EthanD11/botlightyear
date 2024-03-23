@@ -31,7 +31,7 @@ Regulator *speed_regulator;
 // double spi_speed_refr = 0.0;
 
 controlmode_t mode = ModeIdle;
-controlmode_t nextmode;
+controlmode_t nextmode = mode;
 
 // ----- TIME -----
 int control_time;
@@ -46,7 +46,7 @@ void setup() {
   // ----- OUTPUTS -----
   outputs = init_outputs();
   // ----- POSITION -----
-  robot_position = init_robot_position(0, 1.5, 0);
+  robot_position = init_robot_position(0, 0, 0);
   // ----- SPEED REGULATOR -----
   speed_regulator = init_regulator();
   // ----- POSITION CONTROLLER -----
@@ -55,13 +55,16 @@ void setup() {
   path_follower = init_path_follower();
   // ----- GENERAL -----
   control_time = millis();
+
+  if (mode == ModePathFollowingInit) {
+    printf("In setup: ModePathFollowingInit\n");
+  }
 }
 
 void loop() {
-  // Get time
   int current_time = millis();
   robot_position->dt = 1e-3*((double)(current_time - control_time));
-
+  spi_set_state((uint32_t) mode);
   if (spi_valid_transmission()) {
     spi_reset_transmission(); 
     printf("SPI received transmission\n");
@@ -107,6 +110,18 @@ void loop() {
         spi_handle_constant_duty_cycle();
         nextmode = ModeConstantDC;
         break;
+
+      case QuerySetPositionControlGains:
+        printf("SPI Set Position Control Gains\n");
+        spi_handle_set_position_control_gains(position_controller);
+        nextmode = mode;
+        break;
+
+      case QuerySetPathFollowerGains:
+        printf("SPI Set Path Follower Gains\n");
+        spi_handle_set_path_follower_gains(path_follower);
+        nextmode = mode;
+        break;
       
       default:
         printf("SPI QueryDefault\n");
@@ -115,17 +130,16 @@ void loop() {
         break;
     }
     mode = nextmode;
-  } 
+  } else if (current_time - control_time > REG_DELAY) {
 
-  else if (current_time - control_time > REG_DELAY) {
     update_localization(robot_position);
-    spi_set_state((uint32_t) mode);
-    int ncheckpoints = 3;
+    int ncheckpoints = 5;
     int path_following_goal_reached = 0;
-    double x[3] = {0, 0.4, 0.5};
-    double y[3] = {1.5, 1.5, 1.3};
-
+    double x[5] = {0.0,0.4,0.8,0.4,0.0};
+    double y[5] = {0.0,0.2,0.0,-0.2,0.0};
+    // printf("mode = %d\n", (int) mode);
     switch (mode) {
+
       case ModeIdle:
         set_motors_duty_cycle(outputs, 0, 0);
         #ifdef VERBOSE
@@ -148,14 +162,20 @@ void loop() {
         break;
 
       case ModeSpeedControl:
+        #ifdef VERBOSE
+        printf("\nModeSpeedControl\n");
+        #endif
         control_speed(speed_regulator, robot_position,
-          spi_get_speed_refl(), spi_get_dc_refr());
+          spi_get_speed_refl(), spi_get_speed_refr());
         set_motors_duty_cycle(outputs,
           get_duty_cycle_refl(speed_regulator), 
           get_duty_cycle_refr(speed_regulator));
         break;
 
       case ModeConstantDC:
+        #ifdef VERBOSE
+        printf("\nModeConstantDC\n");
+        #endif
         set_motors_duty_cycle(outputs,
           spi_get_dc_refl(), spi_get_dc_refr());
         break;
@@ -164,10 +184,7 @@ void loop() {
         #ifdef VERBOSE
         printf("\nMode path following INIT\n");
         #endif
-        init_path_following(path_follower, x, y, ncheckpoints, 0.0, M_PI);
-        compute_entire_path(path_follower, 2e-3);
-        delay(1);
-        mode = ModePathFollowing;
+        init_path_following(path_follower, x, y, ncheckpoints, 0.0, M_PI, 30.0, 10.0);
         break;
 
       case ModePathFollowing:
@@ -176,7 +193,7 @@ void loop() {
         printf("time = %d\n", current_time);
         #endif
         path_following_goal_reached = update_path_follower_ref_speed(path_follower, 
-          robot_position, 25e-2, 10e-2);
+          robot_position);
         control_speed(speed_regulator, 
           robot_position,
           get_speed_refl(path_follower),
@@ -194,6 +211,7 @@ void loop() {
 
 
       default: // ModeIdle
+        printf("Default in output logic\n");
         set_motors_duty_cycle(outputs, 0, 0);
         break;
     }
@@ -207,6 +225,9 @@ void loop() {
     switch (mode) {
       case ModeIdle:
         nextmode = ModeIdle;
+        if (mode != nextmode) {
+          printf("Mode idle in next state logic");
+        }
         break;
       case ModePositionControl:
         nextmode = ModePositionControl;
@@ -225,12 +246,18 @@ void loop() {
       case ModeSpeedControl:
         nextmode = ModeSpeedControl;
         break;
+      case ModeConstantDC:
+        nextmode = ModeConstantDC;
+        break;
 
       default:
         nextmode = ModeIdle;
         break;
     }
     write_outputs(outputs);
+    control_time = current_time;
+    mode = nextmode;
+
   }
 
   // Leave the current mode cleanly (free all malloc'd arrays and structs)
@@ -242,10 +269,7 @@ void loop() {
 
       default:
         break;
+      }
     }
-  }
-
-  // Go to next mode and write outputs
-  mode = nextmode;
-  control_time = current_time;
+  
 }

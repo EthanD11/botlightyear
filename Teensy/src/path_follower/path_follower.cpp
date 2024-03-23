@@ -5,7 +5,7 @@
 #include "math.h"
 #include "path_follower.h" // adapt it with your headers
 // where X should be replaced by your group number
-
+// #define VERBOSE
 PathFollower* init_path_follower() {
     PathFollower *path_follower = (PathFollower *) malloc(sizeof(PathFollower));
     path_follower->speed_refl = 0;
@@ -18,15 +18,32 @@ PathFollower* init_path_follower() {
     path_follower->epsilon = 150-3; // epsilon is in meters
     path_follower->wn = 0.3; // Command filter discrete cutoff frequency
     path_follower->kv_en = 10; // 
+    path_follower->vref = 0.2;
+    path_follower->dist_goal_reached = 0.2;
     return path_follower;
 }
 
+void set_path_follower_gains(PathFollower *path_follower,
+    double kt, double kn, double kz, 
+    double sigma, double epsilon, double kv_en,
+    double delta, double wn) 
+{
+    path_follower->kt = kt;
+    path_follower->kn = kn; // 0 < kn <= 1
+    path_follower->kz = kz;
+    path_follower->delta = delta; // delta is in meters
+    path_follower->sigma = sigma;
+    path_follower->epsilon = epsilon; // epsilon is in meters
+    path_follower->wn = wn; // Command filter discrete cutoff frequency
+    path_follower->kv_en = kv_en; // 
+}
+
 void free_path_follower(PathFollower *path_follower) {
-    free(path_follower->path);
+    // free(path_follower->path);
     free(path_follower);
 }
 
-void init_path_following(PathFollower *path_follower, double *x, double *y, int n, double theta_start, double theta_stop){
+void init_path_following(PathFollower *path_follower, double *x, double *y, int n, double theta_start, double theta_stop, double vref, double dist_goal_reached){
     path_follower->checkpoints_x = (double *) malloc(sizeof(double)*n);
     path_follower->checkpoints_y = (double *) malloc(sizeof(double)*n);
     path_follower->n = n;
@@ -38,7 +55,8 @@ void init_path_following(PathFollower *path_follower, double *x, double *y, int 
 
     path_follower->last_q = n-1;
     path_follower->last_x = x[n-1];
-    path_follower->last_y = y[n-1]; 
+    path_follower->last_y = y[n-1];
+    path_follower->last_theta = theta_stop; 
 
     path_follower->x_splines = compute_splines(q_checkpoints, path_follower->checkpoints_x, n);
     path_follower->y_splines = compute_splines(q_checkpoints, path_follower->checkpoints_y, n);
@@ -49,6 +67,9 @@ void init_path_following(PathFollower *path_follower, double *x, double *y, int 
     path_follower->xref = x[0];
     path_follower->yref = y[0];
     path_follower->s = 0;
+
+    path_follower->vref = vref;
+    path_follower->dist_goal_reached = dist_goal_reached;
 
     path_follower->xsi_n = 0;
 
@@ -172,9 +193,7 @@ int compute_next_point(PathFollower *pf, RobotPosition *rp, double delta_s, doub
 // See https://link.springer.com/article/10.1007/s42405-021-00395-7
 int update_path_follower_ref_speed(
     PathFollower *pf, 
-    RobotPosition *rp,
-    double vref, 
-    double dist_goal_reached) 
+    RobotPosition *rp) 
 {
 
     SplineSet *x_splines = pf->x_splines;
@@ -186,6 +205,8 @@ int update_path_follower_ref_speed(
     int i_spline;
 
     double vctrl = rp->vfwd;
+    double vref = pf->vref;
+    double dist_goal_reached = pf->dist_goal_reached;
 
     // use local variables for ease of read
     kt = pf->kt;  kn = pf->kn; kz = pf->kz; sigma = pf->sigma; // Control gains

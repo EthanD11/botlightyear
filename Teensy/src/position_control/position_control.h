@@ -30,6 +30,9 @@ void control_position(
     RobotPosition *robot_position
 );
 
+void set_position_controller_gains(PositionController *position_controlelr,
+    double kp, double ka, double kb, double kw);
+
 inline void set_ref(PositionController *position_controller, double xref, double yref, double theta_ref) {
     position_controller->xref = xref;
     position_controller->yref = yref;

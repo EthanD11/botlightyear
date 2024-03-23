@@ -32,8 +32,12 @@ void init_spi_interface() {
     __spi_interface->spi_slave->onReceive(__spi_receive_event);
 }
 
-void spi_send_data(char mode) {
+void spi_send_data(char mode, double x, double y, double theta) {
 	__spi_interface->mode = mode;
+    __spi_interface->x = x;
+    __spi_interface->y = y;
+    __spi_interface->theta = theta;
+    printf("mode is %d\n", (int) mode);
 }
 
 query_t spi_get_query() {
@@ -79,12 +83,21 @@ void __spi_receive_event() {
                     break;
 
 				case QueryAskState:
+                    printf("state is %d\n", (int) __spi_interface->state);
                     mySPI->pushr(__spi_interface->state);
                     __spi_interface->n = 4;
 					break;
 
 				case QueryDoPathFollowing:
-					break;            
+					break;
+
+                case QuerySetPositionControlGains:
+                    __spi_interface->n = 9;
+                    break;
+                
+                case QuerySetPathFollowerGains:
+                    __spi_interface->n = 15;
+                    break;
 
 				default:
 					break;
@@ -93,14 +106,13 @@ void __spi_receive_event() {
 		else {
 			switch(__spi_interface->query) {				
 				case QueryAskState:
-					// Not implemented
 					break;
 
 				case QueryDoPathFollowing:
 					if (i == 1) {
 						int ncheckpoints = (int) data;
 						data = mySPI->popr(); 
-						__spi_interface->n = 2*(2*ncheckpoints+2) + 2; // 1 of query, 1 of npoints, 2*npoints of 2 bytes, 2 theta of 2 bytes
+						__spi_interface->n = 2*(2*ncheckpoints+4) + 2; // 1 of query, 1 of npoints, 2*npoints of 2 bytes, 2 theta of 2 bytes
 					}
 					#ifdef VERBOSE
 					printf("QueryDoPathFollowing\n");
@@ -207,15 +219,27 @@ void spi_handle_path_following(PathFollower *path_follower) {
     tmp_16 = *((uint16_t *) tmp_bytes); // Merge bytes
     double theta_stop  = (((double) tmp_16)/UINT16_MAX)*2*M_PI - M_PI; // Decode
 
+    tmp_bytes[0] = (char) data[4*ncheckpoints+4]; // First byte
+    tmp_bytes[1] = (char) data[4*ncheckpoints+5]; // Second byte
+    tmp_16 = *((uint16_t *) tmp_bytes); // Merge bytes
+    double vref  = (((double) tmp_16)/UINT16_MAX)*2.0; // Decode
 
+    tmp_bytes[0] = (char) data[4*ncheckpoints+6]; // First byte
+    tmp_bytes[1] = (char) data[4*ncheckpoints+7]; // Second byte
+    tmp_16 = *((uint16_t *) tmp_bytes); // Merge bytes
+    double dist_goal_reached = (((double) tmp_16)/UINT16_MAX)*3.0; // Decode
+
+    init_path_following(path_follower, x, y, ncheckpoints, theta_start, theta_stop, vref, dist_goal_reached);
+    
     for (int i = 0; i < ncheckpoints; i++) {
         printf("(x[%d], y[%d]) = (%f,%f)\n", i, i, x[i], y[i]);
     }
     printf("theta_start = %f\n", theta_start);
     printf("theta_end = %f\n", theta_stop);
+    printf("vref = %f\n", path_follower->vref);
+    printf("dist_goal_reached = %f\n", path_follower->dist_goal_reached);
 
-    init_path_following(path_follower, x, y, ncheckpoints, theta_start, theta_stop);
-    
+
     free(x);
     free(y);
 }
@@ -243,6 +267,7 @@ double spi_get_speed_refl() {
     return __spi_interface->speed_refl;
 }
 double spi_get_speed_refr() {
+    printf("speed_refr = %f\n", __spi_interface->speed_refr);
     return __spi_interface->speed_refr;
 }
 
@@ -272,6 +297,81 @@ double spi_get_dc_refl() {
 
 double spi_get_dc_refr() {
     return __spi_interface->dc_refr;
+}
+
+void spi_handle_set_position_control_gains(PositionController *pc) {
+    uint32_t *data = __spi_interface->data_buffer+1; // skips query
+    
+    char two_bytes[2];
+    uint16_t double_byte;
+
+	two_bytes[0] = data[0];
+    two_bytes[1] = data[1];
+    double_byte = *((uint16_t *) two_bytes);
+    pc->kp = 20.0*((double) double_byte)/UINT16_MAX;
+    
+    two_bytes[0] = data[2];
+    two_bytes[1] = data[3];
+    double_byte = *((uint16_t *) two_bytes);
+    pc->ka = 20.0*((double) double_byte)/UINT16_MAX;
+
+    two_bytes[0] = data[4];
+    two_bytes[1] = data[5];
+    double_byte = *((uint16_t *) two_bytes);
+    pc->kb = -20.0*(((double) double_byte)/UINT16_MAX);
+
+    two_bytes[0] = data[6];
+    two_bytes[1] = data[7];
+    double_byte = *((uint16_t *) two_bytes);
+    pc->kw = 50.0*(((double) double_byte)/UINT16_MAX);
+
+	printf("kp   = %f\nka = %f\nkb = %f\nkw = %f\n", 
+        pc->kp, pc->ka, pc->kb, pc->kw);
+}
+
+void spi_handle_set_path_follower_gains(PathFollower *pf) {
+    uint32_t *data = __spi_interface->data_buffer+1; // skips query
+    
+    char two_bytes[2];
+    uint16_t double_byte;
+
+	two_bytes[0] = data[0];
+    two_bytes[1] = data[1];
+    double_byte = *((uint16_t *) two_bytes);
+    pf->kt = 100.0*((double) double_byte)/UINT16_MAX;
+    
+    two_bytes[0] = data[2];
+    two_bytes[1] = data[3];
+    double_byte = *((uint16_t *) two_bytes);
+    pf->kn = 100.0*((double) double_byte)/UINT16_MAX;
+
+    two_bytes[0] = data[4];
+    two_bytes[1] = data[5];
+    double_byte = *((uint16_t *) two_bytes);
+    pf->sigma = 100.0*(((double) double_byte)/UINT16_MAX);
+
+    two_bytes[0] = data[6];
+    two_bytes[1] = data[7];
+    double_byte = *((uint16_t *) two_bytes);
+    pf->epsilon = 100.0*(((double) double_byte)/UINT16_MAX);
+
+    two_bytes[0] = data[8];
+    two_bytes[1] = data[9];
+    double_byte = *((uint16_t *) two_bytes);
+    pf->kv_en = 100.0*(((double) double_byte)/UINT16_MAX);
+
+    two_bytes[0] = data[10];
+    two_bytes[1] = data[11];
+    double_byte = *((uint16_t *) two_bytes);
+    pf->delta = 100.0*(((double) double_byte)/UINT16_MAX);
+
+    two_bytes[0] = data[12];
+    two_bytes[1] = data[13];
+    double_byte = *((uint16_t *) two_bytes);
+    pf->wn = 100.0*(((double) double_byte)/UINT16_MAX);
+
+	printf("kt = %f\nkn = %f\nkz = %f\nsigma = %f\nepsilon = %f\nkv_en = %f\ndelta = %f\nwn = %f\n", 
+        pf->kt, pf->kn, pf->kz, pf->sigma, pf->epsilon, pf->kv_en, pf->delta, pf->wn);
 }
 
 

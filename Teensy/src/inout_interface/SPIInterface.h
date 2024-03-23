@@ -21,14 +21,16 @@ typedef enum {
 	QueryDoPathFollowing,
 	QueryDoConstantDutyCycle,
 	QueryAskState,
-	QuerySetPosition
+	QuerySetPosition,
+	QuerySetPositionControlGains,
+	QuerySetPathFollowerGains
 } query_t;
 
 void init_spi_interface();
 int spi_valid_transmission();
 void spi_reset_transmission();
 query_t spi_get_query();
-void spi_set_state(uint32_t state_id)
+void spi_set_state(uint32_t state_id);
 void spi_handle_set_position(RobotPosition *robot_position);
 void spi_handle_position_control(PositionController *position_controller); 
 void spi_handle_path_following(PathFollower *path_follower);
@@ -38,6 +40,8 @@ double spi_get_speed_refr();
 void spi_handle_constant_duty_cycle();
 double spi_get_dc_refl();
 double spi_get_dc_refr();
+void spi_handle_set_position_control_gains(PositionController *position_control);
+void spi_handle_set_path_follower_gains(PathFollower *path_follower);
 
 // // Transform two bytes to a double
 // // Works with the RPi if a single number is transmitted over 2 bytes
