@@ -21,29 +21,28 @@ int main(int argc, char const *argv[])
         printf("%d\n\n", graph_nodes[i].neighbors[graph_nodes[i].nb_neighbors-1]->id);
     }*/
     
-    int from = 0;
-    int to = 44;
-    graph_level = 0;
-    graph_level_update(24,NODE_BLOCKED,ENABLE_PROPAGATION);
+    uint8_t from = 35;
+    uint8_t tos[] = {44,5};
+    uint8_t len_tos = 2;
+    graph_level = 1;
+    graph_level_update(33,3,ENABLE_PROPAGATION);
     graph_level_update(3,NODE_DANGER,DISABLE_PROPAGATION);
     graph_level_update(42,NODE_FREE,DISABLE_PROPAGATION);
     graph_level_update(44, NODE_FREE, DISABLE_PROPAGATION);
 
-    printf("Searching for a path between %d and %d with graph level %d\n", from, to, graph_level);
+    printf("Searching for a path between %d and {", from);
+    for (uint8_t i = 0; i < len_tos-1; i++) { printf("%d,", tos[i]); }
+    printf("%d} with graph level %d\n",tos[len_tos-1], graph_level);
 
     clock_t start = clock();
-    graph_path_t* result = graph_compute_path(from,to);
+    graph_path_t* result = graph_compute_path(from, tos, len_tos, 0);
     clock_t stop = clock();
 
     if (result == NULL) {
         printf("No path was found\n");
         return 0;
     }
-    printf("Found a path in %d points\n", result->nb_nodes);
-    for (int8_t i = 0; i < result->nb_nodes; i++)
-    {
-        printf("(%.3f,%.3f) ", result->x[i], result->y[i]);
-    }
+    print_path(result);
     printf("\nTime taken : %ld clock cycles\n", stop-start);
     free(result);
     free_graph();

@@ -8,61 +8,104 @@
 // When enabled, init_graph_from_file should print out the exact file it has read
 //#define VERBOSE
 
+typedef struct __graph_targets
+{
+    uint8_t len_targets;
+    uint8_t *targets;
+} graph_targets_t;
+
+
 void node_neighbors(ASNeighborList neighbors, void* node, void* context) {
     graph_node_t* cur_node = (graph_node_t*) node;
     for (uint8_t i = 0; i < cur_node->nb_neighbors; i++)
     {
         graph_node_t* neighbor = cur_node->neighbors[i];
         if (neighbor->level > graph_level) continue;
-        float dx = neighbor->x - cur_node->x;
-        float dy = neighbor->y - cur_node->y;
-        float cost = hypot(dx, dy);
+        float cost = hypot(neighbor->x - cur_node->x, neighbor->y - cur_node->y);
         ASNeighborListAdd(neighbors, neighbor, cost);
     }
 }
 
 float path_cost_heuristic(void* fromNode, void* toNode, void* context) {
     graph_node_t* from = (graph_node_t*) fromNode;
-    graph_node_t* to = (graph_node_t*) fromNode;
-    float dx = to->x - from->x;
-    float dy = to->y - from->y;
-    return hypot(dx, dy);
+    graph_targets_t* targets = (graph_targets_t*) context;
+    float min = 1e10;
+    for (uint8_t i = 0; i < targets->len_targets; i++)
+    {
+        graph_node_t* to = graph_nodes + targets->targets[i];
+        if (to->level > graph_level) continue;
+        float cost = hypot(to->x - from->x, to->y - from->y);
+        if (min > cost) min = cost;
+    }
+    return min;
 }
 
 int node_comparator(void *node1, void *node2, void *context) {
     return ((graph_node_t*) node1)->id - ((graph_node_t*) node2)->id;
 }
 
-graph_path_t *graph_compute_path(const int from, const int to) {
-    if (graph_nodes[to].level > graph_level) return NULL;
+int early_exit(size_t visitedCount, void *visitingNode, void *goalNode, void *context) {
+    graph_node_t *current = (graph_node_t*) visitingNode;
+    graph_targets_t *targets = (graph_targets_t*) context;
+    for (size_t i = 0; i < targets->len_targets; i++)
+    {
+        graph_node_t *target = graph_nodes + targets->targets[i];
+        if (target->level <= graph_level && node_comparator(current, target, NULL) == 0) return 1; 
+    }
+    return 0;
+}
 
+graph_path_t *graph_compute_path(const uint8_t from, uint8_t *targets, const uint8_t len_targets, const uint8_t oversampling) {
+
+    // Initiate search arguments
     ASPathNodeSource source;
     source.nodeSize = sizeof(graph_node_t);
     source.nodeNeighbors = node_neighbors;
     source.pathCostHeuristic = path_cost_heuristic;
-    source.earlyExit = NULL;
+    source.earlyExit = early_exit;
     source.nodeComparator = node_comparator;
-    ASPath path = ASPathCreate(&source, NULL, &(graph_nodes[from]), &(graph_nodes[to]));
+    graph_targets_t context;
+    context.len_targets = len_targets;
+    context.targets = targets;
+
+    // Start the search
+    ASPath path = ASPathCreate(&source, &context, graph_nodes + from, graph_nodes + targets[0]);
     if (ASPathGetCount(path) == 0) {
+        // Failure, returning
         ASPathDestroy(path);
         return NULL;
     }
 
-    uint8_t count = ASPathGetCount(path);
-    void *temp = malloc(sizeof(graph_path_t) + 2*count*sizeof(double));
+    // Success, create arrays of coordinates for path following and cost
+    uint8_t n_keypoints = ASPathGetCount(path);
+    uint8_t n_nodes = n_keypoints + oversampling * (n_keypoints-1);
+
+    void *temp = malloc(sizeof(graph_path_t) + 2*n_nodes*sizeof(double));
     graph_path_t *result = (graph_path_t*) temp;
     result->x = (double *) (((uint8_t*)temp) + sizeof(graph_path_t));
-    result->y = (double *) (((uint8_t*)temp) + sizeof(graph_path_t) + count*sizeof(double));
-
-    result->nb_nodes = count;
-    for (uint8_t i = 0; i < count; i++)
-    {
-        graph_node_t *node = (graph_node_t*) ASPathGetNode(path, i);
-        result->x[i] = node->x;
-        result->y[i] = node->y;
-    }
+    result->y = (double *) (((uint8_t*)temp) + sizeof(graph_path_t) + n_nodes*sizeof(double));
     
-    return result;
+    result->nb_nodes = n_nodes;
+    result->total_cost = ASPathGetCost(path);
+
+    graph_node_t *curr_node = (graph_node_t *) ASPathGetNode(path, 0);
+    graph_node_t *next_node;
+    uint8_t n_points = oversampling + 1; // Number of points between current node (included) and next node (excluded)
+    for (uint8_t i = 0; i < n_keypoints-1; i++)
+    {
+        next_node = (graph_node_t *) ASPathGetNode(path, i+1);
+        for (uint8_t j = 0; j < n_points; j++)
+        {
+            result->x[i*n_points+j] = (j*next_node->x + (n_points-j) * curr_node->x) / n_points;
+            result->y[i*n_points+j] = (j*next_node->y + (n_points-j) * curr_node->y) / n_points;
+        }
+        curr_node = next_node;
+    }
+    result->x[n_nodes-1] = curr_node->x;
+    result->y[n_nodes-1] = curr_node->y;
+
+    ASPathDestroy(path);
+    return result;    
 }
 
 void graph_level_update(const int node, const int level, const int propagation) {
@@ -119,7 +162,7 @@ int init_graph_from_file(const char *filename) {
     char list[64];
     for (size_t i = 0; i < 64; i++){ list[i] = 0; }
     char *token;
-    int8_t node_id;
+    uint8_t node_id;
     for (uint8_t i = 0; i < graph_nb_nodes; i++)
     {
         graph_nodes[i].nb_neighbors = 0;
@@ -152,7 +195,7 @@ int init_graph_from_file(const char *filename) {
     printf("Bases : ");
     #endif
     token = strtok(list, ",");
-    int i = 0;
+    uint8_t i = 0;
     while (token != NULL) {
 
         if (sscanf(token, "%hhd", &node_id) != 1) return -1;
@@ -172,7 +215,7 @@ int init_graph_from_file(const char *filename) {
     #endif
 
     // Scan plant nodes, assign level
-    if (fscanf(input_file, "Plants : %s", list) != 1) return -1;
+    if (fscanf(input_file, "Plants : %s\n", list) != 1) return -1;
     #ifdef VERBOSE
     printf("Plants : ");
     #endif
@@ -196,8 +239,41 @@ int init_graph_from_file(const char *filename) {
     printf("\n");
     #endif
 
+    // Scan pot nodes, assign level
+    if (fscanf(input_file, "Pots : %s", list) != 1) return -1;
+    #ifdef VERBOSE
+    printf("Pots : ");
+    #endif
+    token = strtok(list, ",");
+    i = 0;
+    while (token != NULL) {
+
+        if (sscanf(token, "%hhd", &node_id) != 1) return -1;
+        //graph_nodes[node_id].level = 0;
+        graph_pots[i] = node_id;
+        #ifdef VERBOSE
+        printf("%d", node_id);
+        #endif
+        token = strtok(NULL,",");
+        #ifdef VERBOSE
+        if (token != NULL) printf(",");
+        #endif
+        i++;
+    }    
+    #ifdef VERBOSE
+    printf("\n");
+    #endif
+
     graph_level = 0;
     return 0;
 }
 
 void free_graph() { free(graph_nodes); }
+
+void print_path(graph_path_t* path) {
+    printf("Path of length %.3fm in %d points\n", path->total_cost, path->nb_nodes);
+    for (uint8_t i = 0; i < path->nb_nodes; i++)
+    {
+        printf("(%.3f,%.3f) ", path->x[i], path->y[i]);
+    }
+}

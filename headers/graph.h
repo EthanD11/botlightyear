@@ -12,7 +12,7 @@
 
 typedef struct graph_node
 {
-    int8_t id; // Index of the node in the 'graph_nodes' array & identifier for the visual graph
+    uint8_t id; // Index of the node in the 'graph_nodes' array & identifier for the visual graph
     float x, y; // X & Y Coordinates (refer to the visual graph)
     int8_t level; // Level of availability of this node (see 'graph_level')
     uint8_t nb_neighbors; // Number of neighbors
@@ -24,6 +24,7 @@ typedef struct graph_path
     uint8_t nb_nodes; // Number of nodes in the path
     double *x; // Array of x coordinates
     double *y; // Array of y coordinates
+    double total_cost; // Total distance of travel for this path
 } graph_path_t;
 
 inline uint8_t graph_nb_nodes; // Number of nodes in the graph
@@ -39,8 +40,9 @@ inline graph_node_t* graph_nodes; // Array of size 'graph_nb_nodes' (after initi
 */
 inline int8_t graph_level;
 
-inline int8_t graph_bases[6]; // Array of bases ids, first three are blue, last three are yellow, first one of each group is reserved (ie 0 and 3)
-inline int8_t graph_plants[6]; // Array of plant spots ids
+inline uint8_t graph_bases[6]; // Array of bases ids, first three are blue, last three are yellow, first one of each group is reserved (ie 0 and 3)
+inline uint8_t graph_plants[6]; // Array of plant spots ids
+inline uint8_t graph_pots[6]; // Array of pot spots ids
 
 /**
  * @brief Initializes graph_nodes from file 'filename'. Returns 0 on success, -1 otherwise.
@@ -53,13 +55,19 @@ int init_graph_from_file(const char *filename);
 void free_graph();
 
 /**
- * Computes a path sequence from node 'from' to node 'to' (refer to the visual graph)
- * The level of 'to' and/or the graph_level must be set accordingly before the call
+ * @brief Prints cost, number of nodes, and coordinates in this path
+*/
+void print_path(graph_path_t* path); 
+
+/**
+ * Computes a path sequence from node 'from' to the closest node in the 'targets' array (refer to the visual graph)
+ * The level of the 'targets' and/or the graph_level must be set accordingly before the call
+ * 'oversampling' intermediate points are added between each key point for better path following (recommended values : 0, 1 or 2)
  * Returns NULL if no path is found
  * Note that the arrays of x and y coordinates are directly next to the structure in the memory
  * Only the pointer returned must be passed to free() after the call, not the x and y arrays of the structure
 */
-graph_path_t *graph_compute_path(const int from, const int to);
+graph_path_t *graph_compute_path(const uint8_t from, uint8_t *targets, const uint8_t len_targets, const uint8_t oversampling);
 
 /**
  * Updates the level of 'node' to 'level'
