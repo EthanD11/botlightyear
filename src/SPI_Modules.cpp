@@ -250,19 +250,19 @@ void teensy_set_position_controller_gains(double kp, double ka, double kb, doubl
 
 void teensy_set_path_following_gains(double kt, double kn, double kz, double sigma, double epsilon, double kv_en, double delta, double wn) {
     // Compression to go to SPI
-    int message_size = 1 + 2*7;
-    char send[15];
-    char receive[15];
+    int message_size = 1 + 2*8;
+    char send[17];
+    char receive[17];
     send[0] = (char) QuerySetPathFollowerGains;
 
     uint16_t *send_ref = (uint16_t *) (send + sizeof(char));
-    send_ref[0] = (uint16_t) ((kt/100)*UINT16_MAX);   // speed_left compressed
-    send_ref[1] = (uint16_t) ((kn/100)*UINT16_MAX);   // speed_right compressed
-    send_ref[2] = (uint16_t) ((kz/100)*UINT16_MAX);   // speed_right compressed
-    send_ref[3] = (uint16_t) ((sigma/100)*UINT16_MAX);   // speed_right compressed
-    send_ref[4] = (uint16_t) ((epsilon/100)*UINT16_MAX);   // speed_left compressed
+    send_ref[0] = (uint16_t) ((kt/50)*UINT16_MAX);   // speed_left compressed
+    send_ref[1] = (uint16_t) ((kn)*UINT16_MAX);   // speed_right compressed
+    send_ref[2] = (uint16_t) ((kz/200)*UINT16_MAX);   // speed_right compressed
+    send_ref[3] = (uint16_t) ((sigma/20)*UINT16_MAX);   // speed_right compressed
+    send_ref[4] = (uint16_t) ((epsilon)*UINT16_MAX);   // speed_left compressed
     send_ref[5] = (uint16_t) ((kv_en/100)*UINT16_MAX);   // speed_right compressed
-    send_ref[6] = (uint16_t) ((delta/100)*UINT16_MAX);   // speed_right compressed
+    send_ref[6] = (uint16_t) ((delta)*UINT16_MAX);   // speed_right compressed
     send_ref[7] = (uint16_t) ((wn/100)*UINT16_MAX);   // speed_right compressed
 
     lgSpiXfer(Teensy_handle, send, receive, message_size);

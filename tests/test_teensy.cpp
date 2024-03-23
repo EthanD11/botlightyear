@@ -31,14 +31,25 @@ int main(int argc, char const *argv[])
     #endif
 
     #ifdef PATH_FOLLOWING
+    double kt = .5;
+    double kn = 0.3; // 0 < kn <= 1
+    double kz = 60.0;
+    double delta = 70e-3; // delta is in meters
+    double sigma = 0.0;
+    double epsilon = 150e-3; // epsilon is in meters
+    double wn = 0.3; // Command filter discrete cutoff frequency
+    double kv_en = 8;
+    teensy_set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
+    lguSleep(0.1);
     int ncheckpoints = 5;
     double x[5] = {0.0,0.4,0.8,0.4,0.0};
     double y[5] = {1.5,1.7,1.5,1.3,1.5};
     double theta_start =   0.;
     double theta_end = M_PI;
-    double vref = 0.4;
+    double vref = 0.5;
     double dist_goal_reached = 0.1;
     teensy_set_position(0, 1.5, 0);
+    lguSleep(0.2);
     teensy_path_following(x, y, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
     #endif
 
@@ -66,20 +77,21 @@ int main(int argc, char const *argv[])
     double kp = 1.0;
     double ka = 4.0;
     double kb = -0.5;
-    double kw = 5.6;
+    double kw = 8.0;
     teensy_set_position_controller_gains(kp, ka, kb, kw);
     #endif
 
     #ifdef SET_PATH_FOLLOWER_GAINS
-    double kt = 3.0;
-    double kn = 1.0; // 0 < kn <= 1
-    double kz = 80.0;
-    double delta = 30e-3; // delta is in meters
-    double sigma = 1.0;
-    double epsilon = 150-3; // epsilon is in meters
+    double kt = .5;
+    double kn = 0.5; // 0 < kn <= 1
+    double kz = 60.0;
+    double delta = 50e-3; // delta is in meters
+    double sigma = 0.0;
+    double epsilon = 150e-3; // epsilon is in meters
     double wn = 0.3; // Command filter discrete cutoff frequency
-    double kv_en = 10;
-    teensy_set_path_following_gains(kt, kn, kz, delta, sigma, epsilon, wn, kv_en);
+    double kv_en = 8;
+    teensy_set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
+    teensy_idle();
     #endif
 
     #ifdef ASK_STATE
