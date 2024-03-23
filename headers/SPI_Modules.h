@@ -125,7 +125,7 @@ void teensy_set_path_following_gains(double kt, double kn, double kz, double sig
 /**
  * @brief Return in which mode the teensy is currently
 */
-void teensy_ask_mode();
+int teensy_ask_mode();
 
 // ------ SERVOS -----
 

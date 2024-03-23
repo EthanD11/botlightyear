@@ -25,8 +25,8 @@ SOURCES_OBJ := $(filter-out sthg_to_filter_out, $(SOURCES_OBJ))
 
 # -----------------------------------------------------------------------------------
 # Rules
-all:
-	echo $(SOURCES_OBJ)
+all: main.o $(SOURCES_OBJ)
+
 
 #Create the OBJ_DIR directory
 $(OBJ_DIR):

@@ -209,7 +209,7 @@ void teensy_idle() {
     lgSpiWrite(Teensy_handle, &send, 1);
 }
 
-void teensy_ask_mode() {
+int teensy_ask_mode() {
     char send[4];
     char receive[4];
     send[0] = QueryAskState;
@@ -222,6 +222,7 @@ void teensy_ask_mode() {
     for (int i = 0; i < 4; i++){
         printf("%d, %d\n", send[i], receive[i]);
     }
+    return (int) receive[2];
 }
 
 void teensy_set_position_controller_gains(double kp, double ka, double kb, double kw) {
