@@ -57,7 +57,13 @@ void StartLidar(){
             lidar->getAllSupportedScanModes(scanModes);
 
             LidarScanMode scanMode;
-            lidar->startScan(false, true, 0, &scanMode);
+            /*lidar->setMotorSpeed(360);
+            sl::LidarMotorInfo *MT ;
+            MT= (sl::LidarMotorInfo*) malloc(sizeof(sl::LidarMotorInfo));
+            lidar->getMotorInfo(*MT);*/
+            //lidar->startScan(false, true, 0, &scanMode);
+            // lidar->startScanExpress();
+            //printf("%d %d %d mot \n", MT->desired_speed, MT->max_speed, MT->min_speed );
 
         }else{
             fprintf(stderr, "Failed to get device information from LIDAR %08x\r\n", res);
@@ -157,20 +163,4 @@ void StopLidar(){
     delete channel;
 }
 
-
-
-void faussemain()
-{      
-    
-    StartLidar();
-    for (size_t i = 119; i < 119; i++)
-    {
-        //sleep(10);
-        DataToFile("testBottom"+std::to_string(i)+".txt");
-        printf("turn\n");
-    }
-    
-//     StopLidar();
-    
- }
 

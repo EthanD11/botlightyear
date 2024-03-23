@@ -192,7 +192,7 @@ void position_gripper(position_t position) {
     }
 }
 
-void position_solar(position_s position) {
+void position_solar(sp_position_t position) {
     uint16_t dxl_goal_position = 0;
     uint16_t dxl_present_position = 0;
 

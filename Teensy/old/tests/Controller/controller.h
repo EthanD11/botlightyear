@@ -8,12 +8,19 @@
 #include <stdio.h>
 #endif
 
+//#define ODOMETERS_ENC
+
 // Parameters definiton
-#define REF_SPEED_LIMIT 0.7 // Saturation level of the reference angular velocity (m/s)
+#define REF_SPEED_LIMIT 0.7 // Saturation level of the reference angular velocity (rad_mot/s, 113*100*2pi/64, 0.9/30e-3*30)
 #define REG_DELAY 20 // Delay between two updates (ms)
-#define SPD_TOL 1e-2 // Max speed at which motors can be turned off (m/s)
+#define SPD_TOL 1e-3 // Max speed at which motors can be turned off (rad_mot/s)
+#ifdef ODOMETERS_ENC
+#define WHEEL_L 126e-3 // Half the distance between the two wheels (m)
+#define WHEEL_R 22.5e-3   // Radius of the wheel (diameter 45 mm)
+#else
 #define WHEEL_L 88.085e-3 // Half the distance between the two wheels (m)
 #define WHEEL_R 1.8e-3   // Radius of the wheel (36 mm) / gear ratio of 20
+#endif
 
 /**
  * @brief Type 1 PI control of the speed based on angular velocities (left and right, actual and reference)

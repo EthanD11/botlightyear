@@ -21,7 +21,7 @@ CPP_TESTS = $(wildcard $(TESTS_DIR)/*.cpp)
 # List of .o file
 SOURCES_OBJ = $(addprefix $(OBJ_DIR)/,$(notdir $(SOURCES:.c=.o)))
 SOURCES_OBJ += $(addprefix $(OBJ_DIR)/,$(notdir $(CPP_SOURCES:.cpp=.o)))
-SOURCES_OBJ := $(filter-out bin/cameraTag.o, $(SOURCES_OBJ))
+SOURCES_OBJ := $(filter-out sthg_to_filter_out, $(SOURCES_OBJ))
 
 # -----------------------------------------------------------------------------------
 # Rules
@@ -30,35 +30,35 @@ all:
 
 #Create the OBJ_DIR directory
 $(OBJ_DIR):
-	@mkdir -p $(OBJ_DIR)
+	mkdir -p $(OBJ_DIR)
 
 # Compiling a binary file from a source file
 $(OBJ_DIR)/%.o: $(SOURCES_DIR)/%.c | $(OBJ_DIR)
-	@$(CC) -I$(HEADERS_DIR) $(CFLAGS) -o $@ -c $< $(LIBS)
+	$(CC) -I$(HEADERS_DIR) $(CFLAGS) -o $@ -c $< $(LIBS)
 
 # Compiling a binary file from a source file
 $(OBJ_DIR)/%.o: $(SOURCES_DIR)/%.cpp | $(OBJ_DIR)
-	@$(CXX) -I$(HEADERS_DIR) $(CXXFLAGS) -o $@ -c $< $(LIBS)
+	$(CXX) -I$(HEADERS_DIR) $(CXXFLAGS) -o $@ -c $< $(LIBS)
 
 # Compiling a binary file from a c++ source file (for lidar)
 $(OBJ_DIR)/%.o: ../rplidar/%.cpp | $(OBJ_DIR)
-	@$(CXX) -I../rplidar/include $(CXXFLAGS) -o $@ -c $<
+	$(CXX) -I../rplidar/include $(CXXFLAGS) -o $@ -c $<
 
 
 # Compiling all the sources
 compile: $(SOURCES_OBJ)
 
 #Compiling a random file that use SOURCES file
-%.o: %.cpp $(SOURCES_OBJ)
-	@$(CC) -I$(HEADERS_DIR) $(FLAGS) $^ -o $@ $(LIBS)
+%.o: %.c $(SOURCES_OBJ)
+	$(CC) -I$(HEADERS_DIR) $(FLAGS) $^ -o $@ $(LIBS)
 
 %.o: %.cpp $(SOURCES_OBJ)
-	@$(CXX) -I$(HEADERS_DIR) $(CXXFLAGS) $^ -o $@ $(LIBS)
+	$(CXX) -I$(HEADERS_DIR) $(CXXFLAGS) $^ -o $@ $(LIBS)
 
 #Do an individual test
 test_%: $(TESTS_DIR)/test_%.o $(SOURCES_OBJ)
-	@./$<
-	@rm $<
+	./$<
+	rm $<
 
 #Run all the tests
 tests: $(TESTS:.cpp=.o)

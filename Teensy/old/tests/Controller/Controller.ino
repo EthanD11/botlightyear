@@ -26,10 +26,10 @@ const double TICKS_TO_M = 1.3806e-6; // Multiply to get meters from tick count. 
 
 // Current and reference x, y and theta
 #ifdef T3
-double x = 0, y = 0, t = 0, xr = 1, yr = 0, tr = 0;
+double x = 0, y = 0, t = 0, xr = 0.5, yr = 0, tr = 1;
 double fwd, rot;
 #endif
-double speed_refl=0.65, speed_refr=0.65;
+double speed_refl=0.35, speed_refr=-0.55;
 
 // Time variables
 int control_time;
@@ -70,7 +70,7 @@ void loop() {
   // Each 20ms TODO : Restimate REG_DELAY
   if(current_time - control_time > REG_DELAY){
 
-    if (current_time > 5000) { duty_cycle_update(0,0); return; }
+    if (current_time > 20000) { duty_cycle_update(0,0); return; }
 
     // Updating values according to encoders
     int tick_left, tick_right;
@@ -106,4 +106,3 @@ void loop() {
 
   }
 }
-
