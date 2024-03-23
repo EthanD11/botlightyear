@@ -8,8 +8,11 @@
 #include <unistd.h>  
 #include <pthread.h> 
 
+pthread_t tid[2]; 
+pthread_rwlock_t lock[2]; 
 
-#define FLAG    0
+bool ADVERSARY_FLAG = false; 
+bool ENDGAME = false; 
 
 void calibrateAll() {
     stpr_calibrate(StprFlaps);
@@ -35,7 +38,6 @@ void *homologation() {
     stpr_setup_speed(2,10,StprPlate); 
     stpr_setup_speed(4,10,StprSlider);
     calibrateAll();
-    sleep(10);
 
     //Ping Dynamixels
     dxl_ping(1, 2.0);
@@ -43,7 +45,9 @@ void *homologation() {
     dxl_ping(6, 1.0);
     dxl_ping(8, 1.0);
 
-    //Init Starting Switch
+    sleep(10);
+
+    /* //Init Starting Switch
     int handle = lgGpiochipOpen(0);
     if (handle < 0) exit(1);
     int start = 0; 
@@ -57,7 +61,12 @@ void *homologation() {
     //Start the game
     while (FLAG == 0) {
 
-    }
+    }*/
+
+    
+
+
+
 
 }
 
@@ -65,25 +74,49 @@ void *topLidar() {
     double *robot = new double[4]{0, 0, 0, 0};
     double *adv = new double[4]{0, 0, 0, 0};
     double *beaconAdv = new double[8]{0, 0, 0, 0, 0, 0, 0, 0};
+    
     StartLidar();
-    DataToFile("jsp.txt");
+
+    while (!ENDGAME) {
+        lidarGetRobotPosition(robot, adv, beaconAdv);
+        double adv_dist = adv[2]; 
+        double adv_angle = adv[3];
+        double limit_stop = 0.5; 
+        if ((adv_dist < limit_stop) & (adv_dist < 0.79) & (adv_dist > (6.28-0.79))) {
+            ADVERSARY_FLAG = true; 
+            printf("Adversary detected\n");
+        }
+    }
+
     StopLidar();
-    //lidarGetRobotPosition(robot, adv, beaconAdv);
-    /*printf("\n robot at x=%f; y=%f; orientation=%f; %f radian beacon3\n", robot[0], robot[1], robot[2], robot[3]);
-    printf("Adversary at x=%f; y=%f\n", adv[0], adv[1]);
-    printf("adv at %f m; %f degree\n", adv[2], adv[3] * 180 / M_PI);
-    for (int i = 0; i < 8; ++i) {
-        printf("%f, ", beaconAdv[i]);
-    }*/
-    printf("\n");
     return 0;
 }
 
-int main() 
-{ 
-    pthread_t thread_id; 
-    pthread_create(&thread_id, NULL, myThreadFun, NULL); 
-    pthread_join(thread_id, NULL); 
+int main() { 
+
+    int error;
+
+    for (int i = 0; i < 2; i++) {
+        if (pthread_rwlock_init(&lock[i], NULL) != 0) { 
+        printf("Mutex init has failed : [%d] \n", i); 
+        exit(1); 
+        } 
+    }
+
+    for (int i = 0; i < 2; i++) {
+        error = pthread_create(&(tid[i]), NULL, &trythis, NULL); 
+        if (error != 0) {
+            printf("\nThread can't be created :[%s]", strerror(error)); 
+            exit(1);
+        }
+    }
+
+    pthread_join(tid[0], NULL); 
+    pthread_join(tid[1], NULL); 
+
+    for (int i = 0; i < 2; i++) {
+        pthread_rwlock_destroy(&lock[i]);
+    }
     
     exit(0); 
 }
