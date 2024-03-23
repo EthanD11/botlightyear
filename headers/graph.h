@@ -79,7 +79,7 @@ void print_path(graph_path_t* path);
 /**
  * Identify the given (x,y) coordinates to a node of the graph.
  * Returns identified node id.
- * Stores the distance to this node into 'dist'
+ * Stores the distance from (x,y) to the identified node into 'dist'
  */
 uint8_t graph_identify_pos(double x, double y, double *dist);
 
