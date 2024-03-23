@@ -44,6 +44,13 @@ int main(int argc, char const *argv[])
     }
     print_path(result);
     printf("\nTime taken : %ld clock cycles\n", stop-start);
+
+    double x = 0.0;
+    double y = -1.0;
+    double dist;
+    uint8_t id = graph_identify_pos(x,y,&dist);
+    printf("Position (%.3f,%.3f) identifies with node %d with an error of %.3f\n", x, y, id, dist);
+
     free(result);
     free_graph();
 

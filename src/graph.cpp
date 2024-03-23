@@ -128,6 +128,20 @@ void graph_level_update(const int node, const int level, const int propagation) 
     }
 }
 
+uint8_t graph_identify_pos(double x, double y, double *dist) {
+    uint8_t id = 0;
+    *dist = hypot(graph_nodes[0].x - x, graph_nodes[0].y - y);
+    for (uint8_t i = 1; i < graph_nb_nodes; i++)
+    {
+        double temp = hypot(graph_nodes[i].x - x, graph_nodes[i].y - y);
+        if (*dist > temp) {
+            *dist = temp;
+            id = i;
+        }
+    }
+    return id;
+}
+
 int init_graph_from_file(const char *filename) {
     FILE *input_file = fopen(filename, "r");
     if (input_file == NULL) return -1;

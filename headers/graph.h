@@ -55,11 +55,6 @@ int init_graph_from_file(const char *filename);
 void free_graph();
 
 /**
- * @brief Prints cost, number of nodes, and coordinates in this path
-*/
-void print_path(graph_path_t* path); 
-
-/**
  * Computes a path sequence from node 'from' to the closest node in the 'targets' array (refer to the visual graph)
  * The level of the 'targets' and/or the graph_level must be set accordingly before the call
  * 'oversampling' intermediate points are added between each key point for better path following (recommended values : 0, 1 or 2)
@@ -75,6 +70,19 @@ graph_path_t *graph_compute_path(const uint8_t from, uint8_t *targets, const uin
  * Plants and bases are not affected by propagation
 */
 void graph_level_update(const int node, const int level, const int propagation);
+
+/**
+ * @brief Prints cost, number of nodes, and coordinates in this path
+*/
+void print_path(graph_path_t* path); 
+
+/**
+ * Identify the given (x,y) coordinates to a node of the graph.
+ * Returns identified node id.
+ * Stores the distance to this node into 'dist'
+ */
+uint8_t graph_identify_pos(double x, double y, double *dist);
+
 
 /*
 // Total number of nodes
