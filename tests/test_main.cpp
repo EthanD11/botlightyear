@@ -62,10 +62,10 @@ void update_position(int32_t ticks_l, int32_t ticks_r) {
 
 
 void *homologation(void* v) {
-    printf("homologation happy \n");
+    printf("Entering homologation thread \n");
     //Init ports
     init_spi();
-    dxl_init_port();
+    //dxl_init_port();
 
     //Init useful variables
     /*int32_t old_ticks_l = 0, old_ticks_r = 0; // Old tick values from previous iteration, left and right
@@ -111,17 +111,17 @@ void *homologation(void* v) {
         double kv_en = 10;
         teensy_set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
         lguSleep(0.1);
-        int ncheckpoints = 5;
-        double xr[5] = {0.0,0.8,1.6,0.8,0.0};
-        double yr[5] = {1.5,1.7,1.5,1.3,1.5};
+        int ncheckpoints = 2;
+        double xr[2] = {0.2, 0.7};
+        double yr[2] = {0.7, 0.15};
         double theta_start =   0.;
-        double theta_end = M_PI;
-        double vref = 0.4;
-        double dist_goal_reached = 0.2;
-        teensy_set_position(0.0, 1.5, 0);
+        double theta_end = 0;
+        double vref = 0.2;
+        double dist_goal_reached = 0.1;
+        teensy_set_position(0.2, 0.7, 0);
         lguSleep(0.1);
         teensy_path_following(xr, yr, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
-        while (((controlmode_t) teensy_ask_mode()) == ModePathFollowing) {
+        /*while (((controlmode_t) teensy_ask_mode()) == ModePathFollowing) {
             printf("Moving \n");
             if (ADVERSARY_FLAG) {
                 printf("Adversary found \n");
@@ -129,7 +129,7 @@ void *homologation(void* v) {
                 break;
                 exit(1); 
             }
-        };
+        };*/
     }
 
     //Grab the plant:
@@ -161,7 +161,7 @@ void *homologation(void* v) {
 
     //Path following: Go to charging station
     
-
+    ENDGAME = true; 
     return 0;
 }
 
