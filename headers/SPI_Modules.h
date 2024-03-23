@@ -77,7 +77,9 @@ typedef enum {
 	QueryDoPathFollowing,
 	QueryDoConstantDutyCycle,
 	QueryAskState,
-	QuerySetPosition
+	QuerySetPosition,
+	QuerySetPositionControlGains,
+	QuerySetPathFollowerGains
 } query_t;
 
 /**
@@ -99,8 +101,7 @@ void teensy_constant_dc(int dc_refl, int dc_refr);
  * @brief Ask the teensy to enter the path following mode with the specified checkpoints. 
  * Must be called after init_spi. 
  */
-void teensy_path_following(double *x, double *y, int ncheckpoints, double theta_start, double theta_end);
-
+void teensy_path_following(double *x, double *y, int ncheckpoints, double theta_start, double theta_end, double vref, double dist_goal_reached);
 /**
  * @brief Send query to idle Teensy. It will stop any control effort over the motors. Must be called after init_spi.
  */
@@ -110,6 +111,16 @@ void teensy_idle();
  * @brief Set the position of the teensy
 */
 void teensy_set_position(double x, double y, double theta);
+
+/**
+ * @brief Set the gains of the position controller
+*/
+void teensy_set_position_controller_gains(double kp, double ka, double kb, double kw);
+
+/**
+ * @brief Set the gains of the path following controller
+*/
+void teensy_set_path_following_gains(double kt, double kn, double kz, double sigma, double epsilon, double kv_en, double delta, double wn);
 
 /**
  * @brief Return in which mode the teensy is currently
