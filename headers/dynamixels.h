@@ -23,7 +23,7 @@ typedef enum {
 typedef enum {
     UpS,
     DownS,
-} position_s;
+} sp_position_t;
 
 void dxl_init_port(); 
 void dxl_close_port(); 
@@ -34,7 +34,7 @@ void dxl_idle(int ID, float PROTOCOL);
 void gripper(object_t objet);
 void position_gripper(position_t position);
 
-void position_solar(position_s position);
+void position_solar(sp_position_t position);
 void multiturn_solar(direction_t direction);
 
 #endif
