@@ -73,6 +73,8 @@ camera_program:
 	@g++ ./src/cameraTag.cpp -o ./bin/camera -lpthread -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_aruco -lopencv_videoio -lopencv_imgcodecs -I$(HEADERS_DIR)
 #@g++ ./src/cameraTag.cpp -o ./bin/camera.o -lpthread -I/usr/include/opencv4 -I/path/to/raspicam/include -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_aruco -lopencv_videoio -L/usr/local/lib -L/path/to/raspicam/lib -lraspicam -lraspicam_cv
 
+
+
 #Run valgrind on the project
 #valgrind : fec
 #	@valgrind --leak-check=yes --show-leak-kinds=all ./fec input_binary -f output.txt

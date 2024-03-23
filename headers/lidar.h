@@ -55,5 +55,7 @@ void updateDataFile(double* angles, double* distances, double* quality, string f
 void DataToFile(string filename);
 
 
-void faussemain();
+
+
+
 #endif //MECATROMINIBOT_LIDAR_H

@@ -5,7 +5,7 @@
 #include "lidarTop.h"
 
 ///global variable to find out the size of the file
-size_t arraySize;
+size_t arraySize = 3000;
 
 void rotationPosition(double *db, double *x, double *y, double * robot, double* transfo, double* anglesBeacons) {
     ///x,y coordinates of the 4 elements
@@ -182,7 +182,7 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
     ///if we make a full scan we don't know de position of the robot -> analysis of the full data
     ///if we don't make a full scan : we know a estimation of the opponent and the beacons -> 4 smalls for loop
     int nbBoucle = 1;
-    int* origine = new int[4]{0,0,0,0};
+    size_t* origine = new size_t[4]{0,0,0,0};
     size_t * fin = new size_t [4]{arraySize,0,0,0};
     int* nbObjetParInterval = new int[4]{1,1,1,1};
 
@@ -190,6 +190,7 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
     double angleStart;
     double angleEnd;
     if (!fullScan){
+
         nbBoucle = 4;
         //TODO si arraysize bien maj
         ///bubble sort : the order of the beacons is important for next
@@ -226,6 +227,7 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
         ///union find
         ///if 2 objects are too close, the two intervals will overlap and there is a risk of seeing the objects twice
         int i = 0;
+
         while(i<nbBoucle-1){
             if (origine[i+1]<=fin[i]){
                 fin[i]=fin[i+1];
@@ -244,13 +246,12 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
     /// count of missing data+1
     /// useful for knowing the difference in maximum distance when a lot of data is lost between 2 elements
     int countGap = 1;
-
     for (int k = 0; k < nbBoucle; ++k) {
         //if an object is between 0 and 360°, it may be detected twice, but this is not a problem.
         objet = false;
         oldcountObj = countObj+countObj_adv;
 
-        for (int i = origine[k]; i < fin[k]; ++i) {
+        for (size_t i = origine[k]; i < fin[k]; ++i) {
             /// check if the object is potentially on the table
             if (0.2 < distances[i] && distances[i] < 3.45) {//TODO check max et min possible
                 /// no previous object: a new object to be initialized
@@ -304,7 +305,6 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
                 //      -> end of object (objet==true : same as above)
                 //      -> no previous object : nothing to do
                 size = std::sqrt(d2 * d2 + d1 * d1 - 2 * d2 * d1 * std::cos(a2 - a1));
-
                 if (size < 0.055 && d1>0 ){
                     aObj[countObj] = (a1 + a2) / 2;
                     dObj[countObj] = (d1 + d2) / 2;
@@ -406,14 +406,14 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
 }
 
 void lidarGetRobotPosition(double * robot, double* adv, double* beaconAdv) {
-    StartLidar();
-    double* angles = new double[1000];
-    double* distances = new double[1000];
-    double* quality = new double[1000];
-    //updateData(angles, distances, quality, 1000);
-    //checkBeacon(angles, distances, quality, robot, adv, true, beaconAdv);
-    DataToFile("testBottom1.txt");
-    StopLidar();
+    //StartLidar();
+    double* angles = new double[3000];
+    double* distances = new double[3000];
+    double* quality = new double[3000];
+    updateData(angles, distances, quality, 1000);
+    checkBeacon(angles, distances, quality, robot, adv, true, beaconAdv);
+    //DataToFile("testBottom1.txt");
+    //StopLidar();
 }
 
 

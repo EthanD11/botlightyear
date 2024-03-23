@@ -26,9 +26,10 @@ ILidarDriver *lidar;
 //SLeep
 #include <unistd.h>
 
+
 void StartLidar(){
     ///  Create a communication channel instance
-    //TODO 2 lidar ici modif port chanel ?? 256000
+    //TODO 2 lidar ici modif port chanel ??
     Result<IChannel*> _channel = createSerialPortChannel("/dev/ttyUSB0", 115200); //port série spécifié est "/dev/ttyUSB0" avec un débit de 115200 bps.
     if (_channel.err) {
         fprintf(stderr, "Failed to create communication channel\r\n");
@@ -57,13 +58,7 @@ void StartLidar(){
             lidar->getAllSupportedScanModes(scanModes);
 
             LidarScanMode scanMode;
-            /*lidar->setMotorSpeed(360);
-            sl::LidarMotorInfo *MT ;
-            MT= (sl::LidarMotorInfo*) malloc(sizeof(sl::LidarMotorInfo));
-            lidar->getMotorInfo(*MT);*/
-            //lidar->startScan(false, true, 0, &scanMode);
-            // lidar->startScanExpress();
-            //printf("%d %d %d mot \n", MT->desired_speed, MT->max_speed, MT->min_speed );
+            lidar->startScan(false, true, 0, &scanMode);
 
         }else{
             fprintf(stderr, "Failed to get device information from LIDAR %08x\r\n", res);
@@ -72,7 +67,6 @@ void StartLidar(){
         fprintf(stderr, "Failed to connect to LIDAR %08x\r\n", res);
     }
 }
-
 
 void updateData(double* angles, double* distances, double* quality, int arraySize){
     sl_lidar_response_measurement_node_hq_t nodes[arraySize];
