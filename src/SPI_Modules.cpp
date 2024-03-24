@@ -427,6 +427,9 @@ void slider_move(slider_pos_t pos){
     case SliderTake :
         steps = 1600;
         break;      
+    case SliderDeposit : 
+        steps = 5000;
+        break; 
     default :
         printf("Error : not a position \n");
         printf("%d\n", pos);

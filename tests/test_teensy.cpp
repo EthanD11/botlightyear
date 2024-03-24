@@ -2,8 +2,8 @@
 #include <stdio.h>
 
 //#define POSITION_CONTROL
-#define PATH_FOLLOWING
-//#define IDLE
+//#define PATH_FOLLOWING
+#define IDLE
 // #define SET_POSITION
 // #define SPEED_CONTROL
 // #define DC_CONTROL

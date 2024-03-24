@@ -28,18 +28,19 @@ int main(int argc, char const *argv[])
     dxl_ping(8, 1.0);
 
     servo_cmd(ServoRaise);
-    stpr_setup_speed(100,400,StprFlaps); 
+    stpr_setup_speed(100,600,StprFlaps); 
     stpr_setup_speed(60,500,StprPlate); 
     stpr_setup_speed(300,400,StprSlider);
     resetAll(); 
     calibrateAll();
 
-    sleep(10); 
+    sleep(5); 
+
 
     servo_cmd(ServoDeploy);
-    //flaps_move(FlapsPlant);
-    //lguSleep(3);
-    //flaps_move(FlapsOpen);
+    flaps_move(FlapsPlant);
+    lguSleep(3);
+    flaps_move(FlapsOpen);
     gripper(Open);
     position_gripper(Down);
     lguSleep(1);
@@ -71,7 +72,7 @@ int main(int argc, char const *argv[])
     lguSleep(1); 
     plate_move(0); 
     lguSleep(2); 
-    slider_move(SliderLow); 
+    slider_move(SliderDeposit); 
     lguSleep(3); 
     gripper(Open); 
     lguSleep(2); 

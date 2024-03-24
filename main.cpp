@@ -71,7 +71,7 @@ void *homologation(void* v) {
 
     //Calibrate all steppers
     servo_cmd(ServoRaise);
-    stpr_setup_speed(100,400,StprFlaps); 
+    stpr_setup_speed(100,600,StprFlaps); 
     stpr_setup_speed(60,500,StprPlate); 
     stpr_setup_speed(300,400,StprSlider);
     resetAll(); 
@@ -106,7 +106,7 @@ void *homologation(void* v) {
         teensy_set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
         lguSleep(0.1);
         int ncheckpoints = 2;
-        double xr[2] = {0.21, 1};
+        double xr[2] = {0.21, 0.7};
         double yr[2] = {0.08, 0.7};
         double theta_start = M_PI/2.0;
         double theta_end = M_PI/2.0;
@@ -172,7 +172,7 @@ void *homologation(void* v) {
     if ((!ADVERSARY_FLAG)) {
         printf("No adversary, taking path following \n");
         int ncheckpoints = 2;
-        double xr[2] = {1, 1};
+        double xr[2] = {0.7, 1};
         double yr[2] = {0.7, 2.0};
         double theta_start =   M_PI/2.0;
         double theta_end = M_PI/2.0;
@@ -195,7 +195,49 @@ void *homologation(void* v) {
     //Drop the plant
 
     //Path following: Go to solar panels
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
 
+    if ((!ADVERSARY_FLAG)) {
+        printf("No adversary, taking path following \n");
+        int ncheckpoints = 2;
+        double xr[2] = {1, 1.75};
+        double yr[2] = {2, 0.73};
+        double theta_start =   M_PI/2.0;
+        double theta_end = -M_PI/2.0;
+        double vref = 0.2;
+        double dist_goal_reached = 0.1;
+        teensy_set_position(xr[0], yr[0], theta_start);
+        lguSleep(0.1);
+        teensy_pos_ctrl(xr[0], yr[0], -M_PI/2.0);
+        lguSleep(10);
+        teensy_path_following(xr, yr, ncheckpoints, -M_PI/2.0, theta_end, vref, dist_goal_reached);
+        /*while (((controlmode_t) teensy_ask_mode()) == ModePathFollowing) {
+            printf("Moving \n");
+            if (ADVERSARY_FLAG) {
+                printf("Adversary found \n");
+                teensy_idle();
+                break;
+                exit(1); 
+            }
+        };*/
+    }
     //Turn solar panel
 
 

@@ -159,7 +159,8 @@ typedef enum {
     SliderLow,
     SliderHigh,
     SliderPlate, 
-    SliderTake
+    SliderTake, 
+    SliderDeposit
 } slider_pos_t;
 
 /**
