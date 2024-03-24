@@ -68,11 +68,11 @@ void StartLidar(){
     }
 }
 
-void updateData(double* angles, double* distances, double* quality, int arraySize){
-    sl_lidar_response_measurement_node_hq_t nodes[arraySize];
+void updateData(double* angles, double* distances, double* quality, size_t* arraySize){
+    sl_lidar_response_measurement_node_hq_t nodes[arraySize[1]];
     size_t nodeCount = sizeof(nodes)/sizeof(sl_lidar_response_measurement_node_hq_t);
     u_result res = lidar->grabScanDataHq(nodes, nodeCount);
-
+    arraySize[0]=nodeCount;
     if (SL_IS_OK(res)){
         lidar->ascendScanData(nodes, nodeCount);//cfr sl_lidar_driver.cpp
         for(size_t i = 0; i < nodeCount; i++){

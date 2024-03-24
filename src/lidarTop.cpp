@@ -154,6 +154,8 @@ void Adversary(double *anglesAdv, double *distancesAdv, double *transfo, double*
 }
 
 void checkBeacon(double *angles, double *distances, double *quality, double *robot, double* adversaryCoordinates, bool fullScan, double* previousBeaconAdv) {
+
+
     robot[0]= 0;
     robot[1]=0;
     ///objet==true : object detected at probable distance
@@ -183,15 +185,14 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
     ///if we make a full scan we don't know de position of the robot -> analysis of the full data
     ///if we don't make a full scan : we know a estimation of the opponent and the beacons -> 4 smalls for loop
     int nbBoucle = 1;
-    size_t* origine = new size_t[4]{0,0,0,0};
-    size_t * fin = new size_t [4]{arraySize,0,0,0};
+    int* origine = new int[4]{0,0,0,0};
+    int * fin = new int [4]{(int)arraySize,0,0,0};
     int* nbObjetParInterval = new int[4]{1,1,1,1};
 
     double deltaDemiAlpha;
     double angleStart;
     double angleEnd;
     if (!fullScan){
-
         nbBoucle = 4;
         //TODO si arraysize bien maj
         ///bubble sort : the order of the beacons is important for next
@@ -209,7 +210,6 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
             }
         }
 
-
         ///calculating the limits where we will look
         for (int i = 0; i < 4; ++i) {
             deltaDemiAlpha = std::tan(0.05/previousBeaconAdv[2*i+1]);
@@ -226,7 +226,6 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
         ///union find
         ///if 2 objects are too close, the two intervals will overlap and there is a risk of seeing the objects twice
         int i = 0;
-
         while(i<nbBoucle-1){
             if (origine[i+1]<=fin[i]){
                 fin[i]=fin[i+1];
@@ -242,37 +241,43 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
         }
     }
 
+
     /// count of missing data+1
     /// useful for knowing the difference in maximum distance when a lot of data is lost between 2 elements
     int countGap = 1;
     for (int k = 0; k < nbBoucle; ++k) {
         //if an object is between 0 and 360°, it may be detected twice, but this is not a problem.
-        printf("%d\n", k);
-        
         objet = false;
         oldcountObj = countObj+countObj_adv;
+        int i;
+        for (int p = origine[k]; p < fin[k]; ++p){
+            i = p;
+            if (i<0){
+                i+=arraySize;
+            }
 
-        for (size_t i = origine[k]; i < fin[k]; ++i) {
+
             /// check if the object is potentially on the table
             if (0.2 < distances[i] && distances[i] < 3.45) {//TODO check max et min possible
+
                 /// no previous object: a new object to be initialized
                 if (!objet) {
                     objet = true;
                     a1 = angles[i];
                     d1 = distances[i];
-
                 } else {
                     // object present before: if distance small enough it's the same (delta<2cm) -> nothing to do
                     // delta >2cm : new object -> check if the previous one is a beacon
 
                     //TODO check le count gap max possible : prendre donnée d'un poteau le plus porche possible et voir combien d'elem ca prend
                     // lien avec d2 ok ??
-                    if (std::abs(d2 - distances[i]) > 0.02*countGap && countGap/d2<10) {
+
+                    if (std::abs(d2 - distances[i]) > 0.02*countGap){//TODO CHECK CE PROB :  && countGap/d2<10) {
+
                         //what we detect is a new object
 
                         ///size of object previously detected
                         size = std::sqrt(d2 * d2 + d1 * d1 - 2 * d2 * d1 * std::cos(a2 - a1));
-
                         if (size < 0.055){// && size > 0.015) {
                             //beacon width = 5cm (estimate smaller than 5.5cm)
                             //TODO : better precision  ??
@@ -280,8 +285,6 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
                             ///it may be a beacon, its data is saved
                             aObj[countObj] = (a1 + a2) / 2;
                             dObj[countObj] = (d1 + d2) / 2;
-                            printf("%f %f \n", aObj[countObj], dObj[countObj]);
-
                             countObj++;
                         }
                         if (size < 0.11){//adv ?
@@ -311,8 +314,6 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
                 if (size < 0.055 && d1>0 ){
                     aObj[countObj] = (a1 + a2) / 2;
                     dObj[countObj] = (d1 + d2) / 2;
-                    printf("%f %f \n", aObj[countObj], dObj[countObj]);
-
                     countObj++;
                 }
                 if (size < 0.15&& d1>0){
@@ -357,15 +358,17 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
 
     ///coordinates and distances of the 3 beacons
     double x1, x2, x3, y1, y2, y3, db1, db2, db3;
-    
+
     ///transformation a appliquer
     double* transfo = new double[4]{0,0,0,0};
 
-    for (int i = 0; i < countObj; i++)
+    /*
+    printf("result\n");
+    for (int i = 0; i < countObj_adv; i++)
     {
-        printf("%f %f \n", aObj[i]*180/M_PI, dObj[i]);
-    }
-    
+        printf("%f %f \n", aObj_adv[i]*180/M_PI, dObj_adv[i]);
+    }*/
+
 
     ///b1, b2, b3  : 3 beacons
     for (int b1 = 0; b1 < countObj; ++b1) {
@@ -420,8 +423,33 @@ void lidarGetRobotPosition(double * robot, double* adv, double* beaconAdv) {
     double* angles = new double[3000];
     double* distances = new double[3000];
     double* quality = new double[3000];
-    updateData(angles, distances, quality, 3000);
+    size_t* as = new size_t[2]{3000,3000};
+    updateData(angles, distances, quality, as);
+    //updateDataFile(angles, distances, quality, "jsp.txt", as);
+    arraySize = as[0];
     checkBeacon(angles, distances, quality, robot, adv, false, beaconAdv);
     //DataToFile("testBottom1.txt");
     //StopLidar();
 }
+
+/*
+int main(int argc, char *argv[]) {
+    //TODO diff entre les 2 lidars
+    // connaitre leur noms
+    // communication entre les 2 ?
+    // meme orientation ?
+    // alignement ?
+    // comment det la position ? centre robot, pince, coin, lidar (haut, bas) ?
+    double *robot = new double[4]{0, 0, 0, 0};
+    double *adv = new double[4]{0, 0, 0, 0};
+    double *beaconAdv = new double[8]{11.4*M_PI/180, 2.88, 78*M_PI/180, 0.68, 104*M_PI/180, 1.63, 221*M_PI/180, 0.45};
+    lidarGetRobotPosition(robot, adv, beaconAdv);
+    printf("\n robot at x=%f; y=%f; orientation=%f; %f radian beacon3\n", robot[0], robot[1], robot[2], robot[3]);
+    printf("Adversary at x=%f; y=%f\n", adv[0], adv[1]);
+    printf("adv at %f m; %f degree\n", adv[2], adv[3] * 180 / M_PI);
+    for (int i = 0; i < 8; ++i) {
+        printf("%f, ", beaconAdv[i]);
+    }
+    printf("\n");
+    return 0;
+}*/

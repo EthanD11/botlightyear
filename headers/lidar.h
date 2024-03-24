@@ -35,7 +35,7 @@ void StopLidar();
  * @param quality
  * @param arraySize : maximum array size
  */
-void updateData(double* angles, double* distances, double* quality, int arraySize);
+void updateData(double* angles, double* distances, double* quality,  size_t * arraySize);
 
 
 /**
@@ -46,7 +46,7 @@ void updateData(double* angles, double* distances, double* quality, int arraySiz
  * @param filename input : name of the file containing all the lidar data to be analysed
  * @param arraySize output : updates the number of elements
  */
-void updateDataFile(double* angles, double* distances, double* quality, string filename, size_t *arraySize);
+void updateDataFile(double* angles, double* distances, double* quality, string filename,  size_t * arraySize);
 
 /**
  * Saves lidar data for local testing afterwards
