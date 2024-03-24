@@ -222,8 +222,8 @@ void *homologation(void* v) {
     if ((!ADVERSARY_FLAG)) {
         printf("No adversary, taking path following \n");
         int ncheckpoints = 3;
-        double xr[3] = {1, 1.6, 1.78};
-        double yr[3] = {2, 1.5, 0.74git};
+        double xr[3] = {1, 1.6, 1.76};
+        double yr[3] = {2, 1.5, 0.74};
         double theta_start =   M_PI/2.0;
         double theta_end = -1.01*M_PI/2.0;
         double vref = 0.2;
