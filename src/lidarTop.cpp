@@ -26,7 +26,7 @@ void rotationPosition(double *db, double *x, double *y, double * robot, double* 
     double orientation;
 
     for (int i = 0; i < 3; ++i) {
-        if (std::abs(db[(i+2)%3]-db[(i+1)%3])<0.3){
+        if (std::abs(db[(i+2)%3]-db[(i+1)%3])<0.35){
             beacon1 = new double[2]{x[i],y[i]};
             beacon2 = new double[2]{x[(i+1)%3],y[(i+1)%3]};
             beacon3 = new double[2]{x[(i+2)%3],y[(i+2)%3]};
@@ -46,8 +46,6 @@ void rotationPosition(double *db, double *x, double *y, double * robot, double* 
     beacon2[1]-=beacon3[1];
     robot[1]-=beacon3[1];
     beacon3[1]-=beacon3[1];
-
-    printf("snif\n");
 
 
     beacon1[0]-=beacon3[0];
@@ -130,12 +128,9 @@ void Adversary(double *anglesAdv, double *distancesAdv, double *transfo, double*
         ytemp = (distancesAdv[i] * std::sin(-anglesAdv[i]))-transfo[1];
 
         xobj = (cos(transfo[2])*xtemp - sin(transfo[2])*ytemp);
-        printf("  %f %f\n", distancesAdv[i], anglesAdv[i]);
         /// check whether the x coordinate is valid (on the table)
         if (xobj>0.001 && xobj<xmax){
-            //printf("%f ", xobj);
             yobj = (sin(transfo[2])*xtemp + cos(transfo[2])*ytemp);
-            //printf("%f \n", yobj);
 
             ///check whether the y coordinate is valid (on the table)
             if (yobj>0.001 && yobj<ymax){
@@ -252,6 +247,8 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
     int countGap = 1;
     for (int k = 0; k < nbBoucle; ++k) {
         //if an object is between 0 and 360°, it may be detected twice, but this is not a problem.
+        printf("%d\n", k);
+        
         objet = false;
         oldcountObj = countObj+countObj_adv;
 
@@ -283,6 +280,8 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
                             ///it may be a beacon, its data is saved
                             aObj[countObj] = (a1 + a2) / 2;
                             dObj[countObj] = (d1 + d2) / 2;
+                            printf("%f %f \n", aObj[countObj], dObj[countObj]);
+
                             countObj++;
                         }
                         if (size < 0.11){//adv ?
@@ -312,6 +311,8 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
                 if (size < 0.055 && d1>0 ){
                     aObj[countObj] = (a1 + a2) / 2;
                     dObj[countObj] = (d1 + d2) / 2;
+                    printf("%f %f \n", aObj[countObj], dObj[countObj]);
+
                     countObj++;
                 }
                 if (size < 0.15&& d1>0){
@@ -360,6 +361,12 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
     ///transformation a appliquer
     double* transfo = new double[4]{0,0,0,0};
 
+    for (int i = 0; i < countObj; i++)
+    {
+        printf("%f %f \n", aObj[i]*180/M_PI, dObj[i]);
+    }
+    
+
     ///b1, b2, b3  : 3 beacons
     for (int b1 = 0; b1 < countObj; ++b1) {
         for (int b2 = b1 + 1; b2 < countObj; ++b2) {
@@ -379,9 +386,8 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
 
                 /// sum of the 3 sides close to the expected value
                 if (std::abs((db1 + db2 + db3) - dref1 - 2 * dref2) < 0.2) {//TODO check precision
-                    printf("dref %f %f \n", dref2, dref1);
                     /// 2 size sides ok (3rd also ok because sum ok)
-                    if (((std::abs(db1 - dref1) < 0.15) | (std::abs(db2 - dref1) < 0.15) | (std::abs(db3 - dref1) < 0.15))&&((std::abs(db1 - dref2) < 0.15 )| (std::abs(db2 - dref2) < 0.15) | (std::abs(db3 - dref2) < 0.15))&&((std::abs(db1-db2)<0.3)||(std::abs(db3-db2)<0.3)||(std::abs(db1-db3)<0.3))) {
+                    if (((std::abs(db1 - dref1) < 0.15) | (std::abs(db2 - dref1) < 0.15) | (std::abs(db3 - dref1) < 0.15))&&((std::abs(db1 - dref2) < 0.15 )| (std::abs(db2 - dref2) < 0.15) | (std::abs(db3 - dref2) < 0.15))&&((std::abs(db1-db2)<0.35)||(std::abs(db3-db2)<0.35)||(std::abs(db1-db3)<035))) {
                         rotationPosition(new double[3]{db1, db2, db3} , new double[3]{x1,x2,x3}, new double[3]{y1,y2,y3}, robot, transfo, new double[3]{aObj[b1],aObj[b2],aObj[b3]});
 
                         /// we save in blabla the number of elements that could possibly be beacon (opponent)
@@ -415,31 +421,7 @@ void lidarGetRobotPosition(double * robot, double* adv, double* beaconAdv) {
     double* distances = new double[3000];
     double* quality = new double[3000];
     updateData(angles, distances, quality, 3000);
-    checkBeacon(angles, distances, quality, robot, adv, true, beaconAdv);
+    checkBeacon(angles, distances, quality, robot, adv, false, beaconAdv);
     //DataToFile("testBottom1.txt");
     //StopLidar();
-}
-
-
-
-int main(int argc, char *argv[]) {
-    //TODO diff entre les 2 lidars
-    // connaitre leur noms
-    // communication entre les 2 ?
-    // meme orientation ?
-    // alignement ?
-    // comment det la position ? centre robot, pince, coin, lidar (haut, bas) ?
-    double *robot = new double[4]{0, 0, 0, 0};
-    double *adv = new double[4]{0, 0, 0, 0};
-    double *beaconAdv = new double[8]{0, 0, 0, 0, 0, 0, 0, 0};
-
-    lidarGetRobotPosition(robot, adv, beaconAdv);
-    printf("\n robot at x=%f; y=%f; orientation=%f; %f radian beacon3\n", robot[0], robot[1], robot[2], robot[3]);
-    printf("Adversary at x=%f; y=%f\n", adv[0], adv[1]);
-    printf("adv at %f m; %f degree\n", adv[2], adv[3] * 180 / M_PI);
-    for (int i = 0; i < 8; ++i) {
-        printf("%f, ", beaconAdv[i]);
-    }
-    printf("\n");
-    return 0;
 }
