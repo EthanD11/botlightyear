@@ -56,6 +56,7 @@ int early_exit(size_t visitedCount, void *visitingNode, void *goalNode, void *co
 }
 
 graph_path_t *graph_compute_path(const uint8_t from, uint8_t *targets, const uint8_t len_targets, const uint8_t oversampling) {
+    if (len_targets == 0) return NULL;
 
     // Initiate search arguments
     ASPathNodeSource source;
