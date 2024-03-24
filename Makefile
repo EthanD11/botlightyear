@@ -1,59 +1,45 @@
 # -----------------------------------------------------------------------------------
 #Variables
 # Arguments for the compilation
-CC:=gcc
-CXX = g++ #pour le lidar
-CFLAGS:=-Wall -g -std=gnu99
-CXXFLAGS:=-Wall
+CXX = g++
+FLAGS:=-Wall -O3
 LIBS:=-llgpio -lm -lpthread -ldxl_sbc_c -lsl_lidar_sdk -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_aruco -lopencv_videoio -lopencv_imgcodecs
 # Directories
-HEADERS_DIR:=headers -I./Dynamixels/include/dynamixel_sdk -I/usr/include/opencv4 -I../rplidar/include -I./rplidar/sdk/include -I./rplidar/sdk/src
+HEADERS_DIR:=headers
 SOURCES_DIR:=src
 TESTS_DIR:=tests
 OBJ_DIR:=bin
-# List of c file
-SOURCES = $(wildcard $(SOURCES_DIR)/*.c)
-TESTS = $(wildcard $(TESTS_DIR)/*.c)
-# List of cpp file
-CPP_SOURCES = $(wildcard $(SOURCES_DIR)/*.cpp)
-CPP_TESTS = $(wildcard $(TESTS_DIR)/*.cpp)
+# List of cpp files
+SOURCES = $(wildcard $(SOURCES_DIR)/*.cpp)
+TESTS = $(wildcard $(TESTS_DIR)/*.cpp)
 
-# List of .o file
-SOURCES_OBJ = $(addprefix $(OBJ_DIR)/,$(notdir $(SOURCES:.c=.o)))
-SOURCES_OBJ += $(addprefix $(OBJ_DIR)/,$(notdir $(CPP_SOURCES:.cpp=.o)))
+# List of .o files
+SOURCES_OBJ = $(addprefix $(OBJ_DIR)/,$(notdir $(CPP_SOURCES:.cpp=.o)))
 SOURCES_OBJ := $(filter-out sthg_to_filter_out, $(SOURCES_OBJ))
 
 # -----------------------------------------------------------------------------------
 # Rules
-all: main.o $(SOURCES_OBJ)
+all: main.cpp $(SOURCES_OBJ)
+	@$(CXX) -I$(HEADERS_DIR) $(FLAGS) $^ -o exe_botlightyear $(LIBS)
 
+run: all
+	@./exe_botlightyear
 
 #Create the OBJ_DIR directory
 $(OBJ_DIR):
 	@mkdir -p $(OBJ_DIR)
 
 # Compiling a binary file from a source file
-$(OBJ_DIR)/%.o: $(SOURCES_DIR)/%.c | $(OBJ_DIR)
-	@$(CC) -I$(HEADERS_DIR) $(CFLAGS) -o $@ -c $< $(LIBS)
-
-# Compiling a binary file from a source file
 $(OBJ_DIR)/%.o: $(SOURCES_DIR)/%.cpp | $(OBJ_DIR)
-	@$(CXX) -I$(HEADERS_DIR) $(CXXFLAGS) -o $@ -c $< $(LIBS)
-
-# Compiling a binary file from a c++ source file (for lidar)
-$(OBJ_DIR)/%.o: ../rplidar/%.cpp | $(OBJ_DIR)
-	@$(CXX) -I../rplidar/include $(CXXFLAGS) -o $@ -c $<
-
+	@$(CXX) -I$(HEADERS_DIR) $(CFLAGS) -o $@ -c $< $(LIBS)
 
 # Compiling all the sources
 compile: $(SOURCES_OBJ)
 
 #Compiling a random file that use SOURCES file
-%.o: %.c $(SOURCES_OBJ)
-	@$(CC) -I$(HEADERS_DIR) $(FLAGS) $^ -o $@ $(LIBS)
-
 %.o: %.cpp $(SOURCES_OBJ)
-	@$(CXX) -I$(HEADERS_DIR) $(CXXFLAGS) $^ -o $@ $(LIBS)
+	@$(CXX) -I$(HEADERS_DIR) $(FLAGS) $^ -o $@ $(LIBS)
+
 
 #Do an individual test
 test_%: $(TESTS_DIR)/test_%.o $(SOURCES_OBJ)

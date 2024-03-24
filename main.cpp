@@ -15,24 +15,9 @@ bool ADVERSARY_FLAG = false;
 bool ENDGAME = false; 
 
 const double deg_to_rads = M_PI/180;
-
-typedef struct {
-    int32_t old_ticks_l;
-    int32_t old_ticks_r;
-    int32_t ticks_l;
-    int32_t ticks_r;
-    double step_l;
-    double step_r;
-    double omega_l;
-    double omega_r;
-    double fwd;
-    double rot;
-    double omega_refl;
-    double omega_refr;
-    double x;
-    double y;
-    double theta;
-} Odometers;
+#define ODOMETERS_ENABLE
+int32_t old_ticks_l = 0, old_ticks_r = 0;
+double x = 0.0, y = 0.0, theta = 0.0;
 
 typedef enum {
   ModeIdle, // No input from RPi, default is to remain still
@@ -55,8 +40,41 @@ void resetAll() {
     stpr_reset(StprSlider);
 }
 
-void update_position(int32_t ticks_l, int32_t ticks_r) {
+void updateRobotPosition() {
+    int32_t ticks_l, ticks_r; // Current values of ticks, left and right
+    int32_t speed_l, speed_r; // Current values of speed, left and right
+    double step_l = 0, step_r = 0; // Distance traveled during the last iteration (m), left and right 
+    double omega_l, omega_r; // Current values of speed (rad_mot/s), left and right
+    double fwd, rot; // Forward and rotational components
+    
+    odo_enc_reset();
 
+    // Updating values via SPI
+    #ifdef ODOMETERS_ENABLE
+    get_odo_tick(&ticks_l, &ticks_r);
+    step_l = (ticks_l - old_ticks_l) * TICKS_TO_METERS;
+    step_r = (ticks_r - old_ticks_r) * TICKS_TO_METERS;
+    old_ticks_l = ticks_l;
+    old_ticks_r = ticks_r;
+    #endif
+
+    get_enc_spd(&speed_l, &speed_r);
+
+    omega_l = speed_l * TICKS_TO_RADS;
+    omega_r = speed_r * TICKS_TO_RADS;
+
+    // Forward & rotation component
+    #ifdef ODOMETERS_ENABLE
+    fwd = (step_l + step_r) / 2;
+    rot = (step_r - step_l) / (2 * (WHEEL_L + 27.5e-3));
+    #else
+    fwd = (omega_l + omega_r) * radps_to_m / 2;
+    rot = (omega_r - omega_l) * radps_to_m / (2 * WHEEL_L);
+
+    // Estimate new position
+    x += fwd * cos(t + rot / 2);
+    y += fwd * sin(t + rot / 2);
+    theta += rot;
 }
 
 
