@@ -141,7 +141,6 @@ void loop() {
     switch (mode) {
 
       case ModeIdle:
-        set_motors_duty_cycle(outputs, 0, 0);
         #ifdef VERBOSE
         printf("\nMode idle\n");
         #endif
