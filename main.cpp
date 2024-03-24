@@ -83,17 +83,22 @@ void *homologation(void* v) {
     dxl_ping(6, 1.0);
     dxl_ping(8, 1.0);
 
-    sleep(10);
+    sleep(5);
 
     //Set initial robot position and path following useful variables
 
     //Path following : Go grab a plant
     if (!ADVERSARY_FLAG) {
         printf("No adversary, taking path following \n");
-        double kt = 3.0;
-        double kn = 1.0; // 0 < kn <= 1
-        double kz = 80.0;
-        double delta = 50e-3; // delta is in meters
+        // double kp = 1.0;
+        // double ka = 4.0;
+        // double kb = -0.5;
+        // double kw = 10.0;
+        // teensy_set_position_controller_gains(kp, ka, kb, kw);
+        double kt = 2.0;
+        double kn = 0.4; // 0 < kn <= 1
+        double kz = 10.0;
+        double delta = 75e-3; // delta is in meters
         double sigma = 0.0;
         double epsilon = 150e-3; // epsilon is in meters
         double wn = 0.3; // Command filter discrete cutoff frequency
@@ -105,10 +110,12 @@ void *homologation(void* v) {
         double yr[2] = {0.08, 0.7};
         double theta_start = M_PI/2.0;
         double theta_end = M_PI/2.0;
-        double vref = 0.2;
-        double dist_goal_reached = 0.1;
+        double vref = 0.25;
+        double dist_goal_reached = 0.15;
         teensy_set_position(xr[0], yr[0], theta_start);
         lguSleep(0.1);
+        teensy_pos_ctrl(xr[0], yr[0], atan2(yr[1]-yr[0], xr[1]-xr[0]));
+        lguSleep(5);
         teensy_path_following(xr, yr, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
         /*while (((controlmode_t) teensy_ask_mode()) == ModePathFollowing) {
             printf("Moving \n");
@@ -123,7 +130,24 @@ void *homologation(void* v) {
 
     //Grab the plant:
     lguSleep(2);
-    servo_cmd(ServoDeploy);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    /*servo_cmd(ServoDeploy);
     flaps_move(FlapsPlant);
     lguSleep(5);
     flaps_move(FlapsOpen);
@@ -141,7 +165,7 @@ void *homologation(void* v) {
     gripper(Open); 
     position_gripper(Up);
     plate_move(0);
-    lguSleep(5);
+    lguSleep(5);*/
 
 
     //Path following: Go to planter

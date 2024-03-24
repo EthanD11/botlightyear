@@ -112,7 +112,7 @@ void gripper(object_t object) {
             dxl_goal_position = 185;
             break;
         case Plant:
-            dxl_goal_position = 210;
+            dxl_goal_position = 215;
             break;
         case Pot:
             dxl_goal_position = 230;
