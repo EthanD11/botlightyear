@@ -103,6 +103,7 @@ graph_path_t *graph_compute_path(const uint8_t from, uint8_t *targets, const uin
     }
     result->x[n_nodes-1] = curr_node->x;
     result->y[n_nodes-1] = curr_node->y;
+    result->target = curr_node->id;
 
     ASPathDestroy(path);
     return result;    
@@ -285,7 +286,7 @@ int init_graph_from_file(const char *filename) {
 void free_graph() { free(graph_nodes); }
 
 void print_path(graph_path_t* path) {
-    printf("Path of length %.3fm in %d points\n", path->total_cost, path->nb_nodes);
+    printf("Path towards %d of length %.3fm in %d points\n", path->target, path->total_cost, path->nb_nodes);
     for (uint8_t i = 0; i < path->nb_nodes; i++)
     {
         printf("(%.3f,%.3f) ", path->x[i], path->y[i]);

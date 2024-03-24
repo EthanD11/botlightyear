@@ -21,6 +21,7 @@ typedef struct graph_node
 
 typedef struct graph_path
 {
+    uint8_t target; // Target of the path
     uint8_t nb_nodes; // Number of nodes in the path
     double *x; // Array of x coordinates
     double *y; // Array of y coordinates
