@@ -1,4 +1,4 @@
-#include "dynamixels.h"
+#include "old_dynamixels.h"
 #include "SPI_Modules.h"
 #include <unistd.h>
 

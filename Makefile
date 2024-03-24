@@ -14,8 +14,7 @@ SOURCES = $(wildcard $(SOURCES_DIR)/*.cpp)
 TESTS = $(wildcard $(TESTS_DIR)/*.cpp)
 
 # List of .o files
-SOURCES_OBJ = $(addprefix $(OBJ_DIR)/,$(notdir $(CPP_SOURCES:.cpp=.o)))
-SOURCES_OBJ := $(filter-out sthg_to_filter_out, $(SOURCES_OBJ))
+SOURCES_OBJ = $(addprefix $(OBJ_DIR)/,$(notdir $(SOURCES:.cpp=.o)))
 
 # -----------------------------------------------------------------------------------
 # Rules
