@@ -40,7 +40,7 @@ void rotationPosition(double *db, double *x, double *y, double * robot, double* 
  * @param adversaryCoordinates of size 4, input all =0; output: opponent's coordinates
  *          0: x relative to beacon3); 1: y relative to beacon3; 2: distance to our robot; 3: angle relative to our robot
  */
-void Adversary(double *anglesAdv, double *distancesAdv, double *transfo, double* adversaryCoordinates);
+int Adversary(double *anglesAdv, double *distancesAdv, double *transfo, double* adversaryCoordinates);
 
 /**
  * From the raw lidar data, return (in the robot table) the coordinates of the robot according to the defined plane.
