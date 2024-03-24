@@ -414,8 +414,7 @@ void lidarGetRobotPosition(double * robot, double* adv, double* beaconAdv) {
     double* angles = new double[3000];
     double* distances = new double[3000];
     double* quality = new double[3000];
-    //updateData(angles, distances, quality, 5000);
-    updateDataFile(angles, distances, quality, "jsp.txt", new size_t[2]{5000,5000});
+    updateData(angles, distances, quality, 3000);
     checkBeacon(angles, distances, quality, robot, adv, true, beaconAdv);
     //DataToFile("testBottom1.txt");
     //StopLidar();
