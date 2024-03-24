@@ -95,27 +95,32 @@ void *homologation(void* v) {
         // double kb = -0.5;
         // double kw = 10.0;
         // teensy_set_position_controller_gains(kp, ka, kb, kw);
-        double kt = 3.0;
+        double kt = 2.0;
         double kn = 0.7; // 0 < kn <= 1
         double kz = 10.0;
-        double delta = 50e-3; // delta is in meters
+        double delta = 40e-3; // delta is in meters
         double sigma = 0.0;
         double epsilon = 150e-3; // epsilon is in meters
         double wn = 0.3; // Command filter discrete cutoff frequency
         double kv_en = 10;
         teensy_set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
         lguSleep(0.1);
-        int ncheckpoints = 2;
-        double xr[2] = {0.21, 0.7};
-        double yr[2] = {0.08, 0.7};
-        double theta_start = M_PI/2.0;
+        double x0 = 0.035;
+        double y0 = 0.2;
+        double theta0 = 0.0;
+        teensy_set_position(x0, y0, theta0);
+        lguSleep(0.1);
+        teensy_pos_ctrl(0.2, 0.2, theta0);
+        // teensy_pos_ctrl(x0, y0, theta_start + (atan2(yr[1]-yr[0], xr[1]-xr[0])-theta_start)/2.0);
+        lguSleep(5);
+
+        int ncheckpoints = 3;
+        double xr[3] = {0.2, 0.5, 0.7};
+        double yr[3] = {0.2, 0.3, 0.7};
+        double theta_start = 0.0;
         double theta_end = M_PI/2.0;
         double vref = 0.25;
-        double dist_goal_reached = 0.15;
-        teensy_set_position(xr[0], yr[0], theta_start);
-        lguSleep(0.1);
-        teensy_pos_ctrl(xr[0], yr[0], atan2(yr[1]-yr[0], xr[1]-xr[0]));
-        lguSleep(5);
+        double dist_goal_reached = 0.05;
         teensy_path_following(xr, yr, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
         /*while (((controlmode_t) teensy_ask_mode()) == ModePathFollowing) {
             printf("Moving \n");
@@ -216,17 +221,19 @@ void *homologation(void* v) {
 
     if ((!ADVERSARY_FLAG)) {
         printf("No adversary, taking path following \n");
-        int ncheckpoints = 2;
-        double xr[2] = {1, 1.75};
-        double yr[2] = {2, 0.73};
+        int ncheckpoints = 3;
+        double xr[3] = {1, 1.6, 1.78};
+        double yr[3] = {2, 1.5, 0.74git};
         double theta_start =   M_PI/2.0;
-        double theta_end = -M_PI/2.0;
+        double theta_end = -1.01*M_PI/2.0;
         double vref = 0.2;
         double dist_goal_reached = 0.1;
         teensy_set_position(xr[0], yr[0], theta_start);
         lguSleep(0.1);
-        teensy_pos_ctrl(xr[0], yr[0], -M_PI/2.0);
-        lguSleep(10);
+        teensy_pos_ctrl(xr[0], yr[0], 0);
+        lguSleep(2);
+        teensy_pos_ctrl(xr[0], yr[0], -M_PI/4.0);
+        lguSleep(5);
         teensy_path_following(xr, yr, ncheckpoints, -M_PI/2.0, theta_end, vref, dist_goal_reached);
         /*while (((controlmode_t) teensy_ask_mode()) == ModePathFollowing) {
             printf("Moving \n");

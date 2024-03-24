@@ -22,11 +22,12 @@ int main(int argc, char const *argv[])
     double x = 0; 
     double y = 0; 
     double t = M_PI/2;
-    double xr = 0.1; 
-    double yr = 0.05; 
-    double tr = M_PI/2;
+    double xr = 0; 
+    double yr = 0; 
+    double tr = 0;
 
     teensy_set_position(x, y, t);
+    lguSleep(0.1);
     teensy_pos_ctrl(xr, yr, tr);
     #endif
 
