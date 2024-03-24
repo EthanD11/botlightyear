@@ -5,7 +5,7 @@ int main(int argc, char const *argv[])
     //Init Starting Switch
     int handle = lgGpiochipOpen(0);
     if (handle < 0) exit(1);
-    int status = lgGpioGetMode(0, 4); 
+    int status = lgGpioGetMode(handle, 5); 
     if (status < 0) {
         printf("Cannot get GPIO mode \n");
         exit(1);
@@ -18,8 +18,15 @@ int main(int argc, char const *argv[])
         printf("Cannot set GPIO to input \n");
         exit(1);
     }
-    int start = lgGpioRead(handle, 4);
-    printf("Initial value of GPIO: %d \n", start);
+    int start = lgGpioRead(handle,4);
+    printf("Initial value of GPIO: %d \n", start); 
+    status = lgGpioGetMode(handle, 4); 
+    
+    lgLineInfo_t lInfo;
+    status = lgGpioGetLineInfo(handle, 4, &lInfo);
+    if (status == LG_OKAY) {
+        printf("OK \n");
+    }
 
     printf("Waiting start of the game... \n");
 
