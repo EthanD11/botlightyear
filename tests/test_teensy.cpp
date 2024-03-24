@@ -2,8 +2,8 @@
 #include <stdio.h>
 
 //#define POSITION_CONTROL
-//#define PATH_FOLLOWING
-#define IDLE
+#define PATH_FOLLOWING
+//#define IDLE
 // #define SET_POSITION
 // #define SPEED_CONTROL
 // #define DC_CONTROL
@@ -31,14 +31,14 @@ int main(int argc, char const *argv[])
     #endif
 
     #ifdef PATH_FOLLOWING
-    double kt = 2.0;
-    double kn = 0.4; // 0 < kn <= 1
-    double kz = 40.0;
-    double delta = 70e-3; // delta is in meters
+    double kt = 3.0;
+    double kn = 0.7; // 0 < kn <= 1
+    double kz = 10.0;
+    double delta = 50e-3; // delta is in meters
     double sigma = 0.0;
     double epsilon = 150e-3; // epsilon is in meters
     double wn = 0.3; // Command filter discrete cutoff frequency
-    double kv_en = 6;
+    double kv_en = 10;
     teensy_set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
     lguSleep(0.1);
     int ncheckpoints = 5;

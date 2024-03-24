@@ -422,10 +422,10 @@ void slider_move(slider_pos_t pos){
         steps = 5300;
         break;
     case SliderPlate :
-        steps = 250;
+        steps = 350;
         break; 
     case SliderTake :
-        steps = 1500;
+        steps = 1600;
         break;      
     default :
         printf("Error : not a position \n");

@@ -112,7 +112,7 @@ void gripper(object_t object) {
             dxl_goal_position = 185;
             break;
         case Plant:
-            dxl_goal_position = 215;
+            dxl_goal_position = 220;
             break;
         case Pot:
             dxl_goal_position = 230;
@@ -133,7 +133,7 @@ void gripper(object_t object) {
     write2ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, ADDR_MOVING_SPEED, 200);
 
     // Write punch
-    write2ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, ADDR_XL_PUNCH, 60);
+    write2ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, ADDR_XL_PUNCH, 80);
 
     //Write Max Torque
     write2ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, ADDR_XL_TORQUE, 1023);

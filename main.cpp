@@ -95,10 +95,10 @@ void *homologation(void* v) {
         // double kb = -0.5;
         // double kw = 10.0;
         // teensy_set_position_controller_gains(kp, ka, kb, kw);
-        double kt = 2.0;
-        double kn = 0.4; // 0 < kn <= 1
+        double kt = 3.0;
+        double kn = 0.7; // 0 < kn <= 1
         double kz = 10.0;
-        double delta = 75e-3; // delta is in meters
+        double delta = 50e-3; // delta is in meters
         double sigma = 0.0;
         double epsilon = 150e-3; // epsilon is in meters
         double wn = 0.3; // Command filter discrete cutoff frequency
