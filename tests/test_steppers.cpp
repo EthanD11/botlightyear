@@ -1,15 +1,11 @@
 #include "SPI_Modules.h"
-<<<<<<< HEAD
-void demoS6();
-=======
 
 //#define RESET_CALIBRATE
 //#define SETUP_CUSTOM_SPEED_OLD
 //#define SETUP_CUSTOM_SPEED_NEW
-//#define DEMO_S6
+// #define DEMO_S6
 #define TESTS
 
->>>>>>> f558d75f005c06c6bac1bed7ab13982647f476ae
 // 8x (8 = ecrire)(x = stepper)
 // 1 plateau
 // 2 .. config vitesse
@@ -28,16 +24,6 @@ void demoS6();
 //      10 Calibre
 //      11 Step + signe direction du stepper (horlogique/antihorlogique)
 
-<<<<<<< HEAD
-int main(int argc, char const *argv[])
-{
-    int init = init_spi();  
-    //calibrateStepper(Flaps);
-    demoS6();
-    //demoS6();
-
-    
-=======
 void calibrateAll() {
     stpr_calibrate(StprFlaps);
     stpr_calibrate(StprPlate);
@@ -68,8 +54,7 @@ int main(int argc, char const *argv[])
     
     
     resetAll();
-    stpr_calibrate(StprPlate);
-    stpr_calibrate(StprFlaps);
+    calibrateAll();
 
     
     //stpr_setup_speed(60,500,StprPlate); //60 max
@@ -131,71 +116,9 @@ int main(int argc, char const *argv[])
     resetAll(); 
     calibrateAll();
     #endif
->>>>>>> f558d75f005c06c6bac1bed7ab13982647f476ae
 
     close_spi();
     
     return 0;
 }
 
-<<<<<<< HEAD
-void calibrateAll() {
-    calibrateStepper(Flaps);
-    calibrateStepper(Plate);
-    calibrateStepper(Slider);
-}
-
-void resetAll() {
-    resetStepperModule (Flaps);
-    resetStepperModule (Plate);
-    resetStepperModule (Slider);
-}
-
-void demoPlate(){
-    steppers_t stepper = Plate; 
-    setupStepperSpeed(2,10,stepper); 
-    PositionPlateau(-3);
-    sleep(4);
-    for(int i = -2; i<= 3; i++) {
-        PositionPlateau(i);
-        sleep(2);
-    }
-    PositionPlateau(0);
-}
-
-void demoS6(){
-
-    
-    servo_raise();
-
-    resetAll(); 
-    setupStepperSpeed(5,10,Flaps); 
-    setupStepperSpeed(2,10,Plate); 
-    setupStepperSpeed(4,10,Slider);
-    calibrateAll();
-    sleep(10);
-    servo_deploy(); 
-    moveFlaps(Plant);
-    sleep(4);
-    moveFlaps(Open);
-    moveSlider(Bas);
-    sleep(2);
-    servo_raise();
-    sleep(3);
-    moveSlider(Plateau);
-    sleep(5);
-    demoPlate();
-    sleep(5);
-    //moveSlider(Bas);
-    moveStepperSteps(Flaps, 600,0);
-    sleep(5);
-    PositionPlateau(1);
-    servo_deploy(); 
-    
-    sleep(5);
-    servo_idle();
-    resetAll(); 
-    calibrateAll();
-}
-=======
->>>>>>> f558d75f005c06c6bac1bed7ab13982647f476ae

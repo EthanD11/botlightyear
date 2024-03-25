@@ -3,3 +3,4 @@ bin
 .vscode
 Teensy/data/*
 **/*.o
+exe_botlightyear

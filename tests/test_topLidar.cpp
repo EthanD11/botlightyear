@@ -9,18 +9,53 @@ int main(int argc, char *argv[]) {
     // comment det la position ? centre robot, pince, coin, lidar (haut, bas) ?
     double *robot = new double[4]{0, 0, 0, 0};
     double *adv = new double[4]{0, 0, 0, 0};
-    double *beaconAdv = new double[8]{11.4*M_PI/180, 2.88, 78/180*M_PI, 0.68, 104*M_PI/180, 1.63, 221*M_PI/180, 0.45};
+    double *beaconAdv = new double[8]{0.266673, 1.814000, 2.002180, 0.307000, 5.079394, 3.032000, 1.122107, 2.980000};
+    double *beaconAdvold = new double[8]{0.266673, 1.814000, 2.002180, 0.307000, 5.079394, 3.032000, 1.122107, 2.980000};
+    double *robotOld = new double[2]{0,0};
     StartLidar();
-    DataToFile("jsp.txt");
+    int counterror = 0;
+    int perdu = 0;
+    for (size_t i = 0; i < 10; i++){
+        for (size_t j = 0; j < 8; j++)
+        {
+            beaconAdvold[j]=beaconAdv[j];//recup si perdu
+        }
+        for (size_t k = 0; k < 2; k++)
+        {
+            robotOld[k]=robot[k];
+        }
+        
+
     
+    DataToFile("jsp.txt");
+    printf("\nboucle : %ld \n", i);
     lidarGetRobotPosition(robot, adv, beaconAdv);
+    if (robot[0]<0.0001||robot[0]>2||robot[1]<0.001||robot[1]>3){
+        printf("ooooooooooooooooo\n");
+        for (size_t l = 0; l < 8; l++)
+        {
+            beaconAdv[i]=beaconAdvold[i];//recup si perdu
+        }
+        for (size_t m = 0; m < 2; m++)
+        {
+            robot[m]= robotOld[m];
+        }
+        
+        perdu++;
+    }
+
     printf("\n robot at x=%f; y=%f; orientation=%f; %f radian beacon3\n", robot[0], robot[1], robot[2], robot[3]);
     printf("Adversary at x=%f; y=%f\n", adv[0], adv[1]);
     printf("adv at %f m; %f degree\n", adv[2], adv[3] * 180 / M_PI);
-    for (int i = 0; i < 8; ++i) {
-        printf("%f, ", beaconAdv[i]);
+    printf("beaconAdv: [%f, %f, %f, %f, %f, %f, %f, %f]\n", beaconAdv[0], beaconAdv[1], beaconAdv[2], beaconAdv[3], beaconAdv[4], beaconAdv[5], beaconAdv[6], beaconAdv[7]);
+    if (robot[0]<0.0001){
+        counterror++;
     }
+    }
+    
+
     StopLidar();
-    printf("\n");
+    printf("counterror : %d\n", counterror);
+    printf("perdu : %d\n", perdu);
     return 0;
 }

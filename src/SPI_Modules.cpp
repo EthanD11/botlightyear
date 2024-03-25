@@ -1,6 +1,8 @@
 #include "SPI_Modules.h"
+#include <pthread.h>
 
 int DE0_handle, Teensy_handle;
+pthread_mutex_t spi_mutex;
 //const unsigned int sonar_GPIO_Trig = 16;
 //const unsigned int sonar_GPIO_Echo = 19;
 
@@ -22,37 +24,44 @@ static inline int32_t Reverse32(int32_t value)
 int init_spi() {
     DE0_handle = lgSpiOpen(0, SPI_DE0, SPI_SPEED_HZ_DEFAULT, SPI_MODE_DEFAULT);
     Teensy_handle = lgSpiOpen(0, SPI_TEENSY, SPI_SPEED_HZ_DEFAULT, SPI_MODE_DEFAULT);
+    pthread_mutex_init(&spi_mutex,NULL);
     return (DE0_handle < 0) | (Teensy_handle  < 0); 
 }
 
 void close_spi() {
     lgSpiClose(DE0_handle);
     lgSpiClose(Teensy_handle);
+    pthread_mutex_destroy(&spi_mutex);
 }
 
 // ----- Odometers -----
 
 void odo_get_tick(int32_t *tick_left, int32_t *tick_right) {
 
+    char send1[] = {0x01,0,0,0,0};
+    char send2[] = {0x02,0,0,0,0};
+    char receive1[5];
+    char receive2[5];
+    pthread_mutex_lock(&spi_mutex);
+    lgSpiXfer(DE0_handle, send1, receive1, 5);
+    lgSpiXfer(DE0_handle, send2, receive2, 5);
+    pthread_mutex_unlock(&spi_mutex);
+
     // left
-    char send[] = {0x03,0,0,0,0};
-    char receive[5];
-    lgSpiXfer(DE0_handle, send, receive, 5);
-    *tick_left = *((int32_t *)(&(receive[1])));
+    *tick_left = *((int32_t *)(&(receive1[1])));
     *tick_left = Reverse32(*tick_left);
     
     // right
-    send[0] = 0x04;
-    lgSpiXfer(DE0_handle, send, receive, 5);
-    *tick_right = *((int32_t *)(&(receive[1])));
+    *tick_right = *((int32_t *)(&(receive2[1])));
     *tick_right = Reverse32(*tick_right);
 
 }
 
 void odo_reset() {
     char send[] = {0x7F,0,0,0,0};
-    char receive[5];
-    lgSpiXfer(DE0_handle, send, receive, 5);
+    pthread_mutex_lock(&spi_mutex);
+    lgSpiWrite(DE0_handle, send, 5);
+    pthread_mutex_unlock(&spi_mutex);
 }
 
 // ----- Sonars -----
@@ -84,8 +93,8 @@ void teensy_path_following(double *x, double *y, int ncheckpoints, double theta_
 
     size_t message_size = sizeof(char)*2 + sizeof(uint16_t)*(2*ncheckpoints+4);
     // Send vector. Needs to be malloced since it is variable size
-    char *send = (char *) malloc(message_size);
-    char *receive = (char *) malloc(message_size);
+    char send[message_size];
+    char receive[message_size];
 
     // Send the query over a single byte
     char *send_query = (char *) send;
@@ -104,7 +113,9 @@ void teensy_path_following(double *x, double *y, int ncheckpoints, double theta_
     send_points[2*ncheckpoints+2] = (uint16_t) (UINT16_MAX*(vref/2.0));
     send_points[2*ncheckpoints+3] = (uint16_t) (UINT16_MAX*(dist_goal_reached/3.0));
 
+    pthread_mutex_lock(&spi_mutex);
     lgSpiXfer(Teensy_handle, send, receive, message_size);
+    pthread_mutex_unlock(&spi_mutex);
 
     #ifdef VERBOSE
     printf("Sending path following\n");
@@ -113,9 +124,6 @@ void teensy_path_following(double *x, double *y, int ncheckpoints, double theta_
         printf("%d, %d\n", send[i], receive[i]);
     }
     #endif
-
-    free(send);
-    free(receive);
 }
 
 void teensy_set_position(double x, double y, double theta) {
@@ -128,7 +136,9 @@ void teensy_set_position(double x, double y, double theta) {
     send_ref[2] = (uint16_t) (UINT16_MAX*((theta+M_PI)/(M_PI*2)));  // tr compressed
 
     char receive[7];
+    pthread_mutex_lock(&spi_mutex);
     lgSpiXfer(Teensy_handle, send, receive, 7);
+    pthread_mutex_unlock(&spi_mutex);
 
     #ifdef VERBOSE
     printf("Sending Set Position\n");
@@ -150,7 +160,9 @@ void teensy_pos_ctrl(double xr, double yr, double theta_r) {
     send_ref[2] = (uint16_t) (UINT16_MAX*((theta_r+M_PI)/(M_PI*2)));  // tr compressed
 
     char receive[7];
+    pthread_mutex_lock(&spi_mutex);
     lgSpiXfer(Teensy_handle, send, receive, 7);
+    pthread_mutex_unlock(&spi_mutex);
 
     #ifdef VERBOSE
     printf("Sending Position ctrl \n");
@@ -172,7 +184,9 @@ void teensy_spd_ctrl(double speed_left, double speed_right) {
     send_ref[0] = (uint16_t) ((speed_left/2.0)*UINT16_MAX);   // speed_left compressed
     send_ref[1] = (uint16_t) ((speed_right/2.0)*UINT16_MAX);   // speed_right compressed
 
+    pthread_mutex_lock(&spi_mutex);
     lgSpiXfer(Teensy_handle, send, receive, 5);
+    pthread_mutex_unlock(&spi_mutex);
 
     #ifdef VERBOSE
     printf("Sending Speed ctrl \n");
@@ -193,7 +207,9 @@ void teensy_constant_dc(int dc_refl, int dc_refr) {
     send_ref[0] = (uint16_t) (((double) SATURATE(dc_refl, -255,255))+255.0);  // speed_left compressed
     send_ref[1] = (uint16_t) (((double) SATURATE(dc_refr, -255, 255))+255.0);   // speed_right compressed
 
+    pthread_mutex_lock(&spi_mutex);
     lgSpiXfer(Teensy_handle, send, receive, 5);
+    pthread_mutex_unlock(&spi_mutex);
 
     #ifdef VERBOSE
     printf("Sending constant DC ctrl \n");
@@ -206,7 +222,9 @@ void teensy_constant_dc(int dc_refl, int dc_refr) {
 
 void teensy_idle() {
     char send = (char) QueryIdle;
+    pthread_mutex_lock(&spi_mutex);
     lgSpiWrite(Teensy_handle, &send, 1);
+    pthread_mutex_unlock(&spi_mutex);
 }
 
 int teensy_ask_mode() {
@@ -216,12 +234,16 @@ int teensy_ask_mode() {
     send[1] = 0; // Not needed
     send[2] = 1; // Not needed
     send[3] = 2; // Not needed
+    pthread_mutex_lock(&spi_mutex);
     int retval = lgSpiXfer(Teensy_handle, send, receive, 4);
+    pthread_mutex_unlock(&spi_mutex);
+    #ifdef VERBOSE
     printf("Asking state\n");
     printf("Xfer return value: %d\n", retval);
     for (int i = 0; i < 4; i++){
         printf("%d, %d\n", send[i], receive[i]);
     }
+    #endif
     return (int) receive[2];
 }
 
@@ -238,7 +260,9 @@ void teensy_set_position_controller_gains(double kp, double ka, double kb, doubl
     send_ref[2] = (uint16_t) ((-kb/20)*UINT16_MAX);   // speed_right compressed
     send_ref[3] = (uint16_t) ((kw/50)*UINT16_MAX);   // speed_right compressed
 
+    pthread_mutex_lock(&spi_mutex);
     lgSpiXfer(Teensy_handle, send, receive, message_size);
+    pthread_mutex_unlock(&spi_mutex);
 
     #ifdef VERBOSE
     printf("Sending Speed ctrl \n");
@@ -266,7 +290,9 @@ void teensy_set_path_following_gains(double kt, double kn, double kz, double sig
     send_ref[6] = (uint16_t) ((delta)*UINT16_MAX);   // speed_right compressed
     send_ref[7] = (uint16_t) ((wn/100)*UINT16_MAX);   // speed_right compressed
 
+    pthread_mutex_lock(&spi_mutex);
     lgSpiXfer(Teensy_handle, send, receive, message_size);
+    pthread_mutex_unlock(&spi_mutex);
 
     #ifdef VERBOSE
     printf("Sending Speed ctrl \n");
@@ -305,7 +331,9 @@ void servo_cmd(servo_cmd_t command) {
     default:
         return;
     }
+    pthread_mutex_lock(&spi_mutex);
     lgSpiWrite(DE0_handle, send, 5);
+    pthread_mutex_unlock(&spi_mutex);
 }
 
 // ----- Steppers -----
@@ -357,7 +385,9 @@ void stpr_move(steppers_t stepperName, uint32_t steps, int neg) {
     char steps3 = steps & 0xFF;
 
     char send[] = {request,direction,steps1,steps2,steps3};
+    pthread_mutex_lock(&spi_mutex);
     lgSpiWrite(DE0_handle, send, 5);
+    pthread_mutex_unlock(&spi_mutex);
 }
 
 void flaps_move(flaps_pos_t pos) {
@@ -392,11 +422,14 @@ void slider_move(slider_pos_t pos){
         steps = 5300;
         break;
     case SliderPlate :
-        steps = 250;
+        steps = 350;
         break; 
     case SliderTake :
-        steps = 1500;
+        steps = 1600;
         break;      
+    case SliderDeposit : 
+        steps = 5000;
+        break; 
     default :
         printf("Error : not a position \n");
         printf("%d\n", pos);
@@ -451,7 +484,9 @@ void stpr_setup_speed(int nominalSpeed, int initialSpeed, steppers_t stepper) {
     }
     
     char send[] = {request,nominalSpeed1,nominalSpeed2, initialSpeed1, initialSpeed2};//2 premier byte pour vitesse de plateau et 2 dernier vitesse calibration
+    pthread_mutex_lock(&spi_mutex);
     lgSpiWrite(DE0_handle, send, 5); 
+    pthread_mutex_unlock(&spi_mutex);
 }
 
 
@@ -477,7 +512,9 @@ void stpr_setup_calib_speed(int calibrationSpeed, int smallCalibrationSpeed, ste
             return; 
     }
     char send[] = {request,calibrationSpeed1, calibrationSpeed2, smallCalibrationSpeed1, smallCalibrationSpeed2};//2 premier byte pour vitesse de plateau et 2 dernier vitesse calibration
+    pthread_mutex_lock(&spi_mutex);
     lgSpiWrite(DE0_handle, send, 5); 
+    pthread_mutex_unlock(&spi_mutex);
 }
 
 void stpr_calibrate(steppers_t stepper) {
@@ -503,7 +540,9 @@ void stpr_calibrate(steppers_t stepper) {
             return; 
     }
     char send[] = {request,calibDir,0,0,0};
+    pthread_mutex_lock(&spi_mutex);
     lgSpiWrite(DE0_handle, send, 5);
+    pthread_mutex_unlock(&spi_mutex);
 }
 
 void stpr_reset(steppers_t stepper) {
@@ -532,13 +571,15 @@ void stpr_reset(steppers_t stepper) {
             return; 
     } 
     char send1[] = {request,0,0,0,0}; // set the Module command to Idle
-    lgSpiWrite(DE0_handle, send1, 5);
-
     char send2[] = {request2,0,1,0,0}; // send 1 to reset the module completely
-    lgSpiWrite(DE0_handle, send2, 5);
-    //sleep(1);
-    send2[2] = 0; 
+
+    pthread_mutex_lock(&spi_mutex);
+    lgSpiWrite(DE0_handle, send1, 5);
     lgSpiWrite(DE0_handle, send2, 5); // send 0 to stop resetting
+    send2[2] = 0; 
+    //sleep(1);
+    lgSpiWrite(DE0_handle, send2, 5); // send 0 to stop resetting
+    pthread_mutex_unlock(&spi_mutex);
 
 }
 
@@ -562,6 +603,8 @@ void stepper_setup_acc(steppers_t stepper, uint8_t acc) {
     } 
 
     char send[] = {request,0,0,0,acc}; // send 1 to reset the module completely
+    pthread_mutex_lock(&spi_mutex);
     lgSpiWrite(DE0_handle, send, 5);
+    pthread_mutex_unlock(&spi_mutex);
 
 }

@@ -15,7 +15,6 @@ bool ADVERSARY_FLAG = false;
 bool ENDGAME = false; 
 
 const double deg_to_rads = M_PI/180;
-#define ODOMETERS_ENABLE
 int32_t old_ticks_l = 0, old_ticks_r = 0;
 double x = 0.0, y = 0.0, theta = 0.0;
 
@@ -42,104 +41,283 @@ void resetAll() {
 
 void updateRobotPosition() {
     int32_t ticks_l, ticks_r; // Current values of ticks, left and right
-    int32_t speed_l, speed_r; // Current values of speed, left and right
-    double step_l = 0, step_r = 0; // Distance traveled during the last iteration (m), left and right 
-    double omega_l, omega_r; // Current values of speed (rad_mot/s), left and right
+    double step_l, step_r; // Distance traveled during the last iteration (m), left and right 
     double fwd, rot; // Forward and rotational components
     
-    odo_enc_reset();
-
     // Updating values via SPI
-    #ifdef ODOMETERS_ENABLE
-    get_odo_tick(&ticks_l, &ticks_r);
-    step_l = (ticks_l - old_ticks_l) * TICKS_TO_METERS;
-    step_r = (ticks_r - old_ticks_r) * TICKS_TO_METERS;
+    odo_get_tick(&ticks_l, &ticks_r);
+    step_l = (ticks_l - old_ticks_l) * ODO_TICKS_TO_M;
+    step_r = (ticks_r - old_ticks_r) * ODO_TICKS_TO_M;
     old_ticks_l = ticks_l;
     old_ticks_r = ticks_r;
-    #endif
-
-    get_enc_spd(&speed_l, &speed_r);
-
-    omega_l = speed_l * TICKS_TO_RADS;
-    omega_r = speed_r * TICKS_TO_RADS;
 
     // Forward & rotation component
-    #ifdef ODOMETERS_ENABLE
     fwd = (step_l + step_r) / 2;
-    rot = (step_r - step_l) / (2 * (WHEEL_L + 27.5e-3));
-    #else
-    fwd = (omega_l + omega_r) * radps_to_m / 2;
-    rot = (omega_r - omega_l) * radps_to_m / (2 * WHEEL_L);
+    rot = (step_r - step_l) / (ODO_WHEEL_L);
 
     // Estimate new position
-    x += fwd * cos(t + rot / 2);
-    y += fwd * sin(t + rot / 2);
+    x += fwd * cos(theta + rot / 2);
+    y += fwd * sin(theta + rot / 2);
     theta += rot;
 }
 
 
 
 void *homologation(void* v) {
-    printf("homologation happy \n");
+    printf("Entering homologation thread \n");
     //Init ports
     init_spi();
     dxl_init_port();
 
-    //Init useful variables
-    /*int32_t old_ticks_l = 0, old_ticks_r = 0; // Old tick values from previous iteration, left and right
-    int32_t ticks_l, ticks_r; // Current values of ticks, left and right
-    double step_l, step_r; // Distance traveled during the last iteration (m), left and right 
-    double omega_l, omega_r; // Current values of speed (rad_mot/s), left and right
-    double fwd, rot; // Forward and rotational components
-    double omega_refl, omega_refr; // Reference speed values, left and right
-
-    //Init odometry
-    Odometers* Odometers = (Odometers*) malloc(sizeof(Odometers));
-    Odometers = {old_ticks_l, old_ticks_r, ticks_l, ticks_r, step_l, step_r, omega_l, omega_r, fwd, rot, omega_refl, omega_refr, 0, 0, 0};
-    */
-
     //Calibrate all steppers
-    /*servo_cmd(ServoRaise);
+    servo_cmd(ServoRaise);
+    stpr_setup_speed(100,600,StprFlaps); 
+    stpr_setup_speed(60,500,StprPlate); 
+    stpr_setup_speed(300,400,StprSlider);
     resetAll(); 
-    stpr_setup_speed(5,10,StprFlaps); 
-    stpr_setup_speed(2,10,StprPlate); 
-    stpr_setup_speed(4,10,StprSlider);
-    calibrateAll();*/
+    calibrateAll();
 
     //Ping Dynamixels
-    /*dxl_ping(1, 2.0);
+    dxl_ping(1, 2.0);
     dxl_ping(3, 2.0);
     dxl_ping(6, 1.0);
-    dxl_ping(8, 1.0);*/
+    dxl_ping(8, 1.0);
 
-    sleep(10);
+    sleep(5);
 
     //Set initial robot position and path following useful variables
 
     //Path following : Go grab a plant
     if (!ADVERSARY_FLAG) {
-        printf("no adv\n");
-        double kt = 3.0;
-        double kn = 1.0; // 0 < kn <= 1
-        double kz = 80.0;
-        double delta = 50e-3; // delta is in meters
+        printf("No adversary, taking path following \n");
+        // double kp = 1.0;
+        // double ka = 4.0;
+        // double kb = -0.5;
+        // double kw = 10.0;
+        // teensy_set_position_controller_gains(kp, ka, kb, kw);
+        double kt = 2.0;
+        double kn = 0.7; // 0 < kn <= 1
+        double kz = 10.0;
+        double delta = 40e-3; // delta is in meters
         double sigma = 0.0;
         double epsilon = 150e-3; // epsilon is in meters
         double wn = 0.3; // Command filter discrete cutoff frequency
         double kv_en = 10;
         teensy_set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
         lguSleep(0.1);
-        int ncheckpoints = 5;
-        double xr[5] = {0.0,0.8,1.6,0.8,0.0};
-        double yr[5] = {1.5,1.7,1.5,1.3,1.5};
-        double theta_start =   0.;
-        double theta_end = M_PI;
-        double vref = 0.4;
-        double dist_goal_reached = 0.2;
-        teensy_set_position(0.0, 1.5, 0);
+        double x0 = 0.035;
+        double y0 = 0.2;
+        double theta0 = 0.0;
+        teensy_set_position(x0, y0, theta0);
+        lguSleep(0.1);
+        teensy_pos_ctrl(0.2, 0.2, theta0);
+        // teensy_pos_ctrl(x0, y0, theta_start + (atan2(yr[1]-yr[0], xr[1]-xr[0])-theta_start)/2.0);
+        lguSleep(5);
+
+        int ncheckpoints = 3;
+        double xr[3] = {0.2, 0.5, 0.7};
+        double yr[3] = {0.2, 0.3, 0.7};
+        double theta_start = 0.0;
+        double theta_end = M_PI/2.0;
+        double vref = 0.25;
+        double dist_goal_reached = 0.05;
+        teensy_path_following(xr, yr, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
+        /*while (((controlmode_t) teensy_ask_mode()) == ModePathFollowing) {
+            printf("Moving \n");
+            if (ADVERSARY_FLAG) {
+                printf("Adversary found \n");
+                teensy_idle();
+                break;
+                exit(1); 
+            }
+        };*/
+    }
+
+    //Grab the plant:
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+
+    servo_cmd(ServoRaise);
+    stpr_setup_speed(100,600,StprFlaps); 
+    stpr_setup_speed(60,500,StprPlate); 
+    stpr_setup_speed(300,400,StprSlider);
+    resetAll(); 
+    calibrateAll();
+
+    sleep(5); 
+
+
+    servo_cmd(ServoDeploy);
+    flaps_move(FlapsPlant);
+    lguSleep(3);
+    flaps_move(FlapsOpen);
+    gripper(Open);
+    position_gripper(Down);
+    lguSleep(1);
+    slider_move(SliderLow);
+    lguSleep(3);
+    gripper(Plant); 
+    lguSleep(0.5);
+    slider_move(SliderPlate);
+    lguSleep(2);
+    plate_move(2);
+    lguSleep(2);
+    //position_gripper(Down);
+    gripper(Open); 
+    position_gripper(Up);
+    plate_move(0);
+
+    lguSleep(2);
+    
+
+
+    //Path following: Go to planter
+    if ((!ADVERSARY_FLAG)) {
+        printf("No adversary, taking path following \n");
+        int ncheckpoints = 2;
+        double xr[2] = {0.7, 1};
+        double yr[2] = {0.7, 2.5};
+        double theta_start =   M_PI/2.0;
+        double theta_end = M_PI/2.0;
+        double vref = 0.2;
+        double dist_goal_reached = 0.1;
+        //teensy_set_position(xr[0], yr[0], theta_start);
         lguSleep(0.1);
         teensy_path_following(xr, yr, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
-        while (((controlmode_t) teensy_ask_mode()) == ModePathFollowing) {
+        /*while (((controlmode_t) teensy_ask_mode()) == ModePathFollowing) {
+            printf("Moving \n");
+            if (ADVERSARY_FLAG) {
+                printf("Adversary found \n");
+                teensy_idle();
+                break;
+                exit(1); 
+            }
+        };*/
+    }
+
+    //Drop the plant
+    slider_move(SliderHigh); 
+    plate_move(2);
+    gripper(Open);
+    lguSleep(2);
+    position_gripper(Down);
+    lguSleep(3);
+    slider_move(SliderTake); 
+    lguSleep(2); 
+    gripper(Plant); 
+    slider_move(SliderHigh); 
+    lguSleep(1); 
+    plate_move(0); 
+    lguSleep(2); 
+    slider_move(SliderDeposit); 
+    lguSleep(3); 
+    gripper(Open); 
+    lguSleep(2); 
+    slider_move(SliderPlate); 
+    lguSleep(1);
+    gripper(Close); 
+    servo_cmd(ServoRaise);
+
+    lguSleep(3); 
+
+    //Path following: Go to solar panels
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+
+    if ((!ADVERSARY_FLAG)) {
+        printf("No adversary, taking path following \n");
+        int ncheckpoints = 3;
+        double xr[3] = {1, 1.6, 1.78};
+        double yr[3] = {2, 1.5, 0.74};
+        double theta_start =   M_PI/2.0;
+        double theta_end = -1.01*M_PI/2.0;
+        double vref = 0.2;
+        double dist_goal_reached = 0.1;
+        teensy_pos_ctrl(xr[0], yr[0], M_PI/8.0);
+        lguSleep(2);
+        teensy_pos_ctrl(xr[0], yr[0], -M_PI/4.0);
+        lguSleep(5);
+        teensy_path_following(xr, yr, ncheckpoints, -M_PI/2.0, theta_end, vref, dist_goal_reached);
+        /*while (((controlmode_t) teensy_ask_mode()) == ModePathFollowing) {
+            printf("Moving \n");
+            if (ADVERSARY_FLAG) {
+                printf("Adversary found \n");
+                teensy_idle();
+                break;
+                exit(1); 
+            }
+        };*/
+    }
+    //Turn solar panel
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+
+    position_solar(DownS);
+    sleep(0.5);
+    multiturn_solar(CCW);
+    sleep(0.5);
+    position_solar(UpS);
+
+    //Path following: Go to charging station
+    /*if ((!ADVERSARY_FLAG)) {
+        printf("No adversary, taking path following \n");
+        int ncheckpoints = 3;
+        double xr[3] = {1, 1.6, 1.76};
+        double yr[3] = {2, 1.5, 0.74};
+        double theta_start =   -M_PI/2.0;
+        double theta_end = -1.01*M_PI/2.0;
+        double vref = 0.2;
+        double dist_goal_reached = 0.1;
+        teensy_pos_ctrl(xr[0], yr[0], M_PI/8.0);
+        lguSleep(2);
+        teensy_pos_ctrl(xr[0], yr[0], -M_PI/4.0);
+        lguSleep(5);
+        teensy_path_following(xr, yr, ncheckpoints, -M_PI/2.0, theta_end, vref, dist_goal_reached);
+        /*while (((controlmode_t) teensy_ask_mode()) == ModePathFollowing) {
             printf("Moving \n");
             if (ADVERSARY_FLAG) {
                 printf("Adversary found \n");
@@ -148,42 +326,13 @@ void *homologation(void* v) {
                 exit(1); 
             }
         };
-    }
-
-    //Grab the plant:
-    /*servo_cmd(ServoDeploy);
-    flaps_move(FlapsPlant);
-    sleep(3);
-    gripper(Open);
-    position_gripper(Down);
-    slider_move(SliderLow);
-    sleep(6);
-    gripper(Plant); 
-    sleep(0.5);
-    slider_move(SliderPlate);
-    sleep(6);
-    plate_move(2);
-    sleep(4);
-    gripper(Open); 
-    position_gripper(Up);
-    plate_move(0);*/
-
-    //Path following: Go to solar panels
-
-    //Turn solar panel
-
-    //Path following: Go to planter
-
-    //Drop the plant
-
-
-    //Path following: Go to charging station
-    
+    }*/
 
     return 0;
 }
 
 void *topLidar(void* v) {
+    printf("Entering topLidar thread \n");
     //double *robot = new double[4]{0, 0, 0, 0};
     double *adv = new double[4]{0, 0, 0, 3.14};
     //double *beaconAdv = new double[8]{0, 0, 0, 0, 0, 0, 0, 0};

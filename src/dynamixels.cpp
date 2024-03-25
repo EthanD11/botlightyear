@@ -133,7 +133,7 @@ void gripper(object_t object) {
     write2ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, ADDR_MOVING_SPEED, 200);
 
     // Write punch
-    write2ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, ADDR_XL_PUNCH, 60);
+    write2ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, ADDR_XL_PUNCH, 80);
 
     //Write Max Torque
     write2ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, ADDR_XL_TORQUE, 1023);
@@ -141,7 +141,7 @@ void gripper(object_t object) {
     // Write goal position
     write2ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, ADDR_GOAL_POSITION, dxl_goal_position);
 
-   while ((abs(dxl_goal_position - dxl_present_position) > DXL_MOVING_STATUS_THRESHOLD)) {
+   while ((abs(dxl_goal_position - dxl_present_position) > 15)) {
       // Read present position
       dxl_present_position = read2ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, ADDR_XL_PRESENT_POSITION);
       write2ByteTxRx(port_num, XL_PROTOCOL_VERSION, 3, ADDR_GOAL_POSITION, dxl_goal_position);

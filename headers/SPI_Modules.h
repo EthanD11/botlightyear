@@ -18,6 +18,7 @@
 
 // Odometers conversion factors
 #define ODO_TICKS_TO_M 1.7257283863713464e-05 // Conversion factor ticks to meters. (theoretical : pi*45e-3/8192; practical : 610e-3/(2**3+2**4+2**6+4*2**11))
+#define ODO_WHEEL_L 24.48e-2
 
 // Sonars
 
@@ -158,7 +159,8 @@ typedef enum {
     SliderLow,
     SliderHigh,
     SliderPlate, 
-    SliderTake
+    SliderTake, 
+    SliderDeposit
 } slider_pos_t;
 
 /**

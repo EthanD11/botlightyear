@@ -1,13 +1,13 @@
 #include "../headers/SPI_Modules.h"
 #include <stdio.h>
 
-// #define POSITION_CONTROL
-// #define PATH_FOLLOWING
+//#define POSITION_CONTROL
+//#define PATH_FOLLOWING
 #define IDLE
 // #define SET_POSITION
 // #define SPEED_CONTROL
 // #define DC_CONTROL
-// #define ASK_STATE
+#define ASK_STATE
 // #define SET_POS_CTRL_GAINS
 // #define SET_PATH_FOLLOWER_GAINS
 
@@ -21,19 +21,20 @@ int main(int argc, char const *argv[])
     #ifdef POSITION_CONTROL
     double x = 0; 
     double y = 0; 
-    double t = 0;
-    double xr = 0.5; 
+    double t = M_PI/2;
+    double xr = 0; 
     double yr = 0; 
-    double tr = 0*deg_to_rads;
+    double tr = 0;
 
     teensy_set_position(x, y, t);
+    lguSleep(0.1);
     teensy_pos_ctrl(xr, yr, tr);
     #endif
 
     #ifdef PATH_FOLLOWING
     double kt = 3.0;
-    double kn = 1.0; // 0 < kn <= 1
-    double kz = 80.0;
+    double kn = 0.7; // 0 < kn <= 1
+    double kz = 10.0;
     double delta = 50e-3; // delta is in meters
     double sigma = 0.0;
     double epsilon = 150e-3; // epsilon is in meters
@@ -42,11 +43,11 @@ int main(int argc, char const *argv[])
     teensy_set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
     lguSleep(0.1);
     int ncheckpoints = 5;
-    double x[5] = {0.0,0.8,1.6,0.8,0.0};
-    double y[5] = {1.5,1.7,1.5,1.3,1.5};
+    double x[5] = {0.0,0.4,0.8,0.4,0.0};
+    double y[5] = {1.5,1.8,1.5,1.3,1.5};
     double theta_start =   0.;
     double theta_end = M_PI;
-    double vref = 0.4;
+    double vref = 0.2;
     double dist_goal_reached = 0.2;
     teensy_set_position(0, 1.5, 0);
     lguSleep(0.1);
@@ -74,10 +75,10 @@ int main(int argc, char const *argv[])
     #endif
 
     #ifdef SET_POS_CTRL_GAINS
-    double kp = 1.0;
-    double ka = 4.0;
-    double kb = -0.5;
-    double kw = 8.0;
+    double kp = 0.4;
+    double ka = 2.0;
+    double kb = -0.1;
+    double kw = 2.0;
     teensy_set_position_controller_gains(kp, ka, kb, kw);
     #endif
 

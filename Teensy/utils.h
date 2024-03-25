@@ -36,10 +36,10 @@
 #define SPD_TOL 1e-2 // Max speed at which motors can be turned off (rad_mot/s)
 
 #ifdef ODOMETERS_ENC
-#define WHEEL_L 126e-3 // Half the distance between the two wheels (m)
-#define TICKS_TO_M 1.7257e-5 // Multiply to get meters from tick count. pi*45e-3/8192
+#define WHEEL_L 12.24e-2 // Half the distance between the two wheels (m)
+#define TICKS_TO_M 1.7257283863713464e-05 // Multiply to get meters from tick count. pi*45e-3/8192
 #else
-#define WHEEL_L 88.085e-3 // Half the distance between the two wheels (m)
+#define WHEEL_L 8.75e-2 // Half the distance between the two wheels (m)
 #define TICKS_TO_M 1.3806e-6 // Multiply to get meters from tick count. pi*72e-3/20/8192
 #endif
 
