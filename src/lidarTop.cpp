@@ -325,8 +325,7 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
             }
         }
     }
-
-
+   
     /// count of missing data+1
     /// useful for knowing the difference in maximum distance when a lot of data is lost between 2 elements
     int countGap = 1;
