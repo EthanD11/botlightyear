@@ -148,29 +148,39 @@ void *homologation(void* v) {
     teensy_ask_mode();
     lguSleep(2);
     teensy_ask_mode();
-    lguSleep(2);
-    teensy_ask_mode();
-    lguSleep(2);
-    teensy_ask_mode();
-    /*servo_cmd(ServoDeploy);
+
+    servo_cmd(ServoRaise);
+    stpr_setup_speed(100,600,StprFlaps); 
+    stpr_setup_speed(60,500,StprPlate); 
+    stpr_setup_speed(300,400,StprSlider);
+    resetAll(); 
+    calibrateAll();
+
+    sleep(5); 
+
+
+    servo_cmd(ServoDeploy);
     flaps_move(FlapsPlant);
-    lguSleep(5);
+    lguSleep(3);
     flaps_move(FlapsOpen);
     gripper(Open);
     position_gripper(Down);
-    lguSleep(5);
+    lguSleep(1);
     slider_move(SliderLow);
-    lguSleep(10);
+    lguSleep(3);
     gripper(Plant); 
     lguSleep(0.5);
     slider_move(SliderPlate);
-    lguSleep(10);
+    lguSleep(2);
     plate_move(2);
-    lguSleep(6);
+    lguSleep(2);
+    //position_gripper(Down);
     gripper(Open); 
     position_gripper(Up);
     plate_move(0);
-    lguSleep(5);*/
+
+    lguSleep(2);
+    
 
 
     //Path following: Go to planter
@@ -178,12 +188,12 @@ void *homologation(void* v) {
         printf("No adversary, taking path following \n");
         int ncheckpoints = 2;
         double xr[2] = {0.7, 1};
-        double yr[2] = {0.7, 2.0};
+        double yr[2] = {0.7, 2.5};
         double theta_start =   M_PI/2.0;
         double theta_end = M_PI/2.0;
         double vref = 0.2;
         double dist_goal_reached = 0.1;
-        teensy_set_position(xr[0], yr[0], theta_start);
+        //teensy_set_position(xr[0], yr[0], theta_start);
         lguSleep(0.1);
         teensy_path_following(xr, yr, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
         /*while (((controlmode_t) teensy_ask_mode()) == ModePathFollowing) {
@@ -198,6 +208,29 @@ void *homologation(void* v) {
     }
 
     //Drop the plant
+    slider_move(SliderHigh); 
+    plate_move(2);
+    gripper(Open);
+    lguSleep(2);
+    position_gripper(Down);
+    lguSleep(3);
+    slider_move(SliderTake); 
+    lguSleep(2); 
+    gripper(Plant); 
+    slider_move(SliderHigh); 
+    lguSleep(1); 
+    plate_move(0); 
+    lguSleep(2); 
+    slider_move(SliderDeposit); 
+    lguSleep(3); 
+    gripper(Open); 
+    lguSleep(2); 
+    slider_move(SliderPlate); 
+    lguSleep(1);
+    gripper(Close); 
+    servo_cmd(ServoRaise);
+
+    lguSleep(3); 
 
     //Path following: Go to solar panels
     lguSleep(2);
@@ -222,15 +255,13 @@ void *homologation(void* v) {
     if ((!ADVERSARY_FLAG)) {
         printf("No adversary, taking path following \n");
         int ncheckpoints = 3;
-        double xr[3] = {1, 1.6, 1.76};
+        double xr[3] = {1, 1.6, 1.78};
         double yr[3] = {2, 1.5, 0.74};
         double theta_start =   M_PI/2.0;
         double theta_end = -1.01*M_PI/2.0;
         double vref = 0.2;
         double dist_goal_reached = 0.1;
-        teensy_set_position(xr[0], yr[0], theta_start);
-        lguSleep(0.1);
-        teensy_pos_ctrl(xr[0], yr[0], 0);
+        teensy_pos_ctrl(xr[0], yr[0], M_PI/8.0);
         lguSleep(2);
         teensy_pos_ctrl(xr[0], yr[0], -M_PI/4.0);
         lguSleep(5);
@@ -246,10 +277,56 @@ void *homologation(void* v) {
         };*/
     }
     //Turn solar panel
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
 
+    position_solar(DownS);
+    sleep(0.5);
+    multiturn_solar(CCW);
+    sleep(0.5);
+    position_solar(UpS);
 
     //Path following: Go to charging station
-    
+    /*if ((!ADVERSARY_FLAG)) {
+        printf("No adversary, taking path following \n");
+        int ncheckpoints = 3;
+        double xr[3] = {1, 1.6, 1.76};
+        double yr[3] = {2, 1.5, 0.74};
+        double theta_start =   -M_PI/2.0;
+        double theta_end = -1.01*M_PI/2.0;
+        double vref = 0.2;
+        double dist_goal_reached = 0.1;
+        teensy_pos_ctrl(xr[0], yr[0], M_PI/8.0);
+        lguSleep(2);
+        teensy_pos_ctrl(xr[0], yr[0], -M_PI/4.0);
+        lguSleep(5);
+        teensy_path_following(xr, yr, ncheckpoints, -M_PI/2.0, theta_end, vref, dist_goal_reached);
+        /*while (((controlmode_t) teensy_ask_mode()) == ModePathFollowing) {
+            printf("Moving \n");
+            if (ADVERSARY_FLAG) {
+                printf("Adversary found \n");
+                teensy_idle();
+                break;
+                exit(1); 
+            }
+        };
+    }*/
 
     return 0;
 }
