@@ -6,21 +6,21 @@ int main(int argc, char const *argv[])
     int handle = lgGpiochipOpen(0);
     if (handle < 0) exit(1);
 
-    if (lgGpioClaimInput(handle, 0, 25) != 0) {
+    if (lgGpioClaimInput(handle, LG_SET_PULL_DOWN, 25) != 0) {
         printf("Cannot set GPIO to input \n");
         exit(1);
     }
-    if (lgGpioClaimOutput(handle, 0, 16) != 0) {
+    if (lgGpioClaimOutput(handle, LG_SET_PULL_UP, 16, 1) != 0) {
         printf("Cannot set GPIO to input \n");
         exit(1);
     }
 
-    lgGpioWrite(handle, 16, 1);
+    //lgGpioWrite(handle, 16, 1);
     lguSleep(1);
 
     int start = lgGpioRead(handle,25);
     printf("Initial value of GPIO: %d \n", start); 
-    status = lgGpioGetMode(handle, 25); 
+    //int status = lgGpioGetMode(handle, 25); 
 
 
     printf("Waiting start of the game... \n");
