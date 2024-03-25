@@ -255,7 +255,7 @@ void *homologation(void* v) {
     if ((!ADVERSARY_FLAG)) {
         printf("No adversary, taking path following \n");
         int ncheckpoints = 3;
-        double xr[3] = {1, 1.6, 1.78};
+        double xr[3] = {1, 1.6, 1.80};
         double yr[3] = {2, 1.5, 0.74};
         double theta_start =   M_PI/2.0;
         double theta_end = -1.01*M_PI/2.0;
@@ -297,26 +297,24 @@ void *homologation(void* v) {
     teensy_ask_mode();
 
     position_solar(DownS);
-    sleep(0.5);
+    sleep(1);
     multiturn_solar(CCW);
-    sleep(0.5);
+    sleep(1);
     position_solar(UpS);
 
     //Path following: Go to charging station
-    /*if ((!ADVERSARY_FLAG)) {
+    if ((!ADVERSARY_FLAG)) {
         printf("No adversary, taking path following \n");
-        int ncheckpoints = 3;
-        double xr[3] = {1, 1.6, 1.76};
-        double yr[3] = {2, 1.5, 0.74};
+        int ncheckpoints = 2;
+        double xr[2] = {1.80, 1.80};
+        double yr[2] = {0.74, 0.3};
         double theta_start =   -M_PI/2.0;
-        double theta_end = -1.01*M_PI/2.0;
+        double theta_end = -M_PI/2.0;
         double vref = 0.2;
         double dist_goal_reached = 0.1;
-        teensy_pos_ctrl(xr[0], yr[0], M_PI/8.0);
-        lguSleep(2);
-        teensy_pos_ctrl(xr[0], yr[0], -M_PI/4.0);
-        lguSleep(5);
-        teensy_path_following(xr, yr, ncheckpoints, -M_PI/2.0, theta_end, vref, dist_goal_reached);
+        //teensy_set_position(xr[0], yr[0], theta_start);
+        lguSleep(0.1);
+        teensy_path_following(xr, yr, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
         /*while (((controlmode_t) teensy_ask_mode()) == ModePathFollowing) {
             printf("Moving \n");
             if (ADVERSARY_FLAG) {
@@ -325,17 +323,17 @@ void *homologation(void* v) {
                 break;
                 exit(1); 
             }
-        };
-    }*/
+        };*/
+    }
 
     return 0;
 }
 
 void *topLidar(void* v) {
     printf("Entering topLidar thread \n");
-    //double *robot = new double[4]{0, 0, 0, 0};
+    double *robot = new double[4]{0, 0, 0, 0};
     double *adv = new double[4]{0, 0, 0, 3.14};
-    //double *beaconAdv = new double[8]{0, 0, 0, 0, 0, 0, 0, 0};
+    //double *beaconAdv = new double[8]{0.155987, 1.828000, 1.858849, 0.293500, 4.988889, 3.038000, 0.000000, 0.000000};
     
     StartLidar();
 

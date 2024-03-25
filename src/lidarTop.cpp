@@ -239,7 +239,6 @@ void lidarPerduAdv(double *angles, double *distances, double* adversaryCoordinat
 
 
 void checkBeacon(double *angles, double *distances, double *quality, double *robot, double* adversaryCoordinates, bool fullScan, double* previousBeaconAdv) {
-    printf("step0");
 
     robot[0]= 0;
     robot[1]=0;
@@ -298,11 +297,11 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
         ///calculating the limits where we will look
         for (int i = 0; i < 4; ++i) {
             deltaDemiAlpha = 4*std::tan(0.05/previousBeaconAdv[2*i+1]);
-            angleStart = previousBeaconAdv[2*i]-3*deltaDemiAlpha;
-            angleEnd = previousBeaconAdv[2*i]+3*deltaDemiAlpha;
+            angleStart = previousBeaconAdv[2*i]-4*deltaDemiAlpha;
+            angleEnd = previousBeaconAdv[2*i]+4*deltaDemiAlpha;
             origine[i] = arraySize*angleStart/(2*M_PI);
             fin[i] = arraySize*angleEnd/(2*M_PI);
-            while (fin[i]-origine[i]<60){
+            while (fin[i]-origine[i]<70){
                 origine[i]-=10;
                 fin[i]+=10;
             }
@@ -520,9 +519,9 @@ void lidarGetRobotPosition(double * robot, double* adv, double* beaconAdv) {
     //updateDataFile(angles, distances, quality, "jsp.txt", as);
     arraySize = as[0];
     int count = 0;
-    checkBeacon(angles, distances, quality, robot, adv, true, beaconAdv);
+    checkBeacon(angles, distances, quality, robot, adv, false, beaconAdv);
     while(robot[0]==0&&count<20){
-        checkBeacon(angles, distances, quality, robot, adv, true, beaconAdv);
+        checkBeacon(angles, distances, quality, robot, adv, false, beaconAdv);
         count++;
     }
     //DataToFile("testBottom1.txt");

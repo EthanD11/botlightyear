@@ -9,8 +9,8 @@ int main(int argc, char *argv[]) {
     // comment det la position ? centre robot, pince, coin, lidar (haut, bas) ?
     double *robot = new double[4]{0, 0, 0, 0};
     double *adv = new double[4]{0, 0, 0, 0};
-    double *beaconAdv = new double[8]{0.266673, 1.814000, 2.002180, 0.307000, 5.079394, 3.032000, 1.122107, 2.980000};
-    double *beaconAdvold = new double[8]{0.266673, 1.814000, 2.002180, 0.307000, 5.079394, 3.032000, 1.122107, 2.980000};
+    double *beaconAdv = new double[8]{0.155987, 1.828000, 1.858849, 0.293500, 4.988889, 3.038000, 0.000000, 0.000000};
+    double *beaconAdvold = new double[8]{0.155987, 1.828000, 1.858849, 0.293500, 4.988889, 3.038000, 0.000000, 0.000000};
     double *robotOld = new double[2]{0,0};
     StartLidar();
     int counterror = 0;
