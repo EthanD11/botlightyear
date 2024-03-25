@@ -45,6 +45,11 @@ test_%: $(TESTS_DIR)/test_%.o $(SOURCES_OBJ)
 	@./$<
 	@rm $<
 
+#Do an individual test
+valtest_%: $(TESTS_DIR)/test_%.o $(SOURCES_OBJ)
+	@valgrind --leak-check=yes  --track-origins=yes ./$< 
+	@rm $<
+
 #Run all the tests
 tests: $(TESTS:.cpp=.o)
 	@$(foreach test, $^, ./$(test);)

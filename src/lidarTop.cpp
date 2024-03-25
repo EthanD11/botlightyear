@@ -5,7 +5,7 @@
 #include "lidarTop.h"
 
 ///global variable to find out the size of the file
-size_t arraySize = 3000;
+size_t arraySize = 8000;
 
 void rotationPosition(double *db, double *x, double *y, double * robot, double* transfo, double* anglesBeacons) {
     ///x,y coordinates of the 4 elements
@@ -26,7 +26,7 @@ void rotationPosition(double *db, double *x, double *y, double * robot, double* 
     double orientation;
 
     for (int i = 0; i < 3; ++i) {
-        if (std::abs(db[(i+2)%3]-db[(i+1)%3])<0.35){
+        if (std::abs(db[(i+2)%3]-db[(i+1)%3])<0.36){
             beacon1 = new double[2]{x[i],y[i]};
             beacon2 = new double[2]{x[(i+1)%3],y[(i+1)%3]};
             beacon3 = new double[2]{x[(i+2)%3],y[(i+2)%3]};
@@ -239,7 +239,7 @@ void lidarPerduAdv(double *angles, double *distances, double* adversaryCoordinat
 
 
 void checkBeacon(double *angles, double *distances, double *quality, double *robot, double* adversaryCoordinates, bool fullScan, double* previousBeaconAdv) {
-
+    printf("step0");
 
     robot[0]= 0;
     robot[1]=0;
@@ -325,6 +325,7 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
             }
         }
     }
+
    
     /// count of missing data+1
     /// useful for knowing the difference in maximum distance when a lot of data is lost between 2 elements
@@ -475,7 +476,7 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
                 /// sum of the 3 sides close to the expected value
                 if (std::abs((db1 + db2 + db3) - dref1 - 2 * dref2) < 0.2) {//TODO check precision
                     /// 2 size sides ok (3rd also ok because sum ok)
-                    if (((std::abs(db1 - dref1) < 0.15) | (std::abs(db2 - dref1) < 0.15) | (std::abs(db3 - dref1) < 0.15))&&((std::abs(db1 - dref2) < 0.15 )| (std::abs(db2 - dref2) < 0.15) | (std::abs(db3 - dref2) < 0.15))&&((std::abs(db1-db2)<0.35)||(std::abs(db3-db2)<0.35)||(std::abs(db1-db3)<035))) {
+                    if (((std::abs(db1 - dref1) < 0.15) | (std::abs(db2 - dref1) < 0.15) | (std::abs(db3 - dref1) < 0.15))&&((std::abs(db1 - dref2) < 0.15 )| (std::abs(db2 - dref2) < 0.15) | (std::abs(db3 - dref2) < 0.15))&&((std::abs(db1-db2)<0.35)||(std::abs(db3-db2)<0.35)||(std::abs(db1-db3)<0.35))) {
                         rotationPosition(new double[3]{db1, db2, db3} , new double[3]{x1,x2,x3}, new double[3]{y1,y2,y3}, robot, transfo, new double[3]{aObj[b1],aObj[b2],aObj[b3]});
                         if(robot[0]>0&&robot[0]<2&&robot[1]>0&&robot[1]<3){
   
@@ -511,17 +512,17 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
 
 void lidarGetRobotPosition(double * robot, double* adv, double* beaconAdv) {
     //StartLidar();
-    double* angles = new double[3000];
-    double* distances = new double[3000];
-    double* quality = new double[3000];
-    size_t* as = new size_t[2]{3000,3000};
+    double* angles = new double[8000];
+    double* distances = new double[8000];
+    double* quality = new double[8000];
+    size_t* as = new size_t[2]{8000,8000};
     updateData(angles, distances, quality, as);
     //updateDataFile(angles, distances, quality, "jsp.txt", as);
     arraySize = as[0];
     int count = 0;
-    checkBeacon(angles, distances, quality, robot, adv, false, beaconAdv);
+    checkBeacon(angles, distances, quality, robot, adv, true, beaconAdv);
     while(robot[0]==0&&count<20){
-        checkBeacon(angles, distances, quality, robot, adv, false, beaconAdv);
+        checkBeacon(angles, distances, quality, robot, adv, true, beaconAdv);
         count++;
     }
     //DataToFile("testBottom1.txt");

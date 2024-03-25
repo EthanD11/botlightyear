@@ -10,13 +10,40 @@ int main(int argc, char *argv[]) {
     double *robot = new double[4]{0, 0, 0, 0};
     double *adv = new double[4]{0, 0, 0, 0};
     double *beaconAdv = new double[8]{0.266673, 1.814000, 2.002180, 0.307000, 5.079394, 3.032000, 1.122107, 2.980000};
+    double *beaconAdvold = new double[8]{0.266673, 1.814000, 2.002180, 0.307000, 5.079394, 3.032000, 1.122107, 2.980000};
+    double *robotOld = new double[2]{0,0};
     StartLidar();
     int counterror = 0;
-    for (size_t i = 0; i < 100; i++)
-    {
+    int perdu = 0;
+    for (size_t i = 0; i < 10; i++){
+        for (size_t j = 0; j < 8; j++)
+        {
+            beaconAdvold[j]=beaconAdv[j];//recup si perdu
+        }
+        for (size_t k = 0; k < 2; k++)
+        {
+            robotOld[k]=robot[k];
+        }
+        
+
+    
     DataToFile("jsp.txt");
     printf("\nboucle : %ld \n", i);
     lidarGetRobotPosition(robot, adv, beaconAdv);
+    if (robot[0]<0.0001||robot[0]>2||robot[1]<0.001||robot[1]>3){
+        printf("ooooooooooooooooo\n");
+        for (size_t l = 0; l < 8; l++)
+        {
+            beaconAdv[i]=beaconAdvold[i];//recup si perdu
+        }
+        for (size_t m = 0; m < 2; m++)
+        {
+            robot[m]= robotOld[m];
+        }
+        
+        perdu++;
+    }
+
     printf("\n robot at x=%f; y=%f; orientation=%f; %f radian beacon3\n", robot[0], robot[1], robot[2], robot[3]);
     printf("Adversary at x=%f; y=%f\n", adv[0], adv[1]);
     printf("adv at %f m; %f degree\n", adv[2], adv[3] * 180 / M_PI);
@@ -29,5 +56,6 @@ int main(int argc, char *argv[]) {
 
     StopLidar();
     printf("counterror : %d\n", counterror);
+    printf("perdu : %d\n", perdu);
     return 0;
 }
