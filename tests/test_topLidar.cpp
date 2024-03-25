@@ -13,6 +13,7 @@ int main(int argc, char *argv[]) {
     StartLidar();
     //DataToFile("jsp.txt");
     int counterror = 0;
+    int counterroradv = 0;
     for (size_t i = 0; i < 100; i++)
     {
     printf("\nboucle : %ld \n", i);
@@ -24,10 +25,14 @@ int main(int argc, char *argv[]) {
     if (robot[0]<0.0001){
         counterror++;
     }
+    if (adv[0]<0.0001){
+        counterroradv++;
+    }
     }
     
 
     StopLidar();
     printf("counterror : %d\n", counterror);
+    //printf("counterroradv : %d\n", counterroradv);
     return 0;
 }
