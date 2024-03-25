@@ -9,7 +9,7 @@ int main(int argc, char *argv[]) {
     // comment det la position ? centre robot, pince, coin, lidar (haut, bas) ?
     double *robot = new double[4]{0, 0, 0, 0};
     double *adv = new double[4]{0, 0, 0, 0};
-    double *beaconAdv = new double[8]{0.198968, 2.880000, 0.000000, 0.680000, 1.815142, 1.630000, 3.857178, 0.450000};
+    double *beaconAdv = new double[8]{0.166437, 1.818000, 1.887515, 0.319000, 4.987643, 3.028000, 0.000000, 0.000000};
     StartLidar();
     //DataToFile("jsp.txt");
     
