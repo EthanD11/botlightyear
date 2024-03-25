@@ -9,10 +9,10 @@ int main(int argc, char *argv[]) {
     // comment det la position ? centre robot, pince, coin, lidar (haut, bas) ?
     double *robot = new double[4]{0, 0, 0, 0};
     double *adv = new double[4]{0, 0, 0, 0};
-    double *beaconAdv = new double[8]{0.092806, 1.824000, 1.820931, 0.302000, 4.925181, 3.024000, 5.607371, 2.025000};
+    double *beaconAdv = new double[8]{1.983773, 0.843000, 4.426254, 1.163000, 6.234721, 2.878000, 0.000000, 0.000000};
     StartLidar();
     int counterror = 0;
-    for (size_t i = 0; i < 100; i++)
+    for (size_t i = 0; i < 40; i++)
     {
     DataToFile("jsp.txt");
     printf("save\n");
