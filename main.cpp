@@ -83,7 +83,41 @@ void *homologation(void* v) {
     dxl_ping(6, 1.0);
     dxl_ping(8, 1.0);
 
-    sleep(5);
+    int handle = lgGpiochipOpen(4);
+    if (handle < 0) exit(1);
+    /*lgChipInfo_t chipinfo;
+    if (lgGpioGetChipInfo(handle,&chipinfo) < 0) exit(1);
+    printf("lines=%d name=%s label=%s\n", chipinfo.lines, chipinfo.name, chipinfo.label);*/
+
+    if (lgGpioSetUser(handle, "Bot Lightyear") < 0) exit(2);
+
+    if (lgGpioClaimInput(handle, LG_SET_PULL_NONE, 4) != 0) exit(3);
+
+    /*lgLineInfo_t lInfo;
+    if (lgGpioGetLineInfo(handle, 4, &lInfo) < 0) exit(4);
+    printf("lFlags=%d name=%s user=%s offset=%d\n", lInfo.lFlags, lInfo.name, lInfo.user, lInfo.offset);*/
+
+    printf("Waiting for setup... \n");
+
+    int start;
+    do {
+        start = lgGpioRead(handle,4);
+        if (start < 0) exit(5);
+    } while (start);
+    printf("Starting cord setup\n");
+    
+    lguSleep(1);
+
+    printf("Waiting start of the game... \n");
+    do {
+        start = lgGpioRead(handle,4);
+        if (start < 0) exit(5);
+    } while (!start);
+
+    lgGpioFree(handle, 4);
+    lgGpiochipClose(handle);
+
+    printf("Game started! \n");
 
     //Set initial robot position and path following useful variables
 
@@ -142,22 +176,14 @@ void *homologation(void* v) {
     teensy_ask_mode();
     lguSleep(2);
     teensy_ask_mode();
-    lguSleep(2);
+    /*lguSleep(2);
     teensy_ask_mode();
     lguSleep(2);
     teensy_ask_mode();
     lguSleep(2);
-    teensy_ask_mode();
+    teensy_ask_mode();*/
 
-    servo_cmd(ServoRaise);
-    stpr_setup_speed(100,600,StprFlaps); 
-    stpr_setup_speed(60,500,StprPlate); 
-    stpr_setup_speed(300,400,StprSlider);
-    resetAll(); 
-    calibrateAll();
-
-    sleep(5); 
-
+    sleep(3); 
 
     servo_cmd(ServoDeploy);
     flaps_move(FlapsPlant);
@@ -165,9 +191,9 @@ void *homologation(void* v) {
     flaps_move(FlapsOpen);
     gripper(Open);
     position_gripper(Down);
-    lguSleep(1);
+    lguSleep(0.5);
     slider_move(SliderLow);
-    lguSleep(3);
+    lguSleep(2);
     gripper(Plant); 
     lguSleep(0.5);
     slider_move(SliderPlate);
@@ -178,8 +204,6 @@ void *homologation(void* v) {
     gripper(Open); 
     position_gripper(Up);
     plate_move(0);
-
-    lguSleep(2);
     
 
 
@@ -230,13 +254,11 @@ void *homologation(void* v) {
     gripper(Close); 
     servo_cmd(ServoRaise);
 
-    lguSleep(3); 
-
     //Path following: Go to solar panels
     lguSleep(2);
     teensy_ask_mode();
     lguSleep(2);
-    teensy_ask_mode();
+    /*teensy_ask_mode();
     lguSleep(2);
     teensy_ask_mode();
     lguSleep(2);
@@ -250,7 +272,7 @@ void *homologation(void* v) {
     lguSleep(2);
     teensy_ask_mode();
     lguSleep(2);
-    teensy_ask_mode();
+    teensy_ask_mode();*/
 
     if ((!ADVERSARY_FLAG)) {
         printf("No adversary, taking path following \n");
@@ -262,7 +284,7 @@ void *homologation(void* v) {
         double vref = 0.2;
         double dist_goal_reached = 0.1;
         teensy_pos_ctrl(xr[0], yr[0], M_PI/8.0);
-        lguSleep(2);
+        lguSleep(4);
         teensy_pos_ctrl(xr[0], yr[0], -M_PI/4.0);
         lguSleep(5);
         teensy_path_following(xr, yr, ncheckpoints, -M_PI/2.0, theta_end, vref, dist_goal_reached);
@@ -336,9 +358,10 @@ void *topLidar(void* v) {
     //double *beaconAdv = new double[8]{0.155987, 1.828000, 1.858849, 0.293500, 4.988889, 3.038000, 0.000000, 0.000000};
     
     StartLidar();
-
+    int i =0;
     while (!ENDGAME) {
         //lidarGetRobotPosition(robot, adv, beaconAdv);
+        DataToFile("")
         double adv_dist = adv[2]; 
         double adv_angle = adv[3];
         double limit_stop = 0.5; 
@@ -346,6 +369,7 @@ void *topLidar(void* v) {
             ADVERSARY_FLAG = true; 
             printf("Adversary detected\n");
         }
+        i++;
     }
 
     StopLidar();

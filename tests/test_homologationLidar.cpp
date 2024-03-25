@@ -262,14 +262,14 @@ void *topLidar(void* v) {
     double *beaconAdv = new double[8]{0.141318, 1.826000, 1.878647, 0.284500, 4.983280, 3.050000, 0.018647, 0.987000};
     
     StartLidar();
-
+    int i = 0;
     while (!ENDGAME) {
-        lidarGetRobotPosition(robot, adv, beaconAdv);
+        //lidarGetRobotPosition(robot, adv, beaconAdv);
+        DataToFile("testLidarMobile/"+std::to_string(i));
+        i++;
         double adv_dist = adv[2]; 
         double adv_angle = adv[3];
         double limit_stop = 0.5; 
-        printf("oooooooooo %f %f\n",adv_dist, adv_angle);
-        printf("pff %f %f", robot[0], robot[1]);
         if ((adv_dist < limit_stop) & (adv_angle < 0.79) & (adv_angle > (6.28-0.79))) {
             ADVERSARY_FLAG = true; 
             teensy_idle();
