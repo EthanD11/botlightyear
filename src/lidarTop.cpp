@@ -302,9 +302,9 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
             angleEnd = previousBeaconAdv[2*i]+3*deltaDemiAlpha;
             origine[i] = arraySize*angleStart/(2*M_PI);
             fin[i] = arraySize*angleEnd/(2*M_PI);
-            while (fin[i]-origine[i]<25){
-                origine[i]-=5;
-                fin[i]+=5;
+            while (fin[i]-origine[i]<60){
+                origine[i]-=10;
+                fin[i]+=10;
             }
         }
 
@@ -477,7 +477,8 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
                     /// 2 size sides ok (3rd also ok because sum ok)
                     if (((std::abs(db1 - dref1) < 0.15) | (std::abs(db2 - dref1) < 0.15) | (std::abs(db3 - dref1) < 0.15))&&((std::abs(db1 - dref2) < 0.15 )| (std::abs(db2 - dref2) < 0.15) | (std::abs(db3 - dref2) < 0.15))&&((std::abs(db1-db2)<0.35)||(std::abs(db3-db2)<0.35)||(std::abs(db1-db3)<035))) {
                         rotationPosition(new double[3]{db1, db2, db3} , new double[3]{x1,x2,x3}, new double[3]{y1,y2,y3}, robot, transfo, new double[3]{aObj[b1],aObj[b2],aObj[b3]});
-
+                        if(robot[0]>0&&robot[0]<2&&robot[1]>0&&robot[1]<3){
+  
                         /// we save in blabla the number of elements that could possibly be beacon (opponent)
                         transfo[3] = countObj_adv;
                         int foundAdv = Adversary(aObj_adv,dObj_adv,transfo, adversaryCoordinates);
@@ -496,7 +497,7 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
                         previousBeaconAdv[6] = adversaryCoordinates[3];
                         previousBeaconAdv[7] = adversaryCoordinates[2];
                         ///we assume that we can only find 3 points corresponding to our beacons once
-                        return;
+                        return;}
                     }
                 }
             }
