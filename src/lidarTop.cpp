@@ -297,7 +297,7 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
 
         ///calculating the limits where we will look
         for (int i = 0; i < 4; ++i) {
-            deltaDemiAlpha = 2*std::tan(0.05/previousBeaconAdv[2*i+1]);
+            deltaDemiAlpha = 4*std::tan(0.05/previousBeaconAdv[2*i+1]);
             angleStart = previousBeaconAdv[2*i]-3*deltaDemiAlpha;
             angleEnd = previousBeaconAdv[2*i]+3*deltaDemiAlpha;
             origine[i] = arraySize*angleStart/(2*M_PI);
