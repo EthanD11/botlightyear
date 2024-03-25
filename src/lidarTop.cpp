@@ -419,6 +419,7 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
 
         //TODO check si objet a la fin pour bien l'enregistré
         if (nbObjetParInterval[k]==2 && oldcountObj+3>countObj+countObj_adv){//plus 3 pcq si juste balise : ça ferra +1 ds obj et +1 dans adv => +2
+            printf("snif\n");
             aObj[countObj]=aObj[countObj-1];
             if (std::abs(dObj[countObj-1]-previousBeaconAdv[2*k+1])<std::abs(dObj[countObj-1]-previousBeaconAdv[2*(k+1)+1])){
                 dObj[countObj] = previousBeaconAdv[2*(k+1)+1]-previousBeaconAdv[2*k+1]+dObj[countObj-1];

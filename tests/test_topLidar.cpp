@@ -11,11 +11,11 @@ int main(int argc, char *argv[]) {
     double *adv = new double[4]{0, 0, 0, 0};
     double *beaconAdv = new double[8]{0.166437, 1.818000, 1.887515, 0.319000, 4.987643, 3.028000, 0.000000, 0.000000};
     StartLidar();
-    //DataToFile("jsp.txt");
     int counterror = 0;
-    int counterroradv = 0;
     for (size_t i = 0; i < 100; i++)
     {
+    DataToFile("jsp.txt");
+    printf("save\n");
     printf("\nboucle : %ld \n", i);
     lidarGetRobotPosition(robot, adv, beaconAdv);
     printf("\n robot at x=%f; y=%f; orientation=%f; %f radian beacon3\n", robot[0], robot[1], robot[2], robot[3]);
@@ -25,14 +25,10 @@ int main(int argc, char *argv[]) {
     if (robot[0]<0.0001){
         counterror++;
     }
-    if (adv[0]<0.0001){
-        counterroradv++;
-    }
     }
     
 
     StopLidar();
     printf("counterror : %d\n", counterror);
-    //printf("counterroradv : %d\n", counterroradv);
     return 0;
 }
