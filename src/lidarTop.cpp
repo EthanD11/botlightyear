@@ -297,7 +297,7 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
 
         ///calculating the limits where we will look
         for (int i = 0; i < 4; ++i) {
-            deltaDemiAlpha = std::tan(0.05/previousBeaconAdv[2*i+1]);
+            deltaDemiAlpha = 2*std::tan(0.05/previousBeaconAdv[2*i+1]);
             angleStart = previousBeaconAdv[2*i]-3*deltaDemiAlpha;
             angleEnd = previousBeaconAdv[2*i]+3*deltaDemiAlpha;
             origine[i] = arraySize*angleStart/(2*M_PI);
@@ -481,7 +481,7 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
                         transfo[3] = countObj_adv;
                         int foundAdv = Adversary(aObj_adv,dObj_adv,transfo, adversaryCoordinates);
                         //Adversary(aObj_adv,dObj_adv,transfo, adversaryCoordinates);
-                        printf("%d \n", foundAdv);
+                        //printf("%d \n", foundAdv);
                         if (foundAdv==1){
                             lidarPerduAdv(angles, distances, adversaryCoordinates, transfo);
                         }
