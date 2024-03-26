@@ -57,14 +57,14 @@ void rotationPosition(double *db, double *x, double *y, double * robot, double* 
 
     ///calculating the angle of rotation for the second transformation
     double alpha = atan(std::abs(beacon2[1])/std::abs(beacon2[0]));
-    if (((beacon2[0]>0) & (beacon2[1]>0))){
+    if (((beacon2[0]>0) && (beacon2[1]>0))){
         alpha *=-1;
     }
-    if (((beacon2[0]<0) & (beacon2[1]>0))){
+    if (((beacon2[0]<0) && (beacon2[1]>0))){
         alpha=M_PI-alpha;
         alpha*=-1;
     }
-    if (((beacon2[0]<0) & (beacon2[1]<0))){
+    if (((beacon2[0]<0) && (beacon2[1]<0))){
         alpha=M_PI-alpha;
     }
 
@@ -475,7 +475,7 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
                 /// sum of the 3 sides close to the expected value
                 if (std::abs((db1 + db2 + db3) - dref1 - 2 * dref2) < 0.2) {//TODO check precision
                     /// 2 size sides ok (3rd also ok because sum ok)
-                    if (((std::abs(db1 - dref1) < 0.15) | (std::abs(db2 - dref1) < 0.15) | (std::abs(db3 - dref1) < 0.15))&&((std::abs(db1 - dref2) < 0.15 )| (std::abs(db2 - dref2) < 0.15) | (std::abs(db3 - dref2) < 0.15))&&((std::abs(db1-db2)<0.35)||(std::abs(db3-db2)<0.35)||(std::abs(db1-db3)<0.35))) {
+                    if (((std::abs(db1 - dref1) < 0.15) || (std::abs(db2 - dref1) < 0.15) || (std::abs(db3 - dref1) < 0.15))&&((std::abs(db1 - dref2) < 0.15 )|| (std::abs(db2 - dref2) < 0.15) || (std::abs(db3 - dref2) < 0.15))&&((std::abs(db1-db2)<0.35)||(std::abs(db3-db2)<0.35)||(std::abs(db1-db3)<0.35))) {
                         rotationPosition(new double[3]{db1, db2, db3} , new double[3]{x1,x2,x3}, new double[3]{y1,y2,y3}, robot, transfo, new double[3]{aObj[b1],aObj[b2],aObj[b3]});
                         if(robot[0]>0&&robot[0]<2&&robot[1]>0&&robot[1]<3){
   
@@ -516,37 +516,36 @@ void lidarGetRobotPosition(double * robot, double* adv, double* beaconAdv) {
     double* quality = new double[8000];
     size_t* as = new size_t[2]{8000,8000};
     updateData(angles, distances, quality, as);
-    //updateDataFile(angles, distances, quality, "jsp.txt", as);
+    //updateDataFile(angles, distances, quality, "testLidarMobile/"+std::to_string(i), as);
     arraySize = as[0];
     int count = 0;
     checkBeacon(angles, distances, quality, robot, adv, false, beaconAdv);
-    while(robot[0]==0&&count<20){
+    /*while(robot[0]==0&&count<20){
         checkBeacon(angles, distances, quality, robot, adv, false, beaconAdv);
         count++;
-    }
+    }*/
     //DataToFile("testBottom1.txt");
     //StopLidar();
 }
 
 /*
 int main(int argc, char *argv[]) {
-    //TODO diff entre les 2 lidars
-    // connaitre leur noms
-    // communication entre les 2 ?
-    // meme orientation ?
-    // alignement ?
-    // comment det la position ? centre robot, pince, coin, lidar (haut, bas) ?
     double *robot = new double[4]{0, 0, 0, 0};
     double *adv = new double[4]{0, 0, 0, 0};
-    //double *beaconAdv = new double[8]{11.4*M_PI/180, 2.88, 78*M_PI/180, 0.68, 104*M_PI/180, 1.63, 221*M_PI/180, 0.45};
-    double *beaconAdv = new double[8]{11.4*M_PI/180, 2.88, 0,0 , 104*M_PI/180, 1.63, 221*M_PI/180, 0.45};
-    lidarGetRobotPosition(robot, adv, beaconAdv);
-    printf("\n robot at x=%f; y=%f; orientation=%f; %f radian beacon3\n", robot[0], robot[1], robot[2], robot[3]);
-    printf("Adversary at x=%f; y=%f\n", adv[0], adv[1]);
-    printf("adv at %f m; %f degree\n", adv[2], adv[3] * 180 / M_PI);
-    for (int i = 0; i < 8; ++i) {
-        printf("%f, ", beaconAdv[i]);
+    double *beaconAdv = new double[8]{0.179428, 1.659000, 2.284960, 0.380500, 4.922448, 2.964000, 0.344379, 0.824000};
+
+    for (int i = 33; i < 35; ++i) {
+        //printf("boucle %d\n", i);
+        lidarGetRobotPosition(robot, adv, beaconAdv,i);
+        printf("\n robot at x=%f; y=%f; orientation=%f; %f radian beacon3\n", robot[0], robot[1], robot[2], robot[3]);
+        printf("Adversary at x=%f; y=%f\n", adv[0], adv[1]);
+        printf("adv at %f m; %f degree\n", adv[2], adv[3] * 180 / M_PI);
+        for (int i = 0; i < 8; ++i) {
+            printf("%f, ", beaconAdv[i]);
+        }
+        printf("\n");
+        printf("%f %f\n", robot[0], robot[1]);
     }
-    printf("\n");
+
     return 0;
 }*/
