@@ -361,7 +361,6 @@ void *topLidar(void* v) {
     int i =0;
     while (!ENDGAME) {
         //lidarGetRobotPosition(robot, adv, beaconAdv);
-        DataToFile("")
         double adv_dist = adv[2]; 
         double adv_angle = adv[3];
         double limit_stop = 0.5; 
