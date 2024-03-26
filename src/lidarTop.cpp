@@ -7,7 +7,7 @@
 ///global variable to find out the size of the file
 size_t arraySize = 8000;
 
-void rotationPosition(double *db, double *x, double *y, double * robot, double* transfo, double* anglesBeacons) {
+void rotationPosition(double *db, double *x, double *y, double *robot, double *transfo, double *anglesBeacons) {
     ///x,y coordinates of the 4 elements
     double *beacon1;
     double *beacon2;
@@ -62,7 +62,7 @@ void rotationPosition(double *db, double *x, double *y, double * robot, double* 
     }
     if (((beacon2[0]<0) && (beacon2[1]>0))){
         alpha=M_PI-alpha;
-        alpha*=-1;
+        alpha *=-1;
     }
     if (((beacon2[0]<0) && (beacon2[1]<0))){
         alpha=M_PI-alpha;
@@ -74,22 +74,22 @@ void rotationPosition(double *db, double *x, double *y, double * robot, double* 
     ///Rotation so that the table is in positive x, y
     double xtemp = beacon2[0];
     double ytemp = beacon2[1];
-    beacon2[0] = cos(alpha)*xtemp - sin(alpha)*ytemp;
-    beacon2[1] = sin(alpha)*xtemp + cos(alpha)*ytemp;
+    beacon2[0] = cos(alpha) *xtemp - sin(alpha) *ytemp;
+    beacon2[1] = sin(alpha) *xtemp + cos(alpha) *ytemp;
 
     xtemp = beacon1[0];
     ytemp = beacon1[1];
-    beacon1[0] = cos(alpha)*xtemp - sin(alpha)*ytemp;
-    beacon1[1] = sin(alpha)*xtemp + cos(alpha)*ytemp;
+    beacon1[0] = cos(alpha) *xtemp - sin(alpha) *ytemp;
+    beacon1[1] = sin(alpha) *xtemp + cos(alpha) *ytemp;
 
     xtemp = robot[0];
     ytemp = robot[1];
-    robot[0] = cos(alpha)*xtemp - sin(alpha)*ytemp;
-    robot[1] = sin(alpha)*xtemp + cos(alpha)*ytemp;
+    robot[0] = cos(alpha) *xtemp - sin(alpha) *ytemp;
+    robot[1] = sin(alpha) *xtemp + cos(alpha) *ytemp;
 
     ///to determine the orientation of the robot on the table
     //TODO check si ok angle
-    robot[2] = orientation - 180 + (atan(robot[1]/robot[0])*180/M_PI);
+    robot[2] = orientation - 180 + (atan(robot[1]/robot[0]) *180/M_PI);
 
     while (robot[2]>360){
         robot[2]-=360;
@@ -103,11 +103,16 @@ void rotationPosition(double *db, double *x, double *y, double * robot, double* 
 
     ///plus facile pour estimer position
     robot[3]= orientation;
+    
+    
+    delete(beacon1);
+    delete(beacon2);
+    delete(beacon3);
     return;
 
 }
 
-int Adversary(double *anglesAdv, double *distancesAdv, double *transfo, double* adversaryCoordinates){
+int Adversary(double *anglesAdv, double *distancesAdv, double *transfo, double *adversaryCoordinates){
     ///transfo contains 4 elem : deltax, deltay, angle of rotation, the number of elements in possible opponents (number of elements in *anglesAdv)
     int size = (int) transfo[3];
 
@@ -124,13 +129,13 @@ int Adversary(double *anglesAdv, double *distancesAdv, double *transfo, double* 
 
     for (int i = 0; i < size; ++i) {
         /// transformation identical to that of beacons and robots
-        xtemp = (distancesAdv[i] * std::cos(-anglesAdv[i]))-transfo[0];
-        ytemp = (distancesAdv[i] * std::sin(-anglesAdv[i]))-transfo[1];
+        xtemp = (distancesAdv[i] *std::cos(-anglesAdv[i]))-transfo[0];
+        ytemp = (distancesAdv[i] *std::sin(-anglesAdv[i]))-transfo[1];
 
-        xobj = (cos(transfo[2])*xtemp - sin(transfo[2])*ytemp);
+        xobj = (cos(transfo[2]) *xtemp - sin(transfo[2]) *ytemp);
         /// check whether the x coordinate is valid (on the table)
         if (xobj>0.001 && xobj<xmax){
-            yobj = (sin(transfo[2])*xtemp + cos(transfo[2])*ytemp);
+            yobj = (sin(transfo[2]) *xtemp + cos(transfo[2]) *ytemp);
 
             ///check whether the y coordinate is valid (on the table)
             if (yobj>0.001 && yobj<ymax){
@@ -152,7 +157,7 @@ int Adversary(double *anglesAdv, double *distancesAdv, double *transfo, double* 
     return 1;
 }
 
-void lidarPerduAdv(double *angles, double *distances, double* adversaryCoordinates, double* transfo) {
+void lidarPerduAdv(double *angles, double *distances, double *adversaryCoordinates, double *transfo) {
     bool objet;
 
     ///distance and angle of the first and last points of an object
@@ -194,9 +199,9 @@ void lidarPerduAdv(double *angles, double *distances, double* adversaryCoordinat
                 //TODO check le count gap max possible : prendre donnée d'un poteau le plus porche possible et voir combien d'elem ca prend
                 // lien avec d2 ok ??
 
-                if (std::abs(d2 - distances[i]) > 0.02 * countGap) {//TODO CHECK CE PROB :  && countGap/d2<10) {
+                if (std::abs(d2 - distances[i]) > 0.02 *countGap) {//TODO CHECK CE PROB :  && countGap/d2<10) {
                     ///size of object previously detected
-                    size = std::sqrt(d2 * d2 + d1 * d1 - 2 * d2 * d1 * std::cos(a2 - a1));
+                    size = std::sqrt(d2 *d2 + d1 *d1 - 2 *d2 *d1 *std::cos(a2 - a1));
                     if (size < 0.11) {//adv ?
                         aObj_adv[countObj_adv] = (a1 + a2) / 2;
                         dObj_adv[countObj_adv] = (d1 + d2) / 2;
@@ -215,7 +220,7 @@ void lidarPerduAdv(double *angles, double *distances, double* adversaryCoordinat
             countGap = 1;
 
         } else if ((distances[i] != 0) && objet) {
-            size = std::sqrt(d2 * d2 + d1 * d1 - 2 * d2 * d1 * std::cos(a2 - a1));
+            size = std::sqrt(d2 *d2 + d1 *d1 - 2 *d2 *d1 *std::cos(a2 - a1));
             if (size < 0.15 && d1 > 0) {
                 aObj_adv[countObj_adv] = (a1 + a2) / 2;
                 dObj_adv[countObj_adv] = (d1 + d2) / 2;
@@ -234,11 +239,13 @@ void lidarPerduAdv(double *angles, double *distances, double* adversaryCoordinat
     /// we save in blabla the number of elements that could possibly be beacon (opponent)
     Adversary(aObj_adv, dObj_adv, transfo, adversaryCoordinates);
     ///we assume that we can only find 3 points corresponding to our beacons once
+    delete(dObj_adv);
+    delete(aObj_adv);
     return;
 }
 
 
-void checkBeacon(double *angles, double *distances, double *quality, double *robot, double* adversaryCoordinates, bool fullScan, double* previousBeaconAdv) {
+void checkBeacon(double *angles, double *distances, double *quality, double *robot, double *adversaryCoordinates, bool fullScan, double *previousBeaconAdv) {
 
     robot[0]= 0;
     robot[1]=0;
@@ -269,9 +276,9 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
     ///if we make a full scan we don't know de position of the robot -> analysis of the full data
     ///if we don't make a full scan : we know a estimation of the opponent and the beacons -> 4 smalls for loop
     int nbBoucle = 1;
-    int* origine = new int[4]{0,0,0,0};
-    int * fin = new int [4]{(int)arraySize,0,0,0};
-    int* nbObjetParInterval = new int[4]{1,1,1,1};
+    int *origine = new int[4]{0,0,0,0};
+    int *fin = new int [4]{(int)arraySize,0,0,0};
+    int *nbObjetParInterval = new int[4]{1,1,1,1};
 
     double deltaDemiAlpha;
     double angleStart;
@@ -282,25 +289,25 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
         ///bubble sort : the order of the beacons is important for next
         for (int i = 0; i < 4 - 1; ++i) {
             for (int j = 0; j < 4 - i - 1; ++j) {
-                if (previousBeaconAdv[2*j] > previousBeaconAdv[(j + 1)*2]) {
-                    double temp = previousBeaconAdv[2*j];
-                    previousBeaconAdv[2*j] = previousBeaconAdv[2*(j+1)];
-                    previousBeaconAdv[2*(j+1)]=temp;
+                if (previousBeaconAdv[2 *j] > previousBeaconAdv[(j + 1) *2]) {
+                    double temp = previousBeaconAdv[2 *j];
+                    previousBeaconAdv[2 *j] = previousBeaconAdv[2 *(j+1)];
+                    previousBeaconAdv[2 *(j+1)]=temp;
 
-                    temp = previousBeaconAdv[2*j+1];
-                    previousBeaconAdv[2*j+1] = previousBeaconAdv[2*(j+1)+1];
-                    previousBeaconAdv[2*(j+1)+1] = temp;
+                    temp = previousBeaconAdv[2 *j+1];
+                    previousBeaconAdv[2 *j+1] = previousBeaconAdv[2 *(j+1)+1];
+                    previousBeaconAdv[2 *(j+1)+1] = temp;
                 }
             }
         }
 
         ///calculating the limits where we will look
         for (int i = 0; i < 4; ++i) {
-            deltaDemiAlpha = 4*std::tan(0.05/previousBeaconAdv[2*i+1]);
-            angleStart = previousBeaconAdv[2*i]-4*deltaDemiAlpha;
-            angleEnd = previousBeaconAdv[2*i]+4*deltaDemiAlpha;
-            origine[i] = arraySize*angleStart/(2*M_PI);
-            fin[i] = arraySize*angleEnd/(2*M_PI);
+            deltaDemiAlpha = 4 *std::tan(0.05/previousBeaconAdv[2 *i+1]);
+            angleStart = previousBeaconAdv[2 *i]-4 *deltaDemiAlpha;
+            angleEnd = previousBeaconAdv[2 *i]+4 *deltaDemiAlpha;
+            origine[i] = arraySize *angleStart/(2 *M_PI);
+            fin[i] = arraySize *angleEnd/(2 *M_PI);
             while (fin[i]-origine[i]<70){
                 origine[i]-=10;
                 fin[i]+=10;
@@ -356,12 +363,12 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
                     //TODO check le count gap max possible : prendre donnée d'un poteau le plus porche possible et voir combien d'elem ca prend
                     // lien avec d2 ok ??
 
-                    if (std::abs(d2 - distances[i]) > 0.02*countGap){//TODO CHECK CE PROB :  && countGap/d2<10) {
+                    if (std::abs(d2 - distances[i]) > 0.02 *countGap){//TODO CHECK CE PROB :  && countGap/d2<10) {
 
                         //what we detect is a new object
 
                         ///size of object previously detected
-                        size = std::sqrt(d2 * d2 + d1 * d1 - 2 * d2 * d1 * std::cos(a2 - a1));
+                        size = std::sqrt(d2 *d2 + d1 *d1 - 2 *d2 *d1 *std::cos(a2 - a1));
                         if (size < 0.055){// && size > 0.015) {
                             //beacon width = 5cm (estimate smaller than 5.5cm)
                             //TODO : better precision  ??
@@ -379,6 +386,7 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
                         /// new object : initial values are stored
                         d1 = distances[i];
                         a1 = angles[i];
+
                     }
                 }
                 /// distance ok -> next object: update current end values
@@ -394,7 +402,7 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
                 //   -object too far away
                 //      -> end of object (objet==true : same as above)
                 //      -> no previous object : nothing to do
-                size = std::sqrt(d2 * d2 + d1 * d1 - 2 * d2 * d1 * std::cos(a2 - a1));
+                size = std::sqrt(d2 *d2 + d1 *d1 - 2 *d2 *d1 *std::cos(a2 - a1));
                 if (size < 0.055 && d1>0 ){
                     aObj[countObj] = (a1 + a2) / 2;
                     dObj[countObj] = (d1 + d2) / 2;
@@ -421,10 +429,10 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
         if (nbObjetParInterval[k]==2 && oldcountObj+3>countObj+countObj_adv){//plus 3 pcq si juste balise : ça ferra +1 ds obj et +1 dans adv => +2
             printf("snif\n");
             aObj[countObj]=aObj[countObj-1];
-            if (std::abs(dObj[countObj-1]-previousBeaconAdv[2*k+1])<std::abs(dObj[countObj-1]-previousBeaconAdv[2*(k+1)+1])){
-                dObj[countObj] = previousBeaconAdv[2*(k+1)+1]-previousBeaconAdv[2*k+1]+dObj[countObj-1];
+            if (std::abs(dObj[countObj-1]-previousBeaconAdv[2 *k+1])<std::abs(dObj[countObj-1]-previousBeaconAdv[2 *(k+1)+1])){
+                dObj[countObj] = previousBeaconAdv[2 *(k+1)+1]-previousBeaconAdv[2 *k+1]+dObj[countObj-1];
             }else{
-                dObj[countObj] = previousBeaconAdv[2*(k)+1]-previousBeaconAdv[2*(k+1)+1]+dObj[countObj-1];
+                dObj[countObj] = previousBeaconAdv[2 *(k)+1]-previousBeaconAdv[2 *(k+1)+1]+dObj[countObj-1];
             }
             countObj++;
         }
@@ -436,23 +444,23 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
     // and based on their positions we'll determine which 3 objects are a beacon
 
     /// distance between 2 beacons on the same side
-    double dref1 = 2*0.950;
+    double dref1 = 2 *0.950;
 
     /// distance between 2 beacons not on the same side
-    double dref2 = sqrt((0.95)*(0.95)+(1.594*2)*(2*1.594));
+    double dref2 = sqrt((0.95) *(0.95)+(1.594 *2) *(2 *1.594));
 
     ///coordinates and distances of the 3 beacons
     double x1, x2, x3, y1, y2, y3, db1, db2, db3;
 
     ///transformation a appliquer
-    double* transfo = new double[4]{0,0,0,0};
+    double *transfo = new double[4]{0,0,0,0};
 
     /*
     printf("result\n");
     for (int i = 0; i < countObj_adv; i++)
     {
-        printf("%f %f \n", aObj_adv[i]*180/M_PI, dObj_adv[i]);
-    }*/
+        printf("%f %f \n", aObj_adv[i] *180/M_PI, dObj_adv[i]);
+    } */
 
 
     ///b1, b2, b3  : 3 beacons
@@ -460,23 +468,32 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
         for (int b2 = b1 + 1; b2 < countObj; ++b2) {
             for (int b3 = b2 + 1; b3 < countObj; ++b3) {
                 // TODO MINUS
-                x1 = dObj[b1] * std::cos(-aObj[b1]);
-                x2 = dObj[b2] * std::cos(-aObj[b2]);
-                x3 = dObj[b3] * std::cos(-aObj[b3]);
+                x1 = dObj[b1] *std::cos(-aObj[b1]);
+                x2 = dObj[b2] *std::cos(-aObj[b2]);
+                x3 = dObj[b3] *std::cos(-aObj[b3]);
 
-                y1 = dObj[b1] * std::sin(-aObj[b1]);
-                y2 = dObj[b2] * std::sin(-aObj[b2]);
-                y3 = dObj[b3] * std::sin(-aObj[b3]);
+                y1 = dObj[b1] *std::sin(-aObj[b1]);
+                y2 = dObj[b2] *std::sin(-aObj[b2]);
+                y3 = dObj[b3] *std::sin(-aObj[b3]);
 
-                db3 = std::sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
-                db1 = std::sqrt((x2 - x3) * (x2 - x3) + (y2 - y3) * (y2 - y3));
-                db2 = std::sqrt((x3 - x1) * (x3 - x1) + (y3 - y1) * (y3 - y1));
+                db3 = std::sqrt((x1 - x2) *(x1 - x2) + (y1 - y2) *(y1 - y2));
+                db1 = std::sqrt((x2 - x3) *(x2 - x3) + (y2 - y3) *(y2 - y3));
+                db2 = std::sqrt((x3 - x1) *(x3 - x1) + (y3 - y1) *(y3 - y1));
 
                 /// sum of the 3 sides close to the expected value
-                if (std::abs((db1 + db2 + db3) - dref1 - 2 * dref2) < 0.2) {//TODO check precision
+                if (std::abs((db1 + db2 + db3) - dref1 - 2 *dref2) < 0.2) {//TODO check precision
                     /// 2 size sides ok (3rd also ok because sum ok)
                     if (((std::abs(db1 - dref1) < 0.15) || (std::abs(db2 - dref1) < 0.15) || (std::abs(db3 - dref1) < 0.15))&&((std::abs(db1 - dref2) < 0.15 )|| (std::abs(db2 - dref2) < 0.15) || (std::abs(db3 - dref2) < 0.15))&&((std::abs(db1-db2)<0.35)||(std::abs(db3-db2)<0.35)||(std::abs(db1-db3)<0.35))) {
-                        rotationPosition(new double[3]{db1, db2, db3} , new double[3]{x1,x2,x3}, new double[3]{y1,y2,y3}, robot, transfo, new double[3]{aObj[b1],aObj[b2],aObj[b3]});
+                        double *db = new double[3]{db1, db2, db3};
+                        double *yrp = new double[3]{y1,y2,y3};
+                        double *xrp = new double[3]{x1,x2,x3};
+                        double *abeac = new double[3]{aObj[b1],aObj[b2],aObj[b3]};
+                        rotationPosition(db, xrp, yrp, robot, transfo, abeac);
+                        delete(db);
+                        delete(yrp);
+                        delete(xrp);
+                        delete(abeac);
+
                         if(robot[0]>0&&robot[0]<2&&robot[1]>0&&robot[1]<3){
   
                         /// we save in blabla the number of elements that could possibly be beacon (opponent)
@@ -497,6 +514,13 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
                         previousBeaconAdv[6] = adversaryCoordinates[3];
                         previousBeaconAdv[7] = adversaryCoordinates[2];
                         ///we assume that we can only find 3 points corresponding to our beacons once
+                        delete(dObj);
+                        delete(aObj);
+                        delete(dObj_adv);
+                        delete(aObj_adv);
+                        delete(origine);
+                        delete(fin);
+                        delete(nbObjetParInterval);
                         return;}
                     }
                 }
@@ -505,30 +529,41 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
     }
 
     //We haven't found our position, by default the coordinates remain in 0
+    delete(dObj);
+    delete(aObj);
+    delete(dObj_adv);
+    delete(aObj_adv);
+    delete(origine);
+    delete(fin);
+    delete(nbObjetParInterval);
     return;
 }
 
 
-void lidarGetRobotPosition(double * robot, double* adv, double* beaconAdv) {
+void lidarGetRobotPosition(double *robot, double *adv, double *beaconAdv, int i) {
     //StartLidar();
-    double* angles = new double[8000];
-    double* distances = new double[8000];
-    double* quality = new double[8000];
-    size_t* as = new size_t[2]{8000,8000};
-    updateData(angles, distances, quality, as);
-    //updateDataFile(angles, distances, quality, "testLidarMobile/"+std::to_string(i), as);
+    double *angles = new double[8000];
+    double *distances = new double[8000];
+    double *quality = new double[8000];
+    size_t *as = new size_t[2]{8000,8000};
+    //updateData(angles, distances, quality, as);
+    updateDataFile(angles, distances, quality, "testLidarMobile/"+std::to_string(i), as);
     arraySize = as[0];
     int count = 0;
     checkBeacon(angles, distances, quality, robot, adv, false, beaconAdv);
     /*while(robot[0]==0&&count<20){
         checkBeacon(angles, distances, quality, robot, adv, false, beaconAdv);
         count++;
-    }*/
-    //DataToFile("testBottom1.txt");
+    } */
+    //
+    delete(angles);
+    delete(distances);
+    delete(quality);
+    delete(as);
     //StopLidar();
 }
 
-/*
+
 int main(int argc, char *argv[]) {
     double *robot = new double[4]{0, 0, 0, 0};
     double *adv = new double[4]{0, 0, 0, 0};
@@ -539,13 +574,17 @@ int main(int argc, char *argv[]) {
         lidarGetRobotPosition(robot, adv, beaconAdv,i);
         printf("\n robot at x=%f; y=%f; orientation=%f; %f radian beacon3\n", robot[0], robot[1], robot[2], robot[3]);
         printf("Adversary at x=%f; y=%f\n", adv[0], adv[1]);
-        printf("adv at %f m; %f degree\n", adv[2], adv[3] * 180 / M_PI);
+        printf("adv at %f m; %f degree\n", adv[2], adv[3] *180 / M_PI);
         for (int i = 0; i < 8; ++i) {
             printf("%f, ", beaconAdv[i]);
         }
         printf("\n");
         printf("%f %f\n", robot[0], robot[1]);
     }
+    
+    delete(robot);
+    delete(adv);
+    delete(beaconAdv);
 
     return 0;
-}*/
+}

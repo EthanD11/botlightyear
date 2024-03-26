@@ -81,7 +81,7 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
  * @param robot : array of size 2 : writes in the robot's x,y coordinates --> relative to beacon3
  * @param adv : array of size 4 : writes in the opponent's x,y,d,a coordinates --> relative to beacon3 and to our robot
  */
-void lidarGetRobotPosition(double * robot, double* adv, double* beaconAdv);
+void lidarGetRobotPosition(double * robot, double* adv, double* beaconAdv, int i =0);
 
 
 
