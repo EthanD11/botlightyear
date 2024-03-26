@@ -546,8 +546,8 @@ void lidarGetRobotPosition(double *robot, double *adv, double *beaconAdv, int i)
     double *distances = new double[8000];
     double *quality = new double[8000];
     size_t *as = new size_t[2]{8000,8000};
-    //updateData(angles, distances, quality, as);
-    updateDataFile(angles, distances, quality, "testLidarMobile/"+std::to_string(i), as);
+    updateData(angles, distances, quality, as);
+    //updateDataFile(angles, distances, quality, "testLidarMobile/"+std::to_string(i), as);
     arraySize = as[0];
     int count = 0;
     checkBeacon(angles, distances, quality, robot, adv, false, beaconAdv);
@@ -563,7 +563,7 @@ void lidarGetRobotPosition(double *robot, double *adv, double *beaconAdv, int i)
     //StopLidar();
 }
 
-
+/*
 int main(int argc, char *argv[]) {
     double *robot = new double[4]{0, 0, 0, 0};
     double *adv = new double[4]{0, 0, 0, 0};
@@ -587,4 +587,4 @@ int main(int argc, char *argv[]) {
     delete(beaconAdv);
 
     return 0;
-}
+}*/
