@@ -34,6 +34,39 @@ void close_spi() {
     pthread_mutex_destroy(&spi_mutex);
 }
 
+int test_spi() {
+
+    // TODO : Add test communication with Teensy
+
+    char send[] = {0,0,0,0,0};
+    char receive[5];
+    uint8_t failure = 0;
+    lgSpiXfer(DE0_Handle, send, receive, 5);
+    for (int i = 0; i < 5; i++)
+    {
+        if (receive[i] != i) {
+            printf("SPI test 1 failed : receive[%d] == %d != %d\n",i,receive[i],i);
+            failure = 1;
+        }
+    }
+    
+    if (failure) return failure;
+
+    // store in register
+    send[0] = 0x8F; send[1] = 0x05; send[2] = 0x04; send[3] = 0x03; send[4] = 0x02;
+    lgSpiXfer(DE0_Handle, send, receive, 5);
+
+    // read register
+    send[0] = 0x0F; send[1] = 0x00; send[2] = 0x00; send[3] = 0x00; send[4] = 0x00;
+    lgSpiXfer(DE0_Handle, send, receive, 5);
+    if (receive[0] != 0x00) {printf("SPI test 2 failed : receive[%d] == %d != %d\n",0,receive[0],0x00); failure = 2;}
+    if (receive[1] != 0x05) {printf("SPI test 2 failed : receive[%d] == %d != %d\n",1,receive[1],0x05); failure = 2;}
+    if (receive[2] != 0x04) {printf("SPI test 2 failed : receive[%d] == %d != %d\n",2,receive[2],0x04); failure = 2;}
+    if (receive[3] != 0x03) {printf("SPI test 2 failed : receive[%d] == %d != %d\n",3,receive[3],0x03); failure = 2;}
+    if (receive[4] != 0x02) {printf("SPI test 2 failed : receive[%d] == %d != %d\n",4,receive[4],0x02); failure = 2;}
+    return 0;
+}
+
 // ----- Odometers -----
 
 void odo_get_tick(int32_t *tick_left, int32_t *tick_right) {
@@ -174,7 +207,7 @@ void teensy_pos_ctrl(double xr, double yr, double theta_r) {
 }
 
 
-void teensy_spd_ctrl(double speed_left, double speed_right) {
+/*void teensy_spd_ctrl(double speed_left, double speed_right) {
     // Compression to go to SPI
     char send[5];
     char receive[5];
@@ -196,7 +229,7 @@ void teensy_spd_ctrl(double speed_left, double speed_right) {
     }
     #endif
     
-}
+}*/
 
 void teensy_constant_dc(int dc_refl, int dc_refr) {
     // Compression to go to SPI
@@ -303,9 +336,12 @@ void teensy_set_path_following_gains(double kt, double kn, double kz, double sig
     #endif
 }
 
+void teensy_ask_pos(double *x, double *y, double *theta) {
+    
+}
 
 
-
+// ----- Flaps servomotors -----
 
 void servo_cmd(servo_cmd_t command) {
     char send[5];
@@ -583,7 +619,7 @@ void stpr_reset(steppers_t stepper) {
 
 }
 
-void stepper_setup_acc(steppers_t stepper, uint8_t acc) {
+void stpr_setup_acc(steppers_t stepper, uint8_t acc) {
     char request;
     // Stop steppers
     switch (stepper) {
@@ -607,4 +643,16 @@ void stepper_setup_acc(steppers_t stepper, uint8_t acc) {
     lgSpiWrite(DE0_handle, send, 5);
     pthread_mutex_unlock(&spi_mutex);
 
+}
+
+void stpr_calibrate_all() {
+    stpr_calibrate(StprFlaps);
+    stpr_calibrate(StprPlate);
+    stpr_calibrate(StprSlider);
+}
+
+void stpr_reset_all() {
+    stpr_reset(StprFlaps);
+    stpr_reset(StprPlate);
+    stpr_reset(StprSlider);
 }

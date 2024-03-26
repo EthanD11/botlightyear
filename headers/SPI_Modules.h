@@ -44,10 +44,15 @@ int init_spi();
 */
 void close_spi();
 
+/**
+ * Test SPI communication, returns 0 on success
+*/
+int test_spi();
+
 // ----- ODOMETERS -----
 
 /**
- * @brief Get current ticks from left and right odometers and update them to given pointers. gpioInitialise() must have been called before.
+ * DEPRECATED Get current ticks from left and right odometers and update them to given pointers
  * 
  * @param tick_left pointer that contains number of ticks of left wheel after call
  * @param tick_right pointer that contains number of ticks of right wheel after call
@@ -70,9 +75,10 @@ void init_sonar();
 double sonar_ask();*/
 
 // ----- TEENSY -----
+
 typedef enum {
-	QueryIdle, // Idle, reset motor voltages to 0V
-	QueryDoPositionControl, // Position update, data received = [flag,x,y,t,xr,yr,tr]
+	QueryIdle,
+	QueryDoPositionControl,
 	QueryDoSpeedControl,
 	QueryDoSetDutyCycle,
 	QueryDoPathFollowing,
@@ -83,10 +89,19 @@ typedef enum {
 	QuerySetPathFollowerGains
 } query_t;
 
+typedef enum {
+  ModeIdle,
+  ModePositionControl,
+  ModePathFollowingInit,
+  ModePathFollowing,
+  ModeSpeedControl,
+  ModeConstantDC
+} controlmode_t; 
+
 /**
  * @brief Send constant speed query to Teensy. Must be called after init_spi.
-*/
-void teensy_spd_ctrl(double speed_left, double speed_right);
+
+void teensy_spd_ctrl(double speed_left, double speed_right);*/
 
 /**
  * @brief Ask the teensy to enter the position control mode with the specified reference position.
@@ -94,8 +109,9 @@ void teensy_spd_ctrl(double speed_left, double speed_right);
  */
 void teensy_pos_ctrl(double xr, double yr, double tr); 
 
-void teensy_spd_ctrl(double speed_left, double speed_right);
-
+/**
+ * @brief Apply a constant duty cycle to motors via Teensy
+ */
 void teensy_constant_dc(int dc_refl, int dc_refr);
 
 /**
@@ -103,6 +119,7 @@ void teensy_constant_dc(int dc_refl, int dc_refr);
  * Must be called after init_spi. 
  */
 void teensy_path_following(double *x, double *y, int ncheckpoints, double theta_start, double theta_end, double vref, double dist_goal_reached);
+
 /**
  * @brief Send query to idle Teensy. It will stop any control effort over the motors. Must be called after init_spi.
  */
@@ -128,6 +145,12 @@ void teensy_set_path_following_gains(double kt, double kn, double kz, double sig
 */
 int teensy_ask_mode();
 
+/**
+ * @brief Ask current position to Teensy, based on odometry.
+ * 
+ */
+void teensy_ask_pos(double *x, double *y, double *theta);
+
 // ------ SERVOS -----
 
 typedef enum {
@@ -137,7 +160,7 @@ typedef enum {
 } servo_cmd_t; // Commands for flaps servomotor
 
 /**
- * @brief Raises (retracts) flaps. Maintains a constant torque until servo_idle is called
+ * @brief Command the flaps servomotors, either to raise (retract), deploy or idle.
  */
 void servo_cmd(servo_cmd_t command);
 
@@ -202,5 +225,17 @@ void stpr_reset(steppers_t stepper);
  * @brief Sets up the acceleration of a stepper (lower 'acc' -> higher acceleration)
 */
 void stpr_setup_acc(steppers_t stepper, uint8_t acc);
+
+/**
+ * @brief Calibrate all steppers
+ * 
+ */
+void stpr_calibrate_all();
+
+/**
+ * @brief Reset all steppers
+ * 
+ */
+void stpr_reset_all();
 
 #endif

@@ -1,309 +1,150 @@
 #include "SPI_Modules.h"
 #include "lidarTop.h"
 #include "dynamixels.h"
+#include "graph.h"
 #include <unistd.h>
 #include <cstdio>
 #include <stdio.h>
 #include <stdlib.h> 
 #include <unistd.h>  
 #include <pthread.h> 
+#include <termios.h>
+#include <time.h>
 
-pthread_t tid[2]; 
-pthread_rwlock_t lock[2]; 
+#define ASCII_b 98
+#define ASCII_B 66
+#define ASCII_y 121
+#define ASCII_Y 89
 
-bool ADVERSARY_FLAG = false; 
-bool ENDGAME = false; 
+team_color_t color = NoTeam;
 
-const double deg_to_rads = M_PI/180;
-int32_t old_ticks_l = 0, old_ticks_r = 0;
-double x = 0.0, y = 0.0, theta = 0.0;
+time_t t; // Time elapsed since the start of the game
+time_t dt; // Time elapsed since the last control loop
 
-typedef enum {
-  ModeIdle, // No input from RPi, default is to remain still
-  ModePositionControl,
-  ModePathFollowingInit,
-  ModePathFollowing,
-  ModeSpeedControl,
-  ModeConstantDC
-} controlmode_t; 
+pthread_t topLidarID;
+uint8_t lidarEnd = 0;
+pthread_rwlock_t graph_lock;
 
-void calibrateAll() {
-    stpr_calibrate(StprFlaps);
-    stpr_calibrate(StprPlate);
-    stpr_calibrate(StprSlider);
+graph_path_t *currentPath = NULL;
+uint8_t bases[3];
+
+int getch()
+{
+#if defined(__linux__) || defined(__APPLE__)
+  struct termios oldt, newt;
+  int ch;
+  tcgetattr(STDIN_FILENO, &oldt);
+  newt = oldt;
+  newt.c_lflag &= ~(ICANON | ECHO);
+  tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+  ch = getchar();
+  tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+  return ch;
+#elif defined(_WIN32) || defined(_WIN64)
+  return _getch();
+#endif
 }
 
-void resetAll() {
-    stpr_reset(StprFlaps);
-    stpr_reset(StprPlate);
-    stpr_reset(StprSlider);
+void *topLidar(void* arg) {
+    StartLidar();
+    while (!lidarEnd) {
+
+    }
+    return NULL;
+    StopLidar();
 }
 
-void updateRobotPosition() {
-    int32_t ticks_l, ticks_r; // Current values of ticks, left and right
-    double step_l, step_r; // Distance traveled during the last iteration (m), left and right 
-    double fwd, rot; // Forward and rotational components
-    
-    // Updating values via SPI
-    odo_get_tick(&ticks_l, &ticks_r);
-    step_l = (ticks_l - old_ticks_l) * ODO_TICKS_TO_M;
-    step_r = (ticks_r - old_ticks_r) * ODO_TICKS_TO_M;
-    old_ticks_l = ticks_l;
-    old_ticks_r = ticks_r;
+int main(int argc, char const *argv[])
+{
 
-    // Forward & rotation component
-    fwd = (step_l + step_r) / 2;
-    rot = (step_r - step_l) / (ODO_WHEEL_L);
+    printf("Which team do I play for ? Press 'b' for team blue, 'y' for team yellow\n")
+    do {
+        int keyboard_input = getch();
+        if (keyboard_input == ASCII_b || keyboard_input == ASCII_B) { color = TeamBlue; break; }
+        else if (keyboard_input == ASCII_y || keyboard_input == ASCII_Y ) { color = TeamYellow; break; }
+        printf("Invalid input color : %c\n", (char) keyboard_input);
+    } while (1);
 
-    // Estimate new position
-    x += fwd * cos(theta + rot / 2);
-    y += fwd * sin(theta + rot / 2);
-    theta += rot;
-}
+    // ------ INIT -----
 
-
-
-void *homologation(void* v) {
-    printf("Entering homologation thread \n");
-    //Init ports
-    init_spi();
     dxl_init_port();
-
-    //Calibrate all steppers
-    servo_cmd(ServoRaise);
-    stpr_setup_speed(100,600,StprFlaps); 
-    stpr_setup_speed(60,500,StprPlate); 
-    stpr_setup_speed(300,400,StprSlider);
-    resetAll(); 
-    calibrateAll();
-
-    //Ping Dynamixels
     dxl_ping(1, 2.0);
     dxl_ping(3, 2.0);
     dxl_ping(6, 1.0);
     dxl_ping(8, 1.0);
 
-    sleep(5);
-
-    //Set initial robot position and path following useful variables
-
-    //Path following : Go grab a plant
-    if (!ADVERSARY_FLAG) {
-        printf("No adversary, taking path following \n");
-        // double kp = 1.0;
-        // double ka = 4.0;
-        // double kb = -0.5;
-        // double kw = 10.0;
-        // teensy_set_position_controller_gains(kp, ka, kb, kw);
-        double kt = 2.0;
-        double kn = 0.7; // 0 < kn <= 1
-        double kz = 10.0;
-        double delta = 40e-3; // delta is in meters
-        double sigma = 0.0;
-        double epsilon = 150e-3; // epsilon is in meters
-        double wn = 0.3; // Command filter discrete cutoff frequency
-        double kv_en = 10;
-        teensy_set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
-        lguSleep(0.1);
-        double x0 = 0.035;
-        double y0 = 0.2;
-        double theta0 = 0.0;
-        teensy_set_position(x0, y0, theta0);
-        lguSleep(0.1);
-        teensy_pos_ctrl(0.2, 0.2, theta0);
-        // teensy_pos_ctrl(x0, y0, theta_start + (atan2(yr[1]-yr[0], xr[1]-xr[0])-theta_start)/2.0);
-        lguSleep(5);
-
-        int ncheckpoints = 3;
-        double xr[3] = {0.2, 0.5, 0.7};
-        double yr[3] = {0.2, 0.3, 0.7};
-        double theta_start = 0.0;
-        double theta_end = M_PI/2.0;
-        double vref = 0.25;
-        double dist_goal_reached = 0.05;
-        teensy_path_following(xr, yr, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
-        /*while (((controlmode_t) teensy_ask_mode()) == ModePathFollowing) {
-            printf("Moving \n");
-            if (ADVERSARY_FLAG) {
-                printf("Adversary found \n");
-                teensy_idle();
-                break;
-                exit(1); 
-            }
-        };*/
-    }
-
-    //Grab the plant:
-    lguSleep(2);
-    teensy_ask_mode();
-    lguSleep(2);
-    teensy_ask_mode();
-    lguSleep(2);
-    teensy_ask_mode();
-    lguSleep(2);
-    teensy_ask_mode();
-    lguSleep(2);
-    teensy_ask_mode();
-    lguSleep(2);
-    teensy_ask_mode();
-    lguSleep(2);
-    teensy_ask_mode();
-    lguSleep(2);
-    teensy_ask_mode();
-    lguSleep(2);
-    teensy_ask_mode();
-    /*servo_cmd(ServoDeploy);
-    flaps_move(FlapsPlant);
-    lguSleep(5);
-    flaps_move(FlapsOpen);
-    gripper(Open);
-    position_gripper(Down);
-    lguSleep(5);
-    slider_move(SliderLow);
-    lguSleep(10);
-    gripper(Plant); 
-    lguSleep(0.5);
-    slider_move(SliderPlate);
-    lguSleep(10);
-    plate_move(2);
-    lguSleep(6);
-    gripper(Open); 
-    position_gripper(Up);
-    plate_move(0);
-    lguSleep(5);*/
-
-
-    //Path following: Go to planter
-    if ((!ADVERSARY_FLAG)) {
-        printf("No adversary, taking path following \n");
-        int ncheckpoints = 2;
-        double xr[2] = {0.7, 1};
-        double yr[2] = {0.7, 2.0};
-        double theta_start =   M_PI/2.0;
-        double theta_end = M_PI/2.0;
-        double vref = 0.2;
-        double dist_goal_reached = 0.1;
-        teensy_set_position(xr[0], yr[0], theta_start);
-        lguSleep(0.1);
-        teensy_path_following(xr, yr, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
-        /*while (((controlmode_t) teensy_ask_mode()) == ModePathFollowing) {
-            printf("Moving \n");
-            if (ADVERSARY_FLAG) {
-                printf("Adversary found \n");
-                teensy_idle();
-                break;
-                exit(1); 
-            }
-        };*/
-    }
-
-    //Drop the plant
-
-    //Path following: Go to solar panels
-    lguSleep(2);
-    teensy_ask_mode();
-    lguSleep(2);
-    teensy_ask_mode();
-    lguSleep(2);
-    teensy_ask_mode();
-    lguSleep(2);
-    teensy_ask_mode();
-    lguSleep(2);
-    teensy_ask_mode();
-    lguSleep(2);
-    teensy_ask_mode();
-    lguSleep(2);
-    teensy_ask_mode();
-    lguSleep(2);
-    teensy_ask_mode();
-    lguSleep(2);
-    teensy_ask_mode();
-
-    if ((!ADVERSARY_FLAG)) {
-        printf("No adversary, taking path following \n");
-        int ncheckpoints = 3;
-        double xr[3] = {1, 1.6, 1.76};
-        double yr[3] = {2, 1.5, 0.74};
-        double theta_start =   M_PI/2.0;
-        double theta_end = -1.01*M_PI/2.0;
-        double vref = 0.2;
-        double dist_goal_reached = 0.1;
-        teensy_set_position(xr[0], yr[0], theta_start);
-        lguSleep(0.1);
-        teensy_pos_ctrl(xr[0], yr[0], 0);
-        lguSleep(2);
-        teensy_pos_ctrl(xr[0], yr[0], -M_PI/4.0);
-        lguSleep(5);
-        teensy_path_following(xr, yr, ncheckpoints, -M_PI/2.0, theta_end, vref, dist_goal_reached);
-        /*while (((controlmode_t) teensy_ask_mode()) == ModePathFollowing) {
-            printf("Moving \n");
-            if (ADVERSARY_FLAG) {
-                printf("Adversary found \n");
-                teensy_idle();
-                break;
-                exit(1); 
-            }
-        };*/
-    }
-    //Turn solar panel
-
-
-    //Path following: Go to charging station
+    if (init_spi() != 0) exit(2);
+    if (test_spi() != 0) exit(2);
     
+    if (init_graph_from_file("./graphs/BL_V1.txt", color) != 0) exit(3);
 
-    return 0;
-}
-
-void *topLidar(void* v) {
-    printf("Entering topLidar thread \n");
-    //double *robot = new double[4]{0, 0, 0, 0};
-    double *adv = new double[4]{0, 0, 0, 3.14};
-    //double *beaconAdv = new double[8]{0, 0, 0, 0, 0, 0, 0, 0};
+    if (pthread_create(&topLidarID, NULL, topLidar, NULL) != 0) exit(4);
     
-    StartLidar();
+    int GPIOhandle = lgGpiochipOpen(4);
+    if (GPIOhandle < 0) exit(5);
+    if (lgGpioSetUser(GPIOhandle, "Bot Lightyear") < 0) exit(5);
+    if (lgGpioClaimInput(GPIOhandle, LG_SET_PULL_NONE, 4) != 0) exit(5);
 
-    while (!ENDGAME) {
-        //lidarGetRobotPosition(robot, adv, beaconAdv);
-        double adv_dist = adv[2]; 
-        double adv_angle = adv[3];
-        double limit_stop = 0.5; 
-        if ((adv_dist < limit_stop) & (adv_angle < 0.79) & (adv_angle > (6.28-0.79))) {
-            ADVERSARY_FLAG = true; 
-            printf("Adversary detected\n");
-        }
-    }
+    // ----- CALIBRATION -----
 
-    StopLidar();
-    return 0;
-}
-int main(int argc, char const *argv[]) { 
-    
-    int error;
+    stpr_reset_all();
+    stpr_calibrate_all();
 
-    for (int i = 0; i < 2; i++) {
-        if (pthread_rwlock_init(&lock[i], NULL) != 0) { 
-        printf("Mutex init has failed : [%d] \n", i); 
-        exit(1); 
-        } 
+
+    if (color == BLUE) {
+        graph_level_update(graph_bases[3])
     }
 
-    error = pthread_create(&(tid[0]), NULL, homologation, NULL); 
-    if (error != 0) {
-        printf("\nThread can't be created :[0]"); 
-        exit(1);
+    static time_t tOld = 0;
+    {
+        printf("Waiting for starting cord setup... \n");
+        int start;
+        do {
+            start = lgGpioRead(GPIOhandle,4);
+            if (start < 0) exit(5);
+        } while (start);
+        printf("Starting cord has been setup\n");
+        lguSleep(1);
+
+        printf("Waiting start of the game... \n");
+        do {
+            start = lgGpioRead(GPIOhandle,4);
+            if (start < 0) exit(5);
+        } while (!start);
     }
-    error = pthread_create(&(tid[1]), NULL, topLidar, NULL); 
-    if (error != 0) {
-        printf("\nThread can't be created :[1]"); 
-        exit(1);
-    }
-    printf("1");
-    pthread_join(tid[0], NULL); 
-    pthread_join(tid[1], NULL); 
-    printf("2");
-    for (int i = 0; i < 2; i++) {
-        pthread_rwlock_destroy(&lock[i]);
-    }
-    
-    exit(0); 
+    static time_t tStart = time(NULL);
+
+    lgGpioFree(GPIOhandle, 4);
+    lgGpiochipClose(GPIOhandle);
+
+    printf("Game started! \n");
+
+    // ----- GAME -----
+
+    do {
+        // Update time values
+        t = time(NULL) - tStart;
+        dt = t - tOld;
+
+        // ...
+    } while (t < 120);
+
+
+    // ----- FINISH -----
+
+    lidarEnd = 1;
+    pthread_join(topLidarID, NULL); 
+
+    if (currentPath != NULL) free(currentPath);
+    free_graph();
+
+    close_spi();
+
+    dxl_idle(1, 2.0);
+    dxl_idle(3, 2.0);
+    dxl_idle(6, 1.0);
+    dxl_idle(8, 1.0);
+    dxl_close_port();
+
+    exit(0);
 }
