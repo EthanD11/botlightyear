@@ -4,8 +4,8 @@
 
 int main(int argc, char const *argv[])
 {
-    char filename[] = "./graphs/MB_V1.txt";
-    if (init_graph_from_file(filename)) return -1;
+    char filename[] = "./graphs/BL_V2.txt";
+    if (init_graph_from_file(filename, TeamBlue)) return -1;
     printf("Graph initialised from file %s\n", filename);
     /*for (size_t i = 0; i < graphNbNodes; i++)
     {
@@ -21,14 +21,11 @@ int main(int argc, char const *argv[])
         printf("%d\n\n", graphNodes[i].neighbors[graphNodes[i].nb_neighbors-1]->id);
     }*/
     
-    uint8_t from = 35;
-    uint8_t tos[] = {44,5};
+    uint8_t from = 20;
+    uint8_t tos[] = {41,45};
     uint8_t len_tos = 2;
-    graphLevel = 1;
-    graph_level_update(33,3,ENABLE_PROPAGATION);
-    graph_level_update(3,NODE_DANGER,DISABLE_PROPAGATION);
-    graph_level_update(42,NODE_FREE,DISABLE_PROPAGATION);
-    graph_level_update(44, NODE_FREE, DISABLE_PROPAGATION);
+    graphLevel = 0;
+    graph_level_update(10,3,ENABLE_PROPAGATION);
 
     printf("Searching for a path between %d and {", from);
     for (uint8_t i = 0; i < len_tos-1; i++) { printf("%d,", tos[i]); }
