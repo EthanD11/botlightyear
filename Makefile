@@ -45,6 +45,11 @@ test_%: $(TESTS_DIR)/test_%.o $(SOURCES_OBJ)
 	@./$<
 	@rm $<
 
+#Do an individual test
+valtest_%: $(TESTS_DIR)/test_%.o $(SOURCES_OBJ)
+	@valgrind --leak-check=yes  --track-origins=yes ./$< 
+	@rm $<
+
 #Run all the tests
 tests: $(TESTS:.cpp=.o)
 	@$(foreach test, $^, ./$(test);)
@@ -69,7 +74,7 @@ clean:
 	@rm -f $(SOURCES_DIR)/*.o
 	@rm -f $(TESTS_DIR)/*.o
 	@rm -f *.o
-	@rm -f fec
+	@rm -f exe_botlightyear
 	@rm -f bin/*.o
 
 #Clean the OBJ_DIR directory
