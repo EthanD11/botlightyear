@@ -145,6 +145,7 @@ uint8_t graph_identify_pos(double x, double y, double *dist) {
 }
 
 int init_graph_from_file(const char *filename, team_color_t color) {
+    if (color == NoTeam) return -1;
     FILE *input_file = fopen(filename, "r");
     if (input_file == NULL) return -1;
 
@@ -158,16 +159,19 @@ int init_graph_from_file(const char *filename, team_color_t color) {
     graphNodes = (graph_node_t*) malloc(graphNbNodes*sizeof(graph_node_t));
     if (graphNodes == NULL) return -1;
 
+    uint8_t trash;
     for (int8_t i = 0; i < graphNbNodes; i++) {
 
         // Set id & level
         graphNodes[i].id = i;
         graphNodes[i].level = 0;
+        graphNodes[i].score = 0;
 
         // Scan x and y coordinates
-        if (fscanf(input_file, "%f,%f\n", &(graphNodes[i].x), &(graphNodes[i].y)) != 2) return -1;
+        if (fscanf(input_file, "%hhd:%f,%f\n", &(graphNodes[i].x), &(graphNodes[i].y), &trash) != 3) return -1;
+        if (trash != i) return -1;
         #ifdef VERBOSE
-        printf("%.3f,%.3f\n", graphNodes[i].x, graphNodes[i].y);
+        printf("%d:%.3f,%.3f\n", i, graphNodes[i].x, graphNodes[i].y);
         // Rotation for recentering based on robot modelling's convention
         //printf("%.3f,%.3f\n", (graphNodes[i].y-1), -(graphNodes[i].x-1.5));
         #endif
@@ -183,11 +187,16 @@ int init_graph_from_file(const char *filename, team_color_t color) {
     {
         graphNodes[i].nb_neighbors = 0;
         for (size_t i = 0; i < 64; i++){ list[i] = 0; }
-        if (fscanf(input_file, "%s\n", list) != 1) return -1; // Get next line
+        if (fscanf(input_file, "%hhd:%s\n", list, trash) != 2) return -1; // Get next line
+        if (trash != i) return -1;
+        #ifdef VERBOSE
+        printf("%d:", i);
+        #endif
 
         token = strtok(list, ","); // Split line based on commas, get 1st token
         while (token != NULL) {
 
+            if (graphNodes[i].nb_neighbors == 7) return -1;
             if (sscanf(token,"%hhd", &node_id) != 1) return -1; // Interpret token as a neighbor id
 
             graphNodes[i].neighbors[graphNodes[i].nb_neighbors] = &(graphNodes[node_id]); // Add to list of neighbors
@@ -205,18 +214,22 @@ int init_graph_from_file(const char *filename, team_color_t color) {
         #endif
     }
 
-    // Scan bases nodes, assign level
-    if (fscanf(input_file, "Bases : %s\n", list) != 1) return -1;
+    // Scan blue bases nodes, assign level
+    if (fscanf(input_file, "Blue bases, reserved first : %s\n", list) != 1) return -1;
     #ifdef VERBOSE
-    printf("Bases : ");
+    printf("Blue bases, reserved first : ");
     #endif
     token = strtok(list, ",");
-    uint8_t i = 0;
-    while (token != NULL) {
-
+    
+    for (uint8_t i = 0; i < 3; i++) {
+        if (token == NULL) return -1;
         if (sscanf(token, "%hhd", &node_id) != 1) return -1;
-        graphNodes[node_id].level = 1; 
-        graph_bases[i] = node_id;
+        if (color == TeamBlue) {
+            graphFriendlyBases[i] = node_id;
+        } else {
+            graphNodes[node_id].level = 1; 
+            graphAdversaryBases[i] = node_id;
+        }
         #ifdef VERBOSE
         printf("%d", node_id);
         #endif
@@ -224,7 +237,34 @@ int init_graph_from_file(const char *filename, team_color_t color) {
         #ifdef VERBOSE
         if (token != NULL) printf(",");
         #endif
-        i++;
+    }
+    #ifdef VERBOSE
+    printf("\n");
+    #endif
+
+    // Scan yellow bases nodes, assign level
+    if (fscanf(input_file, "Yellow bases, reserved first : %s\n", list) != 1) return -1;
+    #ifdef VERBOSE
+    printf("Yellow bases, reserved first : ");
+    #endif
+    token = strtok(list, ",");
+    
+    for (uint8_t i = 0; i < 3; i++) {
+        if (token == NULL) return -1;
+        if (sscanf(token, "%hhd", &node_id) != 1) return -1;
+        if (color == TeamYellow) {
+            graphFriendlyBases[i] = node_id;
+        } else {
+            graphNodes[node_id].level = 1; 
+            graphAdversaryBases[i] = node_id;
+        }
+        #ifdef VERBOSE
+        printf("%d", node_id);
+        #endif
+        token = strtok(NULL,",");
+        #ifdef VERBOSE
+        if (token != NULL) printf(",");
+        #endif
     }
     #ifdef VERBOSE
     printf("\n");

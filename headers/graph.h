@@ -17,7 +17,7 @@ typedef struct graph_node
     int8_t level; // Level of availability of this node (see 'graphLevel')
     int8_t score; // Potential interest to go to this node for game points
     uint8_t nb_neighbors; // Number of neighbors
-    struct graph_node* neighbors[8]; // List of neighbors
+    struct graph_node* neighbors[7]; // List of neighbors
 } graph_node_t;
 
 typedef struct graph_path

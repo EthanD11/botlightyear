@@ -76,7 +76,7 @@ int main(int argc, char const *argv[])
     if (init_spi() != 0) exit(2);
     if (test_spi() != 0) exit(2);
     
-    if (init_graph_from_file("./graphs/BL_V1.txt", color) != 0) exit(3);
+    if (init_graph_from_file("./graphs/BL_V2.txt", color) != 0) exit(3);
 
     if (pthread_create(&topLidarID, NULL, topLidar, NULL) != 0) exit(4);
     
