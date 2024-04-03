@@ -3,7 +3,7 @@
 # Arguments for the compilation
 CXX = g++
 FLAGS:=-Wall -O3
-LIBS:=-llgpio -lm -lpthread -ldxl_sbc_c -lsl_lidar_sdk -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_aruco -lopencv_videoio -lopencv_imgcodecs
+LIBS:=-llgpio -lm -lpthread -ldxl_sbc_c
 # Directories
 HEADERS_DIR:=headers
 SOURCES_DIR:=src

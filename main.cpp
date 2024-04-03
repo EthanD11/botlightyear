@@ -70,7 +70,7 @@ void *homologation(void* v) {
     dxl_init_port();
 
     //Calibrate all steppers
-    servo_cmd(ServoRaise);
+    flaps_servo_cmd(FlapsRaise);
     stpr_setup_speed(100,600,StprFlaps); 
     stpr_setup_speed(60,500,StprPlate); 
     stpr_setup_speed(300,400,StprSlider);
@@ -185,7 +185,7 @@ void *homologation(void* v) {
 
     sleep(3); 
 
-    servo_cmd(ServoDeploy);
+    flaps_servo_cmd(FlapsDeploy);
     flaps_move(FlapsPlant);
     lguSleep(3);
     flaps_move(FlapsOpen);
@@ -252,7 +252,7 @@ void *homologation(void* v) {
     slider_move(SliderPlate); 
     lguSleep(1);
     gripper(Close); 
-    servo_cmd(ServoRaise);
+    flaps_servo_cmd(FlapsRaise);
 
     //Path following: Go to solar panels
     lguSleep(2);

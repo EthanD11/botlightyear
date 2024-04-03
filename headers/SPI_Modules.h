@@ -131,15 +131,15 @@ int teensy_ask_mode();
 // ------ SERVOS -----
 
 typedef enum {
-    ServoIdle,
-    ServoDeploy,
-    ServoRaise,
-} servo_cmd_t; // Commands for flaps servomotor
+    FlapsIdle,
+    FlapsDeploy,
+    FlapsRaise,
+} flaps_servo_cmd_t; // Commands for flaps servomotor
 
 /**
  * @brief Raises (retracts) flaps. Maintains a constant torque until servo_idle is called
  */
-void servo_cmd(servo_cmd_t command);
+void flaps_servo_cmd(flaps_servo_cmd_t command);
 
 // ------ STEPPERS -------
 

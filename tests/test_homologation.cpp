@@ -27,7 +27,7 @@ int main(int argc, char const *argv[])
     dxl_ping(6, 1.0);
     dxl_ping(8, 1.0);
 
-    servo_cmd(ServoRaise);
+    flaps_servo_cmd(FlapsRaise);
     stpr_setup_speed(100,600,StprFlaps); 
     stpr_setup_speed(60,500,StprPlate); 
     stpr_setup_speed(300,400,StprSlider);
@@ -37,7 +37,7 @@ int main(int argc, char const *argv[])
     sleep(5); 
 
 
-    servo_cmd(ServoDeploy);
+    flaps_servo_cmd(FlapsDeploy);
     flaps_move(FlapsPlant);
     lguSleep(3);
     flaps_move(FlapsOpen);

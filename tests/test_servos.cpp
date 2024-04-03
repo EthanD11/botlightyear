@@ -3,11 +3,11 @@
 int main(int argc, char const *argv[])
 {
     if (init_spi() != 0) return -1;
-    servo_cmd(ServoDeploy);
+    flaps_servo_cmd(FlapsDeploy);
     lguSleep(3);
-    servo_cmd(ServoRaise);
+    flaps_servo_cmd(FlapsRaise);
     lguSleep(1);
-    servo_cmd(ServoIdle);
+    //flaps_servo_cmd(FlapsIdle);
     close_spi();
     return 0;
 }

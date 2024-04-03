@@ -307,25 +307,25 @@ void teensy_set_path_following_gains(double kt, double kn, double kz, double sig
 
 
 
-void servo_cmd(servo_cmd_t command) {
+void flaps_servo_cmd(flaps_servo_cmd_t command) {
     char send[5];
     send[0] = 0x80;
     switch (command)
     {
 
-    case ServoIdle: 
+    case FlapsIdle: 
         send[3] = 0;
         send[4] = 0;
         break;
 
-    case ServoDeploy:
-        send[3] = servo_left_dc_deployed;
-        send[4] = servo_right_dc_deployed;
+    case FlapsDeploy:
+        send[3] = 19;
+        send[4] = 19;
         break;
     
-    case ServoRaise:
-        send[3] = servo_left_dc_raised;
-        send[4] = servo_right_dc_raised;
+    case FlapsRaise:
+        send[3] = 23;
+        send[4] = 16;
         break;
 
     default:

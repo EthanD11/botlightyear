@@ -24,7 +24,7 @@ int main(int argc, char const *argv[])
     if (ax_ping(6) != 0) return -1;
     if (ax_ping(8) != 0) return -1;
 
-    servo_cmd(ServoRaise);
+    flaps_servo_cmd(FlapsRaise);
 
     resetAll(); 
     stpr_setup_speed(5,10,StprFlaps); 
@@ -34,12 +34,12 @@ int main(int argc, char const *argv[])
     sleep(10);
 
     
-    servo_cmd(ServoDeploy); 
+    flaps_servo_cmd(FlapsDeploy); 
     flaps_move(FlapsPot);
     sleep(3);
     flaps_move(FlapsOpen);
     sleep(1);
-    servo_cmd(ServoRaise);
+    flaps_servo_cmd(FlapsRaise);
     open_gripper();
     deploy_gripper();
     slider_move(SliderLow);
@@ -58,12 +58,12 @@ int main(int argc, char const *argv[])
 
     open_gripper();
     deploy_gripper(); 
-    servo_cmd(ServoDeploy); 
+    flaps_servo_cmd(FlapsDeploy); 
     flaps_move(FlapsPot); 
     sleep(3); 
     flaps_move(FlapsOpen); 
     sleep(1); 
-    servo_cmd(ServoRaise); 
+    flaps_servo_cmd(FlapsRaise); 
     slider_move(SliderLow); 
     sleep(6); 
     close_gripper_pot(); 
@@ -79,12 +79,12 @@ int main(int argc, char const *argv[])
 
     open_gripper();
     deploy_gripper();
-    servo_cmd(ServoDeploy); 
+    flaps_servo_cmd(FlapsDeploy); 
     flaps_move(FlapsPlant); 
     sleep(3); 
     flaps_move(FlapsOpen);
     sleep(1);
-    servo_cmd(ServoRaise); 
+    flaps_servo_cmd(FlapsRaise); 
     slider_move(SliderLow); 
     sleep(6); 
     close_gripper_plant(); 
@@ -103,12 +103,12 @@ int main(int argc, char const *argv[])
 
     open_gripper();
     deploy_gripper();
-    servo_cmd(ServoDeploy); 
+    flaps_servo_cmd(FlapsDeploy); 
     flaps_move(FlapsPlant); 
     sleep(3); 
     flaps_move(FlapsOpen);
     sleep(1);
-    servo_cmd(ServoRaise); 
+    flaps_servo_cmd(FlapsRaise); 
     slider_move(SliderLow); 
     sleep(6); 
     close_gripper_plant(); 
