@@ -8,7 +8,7 @@
 #include "src/regulator/regulator.h"
 #include "utils.h"
 
-// #define VERBOSE
+#define VERBOSE
 
 typedef enum {
   ModeIdle, // No input from RPi, default is to remain still
@@ -174,6 +174,11 @@ void loop() {
       case ModeConstantDC:
         #ifdef VERBOSE
         printf("\nModeConstantDC\n");
+        printf("xpos = %.6e\n", robot_position->x);
+        printf("ypos = %.6e\n", robot_position->y);
+        printf("thetapos = %.6e\n", robot_position->theta);
+        printf("vfwd = %.6e\n", robot_position->vfwd);
+        printf("omega = %.6e\n", robot_position->omega);
         #endif
         set_motors_duty_cycle(outputs,
           spi_get_dc_refl(), spi_get_dc_refr());
@@ -183,7 +188,7 @@ void loop() {
         #ifdef VERBOSE
         printf("\nMode path following INIT\n");
         #endif
-        init_path_following(path_follower, x, y, ncheckpoints, 0.0, M_PI, 30.0, 10.0);
+        init_path_following(path_follower, x, y, ncheckpoints, 0.0, M_PI, 0.2, 0.1);
         break;
 
       case ModePathFollowing:
