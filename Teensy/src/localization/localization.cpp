@@ -61,7 +61,8 @@ void update_localization(RobotPosition *robot_position)
     robot_position->y           += delta_fwd*sin(theta+delta_rot/2);
     robot_position->theta       = PIPERIODIC(robot_position->theta+delta_rot);
     robot_position->vfwd        = delta_fwd / dt;
-    robot_position->vrot        = WHEEL_L*delta_rot / dt;
+    robot_position->omega       = delta_rot / dt;
+    robot_position->vrot        = WHEEL_L*robot_position->omega;
     robot_position->speed_left  = delta_left / dt;
     robot_position->speed_right = delta_right / dt;
 

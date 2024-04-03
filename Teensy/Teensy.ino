@@ -54,7 +54,7 @@ void setup() {
   // ----- PATH FOLLOWER -----
   path_follower = init_path_follower();
   // ----- GENERAL -----
-  control_time = millis();
+  control_time = micros();
 
   if (mode == ModePathFollowingInit) {
     printf("In setup: ModePathFollowingInit\n");
@@ -62,8 +62,8 @@ void setup() {
 }
 
 void loop() {
-  int current_time = millis();
-  robot_position->dt = 1e-3*((double)(current_time - control_time));
+  int current_time = micros();
+  robot_position->dt = 1e-6*((double)(current_time - control_time));
   spi_set_state((uint32_t) mode);
   if (spi_valid_transmission()) {
     spi_reset_transmission(); 
@@ -174,11 +174,14 @@ void loop() {
       case ModeConstantDC:
         #ifdef VERBOSE
         printf("\nModeConstantDC\n");
-        printf("xpos = %.6e\n", robot_position->x);
-        printf("ypos = %.6e\n", robot_position->y);
-        printf("thetapos = %.6e\n", robot_position->theta);
-        printf("vfwd = %.6e\n", robot_position->vfwd);
-        printf("omega = %.6e\n", robot_position->omega);
+        printf("dt = %.12e\n", robot_position->dt);
+        printf("xpos = %.10e\n", robot_position->x);
+        printf("ypos = %.10e\n", robot_position->y);
+        printf("thetapos = %.10e\n", robot_position->theta);
+        printf("vfwd = %.10e\n", robot_position->vfwd);
+        printf("omega = %.10e\n", robot_position->omega);
+        printf("speed_left = %.10e\n", robot_position->speed_left);
+        printf("speed_right = %.10e\n", robot_position->speed_right);
         #endif
         set_motors_duty_cycle(outputs,
           spi_get_dc_refl(), spi_get_dc_refr());
