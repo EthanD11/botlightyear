@@ -40,7 +40,7 @@ void rotationPosition(double *db, double *x, double *y, double * robot, double* 
  * @param adversaryCoordinates of size 4, input all =0; output: opponent's coordinates
  *          0: x relative to beacon3); 1: y relative to beacon3; 2: distance to our robot; 3: angle relative to our robot
  */
-int Adversary(double *anglesAdv, double *distancesAdv, double *transfo, double* adversaryCoordinates);
+void Adversary(double *anglesAdv, double *distancesAdv, double *transfo, double* adversaryCoordinates);
 
 /**
  * From the raw lidar data, return (in the robot table) the coordinates of the robot according to the defined plane.
@@ -81,7 +81,7 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
  * @param robot : array of size 2 : writes in the robot's x,y coordinates --> relative to beacon3
  * @param adv : array of size 4 : writes in the opponent's x,y,d,a coordinates --> relative to beacon3 and to our robot
  */
-void lidarGetRobotPosition(double * robot, double* adv, double* beaconAdv, int i =0);
+void lidarGetRobotPosition(double * robot, double* adv, double* beaconAdv);
 
 
 

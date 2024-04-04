@@ -5,19 +5,19 @@
 #include "math.h"
 #include "path_follower.h" // adapt it with your headers
 // where X should be replaced by your group number
-// #define VERBOSE
+#define VERBOSE
 PathFollower* init_path_follower() {
     PathFollower *path_follower = (PathFollower *) malloc(sizeof(PathFollower));
     path_follower->speed_refl = 0;
     path_follower->speed_refr = 0;
-    path_follower->kt = 3.0;
-    path_follower->kn = 1.0; // 0 < kn <= 1
-    path_follower->kz = 80.0;
-    path_follower->delta = 30e-3; // delta is in meters
-    path_follower->sigma = 1.0;
-    path_follower->epsilon = 150-3; // epsilon is in meters
-    path_follower->wn = 0.3; // Command filter discrete cutoff frequency
-    path_follower->kv_en = 10; // 
+    path_follower->kt = 2.0;
+    path_follower->kn = 0.32; // 0 < kn <= 1
+    path_follower->kz = 30.0;
+    path_follower->delta = 15e-3; // delta is in meters
+    path_follower->sigma = .0;
+    path_follower->epsilon = M_PI/8; // epsilon is in radians
+    path_follower->wn = 0.25; // Command filter discrete cutoff frequency
+    path_follower->kv_en = 12; // 
     path_follower->vref = 0.2;
     path_follower->dist_goal_reached = 0.2;
     return path_follower;
@@ -249,9 +249,7 @@ int update_path_follower_ref_speed(
     kitilde = PIPERIODIC(rp->theta - kir);
 
     // Reference speed correction
-    vref = MAX(
-        vref - SIGMOID(-(et-5e-2)/2)*(0.25*vref) - fabs(pf->kv_en*en),
-        15e-2);
+    vref = MAX(vref - fabs(pf->kv_en*en), 15e-2);
 
     // Filters
     pf->curvature_f += pf->curvature_fdot;
@@ -269,7 +267,7 @@ int update_path_follower_ref_speed(
     pf->xsi_n += dxsindt*dt;
 
     // Compute arc-length evolution of serret-frenet frame along the path
-    delta_s = (kt*(et) + vctrl*cos(kir - rp->theta))*dt/(1 - pf->curvature_f*xsi_n);
+    delta_s = (kt*(et) + vctrl*cos(kir - rp->theta))*dt;// ;/(1 - pf->curvature_f*xsi_n);
     omega_ref = -kz*z + kifdot - vctrl*sinckitilde*epsilon_n -sigma*tanh(z/pf->epsilon);
 
     pf->s += delta_s;

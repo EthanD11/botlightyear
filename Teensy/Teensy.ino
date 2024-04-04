@@ -8,7 +8,7 @@
 #include "src/regulator/regulator.h"
 #include "utils.h"
 
-// #define VERBOSE
+#define VERBOSE
 
 typedef enum {
   ModeIdle, // No input from RPi, default is to remain still
@@ -54,7 +54,7 @@ void setup() {
   // ----- PATH FOLLOWER -----
   path_follower = init_path_follower();
   // ----- GENERAL -----
-  control_time = millis();
+  control_time = micros();
 
   if (mode == ModePathFollowingInit) {
     printf("In setup: ModePathFollowingInit\n");
@@ -62,8 +62,8 @@ void setup() {
 }
 
 void loop() {
-  int current_time = millis();
-  robot_position->dt = 1e-3*((double)(current_time - control_time));
+  int current_time = micros();
+  robot_position->dt = 1e-6*((double)(current_time - control_time));
   spi_set_state((uint32_t) mode);
   if (spi_valid_transmission()) {
     spi_reset_transmission(); 
@@ -141,7 +141,6 @@ void loop() {
     switch (mode) {
 
       case ModeIdle:
-        set_motors_duty_cycle(outputs, 0, 0);
         #ifdef VERBOSE
         printf("\nMode idle\n");
         #endif
@@ -184,7 +183,7 @@ void loop() {
         #ifdef VERBOSE
         printf("\nMode path following INIT\n");
         #endif
-        init_path_following(path_follower, x, y, ncheckpoints, 0.0, M_PI, 30.0, 10.0);
+        init_path_following(path_follower, x, y, ncheckpoints, 0.0, M_PI, 0.2, 0.1);
         break;
 
       case ModePathFollowing:
@@ -217,6 +216,14 @@ void loop() {
     }
     
     #ifdef VERBOSE
+    printf("dt = %.12e\n", robot_position->dt);
+    printf("xpos = %.10e\n", robot_position->x);
+    printf("ypos = %.10e\n", robot_position->y);
+    printf("thetapos = %.10e\n", robot_position->theta);
+    printf("vfwd = %.10e\n", robot_position->vfwd);
+    printf("omega = %.10e\n", robot_position->omega);
+    printf("speed_left = %.10e\n", robot_position->speed_left);
+    printf("speed_right = %.10e\n", robot_position->speed_right);
     printf("dc left = %d\n", outputs->duty_cycle_l);
     printf("dc right = %d\n", outputs->duty_cycle_r);
     #endif

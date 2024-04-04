@@ -6,11 +6,11 @@ Regulator *init_regulator() {
     // reg->kp = 7.795856e-01; // Former t1_kp
     // reg->ki = 8.398411e-01 * REG_DELAY * 1e-3; // Former t1_ki
     
-    reg->kp = 3; // Former t1_kp
-    reg->ki = 18; // Former t1_ki
+    reg->kp = 13; // Former t1_kp
+    reg->ki = 44; // Former t1_ki
     
 
-    reg->imax = 1; // Anti windup [V/V]
+    reg->imax = 2; // Anti windup [V/V]
 
     reg->isl = 0.0; // left integral state
     reg->isr = 0.0; // right integral state
