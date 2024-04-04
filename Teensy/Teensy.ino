@@ -174,14 +174,6 @@ void loop() {
       case ModeConstantDC:
         #ifdef VERBOSE
         printf("\nModeConstantDC\n");
-        printf("dt = %.12e\n", robot_position->dt);
-        printf("xpos = %.10e\n", robot_position->x);
-        printf("ypos = %.10e\n", robot_position->y);
-        printf("thetapos = %.10e\n", robot_position->theta);
-        printf("vfwd = %.10e\n", robot_position->vfwd);
-        printf("omega = %.10e\n", robot_position->omega);
-        printf("speed_left = %.10e\n", robot_position->speed_left);
-        printf("speed_right = %.10e\n", robot_position->speed_right);
         #endif
         set_motors_duty_cycle(outputs,
           spi_get_dc_refl(), spi_get_dc_refr());
@@ -224,6 +216,14 @@ void loop() {
     }
     
     #ifdef VERBOSE
+    printf("dt = %.12e\n", robot_position->dt);
+    printf("xpos = %.10e\n", robot_position->x);
+    printf("ypos = %.10e\n", robot_position->y);
+    printf("thetapos = %.10e\n", robot_position->theta);
+    printf("vfwd = %.10e\n", robot_position->vfwd);
+    printf("omega = %.10e\n", robot_position->omega);
+    printf("speed_left = %.10e\n", robot_position->speed_left);
+    printf("speed_right = %.10e\n", robot_position->speed_right);
     printf("dc left = %d\n", outputs->duty_cycle_l);
     printf("dc right = %d\n", outputs->duty_cycle_r);
     #endif
