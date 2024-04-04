@@ -7,7 +7,7 @@
 // #define SET_POSITION
 // #define SPEED_CONTROL
 // #define DC_CONTROL
-#define ASK_STATE
+// #define ASK_STATE
 // #define SET_POS_CTRL_GAINS
 // #define SET_PATH_FOLLOWER_GAINS
 
@@ -71,7 +71,7 @@ int main(int argc, char const *argv[])
 
     #ifdef DC_CONTROL
     teensy_set_position(0, 0, 0);
-    teensy_constant_dc(0,0);
+    teensy_constant_dc(160,160);
     #endif
 
     #ifdef SET_POS_CTRL_GAINS
