@@ -9,14 +9,14 @@
 
 #include <cmath>
 using namespace cv;
-bool blue = true; //TODO voir ou mettre ceci
 
 
-void tagFromJpg(std::string filename){
-    cv::Mat image = cv::imread(filename.c_str());
+double tagFromJpg(){
+    system("libcamera-still -o tag0.jpg –camera 0 -t 1 -v 0");
+    cv::Mat image = cv::imread("tag0.jpg");
     if (image.empty()) {
         std::cerr << "Erreur : Impossible de charger l'image." << std::endl;
-        return;
+        return 600;
     }
     cv::resize(image, image, cv::Size(800, 600)); //TODO DELETE juste utile pour voir ce qu'il se passe
     cv::Ptr<cv::aruco::DetectorParameters> parameters = cv::aruco::DetectorParameters::create();
@@ -38,80 +38,19 @@ void tagFromJpg(std::string filename){
         std::vector<Vec3d> rvecs, tvecs;
         aruco::estimatePoseSingleMarkers(markerCorners, 0.05, cameraMatrix, distCoeffs, rvecs, tvecs);
         for (size_t i = 0; i < markerIds.size(); ++i) {
-            //TODO check les vrais code et return bleu-jaune ou blanc-mauve + dist eventuelle
-            /*std::cout << "Code ArUco ID: " << markerIds[i] << std::endl;
-            std::cout << "Rotation (en degrés) : " << rvecs[i] * 180 / CV_PI << std::endl; // Convertir l'orientation en radians en degrés
-            std::cout << "Translation : " << tvecs[i] << std::endl;*/
-
             if (markerIds[i]==47){
                 //panneau solaire
                 double a1 = rvecs[i][0];
                 double a2 = rvecs[i][1];
-                printf("%f %f\n",a1*180/M_PI, a2*180/M_PI);
-                //double a = asin(((a1*180/M_PI)-120)/120)*180/M_PI;
-                //double a = asin((a1-2)/2)*180/M_PI;
-                /*if (a2>0&&a2<M_PI){
-                    a=180-a;
-                }
-                if (blue){
-                    printf("turn %f°\n",a);
-                }else{
-                    printf("turn %f°\n",(a-180));
-                }*/
-                if (blue){
-                    if (std::abs(a1+a2)<0.25){
-                        printf("blue\n");
-                        break;
-                    }
-                    if (std::abs(a1-a2)<0.25){
-                        printf("180°\n");
-                        break;
-                    }
-                    if (std::abs(a1)<0.25){
-                        printf("-90°");
-                        break;
-                    }
-                    if (std::abs(a2)<0.25){
-                        printf("90");
-                        break;
-                    }
+                double d1 = tvecs[i][0];
+                double d2 = tvecs[i][1];
+                double d3 = tvecs[i][2];
+                printf("%f %f     %f %f %f\n",a1*180/M_PI, a2*180/M_PI, d1, d2, d3);
+                return a2-50*d1;
 
-                }else{
-                    if (std::abs(a1+a2)<0.25){
-                        printf("180°\n");
-                        break;
-                    }
-                    if (std::abs(a1-a2)<0.25){
-                        printf("yellow\n");
-                        break;
-                    }
-                    if (std::abs(a1)<0.25){
-                        printf("90°");
-                        break;
-                    }
-                    if (std::abs(a2)<0.25){
-                        printf("-90");
-                        break;
-                    }
-                }
             }
         }
     }
-
-    //printf("\n");
-    /*cv::aruco::drawDetectedMarkers(image, markerCorners, markerIds); //TODO DELETE juste utile pour voir ce qu'il se passe (dessine contour tag)
-    cv::imshow("Codes ArUco détectés", image);  //TODO DELETE juste utile pour voir ce qu'il se passe (affiche image)
-    cv::waitKey(0);*/
-    return;
+    return 500;
 }
 
-
-
-
-/*
-int main(int argc, char const *argv[]) {
-    for (int i = 0; i < 14; ++i) {
-        tagFromJpg("CameraTest/"+std::to_string(i)+".jpg");
-
-    }
-}*/
