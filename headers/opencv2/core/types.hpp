@@ -57,11 +57,6 @@
 #include "opencv2/core/cvstd.hpp"
 #include "opencv2/core/matx.hpp"
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable: 4459)  // declaration of '...' hides global declaration
-#endif
-
 namespace cv
 {
 
@@ -89,7 +84,7 @@ public:
     //! conjugation
     Complex conj() const;
 
-    _Tp re, im; ///< the real and the imaginary parts
+    _Tp re, im; //< the real and the imaginary parts
 };
 
 typedef Complex<float> Complexf;
@@ -527,44 +522,38 @@ The sample below demonstrates how to use RotatedRect:
 
 @sa CamShift, fitEllipse, minAreaRect, CvBox2D
 */
-class CV_EXPORTS_W_SIMPLE RotatedRect
+class CV_EXPORTS RotatedRect
 {
 public:
     //! default constructor
-    CV_WRAP RotatedRect();
+    RotatedRect();
     /** full constructor
     @param center The rectangle mass center.
     @param size Width and height of the rectangle.
     @param angle The rotation angle in a clockwise direction. When the angle is 0, 90, 180, 270 etc.,
     the rectangle becomes an up-right rectangle.
     */
-    CV_WRAP RotatedRect(const Point2f& center, const Size2f& size, float angle);
+    RotatedRect(const Point2f& center, const Size2f& size, float angle);
     /**
     Any 3 end points of the RotatedRect. They must be given in order (either clockwise or
     anticlockwise).
      */
-    CV_WRAP RotatedRect(const Point2f& point1, const Point2f& point2, const Point2f& point3);
+    RotatedRect(const Point2f& point1, const Point2f& point2, const Point2f& point3);
 
-    /** returns 4 vertices of the rotated rectangle
-    @param pts The points array for storing rectangle vertices. The order is _bottomLeft_, _topLeft_, topRight, bottomRight.
-    @note _Bottom_, _Top_, _Left_ and _Right_ sides refer to the original rectangle (angle is 0),
-    so after 180 degree rotation _bottomLeft_ point will be located at the top right corner of the
-    rectangle.
+    /** returns 4 vertices of the rectangle
+    @param pts The points array for storing rectangle vertices. The order is bottomLeft, topLeft, topRight, bottomRight.
     */
     void points(Point2f pts[]) const;
-
-    CV_WRAP void points(CV_OUT std::vector<Point2f>& pts) const;
-
     //! returns the minimal up-right integer rectangle containing the rotated rectangle
-    CV_WRAP Rect boundingRect() const;
+    Rect boundingRect() const;
     //! returns the minimal (exact) floating point rectangle containing the rotated rectangle, not intended for use with images
-    CV_WRAP Rect2f boundingRect2f() const;
+    Rect_<float> boundingRect2f() const;
     //! returns the rectangle mass center
-    CV_PROP_RW Point2f center;
+    Point2f center;
     //! returns width and height of the rectangle
-    CV_PROP_RW Size2f size;
+    Size2f size;
     //! returns the rotation angle. When the angle is 0, 90, 180, 270 etc., the rectangle becomes an up-right rectangle.
-    CV_PROP_RW float angle;
+    float angle;
 };
 
 template<> class DataType< RotatedRect >
@@ -2028,15 +2017,6 @@ double jaccardDistance(const Rect_<_Tp>& a, const Rect_<_Tp>& b) {
     return 1.0 - Aab / (Aa + Ab - Aab);
 }
 
-/** @brief Finds out if there is any intersection between two rectangles
- *
- * mainly useful for language bindings
- * @param a First rectangle
- * @param b Second rectangle
- * @return the area of the intersection
- */
-CV_EXPORTS_W inline double rectangleIntersectionArea(const Rect2d& a, const Rect2d& b) { return (a & b).area(); }
-
 ////////////////////////////// RotatedRect //////////////////////////////
 
 inline
@@ -2455,9 +2435,5 @@ TermCriteria::TermCriteria(int _type, int _maxCount, double _epsilon)
 //! @endcond
 
 } // cv
-
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
 #endif //OPENCV_CORE_TYPES_HPP
