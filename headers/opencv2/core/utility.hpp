@@ -179,11 +179,11 @@ CV_EXPORTS ErrorCallback redirectError( ErrorCallback errCallback, void* userdat
 CV_EXPORTS String tempfile( const char* suffix = 0);
 CV_EXPORTS void glob(String pattern, std::vector<String>& result, bool recursive = false);
 
-/** @brief OpenCV will try to set the number of threads for the next parallel region.
+/** @brief OpenCV will try to set the number of threads for subsequent parallel regions.
 
-If threads == 0, OpenCV will disable threading optimizations and run all it's functions
-sequentially. Passing threads \< 0 will reset threads number to system default. This function must
-be called outside of parallel region.
+If threads == 1, OpenCV will disable threading optimizations and run all it's functions
+sequentially. Passing threads \< 0 will reset threads number to system default.
+The function is not thread-safe. It must not be called in parallel region or concurrent threads.
 
 OpenCV will try to run its functions with specified threads number, but some behaviour differs from
 framework:
@@ -773,7 +773,7 @@ The sample below demonstrates how to use CommandLineParser:
 The keys parameter is a string containing several blocks, each one is enclosed in curly braces and
 describes one argument. Each argument contains three parts separated by the `|` symbol:
 
--# argument names is a space-separated list of option synonyms (to mark argument as positional, prefix it with the `@` symbol)
+-# argument names is a list of option synonyms separated by standard space characters ' ' (to mark argument as positional, prefix it with the `@` symbol)
 -# default value will be used if the argument was not provided (can be empty)
 -# help message (can be empty)
 
@@ -796,6 +796,8 @@ For example:
 Note that there are no default values for `help` and `timestamp` so we can check their presence using the `has()` method.
 Arguments with default values are considered to be always present. Use the `get()` method in these cases to check their
 actual value instead.
+Note that whitespace characters other than standard spaces are considered part of the string.
+Additionally, leading and trailing standard spaces around the help messages are ignored.
 
 String keys like `get<String>("@image1")` return the empty string `""` by default - even with an empty default value.
 Use the special `<none>` default value to enforce that the returned string must not be empty. (like in `get<String>("@image2")`)
@@ -1163,10 +1165,10 @@ Search directories:
 2. OPENCV_SAMPLES_DATA_PATH_HINT environment variable
 3. OPENCV_SAMPLES_DATA_PATH environment variable
    If parameter value is not empty and nothing is found then stop searching.
-4. Detects install path based on:
+4. Detects build/install path based on:
    a. current working directory (CWD)
    b. and/or binary module location (opencv_core/opencv_world, doesn't work with static linkage)
-5. Scan `<source>/{,data,samples/data}` directories if the current directory is in source tree.
+5. Scan `<source>/{,data,samples/data}` directories if build directory is detected or the current directory is in source tree.
 6. Scan `<install>/share/OpenCV` directory if install directory is detected.
 
 @see cv::utils::findDataFile
