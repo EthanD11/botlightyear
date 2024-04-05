@@ -9,7 +9,8 @@ LIBS:=-llgpio -lm -lpthread -ldxl_sbc_c -lsl_lidar_sdk -lopencv_core -lopencv_hi
 HEADERS_DIR:=headers 
 SOURCES_DIR:=src
 TESTS_DIR:=tests
-OBJ_DIR:=bin
+OBJ_DIR:=bin.
+
 # List of cpp files
 SOURCES = $(wildcard $(SOURCES_DIR)/*.cpp)
 TESTS = $(wildcard $(TESTS_DIR)/*.cpp)
