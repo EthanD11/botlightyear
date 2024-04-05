@@ -191,12 +191,12 @@ int readPortLinux(int port_num, uint8_t *packet, int length)
 int writePortLinux(int port_num, uint8_t *packet, int length)
 {
 
-  system("pinctrl set 18 dh");
+  /*system("pinctrl set 18 dh");
   ssize_t temp =  write(portData[port_num].socket_fd, packet, length);
   system("pinctrl set 18 dl");
-  return temp;
+  return temp;*/
 
-  //return write(portData[port_num].socket_fd, packet, length);
+  return write(portData[port_num].socket_fd, packet, length);
 }
 
 void setPacketTimeoutLinux(int port_num, uint16_t packet_length)

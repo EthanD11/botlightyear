@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include <cstdio>
 
-// #define SOLAR_PANELS
+#define SOLAR_PANELS
 //#define EXTENDED_SOLAR_PANELS
 // #define GRIPPER_OPEN_CLOSE
 //#define GRIPPER_UP_DOWN
@@ -15,8 +15,8 @@ int main(int argc, char const *argv[])
 
     // Init ports, and test ping
     dxl_init_port();
-    dxl_ping(1, 2.0);
-    dxl_ping(3, 2.0);
+    //dxl_ping(1, 2.0);
+    //dxl_ping(3, 2.0);
     dxl_ping(6, 1.0);
     dxl_ping(8, 1.0);
 
@@ -24,9 +24,11 @@ int main(int argc, char const *argv[])
     #ifdef SOLAR_PANELS
     position_solar(DownS);
     sleep(0.5);
-    multiturn_solar(CCW);
+    turn_solar(Blue, 90);
     sleep(0.5);
     position_solar(UpS);
+    sleep(0.5); 
+    init_sp();
     #endif
 
     #ifdef EXTENDED_SOLAR_PANELS
