@@ -257,10 +257,8 @@ void *homologation(void* v) {
 
 void *topLidar(void* v) {
     printf("Entering topLidar thread \n");
-    double *robot = new double[4]{0, 0, 0, 0};
     double *adv = new double[4]{0, 0, 0, 3.14};
-    double *beaconAdv = new double[8]{0.141318, 1.826000, 1.878647, 0.284500, 4.983280, 3.050000, 0.018647, 0.987000};
-    
+
     StartLidar();
     int i = 0;
     while (!ENDGAME) {

@@ -14,6 +14,27 @@ using std::string;
 //For sleep
 #include <unistd.h>
 
+typedef struct LidarData{
+    ///toutes les données dans les coordonées tq balise en 0,0
+    double x_robot;
+    double y_robot;
+    double orientation_robot;
+
+    double transfo_x;
+    double transfo_y;
+    double transfo_a;
+
+    double x_adv;
+    double y_adv;
+    double d_adv;
+    double a_adv;
+
+    double * beaconAdv;
+
+    int countObj_adv;
+
+}LidarData;
+
 
 
 /**
@@ -54,6 +75,7 @@ void updateDataFile(double* angles, double* distances, double* quality, string f
  */
 void DataToFile(string filename);
 
+void init_lidar(LidarData *lidarData);
 
 
 
