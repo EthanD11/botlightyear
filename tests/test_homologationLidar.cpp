@@ -256,9 +256,10 @@ void *topLidar(void* v) {
         //DataToFile("testLidarMobile/"+std::to_string(i));
         lidarGetRobotPosition(lidarData, i);
             printf("\nboucle %d", i);
-            printf(" robot at x=%f; y=%f; orientation=%f", lidarData->x_robot, lidarData->y_robot, lidarData->orientation_robot*180.0/M_PI);
+            printf(" robot at x=%f; y=%f; orientation=%f, b3=%f ", lidarData->x_robot, lidarData->y_robot, lidarData->orientation_robot*180.0/M_PI);
             printf(" Adversary at d=%f; a=%f\n", lidarData->d_adv, lidarData->a_adv);
         i++;
+        printf("%f %f %f %f %f %f %f %f \n", lidarData->beaconAdv[0]*180.0/M_PI,lidarData->beaconAdv[1],lidarData->beaconAdv[2]*180.0/M_PI,lidarData->beaconAdv[3],lidarData->beaconAdv[4]*180.0/M_PI,lidarData->beaconAdv[5],lidarData->beaconAdv[6]*180.0/M_PI,lidarData->beaconAdv[7]);
         double adv_dist = lidarData->d_adv; 
         double adv_angle = lidarData->a_adv;
         double limit_stop = 0.5; 

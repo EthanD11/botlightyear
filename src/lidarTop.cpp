@@ -14,6 +14,9 @@ bool analyseDetail = false;
 bool analyseDetail_objet = false;
 bool analyseRotationBalise = false;
 
+///precison pour le deplacement effectué-> permet d'etre augmenté si on est perdu
+double precisionPredef = 0.07;
+
 /**
  * We calculate the position of the robot in beacon reference
  * from the polar coordinates of the 3 beacons and knowing that the robot is at the origin of the reference frame,
@@ -103,7 +106,14 @@ void rotationPosition(double *db, double *x, double *y, LidarData *lidarData, do
 
     ///to determine the orientation of the robot on the table
     //TODO check si ok angle
-    lidarData->orientation_robot = M_PI - orientation + atan2(lidarData->y_robot, lidarData->x_robot);
+    lidarData->orientation_robot = M_PI - orientation + atan2(lidarData->x_robot, lidarData->y_robot);
+
+    while (lidarData->orientation_robot>M_PI){
+        lidarData->orientation_robot-=2*M_PI;
+    }
+    while (lidarData->orientation_robot<-M_PI){
+        lidarData->orientation_robot+=2*M_PI;
+    }
 
 
     delete (beacon1);
@@ -383,7 +393,6 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
     for (int k = 0; k < nbBoucle; ++k) {
         //if an object is between 0 and 360°, it may be detected twice, but this is not a problem.
         objet = false;
-        oldcountObj = countObj + countObj_adv;
         int i;
         for (int p = origine[k]; p < fin[k]; ++p) {
             i = p;
@@ -467,7 +476,7 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
             }
         }
         if (analyseDetail) {
-            printf("count : %d %d %d\n", oldcountObj, countObj, countObj_adv);
+            printf("count : %d %d %d\n", countObj, countObj_adv);
         }
     }
 
@@ -676,9 +685,9 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
                             }
 
                             //TODO check ces conditions
-                            double precision = 0.07;
+                            double precision = precisionPredef;
                             if (B1 && B2 && B3 && (i == 0)) {
-                                precision = 0.5;
+                                precision *= 10;
                             }
                             if (lidarData->x_robot > 0 && lidarData->x_robot < 2 && lidarData->y_robot > 0 &&
                                 lidarData->y_robot < 3 && (fullScan || (
@@ -732,7 +741,7 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
     return;
 }
 
-void lidarGetRobotPosition(LidarData *lidarData, int i) {
+void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan) {
     //StartLidar();
     double *angles = new double[8000];
     double *distances = new double[8000];
@@ -748,15 +757,9 @@ void lidarGetRobotPosition(LidarData *lidarData, int i) {
         checkBeacon(angles, distances, quality, lidarData, true);
 
     } else {
-        checkBeacon(angles, distances, quality, lidarData, false);
+        checkBeacon(angles, distances, quality, lidarData, fullScan);
     }
-    /*
-     *     int count = 0;
-     *     while(lidarData->x_robot ==0&&count<20){
-        checkBeacon(angles, distances, quality, robot, adv, false, beaconAdv);
-        count++;
-    } */
-    //
+
     delete (angles);
     delete (distances);
     delete (quality);
