@@ -15,6 +15,17 @@ using std::string;
 #include <unistd.h>
 
 typedef struct LidarData{
+    //data to read
+    double readLidar_x_robot;
+    double readLidar_y_robot;
+    double readLidar_theta_robot;
+    double readLidar_x_opponent;
+    double readLidar_y_opponent;
+    double readLidar_d_opponent;
+    double readLidar_a_opponent;
+    bool readLidar_lost;
+
+
     ///toutes les données dans les coordonées tq balise en 0,0
     double x_robot;
     double y_robot;
@@ -40,8 +51,6 @@ typedef struct LidarData{
     double x_odo;
     double y_odo;
     double theta_odo;
-
-    bool found;//false if we are lost
 
 }LidarData;
 

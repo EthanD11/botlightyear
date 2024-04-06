@@ -20,6 +20,11 @@ bool analyseRotationBalise = false;
 ///precison pour le deplacement effectué-> permet d'etre augmenté si on est perdu
 double precisionPredef = 0.07;
 
+
+///decalage balise et coin de la table (x_reel = x_B3 + delta)
+double deltaXB3 = 0.05;
+double deltaYB3 = -0.09;
+
 /**
  * We calculate the position of the robot in beacon reference
  * from the polar coordinates of the 3 beacons and knowing that the robot is at the origin of the reference frame,
@@ -340,12 +345,14 @@ void xyToBeacon(LidarData* lidarData){
 void checkBeacon(double *angles, double *distances, double *quality, LidarData *lidarData, bool fullScan) {
     double oldXRobot = lidarData->x_robot;
     double oldYRobot = lidarData->y_robot;
+    double oldOrientationRobot = lidarData->orientation_robot;
     double olddistB1 = lidarData->beaconAdv[1];
     double olddistB2 = lidarData->beaconAdv[3];
     double olddistB3 = lidarData->beaconAdv[5];
     double oldAngB1 = lidarData->beaconAdv[0];
     double oldAngB2 = lidarData->beaconAdv[2];
     double oldAngB3 = lidarData->beaconAdv[4];
+
 
     ///par défaut a 3.55 mais peut être diminuer en fonction des distances des balises précédentes
     double distMax = 3.55;
@@ -767,6 +774,7 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
                                 if (analyseDetail) {
                                     printf("found :)\n");
                                 }
+                                lidarData->readLidar_lost=false;
                                 return;
                             }
                         }
@@ -786,6 +794,10 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
     if (analyseDetail) {
         printf("not found :( %f %f\n", lidarData->x_robot, lidarData->y_robot);
     }
+    lidarData->x_robot= oldXRobot;
+    lidarData->y_robot= oldYRobot;
+    lidarData->orientation_robot= oldOrientationRobot;
+    lidarData->readLidar_lost=true;
     return;
 }
 
@@ -813,9 +825,28 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
     delete (quality);
     delete (as);
     //StopLidar();
+
+    //2 des positions pour etre centré au niveau des roues sauf la distance et l'angle de l'adversaire
+    lidarData->readLidar_x_robot = lidarData->x_robot-0.1*sin(lidarData->orientation_robot)+deltaXB3;
+    lidarData->readLidar_y_robot = lidarData->y_robot-0.1*cos(lidarData->orientation_robot)+deltaYB3;
+    lidarData->readLidar_theta_robot = lidarData->orientation_robot;
+    lidarData->readLidar_x_opponent = lidarData->x_adv+deltaXB3;
+    lidarData->readLidar_y_opponent = lidarData->y_adv+deltaYB3;;
+    lidarData->readLidar_d_opponent = lidarData->d_adv;
+    lidarData->readLidar_a_opponent = lidarData->a_adv;
 }
 
 void init_lidar(LidarData *lidarData) {
+    lidarData->readLidar_x_robot=0.0;
+    lidarData->readLidar_y_robot = 0.0; 
+    lidarData->readLidar_theta_robot = 0.0;
+    lidarData->readLidar_x_opponent = 0.0;
+    lidarData->readLidar_y_opponent = 0.0;
+    lidarData->readLidar_d_opponent = 0.0;
+    lidarData->readLidar_a_opponent = 0.0;
+    lidarData->readLidar_lost = true;
+
+
     lidarData->transfo_a = 0;
     lidarData->transfo_x = 0;
     lidarData->transfo_y = 0;
@@ -832,6 +863,12 @@ void init_lidar(LidarData *lidarData) {
     lidarData->a_adv = 0;
 
     lidarData->beaconAdv = new double[8]{0, 0, 0, 0, 0, 0, 0, 0};
+
+    lidarData->x_odo = 0.0;
+    lidarData->y_odo = 0.0;
+    lidarData->theta_odo = 0.0;
+
+    bool found;
     return;
 }
 
