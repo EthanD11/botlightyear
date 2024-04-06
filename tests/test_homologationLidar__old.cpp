@@ -80,20 +80,20 @@ void *homologation(void* v) {
         double epsilon = 150e-3; // epsilon is in meters
         double wn = 0.3; // Command filter discrete cutoff frequency
         double kv_en = 10;
-        //teensy_set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
-        lguSleep(0.1);  
+        teensy_set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
+        lguSleep(0.1);
         
         lguSleep(0.1);
-        teensy_pos_ctrl(0.2, 0.2, theta0);
+        // teensy_pos_ctrl(0.2, 0.2, theta0);
         // teensy_pos_ctrl(x0, y0, theta_start + (atan2(yr[1]-yr[0], xr[1]-xr[0])-theta_start)/2.0);
         lguSleep(5);
 
         int ncheckpoints = 3;
-        double xr[3] = {0.2, 0.5, 0.7};
-        double yr[3] = {0.2, 0.3, 0.7};
+        double xr[3] = {0.035, 0.8, 1.6};
+        double yr[3] = {0.2, 0.2, 0.2};
         double theta_start = 0.0;
-        double theta_end = M_PI/2.0;
-        double vref = 0.25;
+        double theta_end = 0.0;
+        double vref = 0.15;
         double dist_goal_reached = 0.05;
         teensy_path_following(xr, yr, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
         /*while (((controlmode_t) teensy_ask_mode()) == ModePathFollowing) {
@@ -116,12 +116,12 @@ void *homologation(void* v) {
     teensy_ask_mode();
     lguSleep(2);
     teensy_ask_mode();
-    /*lguSleep(2);
-    teensy_ask_mode();
     lguSleep(2);
     teensy_ask_mode();
     lguSleep(2);
-    teensy_ask_mode();*/
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
     lguSleep(2);
     
 
@@ -157,8 +157,6 @@ void *homologation(void* v) {
     lguSleep(2);
     teensy_ask_mode();
     lguSleep(2);
-    /*teensy_ask_mode();
-    lguSleep(2);
     teensy_ask_mode();
     lguSleep(2);
     teensy_ask_mode();
@@ -171,7 +169,9 @@ void *homologation(void* v) {
     lguSleep(2);
     teensy_ask_mode();
     lguSleep(2);
-    teensy_ask_mode();*/
+    teensy_ask_mode();
+    lguSleep(2);
+    teensy_ask_mode();
 
     if ((!ADVERSARY_FLAG)) {
         printf("No adversary, taking path following \n");
@@ -183,7 +183,7 @@ void *homologation(void* v) {
         double vref = 0.2;
         double dist_goal_reached = 0.1;
         teensy_pos_ctrl(xr[0], yr[0], M_PI/8.0);
-        lguSleep(4);
+        lguSleep(2);
         teensy_pos_ctrl(xr[0], yr[0], -M_PI/4.0);
         lguSleep(5);
         teensy_path_following(xr, yr, ncheckpoints, -M_PI/2.0, theta_end, vref, dist_goal_reached);
@@ -259,11 +259,11 @@ void *topLidar(void* v) {
             printf(" robot at x=%f; y=%f; orientation=%f, b3=%f ", lidarData->x_robot, lidarData->y_robot, lidarData->orientation_robot*180.0/M_PI);
             printf(" Adversary at d=%f; a=%f\n", lidarData->d_adv, lidarData->a_adv);
         i++;
-        //printf("%f %f %f %f %f %f %f %f \n", lidarData->beaconAdv[0]*180.0/M_PI,lidarData->beaconAdv[1],lidarData->beaconAdv[2]*180.0/M_PI,lidarData->beaconAdv[3],lidarData->beaconAdv[4]*180.0/M_PI,lidarData->beaconAdv[5],lidarData->beaconAdv[6]*180.0/M_PI,lidarData->beaconAdv[7]);
+        printf("%f %f %f %f %f %f %f %f \n", lidarData->beaconAdv[0]*180.0/M_PI,lidarData->beaconAdv[1],lidarData->beaconAdv[2]*180.0/M_PI,lidarData->beaconAdv[3],lidarData->beaconAdv[4]*180.0/M_PI,lidarData->beaconAdv[5],lidarData->beaconAdv[6]*180.0/M_PI,lidarData->beaconAdv[7]);
         double adv_dist = lidarData->d_adv; 
         double adv_angle = lidarData->a_adv;
         double limit_stop = 0.5; 
-        if ((adv_dist > 0.1) && (adv_dist < limit_stop) && ((adv_angle < 0.79) || (adv_angle > (6.28-0.79)))) {
+        if ((adv_dist < limit_stop) && ((adv_angle < 0.79) || (adv_angle > (6.28-0.79)))) {
             ADVERSARY_FLAG = true; 
             teensy_idle();
             printf("Adversary detected\n");
