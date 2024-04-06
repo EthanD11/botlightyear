@@ -114,6 +114,7 @@ void rotationPosition(double *db, double *x, double *y, LidarData *lidarData, do
     while (lidarData->orientation_robot>M_PI){
         lidarData->orientation_robot-=2*M_PI;
     }
+
     while (lidarData->orientation_robot<-M_PI){
         lidarData->orientation_robot+=2*M_PI;
     }
@@ -299,7 +300,7 @@ void xyToBeacon(LidarData* lidarData){
         a2-=2*M_PI;
     }  
     while(a3<0){
-        a1+=2*M_PI;
+        a3+=2*M_PI;
     }
     while(a3>2*M_PI){
         a3-=2*M_PI;
@@ -803,12 +804,9 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
     if (analyseDetail) {
         printf("size : %ld\n", as[0]);
     }
-    if (i == 0) {
-        checkBeacon(angles, distances, quality, lidarData, true);
 
-    } else {
-        checkBeacon(angles, distances, quality, lidarData, fullScan);
-    }
+    checkBeacon(angles, distances, quality, lidarData, fullScan);
+    
 
     delete (angles);
     delete (distances);
