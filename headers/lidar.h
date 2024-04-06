@@ -33,6 +33,11 @@ typedef struct LidarData{
 
     int countObj_adv;
 
+
+    double x_odo;
+    double y_odo;
+    double theta_odo;
+
 }LidarData;
 
 

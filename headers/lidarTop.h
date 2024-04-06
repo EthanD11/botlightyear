@@ -19,8 +19,10 @@
  *
  * @param lidarData : structure with previous data and where we save new data
  * @param i : int to find out the number of times we call the function
+ * @param fullScan : does not take previous data into account 
+ * @param fromOdo : it is based on the position of the robot according to the odometers to find the beacons, lidraData->x_odo, ->y_odo, ->theta_odo must be up to date
  */
-void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan = false);
+void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan = false,  bool fromOdo =false);
 
 
 /**

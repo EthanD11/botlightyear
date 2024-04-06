@@ -10,6 +10,9 @@ double dref1 = 2 * 0.950;
 /// distance between 2 beacons not on the same side
 double dref2 = sqrt((0.95) * (0.95) + (1.594 * 2) * (2 * 1.594));
 
+/// angle isocele pour transfo inverse
+double angleIsocele = acos(dref1/(2*dref2)); 
+
 bool analyseDetail = false;
 bool analyseDetail_objet = false;
 bool analyseRotationBalise = false;
@@ -268,6 +271,50 @@ void lidarPerduAdv(double *angles, double *distances, LidarData *lidarData) {
     return;
 }
 
+void xyToBeacon(LidarData* lidarData){
+    double x = lidarData->x_odo;
+    double y = lidarData->y_odo;
+    double theta = lidarData->theta_odo;
+    
+    
+    double a1,a2,a3,d1,d2,d3, alpha;
+    alpha = atan2(x,y);
+    a3 = M_PI - theta+ alpha;
+    d3 = std::sqrt(x*x+y*y);
+    d2 = std::sqrt(d3*d3+dref1*dref1-2*d3*dref1*cos(alpha));
+    d1 = std::sqrt(d3*d3+dref2*dref2-2*d3*dref2*cos(angleIsocele-alpha));
+    a2 = a3-M_PI/2+alpha-atan2(dref1-x,y);
+    a1 = a3 + acos((d3*d3+d1*d1-dref2*dref2)/(2*d1*d3));
+
+    while(a1<0){
+        a1+=2*M_PI;
+    }
+    while(a1>2*M_PI){
+        a1-=2*M_PI;
+    } 
+    while(a2<0){
+        a2+=2*M_PI;
+    }
+    while(a2>2*M_PI){
+        a2-=2*M_PI;
+    }  
+    while(a3<0){
+        a1+=2*M_PI;
+    }
+    while(a3>2*M_PI){
+        a3-=2*M_PI;
+    }
+
+    lidarData->beaconAdv[1]=d1;
+    lidarData->beaconAdv[3]=d2;
+    lidarData->beaconAdv[5]=d3;
+    lidarData->beaconAdv[0]=a1;
+    lidarData->beaconAdv[2]=a2;
+    lidarData->beaconAdv[4]=a3;
+
+
+    return;
+}
 
 /**
  * From the raw lidar data, save in lidarData the coordinates of the robot according to the defined plane and the coordinates of the opponent
@@ -741,7 +788,7 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
     return;
 }
 
-void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan) {
+void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool fromOdo) {
     //StartLidar();
     double *angles = new double[8000];
     double *distances = new double[8000];
@@ -750,6 +797,9 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan) {
     updateData(angles, distances, quality, as);
     //updateDataFile(angles, distances, quality, "testLidarMobile/" + std::to_string(i), as);
     arraySize = as[0];
+    if (fromOdo){
+        xyToBeacon(lidarData);
+    }
     if (analyseDetail) {
         printf("size : %ld\n", as[0]);
     }
