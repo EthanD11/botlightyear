@@ -7,7 +7,7 @@
 
 #include "lidar.h"
 #define ARRAYSIZELIDAR 1000;
-
+//TODO CHANGE COMMENTAIRE
 /**
  * from the polar coordinates of the 3 beacons and knowing that the robot is at the origin of the reference frame,
  * we recover the coordinates of the robot in (x,y) according to the reference frame determined with beacon 3 in (0,0).
@@ -24,12 +24,12 @@
  * @param db : distance between beacons 2 by 2
  * @param x , y : coordinates of 3 beacons
  * @param robot : array of size 2 (x,y) coordinates of the robot -> output
- * @param transfo : input (0,0,0,0); output : transformations to be made to obtain the x,y coordinates;
+ * @param transfoTODOCHANGE : input (0,0,0,0); output : transformations to be made to obtain the x,y coordinates;
  *                  transfo[0] : deltax; transfo[1] : deltay; transfo[2] : angle of rotation;
  *                  transfo[3] : number of elements to be analysed
  * @param anglesBeacons : input : orientation of the 3 beacons to determine the orientation of the robot on the table
  */
-void rotationPosition(double *db, double *x, double *y, double * robot, double* transfo, double* anglesBeacons) ;
+void rotationPosition(double *db, double *x, double *y, LidarData *lidarData, double *anglesBeacons)  ;
 
 /**
  * Find the avdersaire and save its position relative to the map and its position relative to the robot in adversaryCoordinates
@@ -40,7 +40,7 @@ void rotationPosition(double *db, double *x, double *y, double * robot, double* 
  * @param adversaryCoordinates of size 4, input all =0; output: opponent's coordinates
  *          0: x relative to beacon3); 1: y relative to beacon3; 2: distance to our robot; 3: angle relative to our robot
  */
-void Adversary(double *anglesAdv, double *distancesAdv, double *transfo, double* adversaryCoordinates);
+int Adversary(double *anglesAdv, double *distancesAdv, LidarData *lidarData);
 
 /**
  * From the raw lidar data, return (in the robot table) the coordinates of the robot according to the defined plane.
@@ -63,7 +63,7 @@ void Adversary(double *anglesAdv, double *distancesAdv, double *transfo, double*
  *
  * Beacon 3 at (0,0)
  */
-void checkBeacon(double *angles, double *distances, double *quality, double *robot, double* adversaryCoordinates, bool fullScan, double* previousBeaconAdv) ;
+void checkBeacon(double *angles, double *distances, double *quality, LidarData *lidarData, bool fullScan);
 
 
 /**
@@ -81,9 +81,9 @@ void checkBeacon(double *angles, double *distances, double *quality, double *rob
  * @param robot : array of size 2 : writes in the robot's x,y coordinates --> relative to beacon3
  * @param adv : array of size 4 : writes in the opponent's x,y,d,a coordinates --> relative to beacon3 and to our robot
  */
-void lidarGetRobotPosition(double * robot, double* adv, double* beaconAdv);
+void lidarGetRobotPosition(LidarData *lidarData, int i);
 
-
-
+void init_lidar(LidarData *lidarData);
+void clear_lidar(LidarData *lidarData);
 
 #endif //BOTLIGHTYEAR_LIDARTOP_H

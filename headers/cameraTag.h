@@ -3,7 +3,7 @@
 #include <iostream>
 
 
-void tagFromJpg();
+double tagFromJpg();
 
 
 

@@ -1,26 +1,32 @@
 #include "lidarTop.h"
+#include <chrono>
+
 
 int main(int argc, char *argv[]) {
-    //TODO diff entre les 2 lidars
-    // connaitre leur noms
-    // communication entre les 2 ?
-    // meme orientation ?
-    // alignement ?
-    // comment det la position ? centre robot, pince, coin, lidar (haut, bas) ?
-    double *robot = new double[4]{0, 0, 0, 0};
-    double *adv = new double[4]{0, 0, 0, 0};
-    double *beaconAdv = new double[8]{11.4*M_PI/180, 2.88, 78/180*M_PI, 0.68, 104*M_PI/180, 1.63, 221*M_PI/180, 0.45};
+    //double *beaconAdv = new double[8]{11.4*M_PI/180, 2.88, 78/180*M_PI, 0.68, 104*M_PI/180, 1.63, 221*M_PI/180, 0.45};
     StartLidar();
-    DataToFile("jsp.txt");
-    
-    lidarGetRobotPosition(robot, adv, beaconAdv);
-    printf("\n robot at x=%f; y=%f; orientation=%f; %f radian beacon3\n", robot[0], robot[1], robot[2], robot[3]);
-    printf("Adversary at x=%f; y=%f\n", adv[0], adv[1]);
-    printf("adv at %f m; %f degree\n", adv[2], adv[3] * 180 / M_PI);
-    for (int i = 0; i < 8; ++i) {
-        printf("%f, ", beaconAdv[i]);
+    auto started = std::chrono::high_resolution_clock::now();
+    LidarData *lidarData = new LidarData[sizeof(LidarData)];
+    init_lidar(lidarData);
+
+    //DataToFile("jsp.txt");
+        for (int i = 0; i < 1555; ++i) {
+            lidarGetRobotPosition(lidarData, i);
+            printf("\nboucle %d\n", i);
+            printf(" robot at x=%f; y=%f; orientation=%f\n", lidarData->x_robot, lidarData->y_robot, lidarData->orientation_robot);
+            printf("Adversary at d=%f; a=%f\n", lidarData->d_adv, lidarData->a_adv);
+    /*for (int j = 0; j < 8; ++j) {
+            printf("%f, ", lidarData->beaconAdv[j]);
+    }*/
     }
     StopLidar();
     printf("\n");
+    clear_lidar(lidarData);
+    delete (lidarData);
+
+
+    auto done = std::chrono::high_resolution_clock::now();
+    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(done-started).count()<< "\n";
+    
     return 0;
 }

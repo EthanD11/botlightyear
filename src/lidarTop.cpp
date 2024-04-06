@@ -3,6 +3,7 @@
 
 ///global variable to find out the size of the file
 size_t arraySize = 8000;
+
 /// distance between 2 beacons on the same side
 double dref1 = 2 * 0.950;
 
@@ -145,7 +146,7 @@ int Adversary(double *anglesAdv, double *distancesAdv, LidarData *lidarData) {
                 lidarData->a_adv = anglesAdv[i];
                 /// we assume that the lidar can only see one object on the table
                 /// and that it is therefore automatically the robot
-                return;
+                return 0;
             }
         }
     }
@@ -642,7 +643,7 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
                             //TODO check ces conditions
                             double precision = 0.07;
                             if (B1 && B2 && B3 && (i == 0)) {
-                                precision = 0.9;
+                                precision = 0.5;
                             }
                             if (lidarData->x_robot > 0 && lidarData->x_robot < 2 && lidarData->y_robot > 0 &&
                                 lidarData->y_robot < 3 && (fullScan || (
@@ -703,8 +704,8 @@ void lidarGetRobotPosition(LidarData *lidarData, int i) {
     double *distances = new double[8000];
     double *quality = new double[8000];
     size_t *as = new size_t[2]{8000, 8000};
-    //updateData(angles, distances, quality, as);
-    updateDataFile(angles, distances, quality, "testLidarMobile/" + std::to_string(i), as);
+    updateData(angles, distances, quality, as);
+    //updateDataFile(angles, distances, quality, "testLidarMobile/" + std::to_string(i), as);
     arraySize = as[0];
     if (analyseDetail) {
         printf("size : %ld\n", as[0]);
@@ -753,6 +754,7 @@ void clear_lidar(LidarData *lidarData) {
     delete (lidarData->beaconAdv);
 }
 
+/*
 int main(int argc, char *argv[]) {
     auto started = std::chrono::high_resolution_clock::now();
     LidarData *lidarData = new LidarData[sizeof(LidarData)];
@@ -784,4 +786,4 @@ int main(int argc, char *argv[]) {
     std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(done-started).count()<< "\n";
     return 0;
 }
-
+*/

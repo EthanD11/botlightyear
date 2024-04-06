@@ -27,17 +27,7 @@ typedef enum {
   ModeConstantDC
 } controlmode_t; 
 
-void calibrateAll() {
-    stpr_calibrate(StprFlaps);
-    stpr_calibrate(StprPlate);
-    stpr_calibrate(StprSlider);
-}
 
-void resetAll() {
-    stpr_reset(StprFlaps);
-    stpr_reset(StprPlate);
-    stpr_reset(StprSlider);
-}
 
 void updateRobotPosition() {
     int32_t ticks_l, ticks_r; // Current values of ticks, left and right
@@ -69,7 +59,10 @@ void *homologation(void* v) {
     init_spi();
 
     //Set initial robot position and path following useful variables
-
+    double x0 = 0.035;
+    double y0 = 0.2;
+    double theta0 = 0.0;
+    teensy_set_position(x0, y0, theta0);
     //Path following : Go grab a plant
     if (!ADVERSARY_FLAG) {
         printf("No adversary, taking path following \n");
@@ -88,10 +81,7 @@ void *homologation(void* v) {
         double kv_en = 10;
         teensy_set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
         lguSleep(0.1);
-        double x0 = 0.035;
-        double y0 = 0.2;
-        double theta0 = 0.0;
-        teensy_set_position(x0, y0, theta0);
+        
         lguSleep(0.1);
         // teensy_pos_ctrl(0.2, 0.2, theta0);
         // teensy_pos_ctrl(x0, y0, theta_start + (atan2(yr[1]-yr[0], xr[1]-xr[0])-theta_start)/2.0);
@@ -260,15 +250,22 @@ void *topLidar(void* v) {
     double *adv = new double[4]{0, 0, 0, 3.14};
 
     StartLidar();
+    LidarData *lidarData = new LidarData[sizeof(LidarData)];
+    init_lidar(lidarData);
     int i = 0;
     while (!ENDGAME) {
         //lidarGetRobotPosition(robot, adv, beaconAdv);
-        DataToFile("testLidarMobile/"+std::to_string(i));
+        //DataToFile("testLidarMobile/"+std::to_string(i));
+        lidarGetRobotPosition(lidarData, i);
+  
+            printf("\nboucle %d\n", i);
+            printf(" robot at x=%f; y=%f; orientation=%f\n", lidarData->x_robot, lidarData->y_robot, lidarData->orientation_robot);
+            printf("Adversary at d=%f; a=%f\n", lidarData->d_adv, lidarData->a_adv);
         i++;
-        double adv_dist = adv[2]; 
-        double adv_angle = adv[3];
+        double adv_dist = lidarData->d_adv; 
+        double adv_angle = lidarData->a_adv;
         double limit_stop = 0.5; 
-        if ((adv_dist < limit_stop) & (adv_angle < 0.79) & (adv_angle > (6.28-0.79))) {
+        if ((adv_dist < limit_stop) && ((adv_angle < 0.79) || (adv_angle > (6.28-0.79)))) {
             ADVERSARY_FLAG = true; 
             teensy_idle();
             printf("Adversary detected\n");
@@ -276,6 +273,8 @@ void *topLidar(void* v) {
     }
 
     StopLidar();
+    clear_lidar(lidarData);
+    delete (lidarData);
     return 0;
 }
 int main(int argc, char const *argv[]) { 
