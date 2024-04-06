@@ -24,7 +24,7 @@ int main(int argc, char const *argv[])
     #ifdef SOLAR_PANELS
     position_solar(DownS);
     sleep(0.5);
-    turn_solar(Blue, 90);
+    turn_solar(Yellow, 180);
     sleep(0.5);
     position_solar(UpS);
     sleep(0.5); 
