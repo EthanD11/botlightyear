@@ -16,6 +16,9 @@ bool analyseRotationBalise = false;
 
 /**
  * We calculate the position of the robot in beacon reference
+ * from the polar coordinates of the 3 beacons and knowing that the robot is at the origin of the reference frame,
+ * we recover the coordinates of the robot in (x,y) according to the reference frame determined with beacon 3 in (0,0).
+ *
  * @param db : distance between beacons 2 by 2
  * @param x : positions of the beacons in x (reference robot (0;0)
  * @param y : positions of the beacons in y (reference robot (0;0)
@@ -110,12 +113,18 @@ void rotationPosition(double *db, double *x, double *y, LidarData *lidarData, do
 
 }
 
+/**
+ * Find the avdersaire and save its position relative to the map and its position relative to the robot in lidarData
+ * @param anglesAdv coordinates relative to the robot of possible opponents
+ * @param distancesAdv coordinates relative to the robot of possible opponents;
+ * @param lidarData structure with useful data
+ *
+ */
 int Adversary(double *anglesAdv, double *distancesAdv, LidarData *lidarData) {
     ///transfo contains 4 elem : deltax, deltay, angle of rotation, the number of elements in possible opponents (number of elements in *anglesAdv)
     int size = lidarData->countObj_adv;
 
     ///maximum table dimensions
-    //TODO local change because balise pas au bon endroit
     double xmax = 2.0;
     double ymax = 3.0;
 
@@ -154,6 +163,12 @@ int Adversary(double *anglesAdv, double *distancesAdv, LidarData *lidarData) {
     return 1;
 }
 
+/**
+ * if we don't found adversary from previous data we check everywhere
+ * @param angles array with angle in radian from lidar
+ * @param distances array with distances in m from lidar
+ * @param lidarData structure with previous data and where we save current data
+ */
 void lidarPerduAdv(double *angles, double *distances, LidarData *lidarData) {
     bool objet;
     double distMax = 3.55;
@@ -183,7 +198,7 @@ void lidarPerduAdv(double *angles, double *distances, LidarData *lidarData) {
 
 
         /// check if the object is potentially on the table
-        if (0.2 < distances[i] && distances[i] < distMax) {//TODO check max et min possible
+        if (0.2 < distances[i] && distances[i] < distMax) {
 
             /// no previous object: a new object to be initialized
             if (!objet) {
@@ -235,7 +250,7 @@ void lidarPerduAdv(double *angles, double *distances, LidarData *lidarData) {
             countGap += 1;
         }
     }
-    /// we save in blabla the number of elements that could possibly be beacon (opponent)
+    /// we save the number of elements that could possibly be beacon (opponent)
     Adversary(aObj_adv, dObj_adv, lidarData);
     ///we assume that we can only find 3 points corresponding to our beacons once
     delete (dObj_adv);
@@ -243,6 +258,27 @@ void lidarPerduAdv(double *angles, double *distances, LidarData *lidarData) {
     return;
 }
 
+
+/**
+ * From the raw lidar data, save in lidarData the coordinates of the robot according to the defined plane and the coordinates of the opponent
+ * @param angles : array of size max 8192 with angle in degree
+ * @param distances : array of size max 8192 with distances in m
+ * @param quality : array of size max 8192 with quality
+ * @param lidarData : structure with useful data (previous data) and where we save the new data
+ * @param fullScan : if true: performs a full scan with no position prediction,
+ *                  if false: performs a more accurate scan, mimicked by an estimate of the position of the beacons and the opponent
+ * if (fullScan) we need data in lidarData->beaconAdv : table of 8 with the angles and distances of the 3 beacons and the opponent (a1, d1, a2, d2, a3, d3, a, d)
+ *   ________________1______________
+ *  |                              |
+ *  |                              |
+ *  |                              |
+ *  |                              |
+ *  |                              |
+ *  |______________________________|
+ * 3                               2
+ *
+ * Beacon 3 at (0,0)
+ */
 void checkBeacon(double *angles, double *distances, double *quality, LidarData *lidarData, bool fullScan) {
     double oldXRobot = lidarData->x_robot;
     double oldYRobot = lidarData->y_robot;
@@ -255,6 +291,7 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
 
     ///par défaut a 3.55 mais peut être diminuer en fonction des distances des balises précédentes
     double distMax = 3.55;
+    //TODO reflechir pcq pas ideal pour adversaire
     if (!fullScan){distMax = std::max(std::max(lidarData->beaconAdv[1], lidarData->beaconAdv[3]), lidarData->beaconAdv[5])+0.5;}
 
     ///objet==true : object detected at probable distance
@@ -278,7 +315,6 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
     /// number of items in list
     int countObj = 0;
     int countObj_adv = 0;
-    int oldcountObj = 0;
 
     ///if we make a full scan we don't know de position of the robot -> analysis of the full data
     ///if we don't make a full scan : we know a estimation of the opponent and the beacons -> 4 smalls for loop
@@ -455,7 +491,6 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
     bool B2 = false;
     bool B3 = false;
     for (int i = 0; i < countObj; ++i) {
-        //printf("delt %f %f\n",std::abs(dObj[i]-olddistB2) ,std::abs(aObj[i]-oldAngB2));
         if ((std::abs(dObj[i] - olddistB1) < 0.2) &&
             ((std::abs(aObj[i] - oldAngB1) < 0.5) || std::abs(2 * M_PI - std::abs(aObj[i] - oldAngB1)) < 0.5)) {
             B1 = true;
@@ -696,7 +731,6 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
     }
     return;
 }
-
 
 void lidarGetRobotPosition(LidarData *lidarData, int i) {
     //StartLidar();

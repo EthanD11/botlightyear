@@ -6,7 +6,8 @@
 #include <stdio.h>
 #include <stdlib.h> 
 #include <unistd.h>  
-#include <pthread.h> 
+#include <pthread.h>
+#include <math.h>
 
 pthread_t tid[2]; 
 pthread_rwlock_t lock[2]; 
@@ -247,20 +248,16 @@ void *homologation(void* v) {
 
 void *topLidar(void* v) {
     printf("Entering topLidar thread \n");
-    double *adv = new double[4]{0, 0, 0, 3.14};
-
     StartLidar();
     LidarData *lidarData = new LidarData[sizeof(LidarData)];
     init_lidar(lidarData);
     int i = 0;
     while (!ENDGAME) {
-        //lidarGetRobotPosition(robot, adv, beaconAdv);
         //DataToFile("testLidarMobile/"+std::to_string(i));
         lidarGetRobotPosition(lidarData, i);
-  
-            printf("\nboucle %d\n", i);
-            printf(" robot at x=%f; y=%f; orientation=%f\n", lidarData->x_robot, lidarData->y_robot, lidarData->orientation_robot);
-            printf("Adversary at d=%f; a=%f\n", lidarData->d_adv, lidarData->a_adv);
+            printf("\nboucle %d", i);
+            printf(" robot at x=%f; y=%f; orientation=%f", lidarData->x_robot, lidarData->y_robot, lidarData->orientation_robot*180.0/M_PI);
+            printf(" Adversary at d=%f; a=%f\n", lidarData->d_adv, lidarData->a_adv);
         i++;
         double adv_dist = lidarData->d_adv; 
         double adv_angle = lidarData->a_adv;
