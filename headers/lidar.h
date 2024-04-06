@@ -28,15 +28,20 @@ typedef struct LidarData{
     double y_adv;
     double d_adv;
     double a_adv;
-
+    
+    // distance and angle of beacon and opponent from the previous data 
     double * beaconAdv;
 
+    
     int countObj_adv;
 
 
+    //to find beacon from the position of the robot if we are lost
     double x_odo;
     double y_odo;
     double theta_odo;
+
+    bool found;//false if we are lost
 
 }LidarData;
 
