@@ -207,7 +207,7 @@ int getNumberOfPlantInZone(double x_robot, double y_robot, double theta_robot, i
     robot->y = y_robot;
     robot->theta = theta_robot;
     size_t *asize = new size_t[2]{8000, 8000};
-    updateDataTop(angles, distances, quality, asize);
+    updateDataBottom(angles, distances, quality, asize);
     arraysize = asize[0];
     lidarGetPlantPosition(robot, angles, distances, obj, asize[0],plantZonePolar );
     return 1;
