@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
         printf("Adversary at d=%f; a=%f\n", lidarData->readLidar_d_opponent, lidarData->readLidar_a_opponent);
     }
 
-
+    sleep(0);
     StopLidarTop();
     printf("\n");
     clear_lidar(lidarData);
