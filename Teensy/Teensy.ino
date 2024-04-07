@@ -269,6 +269,8 @@ void loop() {
 
   // Leave the current mode cleanly (free all malloc'd arrays and structs)
   if (nextmode != mode) {
+    speed_regulator->isl = 0.0;
+    speed_regulator->isr = 0.0;
     switch (mode) {
       case ModePathFollowing:
         close_path_following(path_follower);
