@@ -93,7 +93,7 @@ void *homologation(void* v) {
         double yr[3] = {0.2, 0.3, 0.7};
         double theta_start = 0.0;
         double theta_end = M_PI/2.0;
-        double vref = 0.25;
+        double vref = 0.35;
         double dist_goal_reached = 0.05;
         teensy_path_following(xr, yr, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
         /*while (((controlmode_t) teensy_ask_mode()) == ModePathFollowing) {
