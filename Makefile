@@ -3,12 +3,14 @@
 # Arguments for the compilation
 CXX = g++
 FLAGS:=-Wall -O3
-LIBS:=-llgpio -lm -lpthread -ldxl_sbc_c
-# Directories
-HEADERS_DIR:=headers
+LIBS:=-llgpio -lm -lpthread -ldxl_sbc_c -lsl_lidar_sdk -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_videoio -lopencv_imgcodecs -lopencv_aruco
+#-lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_videoio -lopencv_imgcodecs -lopencv_aruco
+# Directories 
+HEADERS_DIR:=headers 
 SOURCES_DIR:=src
 TESTS_DIR:=tests
-OBJ_DIR:=bin
+OBJ_DIR:=bin.
+
 # List of cpp files
 SOURCES = $(wildcard $(SOURCES_DIR)/*.cpp)
 TESTS = $(wildcard $(TESTS_DIR)/*.cpp)

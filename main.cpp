@@ -355,8 +355,7 @@ void *topLidar(void* v) {
     printf("Entering topLidar thread \n");
     double *robot = new double[4]{0, 0, 0, 0};
     double *adv = new double[4]{0, 0, 0, 3.14};
-    //double *beaconAdv = new double[8]{0.155987, 1.828000, 1.858849, 0.293500, 4.988889, 3.038000, 0.000000, 0.000000};
-    
+    //TODO LIDAR INIT
     StartLidar();
     int i =0;
     while (!ENDGAME) {

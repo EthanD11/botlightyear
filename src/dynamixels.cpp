@@ -253,3 +253,87 @@ void multiturn_solar(direction_t direction) {
     // Write speed
     write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_MOVING_SPEED, 0);
 }
+
+void turn_solar(team_t team, double pres_angle) {
+    uint16_t dxl_goal_position = 512;
+    uint16_t dxl_present_position = 0;
+    dxl_present_position = read2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_AX_PRESENT_POSITION);
+
+     // Enable Dynamixel Torque
+    write1ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_TORQUE_ENABLE, TORQUE_ENABLE);
+
+    // Write CW/CCW position
+    write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_CW_ANGLE_LIMIT, 0); 
+    write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_CCW_ANGLE_LIMIT, 1023);
+
+    switch (team) {
+        case Blue: 
+        // Write speed
+        write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_MOVING_SPEED, 200);
+        if (pres_angle == 0) {
+            dxl_goal_position = 622; 
+        }
+        else if (pres_angle == -90) {
+            dxl_goal_position = 512; //No move
+        }
+        else if (pres_angle == 180) {
+            dxl_goal_position = 312; 
+        }
+        else if (pres_angle == 90) { //Opposite team
+            dxl_goal_position = 810;
+        }
+        break;
+        case Yellow:
+        // Write speed
+        write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_MOVING_SPEED, 200);
+        if (pres_angle == 0) {
+            dxl_goal_position = 312; 
+        }
+        else if (pres_angle == 90) {
+            dxl_goal_position = 512; //No move
+        }
+        else if (pres_angle == 180) {
+            dxl_goal_position = 622; 
+        }
+        else if (pres_angle == -90) { //Opposite team
+            dxl_goal_position = 810;
+        }
+        break;
+    }
+
+     // Write goal position
+    write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_GOAL_POSITION, dxl_goal_position);
+
+   while ((abs(dxl_goal_position - dxl_present_position) > DXL_MOVING_STATUS_THRESHOLD)) {
+      // Read present position
+      dxl_present_position = read2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_AX_PRESENT_POSITION);
+      write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_GOAL_POSITION, dxl_goal_position);
+      //printf("position_solar [ID:%03d] GoalPos:%03d  PresPos:%03d\n", 6, dxl_goal_position, dxl_present_position);
+    }
+
+}
+
+void init_sp() { 
+    uint16_t dxl_goal_position = 512;
+    uint16_t dxl_present_position = 0;
+
+    // Enable Dynamixel Torque
+    write1ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_TORQUE_ENABLE, TORQUE_ENABLE);
+
+    // Write CW/CCW position
+    write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_CW_ANGLE_LIMIT, 0); 
+    write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_CCW_ANGLE_LIMIT, 1023);
+
+    // Write speed
+    write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_MOVING_SPEED, 200);
+    
+    // Write goal position
+    write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_GOAL_POSITION, dxl_goal_position);
+
+   while ((abs(dxl_goal_position - dxl_present_position) > DXL_MOVING_STATUS_THRESHOLD)) {
+      // Read present position
+      dxl_present_position = read2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_AX_PRESENT_POSITION);
+      write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_GOAL_POSITION, dxl_goal_position);
+      //printf("position_solar [ID:%03d] GoalPos:%03d  PresPos:%03d\n", 6, dxl_goal_position, dxl_present_position);
+    }
+}
