@@ -11,6 +11,11 @@
 // #define SET_POS_CTRL_GAINS
 // #define SET_PATH_FOLLOWER_GAINS
 
+#ifdef DC_CONTROL
+    #define DC_LEFT 50
+    #define DC_RIGHT 50
+#endif
+
 const double deg_to_rads = M_PI/180;
 
 int main(int argc, char const *argv[])
@@ -31,14 +36,14 @@ int main(int argc, char const *argv[])
     #endif
 
     #ifdef PATH_FOLLOWING
-    double kt = 3.0;
-    double kn = 1.0; // 0 < kn <= 1
-    double kz = 80.0;
-    double delta = 50e-3; // delta is in meters
+    double kt = 2.0;
+    double kn = 0.32; // 0 < kn <= 1
+    double kz = 30.0;
+    double delta = 15e-3; // delta is in meters
     double sigma = 0.0;
-    double epsilon = 150e-3; // epsilon is in meters
-    double wn = 0.3; // Command filter discrete cutoff frequency
-    double kv_en = 10;
+    double epsilon = M_PI/8; // epsilon is in radians
+    double wn = 0.25; // Command filter discrete cutoff frequency
+    double kv_en = 12;
     teensy_set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
     lguSleep(0.1);
     int ncheckpoints = 5;
@@ -70,7 +75,7 @@ int main(int argc, char const *argv[])
 
     #ifdef DC_CONTROL
     teensy_set_position(0, 0, 0);
-    teensy_constant_dc(160,160);
+    teensy_constant_dc(DC_LEFT,DC_RIGHT);
     #endif
 
     #ifdef SET_POS_CTRL_GAINS
@@ -82,14 +87,14 @@ int main(int argc, char const *argv[])
     #endif
 
     #ifdef SET_PATH_FOLLOWER_GAINS
-    double kt = .5;
-    double kn = 0.5; // 0 < kn <= 1
-    double kz = 60.0;
-    double delta = 50e-3; // delta is in meters
+    double kt = 2.0;
+    double kn = 0.32; // 0 < kn <= 1
+    double kz = 30.0;
+    double delta = 15e-3; // delta is in meters
     double sigma = 0.0;
-    double epsilon = 150e-3; // epsilon is in meters
-    double wn = 0.3; // Command filter discrete cutoff frequency
-    double kv_en = 8;
+    double epsilon = M_PI/8; // epsilon is in radians
+    double wn = 0.25; // Command filter discrete cutoff frequency
+    double kv_en = 12;
     teensy_set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
     teensy_idle();
     #endif

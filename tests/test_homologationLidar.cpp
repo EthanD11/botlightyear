@@ -73,13 +73,13 @@ void *homologation(void* v) {
         // double kw = 10.0;
         // teensy_set_position_controller_gains(kp, ka, kb, kw);
         double kt = 2.0;
-        double kn = 0.7; // 0 < kn <= 1
-        double kz = 10.0;
-        double delta = 40e-3; // delta is in meters
+        double kn = 0.32; // 0 < kn <= 1
+        double kz = 30.0;
+        double delta = 15e-3; // delta is in meters
         double sigma = 0.0;
-        double epsilon = 150e-3; // epsilon is in meters
-        double wn = 0.3; // Command filter discrete cutoff frequency
-        double kv_en = 10;
+        double epsilon = M_PI/8; // epsilon is in radians
+        double wn = 0.25; // Command filter discrete cutoff frequency
+        double kv_en = 12;
         //teensy_set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
         lguSleep(0.1);  
         
