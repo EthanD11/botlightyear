@@ -10,7 +10,7 @@ Regulator *init_regulator() {
     reg->ki = 44; // Former t1_ki
     
 
-    reg->imax = 2; // Anti windup [V/V]
+    reg->imax = 1; // Anti windup [V/V]
 
     reg->isl = 0.0; // left integral state
     reg->isr = 0.0; // right integral state
