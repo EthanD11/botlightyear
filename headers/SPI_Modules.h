@@ -24,6 +24,8 @@
 
 
 // Steppers
+#define FALSE 0
+
 #define PLATEAU_REDUCTION 8.5
 #define PLATEAU_ANGLE_OUVERTURE 103.33
 #define PLATEAU_TIC_STEPPER 1600
@@ -204,28 +206,28 @@ typedef enum {
  * @param neg the direction of the step count (0 for positive, 1 for negative)
  * @param blocking true if the command is blocking (waits until finished), false if it's non-blocking
 */
-void stpr_move(steppers_t stepperName, uint32_t steps, uint8_t neg, uint8_t blocking);
+void stpr_move(steppers_t stepperName, uint32_t steps, uint8_t neg);
 
 /**
  * @brief Activates the calibration of given stepper
  * @param stepperName the stepper to calibrate (StprPlate, StprSlider or StprFlaps)
  * @param blocking true if the command is blocking (waits until finished), false if it's non-blocking
  */
-void stpr_calibrate(steppers_t stepperName, uint8_t blocking); 
+void stpr_calibrate(steppers_t stepperName); 
 
 /**
  * @brief Move flaps stepper to 'pos' (FlapsOpen, FlapsPlant or FlapsPot)
  * @param pos the position of the flaps stepper (FlapsOpen, FlapsPlant or FlapsPot)
  * @param blocking true if the command is blocking (waits until finished), false if it's non-blocking
 */
-void flaps_move(flaps_pos_t pos, uint8_t blocking);
+void flaps_move(flaps_pos_t pos);
 
 /**
  * @brief Move slider stepper to 'pos' (SliderLow, SliderHigh, SliderPlate or SliderTake)
  * @param pos the position of the slider stepper (SliderLow, SliderHigh, SliderPlate or SliderTake)
  * @param blocking true if the command is blocking (waits until finished), false if it's non-blocking
 */
-void slider_move(slider_pos_t pos, uint8_t blocking);
+void slider_move(slider_pos_t pos);
 
 
 /**

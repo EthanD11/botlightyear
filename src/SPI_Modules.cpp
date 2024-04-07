@@ -389,7 +389,7 @@ void flaps_servo_cmd(flaps_servo_cmd_t command) {
 //      10 Calibre
 //      11 Step + signe direction du stepper (horlogique/antihorlogique)
 
-void stpr_move(steppers_t stepperName, uint32_t steps, int neg, uint8_t blocking) {
+void stpr_move(steppers_t stepperName, uint32_t steps, int neg) {
     char request; 
     char direction; 
 
@@ -422,12 +422,9 @@ void stpr_move(steppers_t stepperName, uint32_t steps, int neg, uint8_t blocking
     lgSpiWrite(DE0_handle, send, 5);
     pthread_mutex_unlock(&spi_mutex);
 
-    if (blocking) {
-
-    }
 }
 
-void flaps_move(flaps_pos_t pos, uint8_t blocking) {
+void flaps_move(flaps_pos_t pos) {
     uint32_t steps; 
     switch (pos)
     {
@@ -445,10 +442,10 @@ void flaps_move(flaps_pos_t pos, uint8_t blocking) {
         steps = 0; 
         return;
     }
-    stpr_move(StprFlaps, steps, 0, blocking); 
+    stpr_move(StprFlaps, steps, 0 ); 
 }
 
-void slider_move(slider_pos_t pos, uint8_t blocking){
+void slider_move(slider_pos_t pos){
     int steps;
     switch(pos)
     {
@@ -473,11 +470,11 @@ void slider_move(slider_pos_t pos, uint8_t blocking){
         steps = 0; 
         return;
     }
-    stpr_move(StprSlider,steps,0, blocking);
+    stpr_move(StprSlider,steps,0 );
 }
 
 
-void plate_move(int pot, uint8_t blocking){
+void plate_move(int pot){
     //pot est une variable allant de -3 a 3 avec 0 la position de repos
     int direction = 0;
     if (pot ==0){
@@ -491,7 +488,7 @@ void plate_move(int pot, uint8_t blocking){
         double anglePlateau = (PLATEAU_ANGLE_OUVERTURE)/2 + (pot)* (360-PLATEAU_ANGLE_OUVERTURE)/5;
         double angleStepper = anglePlateau * PLATEAU_REDUCTION;
         double ticStepper = angleStepper/360 * PLATEAU_TIC_STEPPER;
-        stpr_move(StprPlate,(int)ticStepper,direction, blocking);
+        stpr_move(StprPlate,(int)ticStepper,direction);
     }   
 
 }
@@ -581,9 +578,6 @@ void stpr_calibrate(steppers_t stepperName) {
     lgSpiWrite(DE0_handle, send, 5);
     pthread_mutex_unlock(&spi_mutex);
 
-    if (blocking) {
-        
-    }
 }
 
 void stpr_reset(steppers_t stepperName) {
