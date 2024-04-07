@@ -19,11 +19,13 @@ using std::string;
  */
 void StartLidarTop();
 
+void StartLidarBottom();
 
 /**
  * close Lidar
  */
 void StopLidarTop();
+void StopLidarBottom();
 
 
 /**
@@ -34,6 +36,7 @@ void StopLidarTop();
  * @param arraySize : maximum array size
  */
 void updateDataTop(double* angles, double* distances, double* quality,  size_t * arraySize);
+void updateDataBottom(double* angles, double* distances, double* quality,  size_t * arraySize);
 
 
 /**
@@ -44,13 +47,14 @@ void updateDataTop(double* angles, double* distances, double* quality,  size_t *
  * @param filename input : name of the file containing all the lidar data to be analysed
  * @param arraySize output : updates the number of elements
  */
-void updateDataFileTop(double* angles, double* distances, double* quality, string filename,  size_t * arraySize);
+void updateDataFile(double* angles, double* distances, double* quality, string filename,  size_t * arraySize);
 
 /**
  * Saves lidar data for local testing afterwards
  * @param filename : name of the file in which the data will be saved
  */
 void DataToFileTop(string filename);
+void DataToFileBottom(string filename);
 
 
 
