@@ -275,7 +275,7 @@ double spi_get_speed_refl() {
     return __spi_interface->speed_refl;
 }
 double spi_get_speed_refr() {
-    printf("speed_refr = %f\n", __spi_interface->speed_refr);
+    // printf("speed_refr = %f\n", __spi_interface->speed_refr);
     return __spi_interface->speed_refr;
 }
 

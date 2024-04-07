@@ -5,7 +5,7 @@
 #include "math.h"
 #include "path_follower.h" // adapt it with your headers
 // where X should be replaced by your group number
-#define VERBOSE
+// #define VERBOSE
 PathFollower* init_path_follower() {
     PathFollower *path_follower = (PathFollower *) malloc(sizeof(PathFollower));
     path_follower->speed_refl = 0;

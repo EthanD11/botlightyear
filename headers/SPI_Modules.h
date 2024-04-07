@@ -44,6 +44,40 @@ int init_spi();
 */
 void close_spi();
 
+// ----- SPI2 -----
+
+typedef enum {
+    StprSliderGPIO = 0, 
+    StprPlateGPIO = 5, 
+    StprFlapsGPIO = 6, 
+    BpSwitchFlapsLeftGPIO = 13, 
+    BpSwitchFlapsRightGPIO = 19
+} spi2_gpio_t;
+
+/**
+ * @brief Claims the SPI2 GPIOs and opens the chip
+ * @return 0 if no error, 1 if chip open fail
+*/
+uint8_t init_spi2(); 
+
+/**
+ * @brief Frees the SPI2 GPIOs and closes the chip
+*/
+void close_spi2();
+
+/**
+ * @brief Claims a GPIO
+ * @return 0 if no error, 2 if set user fail, 3 if claim input fail
+* @param gpio_pin the pin number of the GPIO to be claimed
+*/
+uint8_t claim_gpio(uint8_t gpio_pin); 
+
+/**
+ * @brief Frees a GPIO pin number
+ * @param gpio_pin the pin number of the GPIO to be freed
+*/
+void free_gpio(uint8_t gpio_pin); 
+
 // ----- ODOMETERS -----
 
 /**
@@ -165,18 +199,34 @@ typedef enum {
 
 /**
  * @brief Move the stepper 'stepperName' of 'steps' steps in the 'neg' direction (0 for positive, 1 for negative)
+ * @param stepperName the stepper to calibrate (StprPlate, StprSlider or StprFlaps)
+ * @param steps the step count to go to
+ * @param neg the direction of the step count (0 for positive, 1 for negative)
+ * @param blocking true if the command is blocking (waits until finished), false if it's non-blocking
 */
-void stpr_move(steppers_t stepperName, uint32_t steps, int neg);
+void stpr_move(steppers_t stepperName, uint32_t steps, uint8_t neg, uint8_t blocking);
 
 /**
- * @brief Move flaps to 'pos' (FlapsOpen, FlapsPlant or FlapsPot)
-*/
-void flaps_move(flaps_pos_t pos);
+ * @brief Activates the calibration of given stepper
+ * @param stepperName the stepper to calibrate (StprPlate, StprSlider or StprFlaps)
+ * @param blocking true if the command is blocking (waits until finished), false if it's non-blocking
+ */
+void stpr_calibrate(steppers_t stepperName, uint8_t blocking); 
 
 /**
- * @brief Move slider to 'pos' (SliderLow, SliderHigh, SliderPlate or SliderTake)
+ * @brief Move flaps stepper to 'pos' (FlapsOpen, FlapsPlant or FlapsPot)
+ * @param pos the position of the flaps stepper (FlapsOpen, FlapsPlant or FlapsPot)
+ * @param blocking true if the command is blocking (waits until finished), false if it's non-blocking
 */
-void slider_move(slider_pos_t pos);
+void flaps_move(flaps_pos_t pos, uint8_t blocking);
+
+/**
+ * @brief Move slider stepper to 'pos' (SliderLow, SliderHigh, SliderPlate or SliderTake)
+ * @param pos the position of the slider stepper (SliderLow, SliderHigh, SliderPlate or SliderTake)
+ * @param blocking true if the command is blocking (waits until finished), false if it's non-blocking
+*/
+void slider_move(slider_pos_t pos, uint8_t blocking);
+
 
 /**
  * @brief Move plate to slot number 'slot' ([-3 ; 3], 0 is neutral)
@@ -184,23 +234,33 @@ void slider_move(slider_pos_t pos);
 void plate_move(int slot);
 
 /**
- * @brief Sets the nominal and calibration speed of the stepper
+ * @brief Sets the nominal and initial speed of the stepper
+ * @param stepperName the stepper to setup the speed(StprPlate, StprSlider or StprFlaps)
+ * @param nominalSpeed is the upper bound of the speed limit for the stepper's speed
+ * @param initialSpeed is the initial speed that the stepper begins with at each movement
  */
-void stpr_setup_speed(int nominalSpeed, int calibrationSpeed, steppers_t stepper); 
+void stpr_setup_speed(int nominalSpeed, int initialSpeed, steppers_t stepperName); 
 
 /**
- * @brief Activates the calibration of given stepper
+ * @brief Sets the calibration speed and the small calibration speed of the stepper
+ * @param stepperName the stepper to setup the calibration speed (StprPlate, StprSlider or StprFlaps)
+ * @param calibrationSpeed is the nominal speed in calibration mode for the first calibration step
+ * @param smallCalibrationSpeed is the smaller speed used in the second calibration step
  */
-void stpr_calibrate(steppers_t stepper); 
+void stpr_setup_calib_speed(int calibrationSpeed, int smallCalibrationSpeed, steppers_t stepperName);
+
 
 /**
  * @brief Resets stepper module to be ready for another calibration
+ * @param stepperName the stepper to reset (StprPlate, StprSlider or StprFlaps)
  */
-void stpr_reset(steppers_t stepper); 
+void stpr_reset(steppers_t stepperName); 
 
 /**
  * @brief Sets up the acceleration of a stepper (lower 'acc' -> higher acceleration)
+ * @param stepperName the stepper to setup the acceleration (StprPlate, StprSlider or StprFlaps)
+ * @param acc_steps the acceleration counter of the stepper. At each "acc" steps, the stepper will increase its speed from its initial speed towards the nominal speed
 */
-void stpr_setup_acc(steppers_t stepper, uint8_t acc);
+void stpr_setup_acc(steppers_t stepperName, uint8_t accSteps);
 
 #endif
