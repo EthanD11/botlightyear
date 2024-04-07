@@ -1,16 +1,16 @@
 #include "position_control.h"
-#define VERBOSE
+// #define VERBOSE
 PositionController *init_position_controller() {
     PositionController* pc = (PositionController *) malloc(sizeof(PositionController));
     
     pc->speed_refl = 0.0;
     pc->speed_refr = 0.0;
 
-    pc->kp =  .4; // Proportional coefficient for distance error
-    pc->ka =  2.0; // Proportional coefficient for direction error
-    pc->kb = -0.1; // Proportional coefficient for orientation error
+    pc->kp =  .8; // Proportional coefficient for distance error
+    pc->ka =  3.0; // Proportional coefficient for direction error
+    pc->kb = -0.5; // Proportional coefficient for orientation error
     pc->kw =  2.0; // Propoortional coefficient for orientation error when position is reached
-    pc->position_tol = 2e-2;      // Acceptable static error on position (m)
+    pc->position_tol = 1e-2;      // Acceptable static error on position (m)
     pc->drift_tol    = 2e-1;      // Acceptable drift from reference position when reorienting (m)
     pc->angular_tol  = 1*M_PI/180; // Acceptable static error on orientation (rad, eq to 5 degrees)
 
@@ -78,9 +78,9 @@ void control_position(
             
             a = PIPERIODIC(-(theta-theta_ref) + atan2(dyR, dxR));
             b = PIPERIODIC(theta_ref - theta - a);
-            printf("a = %f\n", a);
+            // printf("a = %f\n", a);
             if (fabs(a) > M_PI_2) {
-                printf("a bigger than PI/2\n");
+                // printf("a bigger than PI/2\n");
                 p = -p;
                 a += (a > 0) ? -PI : PI;
                 b += (b > 0) ? -PI : PI;

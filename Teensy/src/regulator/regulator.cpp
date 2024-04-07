@@ -6,8 +6,8 @@ Regulator *init_regulator() {
     // reg->kp = 7.795856e-01; // Former t1_kp
     // reg->ki = 8.398411e-01 * REG_DELAY * 1e-3; // Former t1_ki
     
-    reg->kp = 13; // Former t1_kp
-    reg->ki = 44; // Former t1_ki
+    reg->kp = 6.0; // Former t1_kp
+    reg->ki = 20.0; // Former t1_ki
 
     reg->imax = 1; // Anti windup [V/V]
 
@@ -49,7 +49,7 @@ void control_speed(
     esl = speed_refl - rob_pos->speed_left;
     esr = speed_refr - rob_pos->speed_right;
 
-    alpha = exp(-reg->wc*dt)
+    alpha = exp(-reg->wc*dt);
     reg->el_filtered = alpha * reg->el_filtered + (1 - alpha) * esl;
     reg->er_filtered = alpha * reg->er_filtered + (1 - alpha) * esr;
 
