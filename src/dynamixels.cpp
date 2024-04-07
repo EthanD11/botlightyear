@@ -1,6 +1,5 @@
 #include "Dynamixels_sdk/dynamixel_sdk.h"
 #include "dynamixels.h"
-#include "SPI_Modules.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -272,16 +271,16 @@ void turn_solar(team_t team, double pres_angle) {
         // Write speed
         write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_MOVING_SPEED, 200);
         if (pres_angle == 0) {
-            dxl_goal_position = 622; 
+            dxl_goal_position = 780; 
         }
         else if (pres_angle == -90) {
             dxl_goal_position = 512; //No move
         }
         else if (pres_angle == 180) {
-            dxl_goal_position = 312; 
+            dxl_goal_position = 150; 
         }
         else if (pres_angle == 90) { //Opposite team
-            dxl_goal_position = 810;
+            dxl_goal_position = 0;
         }
         break;
         case Yellow:
@@ -342,9 +341,7 @@ void init_sp() {
 void solar_panel(team_t team, double angle) {
    if ((team == Blue) and ((-30 < angle) or (angle < -135))) {
     position_solar(DownS); 
-    lguSleep(0.5); 
     turn_solar(team, angle);
-    lguSleep(0.5);
     position_solar(UpS); } 
 
    else if ((team == Yellow) and (30 < angle < 130)) {
