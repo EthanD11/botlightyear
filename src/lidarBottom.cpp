@@ -4,7 +4,11 @@
 
 static double sizePlant = 0.05;
 int arraysize = 8000;
-/*
+bool printplotpy = false;
+
+///coordonnées en x,y selon le repère balise b3=(0,0)
+Point* zoneP;
+
 struct Point {
     double x;
     double y;
@@ -17,6 +21,7 @@ struct PlantZone {
     double startAngle;
     double endAngle;
     bool isAccessible;
+    bool empty;
     int numberPlant = 0;
     double* aPlant = new double[6];
     double* dPlant = new double[6];
@@ -30,29 +35,22 @@ double calculateAngle(Point a, Point b) {
     return std::atan2(b.y - a.y, b.x - a.x);
 }
 
-PlantZone* zoneInPolar(Point robot) {
-    PlantZone* polarCoord = new PlantZone[6];
-    Point* zoneP = new Point[6]{{-0.6, 0}, {-0.3, 0.5},{0.3, 0.5}, {0.6, 0}, {0.3, -0.5},{-0.3, -0.5}};
+void zoneInPolar(Point robot, PlantZone** polarCoord) {
     for (int i = 0; i < 6; ++i) {
         polarCoord[i].distance = calculateDistance(robot, zoneP[i]);
         polarCoord[i].angle = calculateAngle(robot, zoneP[i]) - robot.orientation;
-
-        while (polarCoord[i].angle > M_PI) {
-            polarCoord[i].angle -= 2 * M_PI;
-        }
-        while (polarCoord[i].angle <= -M_PI) {
-            polarCoord[i].angle += 2 * M_PI;
-        }
-
+        ///angle compris entre -PI et PI
+        polarCoord[i].angle = std::fmod((polarCoord[i].angle +M_PI), (2*M_PI))-M_PI
     }
-    //TODO utile pour plot py
-    //printf("[%f, %f, %f, %f, %f, %f], ",  polarCoord[0].angle, polarCoord[1].angle, polarCoord[2].angle, polarCoord[3].angle, polarCoord[4].angle, polarCoord[5].angle);
-    //printf("[%f, %f, %f, %f, %f, %f]\n\n",  polarCoord[0].distance, polarCoord[1].distance, polarCoord[2].distance, polarCoord[3].distance, polarCoord[4].distance, polarCoord[5].distance);
+    if (printplotpy){
+        printf("[%f, %f, %f, %f, %f, %f], ",  polarCoord[0].angle, polarCoord[1].angle, polarCoord[2].angle, polarCoord[3].angle, polarCoord[4].angle, polarCoord[5].angle);
+        printf("[%f, %f, %f, %f, %f, %f]\n\n",  polarCoord[0].distance, polarCoord[1].distance, polarCoord[2].distance, polarCoord[3].distance, polarCoord[4].distance, polarCoord[5].distance);
+    }
 
-    return polarCoord;
+    return 1;
 }
 
-void lidarGetPlantPosition(Point robot, double* angles, double* distances, double* obstacle, int arraysize){*/
+void lidarGetPlantPosition(Point robot, double* angles, double* distances, double* obstacle, int arraysize, PlantZone** plantZone){
     /*
      * ______________________
      * |                     |
@@ -65,13 +63,13 @@ void lidarGetPlantPosition(Point robot, double* angles, double* distances, doubl
      * |                     |
      * |_____________________|
      */
-/*
 
     //Etape 1 : coordonées des zones
-    PlantZone* plantZone = zoneInPolar(robot);
+    zoneInPolar(robot, plantZone);
+    //a cette etape, plantzone->distance,->angle sont rempli
 
     //Etape 2 : est-ce face à nous ?
-    float deltaAngle;
+    double deltaAngle;
     for (int i = 0; i < 6; ++i) {
         deltaAngle = atan(0.3/plantZone[i].distance);//on estime le rayon a 25cm et donc 30 par sécurité
         plantZone[i].startAngle = plantZone[i].angle-deltaAngle;
@@ -89,12 +87,20 @@ void lidarGetPlantPosition(Point robot, double* angles, double* distances, doubl
         }
         //end Modulo
 
+        //TODO CHECK THIS
+        /*
+         * plantZone[i].startAngle= std::fmod((plantZone[i].startAngle +M_PI), (2*M_PI))-M_PI
+         * plantZone[i].endAngle= std::fmod((plantZone[i].endAngle +M_PI), (2*M_PI))-M_PI
+         */
+
         if (plantZone[i].angle<M_PI/4 || plantZone[i].angle>7*M_PI/4){
             plantZone[i].isAccessible = true;
         } else{
             plantZone[i].isAccessible = false;
         }
     }
+    /// à cette étape, on sait les angles de depart et de fin des zones ainsi que si la zone est accessible
+
     //TODO DELETE TEST
     //for (int i = 0; i < 6; ++i) {
         //plantZone[i].startAngle = 355*M_PI/180;
@@ -115,8 +121,6 @@ void lidarGetPlantPosition(Point robot, double* angles, double* distances, doubl
     int start, stop, i;
     int countGap = 0;
     double size, a1, a2, d1, d2;
-
-
     for (int zp = 0; zp < 6; ++zp) {
         if (plantZone[zp].isAccessible){
             //TODO améliorer le start stop car parfois imprecision °
@@ -177,15 +181,12 @@ void lidarGetPlantPosition(Point robot, double* angles, double* distances, doubl
         }
     }
     for (int j = 0; j < 6; ++j) {
-        //printf(" count : %d \n", plantZone[j].numberPlant);
         for (int k = 0; k < plantZone[j].numberPlant; ++k) {
             printf("%f, ", plantZone[j].dPlant[k]);
         }
-
     }
     printf("\n");
     for (int j = 0; j < 6; ++j) {
-        //printf(" count : %d \n", plantZone[j].numberPlant);
         for (int k = 0; k < plantZone[j].numberPlant; ++k) {
             printf("%f, ", plantZone[j].aPlant[k]);
         }
@@ -196,7 +197,7 @@ void lidarGetPlantPosition(Point robot, double* angles, double* distances, doubl
 
 }
 
-int getNumberOfPlant(double x_robot, double y_robot, double theta_robot, int zone){
+int getNumberOfPlantInZone(double x_robot, double y_robot, double theta_robot, int* zone){
     double* angles = new double[8000];
     double* distances = new double[8000];
     double* quality = new double[8000];
@@ -209,8 +210,12 @@ int getNumberOfPlant(double x_robot, double y_robot, double theta_robot, int zon
     arraySize = as[0];
     lidarGetPlantPosition(robot, angles, distances, obj, asize[0]);
 
-
-
 }
 
-*/
+void initBottomLidar(PlantZone* polarCoord ){
+    zoneP = new Point[6]{{-0.6, 0}, {-0.3, 0.5},{0.3, 0.5}, {0.6, 0}, {0.3, -0.5},{-0.3, -0.5}};
+
+    polarCoord = new PlantZone[6];
+    polarCoord[i] = new PlantZone[sizeof(PlantZone)];
+
+}
