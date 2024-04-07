@@ -1,5 +1,6 @@
 #include "Dynamixels_sdk/dynamixel_sdk.h"
 #include "dynamixels.h"
+#include "SPI_Modules.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -201,7 +202,7 @@ void position_solar(sp_position_t position) {
             dxl_goal_position = 215;
             break;
         case DownS:
-            dxl_goal_position = 515;
+            dxl_goal_position = 520;
             break;
     }
 
@@ -210,7 +211,7 @@ void position_solar(sp_position_t position) {
 
     // Write CW/CCW position
     write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_CW_ANGLE_LIMIT, 215); 
-    write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_CCW_ANGLE_LIMIT, 515);
+    write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_CCW_ANGLE_LIMIT, 520);
 
     // Write speed
     write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_MOVING_SPEED, 200);
@@ -287,16 +288,16 @@ void turn_solar(team_t team, double pres_angle) {
         // Write speed
         write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_MOVING_SPEED, 200);
         if (pres_angle == 0) {
-            dxl_goal_position = 312; 
+            dxl_goal_position = 150; 
         }
         else if (pres_angle == 90) {
             dxl_goal_position = 512; //No move
         }
         else if (pres_angle == 180) {
-            dxl_goal_position = 622; 
+            dxl_goal_position = 780; 
         }
         else if (pres_angle == -90) { //Opposite team
-            dxl_goal_position = 810;
+            dxl_goal_position = 1023;
         }
         break;
     }
@@ -336,4 +337,20 @@ void init_sp() {
       write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_GOAL_POSITION, dxl_goal_position);
       //printf("position_solar [ID:%03d] GoalPos:%03d  PresPos:%03d\n", 6, dxl_goal_position, dxl_present_position);
     }
+}
+
+void solar_panel(team_t team, double angle) {
+   if ((team == Blue) and ((-30 < angle) or (angle < -135))) {
+    position_solar(DownS); 
+    lguSleep(0.5); 
+    turn_solar(team, angle);
+    lguSleep(0.5);
+    position_solar(UpS); } 
+
+   else if ((team == Yellow) and (30 < angle < 130)) {
+    position_solar(DownS); 
+    turn_solar(team, angle);
+    position_solar(UpS); }
+
+    init_sp(); 
 }

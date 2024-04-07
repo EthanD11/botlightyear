@@ -44,4 +44,6 @@ void multiturn_solar(direction_t direction);
 void turn_solar(team_t team, double pres_angle); 
 void init_sp(); 
 
+void solar_panel(team_t team, double angle); 
+
 #endif

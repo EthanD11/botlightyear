@@ -2,7 +2,8 @@
 #include <unistd.h>
 #include <cstdio>
 
-#define SOLAR_PANELS
+#define FINAL_SP
+//#define SOLAR_PANELS
 //#define EXTENDED_SOLAR_PANELS
 // #define GRIPPER_OPEN_CLOSE
 //#define GRIPPER_UP_DOWN
@@ -21,10 +22,14 @@ int main(int argc, char const *argv[])
     dxl_ping(8, 1.0);
 
 
+    #ifdef FINAL_SP
+    solar_panel(Yellow, 0);
+    #endif
+
     #ifdef SOLAR_PANELS
     position_solar(DownS);
     sleep(0.5);
-    turn_solar(Yellow, 180);
+    turn_solar(Yellow, 0);
     sleep(0.5);
     position_solar(UpS);
     sleep(0.5); 
