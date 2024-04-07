@@ -248,7 +248,7 @@ void *homologation(void* v) {
 
 void *topLidar(void* v) {
     printf("Entering topLidar thread \n");
-    StartLidar();
+    StartLidarTop();
     LidarData *lidarData = new LidarData[sizeof(LidarData)];
     init_lidar(lidarData);
     int i = 0;
@@ -270,7 +270,7 @@ void *topLidar(void* v) {
         }
     }
 
-    StopLidar();
+    StopLidarTop();
     clear_lidar(lidarData);
     delete (lidarData);
     return 0;
