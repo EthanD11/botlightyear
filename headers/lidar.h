@@ -52,7 +52,6 @@ void updateDataFileTop(double* angles, double* distances, double* quality, strin
  */
 void DataToFileTop(string filename);
 
-void init_lidarTop(LidarData *lidarData);
 
 
 
