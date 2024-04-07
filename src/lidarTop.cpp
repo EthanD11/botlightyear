@@ -826,6 +826,7 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
     delete (as);
     //StopLidar();
 
+    if(!lidarData->readLidar_lost){
     //2 des positions pour etre centré au niveau des roues sauf la distance et l'angle de l'adversaire
     lidarData->readLidar_x_robot = lidarData->x_robot-0.1*sin(lidarData->orientation_robot)+deltaXB3;
     lidarData->readLidar_y_robot = lidarData->y_robot-0.1*cos(lidarData->orientation_robot)+deltaYB3;
@@ -833,7 +834,7 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
     lidarData->readLidar_x_opponent = lidarData->x_adv+deltaXB3;
     lidarData->readLidar_y_opponent = lidarData->y_adv+deltaYB3;;
     lidarData->readLidar_d_opponent = lidarData->d_adv;
-    lidarData->readLidar_a_opponent = lidarData->a_adv;
+    lidarData->readLidar_a_opponent = lidarData->a_adv;}
 }
 
 void init_lidar(LidarData *lidarData) {

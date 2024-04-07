@@ -7,14 +7,14 @@
 
 /**
  * function that can be called by other files to retrieve robot position from a reference frame
- *   ________________1______________
- *  |                              |
- *  |                              |
- *  |                              |
- *  |                              |
- *  |                              |
- *  |______________________________|
- * 3                               2
+ *   ______1______
+ *  |             |
+ *  |             |
+ *  |             |
+ *  |             |
+ *  |             |
+ *  |_____________|
+ * 3               2
  * Beacon 3 at (0,0)
  *
  * @param lidarData : structure with previous data and where we save new data
