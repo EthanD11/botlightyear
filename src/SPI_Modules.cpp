@@ -38,14 +38,14 @@ void close_spi() {
 
 uint8_t init_spi2() {
     int SPI2_handle = lgGpiochipOpen(4);
-    if (handle < 0) return 1;
+    if (SPI2_handle < 0) return 1;
 
     claim_gpio(StprSliderGPIO); 
     claim_gpio(StprPlateGPIO); 
     claim_gpio(StprFlapsGPIO); 
     claim_gpio(BpSwitchFlapsLeftGPIO); 
     claim_gpio(BpSwitchFlapsRightGPIO); 
-    return 0
+    return 0;
 }
 
 void close_spi2() {
@@ -60,7 +60,7 @@ void close_spi2() {
 uint8_t claim_gpio(uint8_t gpio_pin) {
     if (lgGpioSetUser(SPI2_handle, "Bot Lightyear") < 0) return 2;
     if (lgGpioClaimInput(SPI2_handle, LG_SET_PULL_NONE, gpio_pin) != 0) return 3;
-    return 0
+    return 0;
 }
 
 void free_gpio(uint8_t gpio_pin) {
