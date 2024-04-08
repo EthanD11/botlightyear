@@ -72,7 +72,7 @@ int main(int argc, char const *argv[])
     #endif
 
     #ifdef SPEED_CONTROL
-    teensy_spd_ctrl(0.4, 0.4);
+    teensy_spd_ctrl(0.2, 0.2);
     #endif
 
     #ifdef DC_CONTROL
