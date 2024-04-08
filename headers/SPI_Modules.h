@@ -6,9 +6,6 @@
 #include <unistd.h>
 #include "math.h"
 
-#define VERBOSE
-#include <stdio.h>
-
 // SPI
 #define SPI_DE0 1
 #define SPI_TEENSY 0
@@ -106,6 +103,16 @@ void odo_get_tick(int32_t *tick_left, int32_t *tick_right);
 void odo_reset();
 
 /**
+ * @brief Set the DE0's internal position to (x,y,theta). Resets internal odometer values
+*/
+void odo_set_pos(double x, double y, double theta);
+
+/**
+ * @brief Get the DE0's internal position and 
+*/
+void odo_get_pos(double *x, double *y, double *theta);
+
+/**
  * @brief Initializes sonar pins
 
 void init_sonar();
@@ -189,8 +196,8 @@ int teensy_ask_mode();
 /**
  * @brief Ask current position to Teensy, based on odometry.
  * 
- */
-void teensy_ask_pos(double *x, double *y, double *theta);
+ 
+void teensy_ask_pos(double *x, double *y, double *theta);*/
 
 // ------ SERVOS -----
 

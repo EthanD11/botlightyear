@@ -1,15 +1,11 @@
 #include "SPI_Modules.h"
 #include <pthread.h>
+#include <stdio.h>
+
+//#define VERBOSE
 
 int DE0_handle, Teensy_handle, SPI2_handle;
 pthread_mutex_t spi_mutex;
-//const unsigned int sonar_GPIO_Trig = 16;
-//const unsigned int sonar_GPIO_Echo = 19;
-
-const char servo_left_dc_deployed = 15;
-const char servo_left_dc_raised = 21;
-const char servo_right_dc_deployed = 23;
-const char servo_right_dc_raised = 17;
 
 // Converts words from big endian to little endian (and vice versa)
 // https://codereview.stackexchange.com/questions/151049/endianness-conversion-in-c
@@ -36,35 +32,31 @@ void close_spi() {
 
 int test_spi() {
 
-    // TODO : Add test communication with Teensy
+    char send1[5]; send1[0] = 0; // Test read
+    char send2[] = {0x9F,0x05,0x04,0x03,0x02}; // Test write
+    char send3[5]; send3[0] = 0x1F;
+    char receive1[5]; char receive3[5];
 
-    char send[] = {0,0,0,0,0};
-    char receive[5];
+    pthread_mutex_lock(&spi_mutex);
+    lgSpiXfer(DE0_Handle, send1, receive1, 5);
+    lgSpiWrite(DE0_Handle, send2, 5);
+    lgSpiXfer(DE0_Handle, send3, receive3, 5);
+    pthread_mutex_unlock(&spi_mutex);
+
     uint8_t failure = 0;
-    lgSpiXfer(DE0_Handle, send, receive, 5);
     for (int i = 0; i < 5; i++)
     {
-        if (receive[i] != i) {
-            printf("SPI test 1 failed : receive[%d] == %d != %d\n",i,receive[i],i);
+        if (receive1[i] != i) {
+            printf("SPI test 1 failed : receive[%d] == %d != %d\n",i,receive1[i],i);
             failure = 1;
         }
     }
-    
-    if (failure) return failure;
-
-    // store in register
-    send[0] = 0x8F; send[1] = 0x05; send[2] = 0x04; send[3] = 0x03; send[4] = 0x02;
-    lgSpiXfer(DE0_Handle, send, receive, 5);
-
-    // read register
-    send[0] = 0x0F; send[1] = 0x00; send[2] = 0x00; send[3] = 0x00; send[4] = 0x00;
-    lgSpiXfer(DE0_Handle, send, receive, 5);
-    if (receive[0] != 0x00) {printf("SPI test 2 failed : receive[%d] == %d != %d\n",0,receive[0],0x00); failure = 2;}
-    if (receive[1] != 0x05) {printf("SPI test 2 failed : receive[%d] == %d != %d\n",1,receive[1],0x05); failure = 2;}
-    if (receive[2] != 0x04) {printf("SPI test 2 failed : receive[%d] == %d != %d\n",2,receive[2],0x04); failure = 2;}
-    if (receive[3] != 0x03) {printf("SPI test 2 failed : receive[%d] == %d != %d\n",3,receive[3],0x03); failure = 2;}
-    if (receive[4] != 0x02) {printf("SPI test 2 failed : receive[%d] == %d != %d\n",4,receive[4],0x02); failure = 2;}
-    return 0;
+    if (receive3[0] != 0x00) {printf("SPI test 2 failed : receive1[%d] == %d != %d\n",0,receive3[0],0x00); failure |= 2;}
+    if (receive3[1] != 0x05) {printf("SPI test 2 failed : receive1[%d] == %d != %d\n",1,receive3[1],0x05); failure |= 2;}
+    if (receive3[2] != 0x04) {printf("SPI test 2 failed : receive1[%d] == %d != %d\n",2,receive3[2],0x04); failure |= 2;}
+    if (receive3[3] != 0x03) {printf("SPI test 2 failed : receive1[%d] == %d != %d\n",3,receive3[3],0x03); failure |= 2;}
+    if (receive3[4] != 0x02) {printf("SPI test 2 failed : receive1[%d] == %d != %d\n",4,receive3[4],0x02); failure |= 2;}
+    return failure;
 }
 
 // ----- SPI 2 ------
@@ -104,30 +96,90 @@ void free_gpio(uint8_t gpio_pin) {
 
 void odo_get_tick(int32_t *tick_left, int32_t *tick_right) {
 
-    char send1[] = {0x01,0,0,0,0};
-    char send2[] = {0x02,0,0,0,0};
-    char receive1[5];
-    char receive2[5];
+    char sendl[5]; sendl[0] = 0x01;
+    char sendr[5]; sendr[0] = 0x02;
+    char receivel[5];
+    char receiver[5];
     pthread_mutex_lock(&spi_mutex);
-    lgSpiXfer(DE0_handle, send1, receive1, 5);
-    lgSpiXfer(DE0_handle, send2, receive2, 5);
+    lgSpiXfer(DE0_handle, sendl, receivel, 5);
+    lgSpiXfer(DE0_handle, sendr, receiver, 5);
     pthread_mutex_unlock(&spi_mutex);
 
     // left
-    *tick_left = *((int32_t *)(&(receive1[1])));
+    *tick_left = *((int32_t *)(&(receivel[1])));
     *tick_left = Reverse32(*tick_left);
     
     // right
-    *tick_right = *((int32_t *)(&(receive2[1])));
+    *tick_right = *((int32_t *)(&(receiver[1])));
     *tick_right = Reverse32(*tick_right);
 
 }
 
 void odo_reset() {
-    char send[] = {0x7F,0,0,0,0};
+    char send[5]; send[0] = 0x7F;
     pthread_mutex_lock(&spi_mutex);
     lgSpiWrite(DE0_handle, send, 5);
     pthread_mutex_unlock(&spi_mutex);
+}
+
+void odo_set_pos(double x, double y, double theta) {
+    
+    char sendx[5]; char sendy[5]; char sendt[5]; char sendr[5]; 
+    float x_crop = (float) x, y_crop = (float) y, theta_crop = (float) theta;
+    
+    int32_t send_float;
+
+    send_float = *((int32_t*)(&x_crop));
+    sendx[0] = 0x90;
+    sendx[1] = send_float >> 24;
+    sendx[2] = (send_float & 0xFF0000) >> 16;
+    sendx[3] = (send_float & 0xFF00) >> 8;
+    sendx[4] = send_float & 0xFF;
+
+    send_float = *((int32_t*) (&y_crop));
+    sendy[0] = 0x91;
+    sendy[1] = send_float >> 24;
+    sendy[2] = (send_float & 0xFF0000) >> 16;
+    sendy[3] = (send_float & 0xFF00) >> 8;
+    sendy[4] = send_float & 0xFF;
+
+    send_float = *((int32_t*) (&theta_crop));
+    sendt[0] = 0x92;
+    sendt[1] = send_float >> 24;
+    sendt[2] = (send_float & 0xFF0000) >> 16;
+    sendt[3] = (send_float & 0xFF00) >> 8;
+    sendt[4] = send_float & 0xFF;
+
+    sendr[0] = 0x7F;
+
+    pthread_mutex_lock(&spi_mutex);
+    lgSpiWrite(DE0_handle, sendx, 5);
+    lgSpiWrite(DE0_handle, sendy, 5);
+    lgSpiWrite(DE0_handle, sendt, 5);
+    lgSpiWrite(DE0_handle, sendr, 5);
+    pthread_mutex_unlock(&spi_mutex);
+}
+
+void odo_get_pos(double *x, double *y, double *theta){
+    char sendx[5]; char sendy[5]; char sendt[5];
+    char receivex[5]; char receivey[5]; char receivet[5];
+    sendx[0] = 0x03; sendy[0] = 0x04; sendt[0] = 0x05;
+    
+    pthread_mutex_lock(&spi_mutex);
+    lgSpiXfer(DE0_handle, sendx, receivex, 5);
+    lgSpiXfer(DE0_handle, sendy, receivey, 5);
+    lgSpiXfer(DE0_handle, sendt, receivet, 5);
+    pthread_mutex_unlock(&spi_mutex);
+
+    int32_t receive_int;
+    float *receive_float = (float*) &receive_int;
+
+    receive_int = Reverse32(*(int32_t *)(&(receivex[1])));
+    *x = (double) *receive_float;
+    receive_int = Reverse32(*(int32_t *)(&(receivey[1])));
+    *y = (double) *receive_float;
+    receive_int = Reverse32(*(int32_t *)(&(receivet[1])));
+    *theta = (double) *receive_float;
 }
 
 // ----- Sonars -----
@@ -160,7 +212,6 @@ void teensy_path_following(double *x, double *y, int ncheckpoints, double theta_
     size_t message_size = sizeof(char)*2 + sizeof(uint16_t)*(2*ncheckpoints+4);
     // Send vector. Needs to be malloced since it is variable size
     char send[message_size];
-    char receive[message_size];
 
     // Send the query over a single byte
     char *send_query = (char *) send;
@@ -179,16 +230,20 @@ void teensy_path_following(double *x, double *y, int ncheckpoints, double theta_
     send_points[2*ncheckpoints+2] = (uint16_t) (UINT16_MAX*(vref/2.0));
     send_points[2*ncheckpoints+3] = (uint16_t) (UINT16_MAX*(dist_goal_reached/3.0));
 
+    #ifdef VERBOSE
+    char receive[message_size];
     pthread_mutex_lock(&spi_mutex);
     lgSpiXfer(Teensy_handle, send, receive, message_size);
     pthread_mutex_unlock(&spi_mutex);
-
-    #ifdef VERBOSE
     printf("Sending path following\n");
     for (size_t i = 0; i < message_size; i++)
     {
         printf("%d, %d\n", send[i], receive[i]);
     }
+    #else
+    pthread_mutex_lock(&spi_mutex);
+    lgSpiWrite(Teensy_handle, send, message_size);
+    pthread_mutex_unlock(&spi_mutex);
     #endif
 }
 
@@ -201,17 +256,20 @@ void teensy_set_position(double x, double y, double theta) {
     send_ref[1] = (uint16_t) (UINT16_MAX*(y/3.0));  // yr compressed
     send_ref[2] = (uint16_t) (UINT16_MAX*((theta+M_PI)/(M_PI*2)));  // tr compressed
 
+    #ifdef VERBOSE
     char receive[7];
     pthread_mutex_lock(&spi_mutex);
     lgSpiXfer(Teensy_handle, send, receive, 7);
     pthread_mutex_unlock(&spi_mutex);
-
-    #ifdef VERBOSE
     printf("Sending Set Position\n");
     for (int i = 0; i < 7; i++)
     {
         printf("%d, %d\n",send[i], receive[i]);
     }
+    #else
+    pthread_mutex_lock(&spi_mutex);
+    lgSpiWrite(Teensy_handle, send, 7);
+    pthread_mutex_unlock(&spi_mutex);
     #endif
 }
 
@@ -225,17 +283,20 @@ void teensy_pos_ctrl(double xr, double yr, double theta_r) {
     send_ref[1] = (uint16_t) (UINT16_MAX*(yr/3.0));  // yr compressed
     send_ref[2] = (uint16_t) (UINT16_MAX*((theta_r+M_PI)/(M_PI*2)));  // tr compressed
 
+    #ifdef VERBOSE
     char receive[7];
     pthread_mutex_lock(&spi_mutex);
     lgSpiXfer(Teensy_handle, send, receive, 7);
     pthread_mutex_unlock(&spi_mutex);
-
-    #ifdef VERBOSE
     printf("Sending Position ctrl \n");
     for (int i = 0; i < 7; i++)
     {
         printf("%d, %d\n",send[i], receive[i]);
     }
+    #else
+    pthread_mutex_lock(&spi_mutex);
+    lgSpiWrite(Teensy_handle, send, 7);
+    pthread_mutex_unlock(&spi_mutex);
     #endif
 }
 
@@ -243,23 +304,26 @@ void teensy_pos_ctrl(double xr, double yr, double theta_r) {
 /*void teensy_spd_ctrl(double speed_left, double speed_right) {
     // Compression to go to SPI
     char send[5];
-    char receive[5];
     send[0] = (char) QueryDoSpeedControl;
 
     uint16_t *send_ref = (uint16_t *) (send + sizeof(char));
     send_ref[0] = (uint16_t) ((speed_left/2.0)*UINT16_MAX);   // speed_left compressed
     send_ref[1] = (uint16_t) ((speed_right/2.0)*UINT16_MAX);   // speed_right compressed
 
+    #ifdef VERBOSE
+    char receive[5];
     pthread_mutex_lock(&spi_mutex);
     lgSpiXfer(Teensy_handle, send, receive, 5);
     pthread_mutex_unlock(&spi_mutex);
-
-    #ifdef VERBOSE
     printf("Sending Speed ctrl \n");
     for (int i = 0; i < 5; i++)
     {
         printf("%d, %d\n",send[i], receive[i]);
     }
+    #else
+    pthread_mutex_lock(&spi_mutex);
+    lgSpiWrite(Teensy_handle, send, 5);
+    pthread_mutex_unlock(&spi_mutex);
     #endif
     
 }*/
@@ -267,22 +331,25 @@ void teensy_pos_ctrl(double xr, double yr, double theta_r) {
 void teensy_constant_dc(int dc_refl, int dc_refr) {
     // Compression to go to SPI
     char send[5];
-    char receive[5];
     send[0] = (char) QueryDoConstantDutyCycle;
     uint16_t *send_ref = (uint16_t*) (send + sizeof(char));
     send_ref[0] = (uint16_t) (((double) SATURATE(dc_refl, -255,255))+255.0);  // speed_left compressed
     send_ref[1] = (uint16_t) (((double) SATURATE(dc_refr, -255, 255))+255.0);   // speed_right compressed
 
+    #ifdef VERBOSE
+    char receive[5];
     pthread_mutex_lock(&spi_mutex);
     lgSpiXfer(Teensy_handle, send, receive, 5);
     pthread_mutex_unlock(&spi_mutex);
-
-    #ifdef VERBOSE
     printf("Sending constant DC ctrl \n");
     for (int i = 0; i < 5; i++)
     {
         printf("%d, %d\n",send[i], receive[i]);
     }
+    #else
+    pthread_mutex_lock(&spi_mutex);
+    lgSpiWrite(Teensy_handle, send, 5);
+    pthread_mutex_unlock(&spi_mutex);
     #endif
 }
 
@@ -317,7 +384,6 @@ void teensy_set_position_controller_gains(double kp, double ka, double kb, doubl
     // Compression to go to SPI
     int message_size = 1 + 2*4;
     char send[9];
-    char receive[9];
     send[0] = (char) QuerySetPositionControlGains;
 
     uint16_t *send_ref = (uint16_t *) (send + sizeof(char));
@@ -326,16 +392,20 @@ void teensy_set_position_controller_gains(double kp, double ka, double kb, doubl
     send_ref[2] = (uint16_t) ((-kb/20)*UINT16_MAX);   // speed_right compressed
     send_ref[3] = (uint16_t) ((kw/50)*UINT16_MAX);   // speed_right compressed
 
+    #ifdef VERBOSE
+    char receive[9];
     pthread_mutex_lock(&spi_mutex);
     lgSpiXfer(Teensy_handle, send, receive, message_size);
     pthread_mutex_unlock(&spi_mutex);
-
-    #ifdef VERBOSE
     printf("Sending Speed ctrl \n");
     for (int i = 0; i < message_size; i++)
     {
         printf("%d, %d\n",send[i], receive[i]);
     }
+    #else
+    pthread_mutex_lock(&spi_mutex);
+    lgSpiWrite(Teensy_handle, send, message_size);
+    pthread_mutex_unlock(&spi_mutex);
     #endif
 }
 
@@ -343,7 +413,6 @@ void teensy_set_path_following_gains(double kt, double kn, double kz, double sig
     // Compression to go to SPI
     int message_size = 1 + 2*8;
     char send[17];
-    char receive[17];
     send[0] = (char) QuerySetPathFollowerGains;
 
     uint16_t *send_ref = (uint16_t *) (send + sizeof(char));
@@ -356,21 +425,23 @@ void teensy_set_path_following_gains(double kt, double kn, double kz, double sig
     send_ref[6] = (uint16_t) ((delta)*UINT16_MAX);   // speed_right compressed
     send_ref[7] = (uint16_t) ((wn/100)*UINT16_MAX);   // speed_right compressed
 
+    
+
+    #ifdef VERBOSE
+    char receive[17];
     pthread_mutex_lock(&spi_mutex);
     lgSpiXfer(Teensy_handle, send, receive, message_size);
     pthread_mutex_unlock(&spi_mutex);
-
-    #ifdef VERBOSE
     printf("Sending Speed ctrl \n");
     for (int i = 0; i < message_size; i++)
     {
         printf("%d, %d\n",send[i], receive[i]);
     }
+    #else
+    pthread_mutex_lock(&spi_mutex);
+    lgSpiWrite(Teensy_handle, send, message_size);
+    pthread_mutex_unlock(&spi_mutex);
     #endif
-}
-
-void teensy_ask_pos(double *x, double *y, double *theta) {
-    
 }
 
 
@@ -524,7 +595,7 @@ void stpr_move(steppers_t stepperName, uint32_t steps, uint8_t neg, uint8_t bloc
     lgSpiWrite(DE0_handle, send, 5);
     pthread_mutex_unlock(&spi_mutex);
 
-     if (blocking = CALL_BLOCKING) {
+     if (blocking == CALL_BLOCKING) {
         
         spi2_gpio_t stepper_gpio; 
         switch (stepperName) {
@@ -581,7 +652,7 @@ void stpr_calibrate(steppers_t stepperName, uint8_t blocking = CALL_NON_BLOCKING
     pthread_mutex_lock(&spi_mutex);
     lgSpiWrite(DE0_handle, send, 5);
     pthread_mutex_unlock(&spi_mutex);
-    if (blocking = CALL_BLOCKING) {
+    if (blocking == CALL_BLOCKING) {
         
         spi2_gpio_t stepper_gpio; 
         switch (stepperName) {
@@ -665,10 +736,10 @@ void slider_move(slider_pos_t pos, uint8_t blocking = CALL_NON_BLOCKING){
 void plate_move(int8_t pot, uint8_t blocking = CALL_NON_BLOCKING){
     //pot est une variable allant de -3 a 3 avec 0 la position de repos
     int direction = 0;
-    if (pot ==0){
+    if (pot == 0){
         stpr_move(StprPlate, 0, 0);   
     } else {
-        if (pot<0) {
+        if (pot < 0) {
             pot = -pot;
             direction = 1;
         }
@@ -805,10 +876,10 @@ void stpr_setup_acc(steppers_t stepperName, uint8_t accSteps) {
 
 }
 
-void stpr_calibrate_all() {
-    stpr_calibrate(StprFlaps);
-    stpr_calibrate(StprPlate);
-    stpr_calibrate(StprSlider);
+void stpr_calibrate_all(uint8_t blocking = CALL_NON_BLOCKING) {
+    stpr_calibrate(StprFlaps, blocking);
+    stpr_calibrate(StprPlate, blocking);
+    stpr_calibrate(StprSlider, blocking);
 }
 
 void stpr_reset_all() {
