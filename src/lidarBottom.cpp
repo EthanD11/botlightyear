@@ -10,21 +10,24 @@ bool printplotpy = false;
 ///coordonnées en x,y selon le repère balise b3=(0,0)
 Point** zoneP;
 
-double calculateDistance(Point a, Point b) {
-    return std::sqrt(std::pow(b.x - a.x, 2) + std::pow(b.y - a.y, 2));
+double calculateDistance(Point *a, Point *b) {
+    return std::sqrt(std::pow(b->x - a->x, 2) + std::pow(b->y - a->y, 2));
 }
 
-double calculateAngle(Point a, Point b) {
-    return std::atan2(b.y - a.y, b.x - a.x);
+double calculateAngle(Point *a, Point *b) {
+    return std::atan2(b->y - a->y, b->x - a->x);
 }
 
 void zoneInPolar(Point* robot, PlantZone** polarCoord) {
     printf("segfault de merde 1\n");
     for (int i = 0; i < 6; ++i) {
-        printf("segfault de merde 2 %f\n", robot->x);
-        polarCoord[i]->distance = calculateDistance(*robot, zoneP[i]);
+        printf("segfault de merde 2\n");
+        polarCoord[i]->distance = 0.0;
+        printf("segfault de merde 2.5\n");
+
+        polarCoord[i]->distance = calculateDistance(robot, zoneP[i]);
         printf("segfault de merde 3\n");
-        polarCoord[i]->angle = calculateAngle(*robot, zoneP[i]) - robot->theta;
+        polarCoord[i]->angle = calculateAngle(robot, zoneP[i]) - robot->theta;
         printf("segfault de merde 4\n");
         ///angle compris entre -PI et PI
         polarCoord[i]->angle = std::fmod((polarCoord[i]->angle +M_PI), (2*M_PI))-M_PI;
@@ -200,25 +203,49 @@ int getNumberOfPlantInZone(double x_robot, double y_robot, double theta_robot, i
     updateDataBottom(angles, distances, quality, asize);
     arraysize = asize[0];
     lidarGetPlantPosition(robot, angles, distances, obj, asize[0],plantZonePolar );
+    delete(angles);
+    delete(distances);
+    delete(quality);
+    delete(obj);
+    delete(robot);
+    delete(asize);
     return 1;
 }
 
 void initBottomLidar(PlantZone** polarCoord){
-    zoneP = new Point*[6];//{,,,,,};
-    zoneP[0] = new Point[sizeof(Point)]{-0.6, 0.0};//{new Point{-0.6, 0}, new Point{-0.3, 0.5}, new Point{0.3, 0.5}, new Point{0.6, 0}, new Point{0.3, -0.5}, new Point{-0.3, -0.5}};
-    zoneP[1] = new Point[sizeof(Point)]{-0.3, 0.5};
-    zoneP[2] = new Point[sizeof(Point)]{0.3, 0.5};
-    zoneP[3] = new Point[sizeof(Point)]{0.6, 0.0};
-    zoneP[4] = new Point[sizeof(Point)]{0.3, -0.5};
-    zoneP[5] = new Point[sizeof(Point)]{-0.3, -0.5};
+    zoneP = new Point*[6*sizeof(Point)];//{,,,,,};
+    zoneP[0] = new Point[sizeof(Point)];//{new Point{-0.6, 0}, new Point{-0.3, 0.5}, new Point{0.3, 0.5}, new Point{0.6, 0}, new Point{0.3, -0.5}, new Point{-0.3, -0.5}};
+    zoneP[0]->x = -0.6;
+    zoneP[0]->y = 0.0;
+    zoneP[1] = new Point[sizeof(Point)];
+    zoneP[1]->x = -0.3;
+    zoneP[1]->y = 0.5;
+    zoneP[2] = new Point[sizeof(Point)];
+    zoneP[2]->x = 0.3;
+    zoneP[2]->y = 0.5;
+    zoneP[3] = new Point[sizeof(Point)];
+    zoneP[3]->x = 0.6;
+    zoneP[3]->y = 0.0;
+    zoneP[4] = new Point[sizeof(Point)];
+    zoneP[4]->x = 0.3;
+    zoneP[4]->y = -0.5;
+    zoneP[5] = new Point[sizeof(Point)];
+    zoneP[5]->x = -0.3;
+    zoneP[5]->y =  -0.5;
 
-    
-    
-    printf("ooo %f\n", zoneP[0]->x);
-    polarCoord = new PlantZone*[6];
     for (int i=0; i<6;i++){
-        polarCoord[i] = new PlantZone[sizeof(PlantZone)];
-
+        polarCoord[i]= new PlantZone[sizeof(PlantZone)];
+        polarCoord[i]->distance=0.0;
     }
 
+}
+void deleteBottomLidar(PlantZone** polarCoord){
+    for (size_t i = 0; i < 6; i++)
+    {
+        delete(polarCoord[i]);
+        delete(zoneP[i]);
+    }
+    delete(polarCoord);
+    delete(zoneP);
+    
 }

@@ -21,6 +21,7 @@ typedef struct PlantZone {
 }PlantZone;
 
 
+
 int getNumberOfPlantInZone(double x_robot, double y_robot, double theta_robot, int* zone, PlantZone** plantZonePolar);
 //void obstaclesPosition(double* dCoin, double* aCoin, double* angles, double* distances, double* dObstacles, double* aObstacles);
 void initBottomLidar(PlantZone** polarCoord);

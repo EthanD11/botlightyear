@@ -7,7 +7,14 @@ int main(int argc, char *argv[]) {
     StartLidarBottom();
     auto started = std::chrono::high_resolution_clock::now();
     int* zone = new int[6]{1,1,1,1,1,1};
-    PlantZone** plantZonePolar;
+    PlantZone** plantZonePolar = new PlantZone*[6*sizeof(PlantZone)];
+
+    initBottomLidar(plantZonePolar);
+
+    for (size_t i = 0; i < 6; i++)
+    {
+        printf("%f\n",plantZonePolar[i]->distance);
+    }
     int res = getNumberOfPlantInZone(25.0, 10.0, 0.0, zone, plantZonePolar);
     StopLidarBottom();
     printf("\n");
