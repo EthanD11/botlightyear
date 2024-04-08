@@ -26,13 +26,13 @@ int main(int argc, char const *argv[])
     #endif
 
     #ifdef TEST_POS_TRACK
-    double x = 1, y = 1, theta = 1;
+    double x = 0, y = 0, theta = 0;
     odo_set_pos(x, y, theta);
     while (1)
     {
         odo_get_pos(&x,&y,&theta);
         printf("%.3f,%.3f,%.3f\n", x, y, theta*180/3.1416);
-        time_sleep(0.05);
+        lguSleep(0.05);
     }
     #endif
 
