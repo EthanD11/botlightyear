@@ -15,6 +15,11 @@
 #define SPI_MODE_DEFAULT 0
 #define SPI_SPEED_HZ_DEFAULT 100000 // Arbitrary, but 500000 is reasonable
 
+// SPI2 
+
+#define CALL_BLOCKING 1
+#define CALL_NON_BLOCKING 0
+
 
 // Odometers conversion factors
 #define ODO_TICKS_TO_M 1.7257283863713464e-05 // Conversion factor ticks to meters. (theoretical : pi*45e-3/8192; practical : 610e-3/(2**3+2**4+2**6+4*2**11))
@@ -63,7 +68,7 @@ typedef enum {
 
 /**
  * @brief Claims the SPI2 GPIOs and opens the chip
- * @return 0 if no error, 1 if chip open fail
+ * @return 0 if no error, 1 if chip open fail, 2 if set user fail
 */
 uint8_t init_spi2(); 
 
@@ -74,7 +79,7 @@ void close_spi2();
 
 /**
  * @brief Claims a GPIO
- * @return 0 if no error, 2 if set user fail, 3 if claim input fail
+ * @return 0 if no error, 1 if claim input fail
 * @param gpio_pin the pin number of the GPIO to be claimed
 */
 uint8_t claim_gpio(uint8_t gpio_pin); 
@@ -195,10 +200,53 @@ typedef enum {
     FlapsRaise,
 } flaps_servo_cmd_t; // Commands for flaps servomotor
 
+
+typedef enum {
+    HolderIdle, 
+    HolderClosed, 
+    HolderPot,
+    HolderPlant
+} servo_gripper_holder_cmd_t; // Commands for gripper holder servomotor
+
+typedef enum {
+    DeployerIdle, 
+    DeployerRaise, 
+    DeployerDeploy
+} servo_gripper_deployer_cmd_t; // Commands for griper deployer servomotor
+
+
+
+typedef enum {
+    HolderIdle, 
+    HolderClosed, 
+    HolderPot,
+    HolderPlant
+} servo_gripper_holder_cmd_t; // Commands for gripper holder servomotor
+
+typedef enum {
+    DeployerIdle, 
+    DeployerRaise, 
+    DeployerDeploy
+} servo_gripper_deployer_cmd_t; // Commands for griper deployer servomotor
+
+
 /**
- * @brief Command the flaps servomotors, either to raise (retract), deploy or idle.
+ * @brief Raises (retracts) flaps. Maintains a constant torque until FlapsIdle is called
+ * @param command a flaps position (FlapsIdle, FlapsDeploy or FlapsRaise)
  */
 void flaps_servo_cmd(flaps_servo_cmd_t command);
+
+/**
+ * @brief Opens and closes the gripper. Maintains a constant torque until HolderIdle is called
+ * @param command a holder position (HolderIdle, HolderClosed, HolderPot or HolderPlant)
+ */
+void servo_gripper_holder_cmd(servo_gripper_holder_cmd_t command);
+
+/**
+ * @brief Raises and deploys the gripper. Maintains a constant torque until DeployerIdle is called
+ * @param command a deployer position (DeployerIdle, DeployerRaise or DeployerDeploy)
+ */
+void servo_gripper_deployer_cmd(servo_gripper_deployer_cmd_t command); 
 
 // ------ STEPPERS -------
 
@@ -227,36 +275,42 @@ typedef enum {
  * @param stepperName the stepper to calibrate (StprPlate, StprSlider or StprFlaps)
  * @param steps the step count to go to
  * @param neg the direction of the step count (0 for positive, 1 for negative)
- * @param blocking true if the command is blocking (waits until finished), false if it's non-blocking
+ * @param blocking CALL_BLOCKING if the command is blocking (waits until finished), CALL_NON_BLOCKING if it's non-blocking
+ * (non-blocking by default)
 */
-void stpr_move(steppers_t stepperName, uint32_t steps, uint8_t neg);
+void stpr_move(steppers_t stepperName, uint32_t steps, uint8_t neg, uint8_t blocking = CALL_NON_BLOCKING);
 
 /**
  * @brief Activates the calibration of given stepper
  * @param stepperName the stepper to calibrate (StprPlate, StprSlider or StprFlaps)
- * @param blocking true if the command is blocking (waits until finished), false if it's non-blocking
+ * @param blocking CALL_BLOCKING if the command is blocking (waits until finished), CALL_NON_BLOCKING if it's non-blocking
+ * (non-blocking by default)
  */
-void stpr_calibrate(steppers_t stepperName); 
+void stpr_calibrate(steppers_t stepperName, uint8_t blocking = CALL_NON_BLOCKING); 
 
 /**
  * @brief Move flaps stepper to 'pos' (FlapsOpen, FlapsPlant or FlapsPot)
  * @param pos the position of the flaps stepper (FlapsOpen, FlapsPlant or FlapsPot)
- * @param blocking true if the command is blocking (waits until finished), false if it's non-blocking
+ * @param blocking CALL_BLOCKING if the command is blocking (waits until finished), CALL_NON_BLOCKING if it's non-blocking
+ * (non-blocking by default)
 */
-void flaps_move(flaps_pos_t pos);
+void flaps_move(flaps_pos_t pos, uint8_t blocking = CALL_NON_BLOCKING);
 
 /**
  * @brief Move slider stepper to 'pos' (SliderLow, SliderHigh, SliderPlate or SliderTake)
  * @param pos the position of the slider stepper (SliderLow, SliderHigh, SliderPlate or SliderTake)
- * @param blocking true if the command is blocking (waits until finished), false if it's non-blocking
+ * @param blocking CALL_BLOCKING if the command is blocking (waits until finished), CALL_NON_BLOCKING if it's non-blocking
+ * (non-blocking by default)
 */
-void slider_move(slider_pos_t pos);
+void slider_move(slider_pos_t pos, uint8_t blocking = CALL_NON_BLOCKING);
 
 
 /**
  * @brief Move plate to slot number 'slot' ([-3 ; 3], 0 is neutral)
+ * @param blocking CALL_BLOCKING if the command is blocking (waits until finished), CALL_NON_BLOCKING if it's non-blocking 
+ * (non-blocking by default)
 */
-void plate_move(int slot);
+void plate_move(int8_t slot, uint8_t blocking = CALL_NON_BLOCKING);
 
 /**
  * @brief Sets the nominal and initial speed of the stepper
@@ -289,15 +343,13 @@ void stpr_reset(steppers_t stepperName);
 void stpr_setup_acc(steppers_t stepperName, uint8_t accSteps);
 
 /**
- * @brief Calibrate all steppers
- * 
- */
+ * @brief Calibrates all the steppers (non-blocking assignment)
+*/
 void stpr_calibrate_all();
 
 /**
- * @brief Reset all steppers
- * 
- */
+ * @brief Resets all the steppers
+*/
 void stpr_reset_all();
 
 #endif
