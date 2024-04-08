@@ -24,17 +24,7 @@
 //      10 Calibre
 //      11 Step + signe direction du stepper (horlogique/antihorlogique)
 
-void calibrateAll() {
-    stpr_calibrate(StprFlaps);
-    stpr_calibrate(StprPlate);
-    stpr_calibrate(StprSlider);
-}
 
-void resetAll() {
-    stpr_reset(StprFlaps);
-    stpr_reset(StprPlate);
-    stpr_reset(StprSlider);
-}
 
 void demoPlate(){
     plate_move(-3);
@@ -53,8 +43,8 @@ int main(int argc, char const *argv[])
     #ifdef TESTS
     
     
-    resetAll();
-    calibrateAll();
+    stpr_reset_all();
+    stpr_calibrate_all();
 
     
     //stpr_setup_speed(60,500,StprPlate); //60 max
@@ -74,8 +64,8 @@ int main(int argc, char const *argv[])
     #endif
 
     #ifdef RESET_CALIBRATE
-    resetAll(); 
-    calibrateAll();
+    stpr_reset_all(); 
+    stpr_calibrate_all();
     lguSleep(10);
     #endif
 
@@ -113,8 +103,8 @@ int main(int argc, char const *argv[])
     
     sleep(5);
     servo_cmd(ServoIdle);
-    resetAll(); 
-    calibrateAll();
+    stpr_reset_all(); 
+    stpr_calibrate_all();
     #endif
 
     close_spi();

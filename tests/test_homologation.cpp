@@ -3,17 +3,6 @@
 #include <unistd.h>
 #include <cstdio>
 
-void calibrateAll() {
-    stpr_calibrate(StprFlaps);
-    stpr_calibrate(StprPlate);
-    stpr_calibrate(StprSlider);
-}
-
-void resetAll() {
-    stpr_reset(StprFlaps);
-    stpr_reset(StprPlate);
-    stpr_reset(StprSlider);
-}
 
 
 int main(int argc, char const *argv[])
@@ -31,8 +20,8 @@ int main(int argc, char const *argv[])
     stpr_setup_speed(100,600,StprFlaps); 
     stpr_setup_speed(60,500,StprPlate); 
     stpr_setup_speed(300,400,StprSlider);
-    resetAll(); 
-    calibrateAll();
+    stpr_reset_all(); 
+    stpr_calibrate_all();
 
     sleep(5); 
 

@@ -27,17 +27,6 @@ typedef enum {
   ModeConstantDC
 } controlmode_t; 
 
-void calibrateAll() {
-    stpr_calibrate(StprFlaps);
-    stpr_calibrate(StprPlate);
-    stpr_calibrate(StprSlider);
-}
-
-void resetAll() {
-    stpr_reset(StprFlaps);
-    stpr_reset(StprPlate);
-    stpr_reset(StprSlider);
-}
 
 void updateRobotPosition() {
     int32_t ticks_l, ticks_r; // Current values of ticks, left and right
@@ -74,8 +63,8 @@ void *homologation(void* v) {
     stpr_setup_speed(100,600,StprFlaps); 
     stpr_setup_speed(60,500,StprPlate); 
     stpr_setup_speed(300,400,StprSlider);
-    resetAll(); 
-    calibrateAll();
+    stpr_reset_all(); 
+    stpr_calibrate_all();
 
     //Ping Dynamixels
     dxl_ping(1, 2.0);

@@ -39,6 +39,7 @@ void close_spi() {
 uint8_t init_spi2() {
     int SPI2_handle = lgGpiochipOpen(4);
     if (SPI2_handle < 0) return 1;
+    if (lgGpioSetUser(SPI2_handle, "Bot Lightyear") < 0) return 2;
 
     claim_gpio(StprSliderGPIO); 
     claim_gpio(StprPlateGPIO); 
@@ -58,8 +59,7 @@ void close_spi2() {
 }
 
 uint8_t claim_gpio(uint8_t gpio_pin) {
-    if (lgGpioSetUser(SPI2_handle, "Bot Lightyear") < 0) return 2;
-    if (lgGpioClaimInput(SPI2_handle, LG_SET_PULL_NONE, gpio_pin) != 0) return 3;
+    if (lgGpioClaimInput(SPI2_handle, LG_SET_PULL_NONE, gpio_pin) != 0) return 1;
     return 0;
 }
 
@@ -343,27 +343,93 @@ void teensy_set_path_following_gains(double kt, double kn, double kz, double sig
 void flaps_servo_cmd(flaps_servo_cmd_t command) {
     char send[5];
     send[0] = 0x80;
+    uint16_t servo_flaps1_duty_cycle; 
+    uint16_t servo_flaps2_duty_cycle; 
+
     switch (command)
     {
 
     case FlapsIdle: 
-        send[3] = 0;
-        send[4] = 0;
+        servo_flaps1_duty_cycle = 0;
+        servo_flaps2_duty_cycle = 0;
         break;
 
     case FlapsDeploy:
-        send[3] = 19;
-        send[4] = 19;
+        servo_flaps1_duty_cycle = 608;
+        servo_flaps2_duty_cycle = 608;
         break;
     
     case FlapsRaise:
-        send[3] = 23;
-        send[4] = 16;
+        servo_flaps1_duty_cycle = 736;
+        servo_flaps2_duty_cycle = 512;
         break;
 
     default:
         return;
     }
+    send[1] = (servo_flaps1_duty_cycle & 0xFF00) >> 8;
+    send[2] = servo_flaps1_duty_cycle & 0xFF;
+
+    send[3] = (servo_flaps2_duty_cycle & 0xFF00) >> 8;
+    send[4] = servo_flaps2_duty_cycle & 0xFF;
+    pthread_mutex_lock(&spi_mutex);
+    lgSpiWrite(DE0_handle, send, 5);
+    pthread_mutex_unlock(&spi_mutex);
+}
+
+void servo_gripper_holder_cmd(servo_gripper_holder_cmd_t command) {
+    char send[5];
+    send[0] = 0x8E;
+    uint16_t servo_holder_duty_cycle; 
+    switch (command) {
+        case HolderIdle:
+            servo_holder_duty_cycle = 0;
+            break; 
+
+        case HolderClosed:
+            servo_holder_duty_cycle = 0;
+            break; 
+
+        case HolderPot:
+            servo_holder_duty_cycle = 0;
+            break;
+
+        case HolderPlant:
+            servo_holder_duty_cycle = 0;
+            break;
+
+        default:
+            return;
+    }
+    send[3] = (servo_holder_duty_cycle & 0xFF00) >> 8;
+    send[4] = servo_holder_duty_cycle & 0xFF;
+    pthread_mutex_lock(&spi_mutex);
+    lgSpiWrite(DE0_handle, send, 5);
+    pthread_mutex_unlock(&spi_mutex);
+}
+
+void servo_gripper_deployer_cmd(servo_gripper_deployer_cmd_t command) {
+    char send[5];
+    send[0] = 0x8F;
+    uint16_t servo_deployer_duty_cycle; 
+    switch (command) {
+        case DeployerIdle:
+            servo_deployer_duty_cycle = 0;
+            break; 
+
+        case DeployerRaise:
+            servo_deployer_duty_cycle = 0;
+            break; 
+
+        case DeployerDeploy:
+            servo_deployer_duty_cycle = 0;
+            break;
+
+        default:
+            return;
+    }
+    send[3] = (servo_deployer_duty_cycle & 0xFF00) >> 8;
+    send[4] = servo_deployer_duty_cycle & 0xFF;
     pthread_mutex_lock(&spi_mutex);
     lgSpiWrite(DE0_handle, send, 5);
     pthread_mutex_unlock(&spi_mutex);
@@ -389,7 +455,7 @@ void flaps_servo_cmd(flaps_servo_cmd_t command) {
 //      10 Calibre
 //      11 Step + signe direction du stepper (horlogique/antihorlogique)
 
-void stpr_move(steppers_t stepperName, uint32_t steps, int neg) {
+void stpr_move(steppers_t stepperName, uint32_t steps, uint8_t neg, uint8_t blocking = CALL_NON_BLOCKING) {
     char request; 
     char direction; 
 
@@ -409,7 +475,7 @@ void stpr_move(steppers_t stepperName, uint32_t steps, int neg) {
         default : 
             request = 0; 
             direction = 0;
-            printf("Error : not a stepper"); 
+            printf("Error : not a stepper %d \n", stepperName); 
             return; 
     }   
 
@@ -422,9 +488,95 @@ void stpr_move(steppers_t stepperName, uint32_t steps, int neg) {
     lgSpiWrite(DE0_handle, send, 5);
     pthread_mutex_unlock(&spi_mutex);
 
+     if (blocking = CALL_BLOCKING) {
+        
+        spi2_gpio_t stepper_gpio; 
+        switch (stepperName) {
+            case StprPlate :
+                stepper_gpio = StprPlateGPIO; 
+                break;
+            case StprSlider :
+                stepper_gpio = StprSliderGPIO; 
+                break;
+            case StprFlaps :
+                stepper_gpio = StprFlapsGPIO; 
+                break;
+            default : 
+                stepper_gpio = 0; 
+                printf("Error : not a stepper %d \n", stepperName); 
+                return; 
+        }
+        lguSleep(0.001); // Sleep to avoid timing conflicts with spi message
+        int isIdle;
+        do {
+            isIdle = lgGpioRead(handle,4);
+            if (isIdle < 0) {
+                printf("Error : gpio %d not readable \n", stepper_gpio); 
+                return;
+            }
+            lguSleep(0.001);
+        } while (!isIdle);
+    }
 }
 
-void flaps_move(flaps_pos_t pos) {
+void stpr_calibrate(steppers_t stepperName, uint8_t blocking = CALL_NON_BLOCKING) {
+    char request; 
+    char calibDir;
+    switch (stepperName) {
+        case StprPlate :
+            request = 0x82; 
+            calibDir = 0x80; 
+            break;
+        case StprSlider :
+            request = 0x86; 
+            calibDir = 0xA0;
+            break;
+        case StprFlaps :
+            request = 0x8A; 
+            calibDir = 0xA0;
+            break;
+        default : 
+            request = 0; 
+            calibDir = 0x80;
+            printf("Error : not a stepper %d \n", stepperName); 
+            return; 
+    }
+    char send[] = {request,calibDir,0,0,0};
+    pthread_mutex_lock(&spi_mutex);
+    lgSpiWrite(DE0_handle, send, 5);
+    pthread_mutex_unlock(&spi_mutex);
+    if (blocking = CALL_BLOCKING) {
+        
+        spi2_gpio_t stepper_gpio; 
+        switch (stepperName) {
+            case StprPlate :
+                stepper_gpio = StprPlateGPIO; 
+                break;
+            case StprSlider :
+                stepper_gpio = StprSliderGPIO; 
+                break;
+            case StprFlaps :
+                stepper_gpio = StprFlapsGPIO; 
+                break;
+            default : 
+                stepper_gpio = 0; 
+                printf("Error : not a stepper %d \n", stepperName); 
+                return; 
+        }
+        lguSleep(0.001); // Sleep to avoid timing conflicts with spi message
+        int isIdle;
+        do {
+            isIdle = lgGpioRead(handle,4);
+            if (isIdle < 0) {
+                printf("Error : gpio %d not readable \n", stepper_gpio); 
+                return;
+            }
+            lguSleep(0.001);
+        } while (!isIdle);
+    }
+}
+
+void flaps_move(flaps_pos_t pos, uint8_t blocking = CALL_NON_BLOCKING) {
     uint32_t steps; 
     switch (pos)
     {
@@ -438,14 +590,14 @@ void flaps_move(flaps_pos_t pos) {
         steps = 2050; 
         break;  
     default:
-        printf("Error : not a position \n");
+        printf("Error : not a position %d \n", pos);
         steps = 0; 
         return;
     }
-    stpr_move(StprFlaps, steps, 0 ); 
+    stpr_move(StprFlaps, steps, 0, blocking); 
 }
 
-void slider_move(slider_pos_t pos){
+void slider_move(slider_pos_t pos, uint8_t blocking = CALL_NON_BLOCKING){
     int steps;
     switch(pos)
     {
@@ -465,16 +617,16 @@ void slider_move(slider_pos_t pos){
         steps = 5000;
         break; 
     default :
-        printf("Error : not a position \n");
+        printf("Error : not a position : %d \n", pos);
         printf("%d\n", pos);
         steps = 0; 
         return;
     }
-    stpr_move(StprSlider,steps,0 );
+    stpr_move(StprSlider,steps,0, blocking);
 }
 
 
-void plate_move(int pot){
+void plate_move(int8_t pot, uint8_t blocking = CALL_NON_BLOCKING){
     //pot est une variable allant de -3 a 3 avec 0 la position de repos
     int direction = 0;
     if (pot ==0){
@@ -488,7 +640,7 @@ void plate_move(int pot){
         double anglePlateau = (PLATEAU_ANGLE_OUVERTURE)/2 + (pot)* (360-PLATEAU_ANGLE_OUVERTURE)/5;
         double angleStepper = anglePlateau * PLATEAU_REDUCTION;
         double ticStepper = angleStepper/360 * PLATEAU_TIC_STEPPER;
-        stpr_move(StprPlate,(int)ticStepper,direction);
+        stpr_move(StprPlate,(int)ticStepper,direction, blocking);
     }   
 
 }
@@ -542,7 +694,7 @@ void stpr_setup_calib_speed(int calibrationSpeed, int smallCalibrationSpeed, ste
             break;
         default : 
             request = 0; 
-            printf("Error : not a stepper"); 
+            printf("Error : not a stepper %d \n", stepperName); 
             return; 
     }
     char send[] = {request,calibrationSpeed1, calibrationSpeed2, smallCalibrationSpeed1, smallCalibrationSpeed2};
@@ -551,34 +703,7 @@ void stpr_setup_calib_speed(int calibrationSpeed, int smallCalibrationSpeed, ste
     pthread_mutex_unlock(&spi_mutex);
 }
 
-void stpr_calibrate(steppers_t stepperName) {
-    char request; 
-    char calibDir;
-    switch (stepperName) {
-        case StprPlate :
-            request = 0x82; 
-            calibDir = 0x80; 
-            break;
-        case StprSlider :
-            request = 0x86; 
-            calibDir = 0xA0;
-            break;
-        case StprFlaps :
-            request = 0x8A; 
-            calibDir = 0xA0;
-            break;
-        default : 
-            request = 0; 
-            calibDir = 0x80;
-            printf("Error : not a stepper"); 
-            return; 
-    }
-    char send[] = {request,calibDir,0,0,0};
-    pthread_mutex_lock(&spi_mutex);
-    lgSpiWrite(DE0_handle, send, 5);
-    pthread_mutex_unlock(&spi_mutex);
 
-}
 
 void stpr_reset(steppers_t stepperName) {
     char request;
@@ -602,7 +727,7 @@ void stpr_reset(steppers_t stepperName) {
         default : 
             request = 0; 
             request2 = 2; 
-            printf("Error : not a stepper"); 
+            printf("Error : not a stepper %d \n", stepperName); 
             return; 
     } 
     char send1[] = {request,0,0,0,0}; // set the Module command to Idle
@@ -633,7 +758,7 @@ void stepper_setup_acc(steppers_t stepperName, uint8_t accSteps) {
             break;
         default : 
             request = 0; 
-            printf("Error : not a stepper"); 
+            printf("Error : not a stepper %d \n", stepperName);  
             return; 
     } 
 
@@ -642,4 +767,16 @@ void stepper_setup_acc(steppers_t stepperName, uint8_t accSteps) {
     lgSpiWrite(DE0_handle, send, 5);
     pthread_mutex_unlock(&spi_mutex);
 
+}
+
+void stpr_calibrate_all() {
+    stpr_calibrate(StprFlaps);
+    stpr_calibrate(StprPlate);
+    stpr_calibrate(StprSlider);
+}
+
+void stpr_reset_all() {
+    stpr_reset(StprFlaps);
+    stpr_reset(StprPlate);
+    stpr_reset(StprSlider);
 }
