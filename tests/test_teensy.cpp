@@ -1,11 +1,11 @@
 #include "../headers/SPI_Modules.h"
 #include <stdio.h>
 
-#define POSITION_CONTROL
+// #define POSITION_CONTROL
 // #define PATH_FOLLOWING
 // #define IDLE
 // #define SET_POSITION
-// #define SPEED_CONTROL
+#define SPEED_CONTROL
 // #define DC_CONTROL
 #define ASK_STATE
 // #define SET_POS_CTRL_GAINS
@@ -27,9 +27,9 @@ int main(int argc, char const *argv[])
     double x = 0; 
     double y = 0; 
     double t = 0;
-    double xr = 0.5; 
+    double xr = 0.2; 
     double yr = 0; 
-    double tr = -90*deg_to_rads;
+    double tr = -60*deg_to_rads;
 
     teensy_set_position(x, y, t);
     teensy_pos_ctrl(xr, yr, tr);
@@ -72,7 +72,7 @@ int main(int argc, char const *argv[])
     #endif
 
     #ifdef SPEED_CONTROL
-    teensy_spd_ctrl(0.005, 0.005);
+    teensy_spd_ctrl(0.4, 0.4);
     #endif
 
     #ifdef DC_CONTROL
