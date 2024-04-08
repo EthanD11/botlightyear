@@ -8,7 +8,7 @@ bool printplotpy = false;
 
 
 ///coordonnées en x,y selon le repère balise b3=(0,0)
-Point* zoneP;
+Point** zoneP;
 
 double calculateDistance(Point a, Point b) {
     return std::sqrt(std::pow(b.x - a.x, 2) + std::pow(b.y - a.y, 2));
@@ -19,12 +19,20 @@ double calculateAngle(Point a, Point b) {
 }
 
 void zoneInPolar(Point* robot, PlantZone** polarCoord) {
+    printf("segfault de merde 1\n");
     for (int i = 0; i < 6; ++i) {
+        printf("segfault de merde 2 %f\n", robot->x);
         polarCoord[i]->distance = calculateDistance(*robot, zoneP[i]);
+        printf("segfault de merde 3\n");
         polarCoord[i]->angle = calculateAngle(*robot, zoneP[i]) - robot->theta;
+        printf("segfault de merde 4\n");
         ///angle compris entre -PI et PI
         polarCoord[i]->angle = std::fmod((polarCoord[i]->angle +M_PI), (2*M_PI))-M_PI;
+            printf("segfault de merde 4\n");
+
     }
+    printf("segfault de merde 2\n");
+
     if (printplotpy){
         printf("[%f, %f, %f, %f, %f, %f], ",  polarCoord[0]->angle, polarCoord[1]->angle, polarCoord[2]->angle, polarCoord[3]->angle, polarCoord[4]->angle, polarCoord[5]->angle);
         printf("[%f, %f, %f, %f, %f, %f]\n\n",  polarCoord[0]->distance, polarCoord[1]->distance, polarCoord[2]->distance, polarCoord[3]->distance, polarCoord[4]->distance, polarCoord[5]->distance);
@@ -46,7 +54,6 @@ void lidarGetPlantPosition(Point* robot, double* angles, double* distances, doub
      * |                     |
      * |_____________________|
      */
-
     //Etape 1 : coordonées des zones
     zoneInPolar(robot, plantZone);
     //a cette etape, plantzone->distance,->angle sont rempli
@@ -197,8 +204,17 @@ int getNumberOfPlantInZone(double x_robot, double y_robot, double theta_robot, i
 }
 
 void initBottomLidar(PlantZone** polarCoord){
-    zoneP = new Point[6]{{-0.6, 0}, {-0.3, 0.5},{0.3, 0.5}, {0.6, 0}, {0.3, -0.5},{-0.3, -0.5}};
+    zoneP = new Point*[6];//{,,,,,};
+    zoneP[0] = new Point[sizeof(Point)]{-0.6, 0.0};//{new Point{-0.6, 0}, new Point{-0.3, 0.5}, new Point{0.3, 0.5}, new Point{0.6, 0}, new Point{0.3, -0.5}, new Point{-0.3, -0.5}};
+    zoneP[1] = new Point[sizeof(Point)]{-0.3, 0.5};
+    zoneP[2] = new Point[sizeof(Point)]{0.3, 0.5};
+    zoneP[3] = new Point[sizeof(Point)]{0.6, 0.0};
+    zoneP[4] = new Point[sizeof(Point)]{0.3, -0.5};
+    zoneP[5] = new Point[sizeof(Point)]{-0.3, -0.5};
 
+    
+    
+    printf("ooo %f\n", zoneP[0]->x);
     polarCoord = new PlantZone*[6];
     for (int i=0; i<6;i++){
         polarCoord[i] = new PlantZone[sizeof(PlantZone)];
