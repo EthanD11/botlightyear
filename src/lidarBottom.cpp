@@ -87,22 +87,6 @@ void lidarGetPlantPosition(Point* robot, double* angles, double* distances, doub
     }
     /// à cette étape, on sait les angles de depart et de fin des zones ainsi que si la zone est accessible
 
-    //TODO DELETE TEST
-    //for (int i = 0; i < 6; ++i) {
-        //plantZone[i].startAngle = 355*M_PI/180;
-        //plantZone[i].endAngle = 5*M_PI/180;
-        //plantZone[i].distance = 1.2;
-        //if (i==0){
-            //plantZone[i].isAccessible = true;
-        //} else{
-            //plantZone[i].isAccessible = false;
-        //}
-    //}
-    //int start = (int) 355/360*arraysize;
-    //int stop = (int) (360+5)/360*arraysize;
-    //double dist = 1.2;
-
-    // int des données utiles
     bool objet = false;
     int start, stop, i;
     int countGap = 0;
@@ -183,6 +167,16 @@ void lidarGetPlantPosition(Point* robot, double* angles, double* distances, doub
 
 }
 
+
+/**
+ *
+ * @param x_robot : position of the robot
+ * @param y_robot : position of the robot
+ * @param theta_robot : orientation of the robot
+ * @param zone : array with 6 int : 1 if we will check the zone, 0 however
+ * @param plantZonePolar : structure with all data need (init by initBottomLidar)
+ * @return
+ */
 int getNumberOfPlantInZone(double x_robot, double y_robot, double theta_robot, int* zone, PlantZone** plantZonePolar){
     double* angles = new double[8000];
     double* distances = new double[8000];
@@ -205,9 +199,13 @@ int getNumberOfPlantInZone(double x_robot, double y_robot, double theta_robot, i
     return 1;
 }
 
+/**
+ *
+ * @param polarCoord structure to init (already allocate with new)
+ */
 void initBottomLidar(PlantZone** polarCoord){
-    zoneP = new Point*[6*sizeof(Point)];//{,,,,,};
-    zoneP[0] = new Point[sizeof(Point)];//{new Point{-0.6, 0}, new Point{-0.3, 0.5}, new Point{0.3, 0.5}, new Point{0.6, 0}, new Point{0.3, -0.5}, new Point{-0.3, -0.5}};
+    zoneP = new Point*[6*sizeof(Point)];
+    zoneP[0] = new Point[sizeof(Point)];
     zoneP[0]->x = -0.6;
     zoneP[0]->y = 0.0;
     zoneP[1] = new Point[sizeof(Point)];
@@ -232,6 +230,12 @@ void initBottomLidar(PlantZone** polarCoord){
     }
 
 }
+
+
+/**
+ *
+ * @param polarCoord : structure to delete
+ */
 void deleteBottomLidar(PlantZone** polarCoord){
     for (size_t i = 0; i < 6; i++)
     {
