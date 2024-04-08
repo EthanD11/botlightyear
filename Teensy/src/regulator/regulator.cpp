@@ -6,8 +6,8 @@ Regulator *init_regulator() {
     // reg->kp = 7.795856e-01; // Former t1_kp
     // reg->ki = 8.398411e-01 * REG_DELAY * 1e-3; // Former t1_ki
     
-    reg->kp = 6.0; // Former t1_kp
-    reg->ki = 20.0; // Former t1_ki
+    reg->kp = 13.2; // Former t1_kp
+    reg->ki = 44.0; // Former t1_ki
 
     reg->imax = 1; // Anti windup [V/V]
 
@@ -18,7 +18,7 @@ Regulator *init_regulator() {
     reg->duty_cycle_refl = 0.0; // left duty cycle command
     reg->duty_cycle_refr = 0.0; // right duty cycle command
 
-    reg->wc = 100; // [Hz]
+    reg->wc = 100000; // [Hz]
 
     return reg;
 }

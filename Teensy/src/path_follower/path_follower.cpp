@@ -130,7 +130,7 @@ void compute_entire_path(PathFollower *path_follower, double ds) {
         
         dxdq = evaluate_spline_derivative(x_splines->b[i_spline], x_splines->c[i_spline], x_splines->d[i_spline], dq);
         dydq = evaluate_spline_derivative(y_splines->b[i_spline], y_splines->c[i_spline], y_splines->d[i_spline], dq);
-        printf("%.3e,%.3e,%.3e,%.3e,%.3e\n", q, path[2*i_point], path[2*i_point+1], dxdq, dydq);
+        //printf("%.3e,%.3e,%.3e,%.3e,%.3e\n", q, path[2*i_point], path[2*i_point+1], dxdq, dydq);
         dq = ds / sqrt(dxdq*dxdq + dydq*dydq); // Estimation of the dq needed to travel of ds along the spline
         q += dq;
 
@@ -318,7 +318,7 @@ int update_path_follower_ref_speed(
     #endif
     
     if ((dist <= dist_goal_reached) && (pf->qref > pf->last_q - 5e-1)) {
-        printf("Switch mode\n");
+        //printf("Switch mode\n");
         return 1;
     }
 
