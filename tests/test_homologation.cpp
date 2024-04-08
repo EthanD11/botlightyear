@@ -17,9 +17,9 @@ int main(int argc, char const *argv[])
     dxl_ping(8, 1.0);
 
     flaps_servo_cmd(FlapsRaise);
-    stpr_setup_speed(100,600,StprFlaps); 
-    stpr_setup_speed(60,500,StprPlate); 
-    stpr_setup_speed(300,400,StprSlider);
+    stpr_setup_speed(StprFlaps,100,600); 
+    stpr_setup_speed(StprPlate,60,500); 
+    stpr_setup_speed(StprSlider,300,400);
     stpr_reset_all(); 
     stpr_calibrate_all();
 

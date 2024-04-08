@@ -210,31 +210,18 @@ typedef enum {
 
 typedef enum {
     HolderIdle, 
-    HolderClosed, 
+    HolderClosed,
+    HolderOpen, 
     HolderPot,
     HolderPlant
-} servo_gripper_holder_cmd_t; // Commands for gripper holder servomotor
+} gripper_holder_cmd_t; // Commands for gripper holder servomotor
 
 typedef enum {
     DeployerIdle, 
-    DeployerRaise, 
+    DeployerRaise,
+    DeployerHalf, 
     DeployerDeploy
-} servo_gripper_deployer_cmd_t; // Commands for griper deployer servomotor
-
-
-
-typedef enum {
-    HolderIdle, 
-    HolderClosed, 
-    HolderPot,
-    HolderPlant
-} servo_gripper_holder_cmd_t; // Commands for gripper holder servomotor
-
-typedef enum {
-    DeployerIdle, 
-    DeployerRaise, 
-    DeployerDeploy
-} servo_gripper_deployer_cmd_t; // Commands for griper deployer servomotor
+} gripper_deployer_cmd_t; // Commands for griper deployer servomotor
 
 
 /**
@@ -247,13 +234,13 @@ void flaps_servo_cmd(flaps_servo_cmd_t command);
  * @brief Opens and closes the gripper. Maintains a constant torque until HolderIdle is called
  * @param command a holder position (HolderIdle, HolderClosed, HolderPot or HolderPlant)
  */
-void servo_gripper_holder_cmd(servo_gripper_holder_cmd_t command);
+void gripper_holder_cmd(gripper_holder_cmd_t command);
 
 /**
  * @brief Raises and deploys the gripper. Maintains a constant torque until DeployerIdle is called
  * @param command a deployer position (DeployerIdle, DeployerRaise or DeployerDeploy)
  */
-void servo_gripper_deployer_cmd(servo_gripper_deployer_cmd_t command); 
+void gripper_deployer_cmd(gripper_deployer_cmd_t command); 
 
 // ------ STEPPERS -------
 
@@ -325,7 +312,7 @@ void plate_move(int8_t slot, uint8_t blocking = CALL_NON_BLOCKING);
  * @param nominalSpeed is the upper bound of the speed limit for the stepper's speed
  * @param initialSpeed is the initial speed that the stepper begins with at each movement
  */
-void stpr_setup_speed(int nominalSpeed, int initialSpeed, steppers_t stepperName); 
+void stpr_setup_speed(steppers_t stepperName, int nominalSpeed, int initialSpeed); 
 
 /**
  * @brief Sets the calibration speed and the small calibration speed of the stepper
@@ -352,7 +339,7 @@ void stpr_setup_acc(steppers_t stepperName, uint8_t accSteps);
 /**
  * @brief Calibrates all the steppers (non-blocking assignment)
 */
-void stpr_calibrate_all();
+void stpr_calibrate_all(uint8_t blocking = CALL_NON_BLOCKING);
 
 /**
  * @brief Resets all the steppers
