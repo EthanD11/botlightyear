@@ -25,7 +25,6 @@ void zoneInPolar(Point* robot, PlantZone** polarCoord) {
         polarCoord[i]->angle = calculateAngle(robot, zoneP[i]) - robot->theta;
         ///angle compris entre -PI et PI
         polarCoord[i]->angle = std::fmod((polarCoord[i]->angle +M_PI), (2*M_PI))-M_PI;
-            printf("segfault de merde 4\n");
 
     }
 

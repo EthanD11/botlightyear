@@ -11,11 +11,12 @@ int main(int argc, char *argv[]) {
 
     initBottomLidar(plantZonePolar);
 
+
+    int res = getNumberOfPlantInZone(25.0, 10.0, 0.0, zone, plantZonePolar);
     for (size_t i = 0; i < 6; i++)
     {
-        printf("%f\n",plantZonePolar[i]->distance);
+        printf("%f %f\n",plantZonePolar[i]->distance, plantZonePolar[i]->angle);
     }
-    int res = getNumberOfPlantInZone(25.0, 10.0, 0.0, zone, plantZonePolar);
     StopLidarBottom();
     printf("\n");
     //PlantZone** polarCoord;
