@@ -43,8 +43,15 @@ int main(int argc, char const *argv[])
     #ifdef TESTS
     
     
+    init_spi2(); 
     stpr_reset_all();
     stpr_calibrate_all();
+
+
+    plate_move(-3, CALL_BLOCKING);
+    plate_move(0, CALL_BLOCKING);
+    plate_move(3, CALL_BLOCKING);
+    close_spi2(); 
 
     
     //stpr_setup_speed(60,500,StprPlate); //60 max
