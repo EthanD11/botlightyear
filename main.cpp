@@ -11,6 +11,8 @@
 #include <termios.h>
 #include <time.h>
 
+#define VERBOSE
+
 #define ASCII_b 98
 #define ASCII_B 66
 #define ASCII_y 121
@@ -77,6 +79,7 @@ int main(int argc, char const *argv[])
     if (test_spi() != 0) exit(2);
     
     if (init_graph_from_file("./graphs/BL_V2.txt", color) != 0) exit(3);
+    graph_level_update(graphAdversaryBases[0], 3, DISABLE_PROPAGATION);
 
     if (pthread_create(&topLidarID, NULL, topLidar, NULL) != 0) exit(4);
     
@@ -90,34 +93,37 @@ int main(int argc, char const *argv[])
     stpr_reset_all();
     stpr_calibrate_all();
 
-
-    if (color == BLUE) {
-        graph_level_update(graph_bases[3])
-    }
-
-    static time_t tOld = 0;
+    time_t tOld = 0;
     {
+        #ifdef VERBOSE
         printf("Waiting for starting cord setup... \n");
+        #endif
         int start;
         do {
             start = lgGpioRead(GPIOhandle,4);
             if (start < 0) exit(5);
         } while (start);
+        #ifdef VERBOSE
         printf("Starting cord has been setup\n");
+        #endif
         lguSleep(1);
 
+        #ifdef VERBOSE
         printf("Waiting start of the game... \n");
+        #endif
         do {
             start = lgGpioRead(GPIOhandle,4);
             if (start < 0) exit(5);
         } while (!start);
     }
-    static time_t tStart = time(NULL);
+    time_t tStart = time(NULL);
 
     lgGpioFree(GPIOhandle, 4);
     lgGpiochipClose(GPIOhandle);
 
+    #ifdef VERBOSE
     printf("Game started! \n");
+    #endif
 
     // ----- GAME -----
 
@@ -131,6 +137,8 @@ int main(int argc, char const *argv[])
 
 
     // ----- FINISH -----
+
+    teensy_idle();
 
     lidarEnd = 1;
     pthread_join(topLidarID, NULL); 
