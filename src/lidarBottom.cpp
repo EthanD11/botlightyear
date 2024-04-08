@@ -149,6 +149,7 @@ void lidarGetPlantPosition(Point* robot, double* angles, double* distances, doub
             }
         }
     }
+    if (printplotpy){
     for (int j = 0; j < 6; ++j) {
         for (int k = 0; k < plantZone[j]->numberPlant; ++k) {
             printf("%f, ", plantZone[j]->dPlant[k]);
@@ -161,7 +162,7 @@ void lidarGetPlantPosition(Point* robot, double* angles, double* distances, doub
         }
 
     }
-    printf("\n");
+    printf("\n");}
 
 
 }

@@ -1,6 +1,6 @@
 #include "lidarBottom.h"
 #include <chrono>
-
+bool testpython=false;
 
 int main(int argc, char *argv[]) {
     //double *beaconAdv = new double[8]{11.4*M_PI/180, 2.88, 78/180*M_PI, 0.68, 104*M_PI/180, 1.63, 221*M_PI/180, 0.45};
@@ -12,11 +12,20 @@ int main(int argc, char *argv[]) {
     initBottomLidar(plantZonePolar);
 
 
-    int res = getNumberOfPlantInZone(0.3-1, 0.17-1.5, 0.0, zone, plantZonePolar);
+    int res = getNumberOfPlantInZone(0.44-1.0, 0.13-1.5, M_PI/2.0, zone, plantZonePolar);
+    if (res==1){
+        if (testpython){
     for (size_t i = 0; i < 6; i++)
     {
         printf("plt.polar(%f, %f, \".\")\n",plantZonePolar[i]->angle, plantZonePolar[i]->distance);
     }
+    for (size_t i = 0; i < 6; i++)
+    {
+        printf("%d ", plantZonePolar[i]->numberPlant);
+    }}
+    }
+    
+    
     StopLidarBottom();
     printf("\n");
     //PlantZone** polarCoord;

@@ -2,10 +2,10 @@
 #include <stdio.h>
 
 // #define POSITION_CONTROL
-// #define PATH_FOLLOWING
+#define PATH_FOLLOWING
 // #define IDLE
 // #define SET_POSITION
-#define SPEED_CONTROL
+// #define SPEED_CONTROL
 // #define DC_CONTROL
 #define ASK_STATE
 // #define SET_POS_CTRL_GAINS
@@ -46,14 +46,14 @@ int main(int argc, char const *argv[])
     double kv_en = 12;
     teensy_set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
     lguSleep(0.1);
-    int ncheckpoints = 2;
+    int ncheckpoints = 5;
     double x[5] = {0.0,0.4,0.8,0.4,0.0};
     double y[5] = {1.5,1.7,1.5,1.3,1.5};
     // double x[5] = {0.0,0.4};
     // double y[5] = {1.5,1.5};
     double theta_start =   0.;
     double theta_end = 0;
-    double vref = 0.3;
+    double vref = 0.2;
     double dist_goal_reached = 0.2;
     teensy_set_position(0, 1.5, 0);
     lguSleep(0.1);
