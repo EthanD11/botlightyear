@@ -54,7 +54,7 @@ void setup() {
   // ----- PATH FOLLOWER -----
   path_follower = init_path_follower();
   // ----- GENERAL -----
-  control_time = millis();
+  control_time = micros();
 
   if (mode == ModePathFollowingInit) {
     printf("In setup: ModePathFollowingInit\n");
@@ -62,9 +62,10 @@ void setup() {
 }
 
 void loop() {
-  int current_time = millis();
-  robot_position->dt = 1e-3*((double)(current_time - control_time));
-  spi_set_state((uint32_t) mode);
+  int current_time = micros();
+  int switch_mode = FALSE;
+  robot_position->dt = 1e-6*((double)(current_time - control_time));
+  
   if (spi_valid_transmission()) {
     spi_reset_transmission(); 
     printf("SPI received transmission\n");
@@ -129,6 +130,7 @@ void loop() {
         nextmode = mode;
         break;
     }
+    switch_mode = (mode != nextmode);
     mode = nextmode;
   } else if (current_time - control_time > REG_DELAY) {
 
@@ -138,10 +140,10 @@ void loop() {
     double x[5] = {0.0,0.4,0.8,0.4,0.0};
     double y[5] = {0.0,0.2,0.0,-0.2,0.0};
     // printf("mode = %d\n", (int) mode);
+    spi_set_state((uint32_t) mode);
     switch (mode) {
 
       case ModeIdle:
-        set_motors_duty_cycle(outputs, 0, 0);
         #ifdef VERBOSE
         printf("\nMode idle\n");
         #endif
@@ -174,7 +176,7 @@ void loop() {
 
       case ModeConstantDC:
         #ifdef VERBOSE
-        printf("\nModeConstantDC\n");
+        printf("\nMode Constant DC\n");
         #endif
         set_motors_duty_cycle(outputs,
           spi_get_dc_refl(), spi_get_dc_refr());
@@ -184,7 +186,7 @@ void loop() {
         #ifdef VERBOSE
         printf("\nMode path following INIT\n");
         #endif
-        init_path_following(path_follower, x, y, ncheckpoints, 0.0, M_PI, 30.0, 10.0);
+        init_path_following(path_follower, x, y, ncheckpoints, 0.0, M_PI, 0.2, 0.1);
         break;
 
       case ModePathFollowing:
@@ -217,8 +219,20 @@ void loop() {
     }
     
     #ifdef VERBOSE
+    printf("dt = %.12e\n", robot_position->dt);
+    printf("xpos = %.10e\n", robot_position->x);
+    printf("ypos = %.10e\n", robot_position->y);
+    printf("thetapos = %.10e\n", robot_position->theta);
+    printf("vfwd = %.10e\n", robot_position->vfwd);
+    printf("omega = %.10e\n", robot_position->omega);
+    printf("speed_left = %.10e\n", robot_position->speed_left);
+    printf("speed_right = %.10e\n", robot_position->speed_right);
     printf("dc left = %d\n", outputs->duty_cycle_l);
     printf("dc right = %d\n", outputs->duty_cycle_r);
+    printf("el_filtered = %.10e\n", speed_regulator->el_filtered);
+    printf("er_filtered = %.10e\n", speed_regulator->er_filtered);
+    printf("isl = %.6e\n", speed_regulator->isl);
+    printf("isr = %.6e\n", speed_regulator->isr);
     #endif
 
     // Next state logic
@@ -256,12 +270,17 @@ void loop() {
     }
     write_outputs(outputs);
     control_time = current_time;
-    mode = nextmode;
 
+    switch_mode = (mode != nextmode);
+    mode = nextmode;
   }
 
   // Leave the current mode cleanly (free all malloc'd arrays and structs)
-  if (nextmode != mode) {
+  if (switch_mode) {
+    speed_regulator->isl = 0.0;
+    speed_regulator->isr = 0.0;
+    speed_regulator->el_filtered = 0.0;
+    speed_regulator->er_filtered = 0.0;
     switch (mode) {
       case ModePathFollowing:
         close_path_following(path_follower);
@@ -269,7 +288,9 @@ void loop() {
 
       default:
         break;
-      }
     }
+  }
+
+  
   
 }

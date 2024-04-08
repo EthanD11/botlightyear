@@ -17,6 +17,8 @@ typedef struct Regulator {
     int duty_cycle_refl, duty_cycle_refr;
     double isl, isr;
     double kp, ki;
+    double el_filtered, er_filtered;
+    double wc;
     double imax;
 } Regulator;
 

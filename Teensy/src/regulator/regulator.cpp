@@ -6,16 +6,19 @@ Regulator *init_regulator() {
     // reg->kp = 7.795856e-01; // Former t1_kp
     // reg->ki = 8.398411e-01 * REG_DELAY * 1e-3; // Former t1_ki
     
-    reg->kp = 3; // Former t1_kp
-    reg->ki = 18; // Former t1_ki
-    
+    reg->kp = 6.0; // Former t1_kp
+    reg->ki = 20.0; // Former t1_ki
 
     reg->imax = 1; // Anti windup [V/V]
 
     reg->isl = 0.0; // left integral state
     reg->isr = 0.0; // right integral state
+    reg->el_filtered = 0.0; // left filtered error
+    reg->er_filtered = 0.0; // left filtered
     reg->duty_cycle_refl = 0.0; // left duty cycle command
     reg->duty_cycle_refr = 0.0; // right duty cycle command
+
+    reg->wc = 100; // [Hz]
 
     return reg;
 }
@@ -34,6 +37,7 @@ void control_speed(
     double vl, vr;          // Voltage output commands, left and right
     double speed_r, speed_l;
     double dt;
+    double alpha;
 
     speed_l = rob_pos->speed_left;
     speed_r = rob_pos->speed_right;
@@ -45,9 +49,13 @@ void control_speed(
     esl = speed_refl - rob_pos->speed_left;
     esr = speed_refr - rob_pos->speed_right;
 
+    alpha = exp(-reg->wc*dt);
+    reg->el_filtered = alpha * reg->el_filtered + (1 - alpha) * esl;
+    reg->er_filtered = alpha * reg->er_filtered + (1 - alpha) * esr;
+
     // Compute integral
-    reg->isl = SAT(reg->isl + reg->ki*esl*dt, reg->imax);
-    reg->isr = SAT(reg->isr + reg->ki*esr*dt, reg->imax);
+    reg->isl = SAT(reg->isl + reg->ki*reg->el_filtered*dt, reg->imax);
+    reg->isr = SAT(reg->isr + reg->ki*reg->er_filtered*dt, reg->imax);
 
     #ifdef VERBOSE
     printf("Left Integral  : %.4f\n", isl);
@@ -55,8 +63,8 @@ void control_speed(
     #endif
 
     // Compute voltages
-    vl = reg->kp * esl + reg->isl;
-    vr = reg->kp * esr + reg->isr;
+    vl = reg->kp * reg->el_filtered + reg->isl;
+    vr = reg->kp * reg->er_filtered + reg->isr;
 
     // update duty cycle, assuming duty cycle changes average voltage linearly
     #ifdef ADZ_ENABLE

@@ -201,7 +201,7 @@ void position_solar(sp_position_t position) {
             dxl_goal_position = 215;
             break;
         case DownS:
-            dxl_goal_position = 515;
+            dxl_goal_position = 520;
             break;
     }
 
@@ -210,7 +210,7 @@ void position_solar(sp_position_t position) {
 
     // Write CW/CCW position
     write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_CW_ANGLE_LIMIT, 215); 
-    write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_CCW_ANGLE_LIMIT, 515);
+    write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_CCW_ANGLE_LIMIT, 520);
 
     // Write speed
     write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_MOVING_SPEED, 200);
@@ -252,4 +252,102 @@ void multiturn_solar(direction_t direction) {
 
     // Write speed
     write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_MOVING_SPEED, 0);
+}
+
+void turn_solar(team_t team, double pres_angle) {
+    uint16_t dxl_goal_position = 512;
+    uint16_t dxl_present_position = 0;
+    dxl_present_position = read2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_AX_PRESENT_POSITION);
+
+     // Enable Dynamixel Torque
+    write1ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_TORQUE_ENABLE, TORQUE_ENABLE);
+
+    // Write CW/CCW position
+    write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_CW_ANGLE_LIMIT, 0); 
+    write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_CCW_ANGLE_LIMIT, 1023);
+
+    switch (team) {
+        case Blue: 
+        // Write speed
+        write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_MOVING_SPEED, 200);
+        if (pres_angle == 0) {
+            dxl_goal_position = 780; 
+        }
+        else if (pres_angle == -90) {
+            dxl_goal_position = 512; //No move
+        }
+        else if (pres_angle == 180) {
+            dxl_goal_position = 150; 
+        }
+        else if (pres_angle == 90) { //Opposite team
+            dxl_goal_position = 0;
+        }
+        break;
+        case Yellow:
+        // Write speed
+        write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_MOVING_SPEED, 200);
+        if (pres_angle == 0) {
+            dxl_goal_position = 150; 
+        }
+        else if (pres_angle == 90) {
+            dxl_goal_position = 512; //No move
+        }
+        else if (pres_angle == 180) {
+            dxl_goal_position = 780; 
+        }
+        else if (pres_angle == -90) { //Opposite team
+            dxl_goal_position = 1023;
+        }
+        break;
+    }
+
+     // Write goal position
+    write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_GOAL_POSITION, dxl_goal_position);
+
+   while ((abs(dxl_goal_position - dxl_present_position) > DXL_MOVING_STATUS_THRESHOLD)) {
+      // Read present position
+      dxl_present_position = read2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_AX_PRESENT_POSITION);
+      write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_GOAL_POSITION, dxl_goal_position);
+      //printf("position_solar [ID:%03d] GoalPos:%03d  PresPos:%03d\n", 6, dxl_goal_position, dxl_present_position);
+    }
+
+}
+
+void init_sp() { 
+    uint16_t dxl_goal_position = 512;
+    uint16_t dxl_present_position = 0;
+
+    // Enable Dynamixel Torque
+    write1ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_TORQUE_ENABLE, TORQUE_ENABLE);
+
+    // Write CW/CCW position
+    write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_CW_ANGLE_LIMIT, 0); 
+    write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_CCW_ANGLE_LIMIT, 1023);
+
+    // Write speed
+    write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_MOVING_SPEED, 200);
+    
+    // Write goal position
+    write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_GOAL_POSITION, dxl_goal_position);
+
+   while ((abs(dxl_goal_position - dxl_present_position) > DXL_MOVING_STATUS_THRESHOLD)) {
+      // Read present position
+      dxl_present_position = read2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_AX_PRESENT_POSITION);
+      write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_GOAL_POSITION, dxl_goal_position);
+      //printf("position_solar [ID:%03d] GoalPos:%03d  PresPos:%03d\n", 6, dxl_goal_position, dxl_present_position);
+    }
+}
+
+void solar_panel(team_t team, double angle) {
+   if ((team == Blue) and ((-30 < angle) or (angle < -135))) {
+    position_solar(DownS); 
+    turn_solar(team, angle);
+    position_solar(UpS); } 
+
+   else if ((team == Yellow) and (30 < angle < 130)) {
+    position_solar(DownS); 
+    turn_solar(team, angle);
+    position_solar(UpS); }
+
+    init_sp(); 
 }

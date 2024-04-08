@@ -1,7 +1,7 @@
 #include "SPI_Modules.h"
 #include <pthread.h>
 
-int DE0_handle, Teensy_handle;
+int DE0_handle, Teensy_handle, SPI2_handle;
 pthread_mutex_t spi_mutex;
 //const unsigned int sonar_GPIO_Trig = 16;
 //const unsigned int sonar_GPIO_Echo = 19;
@@ -65,6 +65,39 @@ int test_spi() {
     if (receive[3] != 0x03) {printf("SPI test 2 failed : receive[%d] == %d != %d\n",3,receive[3],0x03); failure = 2;}
     if (receive[4] != 0x02) {printf("SPI test 2 failed : receive[%d] == %d != %d\n",4,receive[4],0x02); failure = 2;}
     return 0;
+}
+
+// ----- SPI 2 ------
+
+uint8_t init_spi2() {
+    int SPI2_handle = lgGpiochipOpen(4);
+    if (SPI2_handle < 0) return 1;
+
+    claim_gpio(StprSliderGPIO); 
+    claim_gpio(StprPlateGPIO); 
+    claim_gpio(StprFlapsGPIO); 
+    claim_gpio(BpSwitchFlapsLeftGPIO); 
+    claim_gpio(BpSwitchFlapsRightGPIO); 
+    return 0;
+}
+
+void close_spi2() {
+    free_gpio(StprSliderGPIO); 
+    free_gpio(StprPlateGPIO); 
+    free_gpio(StprFlapsGPIO); 
+    free_gpio(BpSwitchFlapsLeftGPIO); 
+    free_gpio(BpSwitchFlapsRightGPIO); 
+    lgGpiochipClose(SPI2_handle);
+}
+
+uint8_t claim_gpio(uint8_t gpio_pin) {
+    if (lgGpioSetUser(SPI2_handle, "Bot Lightyear") < 0) return 2;
+    if (lgGpioClaimInput(SPI2_handle, LG_SET_PULL_NONE, gpio_pin) != 0) return 3;
+    return 0;
+}
+
+void free_gpio(uint8_t gpio_pin) {
+    lgGpioFree(SPI2_handle, gpio_pin);
 }
 
 // ----- Odometers -----
@@ -343,25 +376,25 @@ void teensy_ask_pos(double *x, double *y, double *theta) {
 
 // ----- Flaps servomotors -----
 
-void servo_cmd(servo_cmd_t command) {
+void flaps_servo_cmd(flaps_servo_cmd_t command) {
     char send[5];
     send[0] = 0x80;
     switch (command)
     {
 
-    case ServoIdle: 
+    case FlapsIdle: 
         send[3] = 0;
         send[4] = 0;
         break;
 
-    case ServoDeploy:
-        send[3] = servo_left_dc_deployed;
-        send[4] = servo_right_dc_deployed;
+    case FlapsDeploy:
+        send[3] = 19;
+        send[4] = 19;
         break;
     
-    case ServoRaise:
-        send[3] = servo_left_dc_raised;
-        send[4] = servo_right_dc_raised;
+    case FlapsRaise:
+        send[3] = 23;
+        send[4] = 16;
         break;
 
     default:
@@ -424,6 +457,7 @@ void stpr_move(steppers_t stepperName, uint32_t steps, int neg) {
     pthread_mutex_lock(&spi_mutex);
     lgSpiWrite(DE0_handle, send, 5);
     pthread_mutex_unlock(&spi_mutex);
+
 }
 
 void flaps_move(flaps_pos_t pos) {
@@ -444,7 +478,7 @@ void flaps_move(flaps_pos_t pos) {
         steps = 0; 
         return;
     }
-    stpr_move(StprFlaps, steps, 0); 
+    stpr_move(StprFlaps, steps, 0 ); 
 }
 
 void slider_move(slider_pos_t pos){
@@ -472,7 +506,7 @@ void slider_move(slider_pos_t pos){
         steps = 0; 
         return;
     }
-    stpr_move(StprSlider,steps,0);
+    stpr_move(StprSlider,steps,0 );
 }
 
 
@@ -496,14 +530,14 @@ void plate_move(int pot){
 }
 
 
-void stpr_setup_speed(int nominalSpeed, int initialSpeed, steppers_t stepper) {
+void stpr_setup_speed(int nominalSpeed, int initialSpeed, steppers_t stepperName) {
     char initialSpeed1 = (initialSpeed & 0xFF00) >> 8; 
     char initialSpeed2 = initialSpeed & 0xFF;
     char nominalSpeed1= (nominalSpeed & 0xFF00) >> 8;
     char nominalSpeed2 = nominalSpeed & 0xFF;
     char request; 
-    printf("Init speed 1 : %d, Init speed 2 : %d", initialSpeed1, initialSpeed2);
-    switch (stepper) {
+    //printf("Init speed 1 : %d, Init speed 2 : %d", initialSpeed1, initialSpeed2);
+    switch (stepperName) {
         case StprPlate :
             request = 0x83; 
             break;
@@ -519,20 +553,20 @@ void stpr_setup_speed(int nominalSpeed, int initialSpeed, steppers_t stepper) {
             return; 
     }
     
-    char send[] = {request,nominalSpeed1,nominalSpeed2, initialSpeed1, initialSpeed2};//2 premier byte pour vitesse de plateau et 2 dernier vitesse calibration
+    char send[] = {request,nominalSpeed1,nominalSpeed2, initialSpeed1, initialSpeed2};
     pthread_mutex_lock(&spi_mutex);
     lgSpiWrite(DE0_handle, send, 5); 
     pthread_mutex_unlock(&spi_mutex);
 }
 
 
-void stpr_setup_calib_speed(int calibrationSpeed, int smallCalibrationSpeed, steppers_t stepper) {
+void stpr_setup_calib_speed(int calibrationSpeed, int smallCalibrationSpeed, steppers_t stepperName) {
     char calibrationSpeed1 = calibrationSpeed/256;
     char calibrationSpeed2 = calibrationSpeed-calibrationSpeed1*256;
     char smallCalibrationSpeed1= smallCalibrationSpeed/256;
     char smallCalibrationSpeed2 = smallCalibrationSpeed-smallCalibrationSpeed1*256;
     char request; 
-    switch (stepper) {
+    switch (stepperName) {
         case StprPlate :
             request = 0x84; 
             break;
@@ -547,16 +581,16 @@ void stpr_setup_calib_speed(int calibrationSpeed, int smallCalibrationSpeed, ste
             printf("Error : not a stepper"); 
             return; 
     }
-    char send[] = {request,calibrationSpeed1, calibrationSpeed2, smallCalibrationSpeed1, smallCalibrationSpeed2};//2 premier byte pour vitesse de plateau et 2 dernier vitesse calibration
+    char send[] = {request,calibrationSpeed1, calibrationSpeed2, smallCalibrationSpeed1, smallCalibrationSpeed2};
     pthread_mutex_lock(&spi_mutex);
     lgSpiWrite(DE0_handle, send, 5); 
     pthread_mutex_unlock(&spi_mutex);
 }
 
-void stpr_calibrate(steppers_t stepper) {
+void stpr_calibrate(steppers_t stepperName) {
     char request; 
     char calibDir;
-    switch (stepper) {
+    switch (stepperName) {
         case StprPlate :
             request = 0x82; 
             calibDir = 0x80; 
@@ -579,15 +613,16 @@ void stpr_calibrate(steppers_t stepper) {
     pthread_mutex_lock(&spi_mutex);
     lgSpiWrite(DE0_handle, send, 5);
     pthread_mutex_unlock(&spi_mutex);
+
 }
 
-void stpr_reset(steppers_t stepper) {
+void stpr_reset(steppers_t stepperName) {
     char request;
     char request2; 
 
 
     // Stop steppers
-    switch (stepper) {
+    switch (stepperName) {
         case StprPlate :
             request = 0x82; 
             request2 = 0x85;
@@ -619,10 +654,10 @@ void stpr_reset(steppers_t stepper) {
 
 }
 
-void stpr_setup_acc(steppers_t stepper, uint8_t acc) {
+void stpr_setup_acc(steppers_t stepperName, uint8_t accSteps) {
     char request;
     // Stop steppers
-    switch (stepper) {
+    switch (stepperName) {
         case StprPlate :
             request = 0x85;
             break;
@@ -638,7 +673,7 @@ void stpr_setup_acc(steppers_t stepper, uint8_t acc) {
             return; 
     } 
 
-    char send[] = {request,0,0,0,acc}; // send 1 to reset the module completely
+    char send[] = {request,0,0,0,accSteps}; // send 1 to reset the module completely
     pthread_mutex_lock(&spi_mutex);
     lgSpiWrite(DE0_handle, send, 5);
     pthread_mutex_unlock(&spi_mutex);

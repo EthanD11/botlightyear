@@ -25,6 +25,11 @@ typedef enum {
     DownS,
 } sp_position_t;
 
+typedef enum {
+    Blue, 
+    Yellow,
+} team_t; 
+
 void dxl_init_port(); 
 void dxl_close_port(); 
 
@@ -36,5 +41,9 @@ void position_gripper(position_t position);
 
 void position_solar(sp_position_t position);
 void multiturn_solar(direction_t direction);
+void turn_solar(team_t team, double pres_angle); 
+void init_sp(); 
+
+void solar_panel(team_t team, double angle); 
 
 #endif
