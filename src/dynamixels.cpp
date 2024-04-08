@@ -40,6 +40,7 @@
 #define TORQUE_ENABLE                   1                   // Value for enabling the torque
 #define TORQUE_DISABLE                  0                   // Value for disabling the torque
 #define DXL_MOVING_STATUS_THRESHOLD     10                  // Dynamixel moving status threshold
+#define DTHETA                          5                   // Delta theta on angles
 
 int port_num; 
 
@@ -283,19 +284,29 @@ void turn_solar(team_t team, double pres_angle) {
             dxl_goal_position = 0;
         }
         break;
+
         case Yellow:
         // Write speed
         write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_MOVING_SPEED, 200);
-        if (pres_angle == 0) {
+        if (abs(pres_angle - 0) < DTHETA) {
             dxl_goal_position = 150; 
         }
-        else if (pres_angle == 90) {
+        else if (0 < pres_angle < 90) {
+            dxl_goal_position = (181/45)*pres_angle + 150;
+        }
+        else if (abs(pres_angle - 90) < DTHETA) {
             dxl_goal_position = 512; //No move
         }
-        else if (pres_angle == 180) {
+        else if (90 < pres_angle < 180) {
+            dxl_goal_position = (134/45)*pres_angle + 244;
+        }
+        else if (abs(pres_angle - 180) < DTHETA) {
             dxl_goal_position = 780; 
         }
-        else if (pres_angle == -90) { //Opposite team
+        else if (pres_angle < -90) {
+            dxl_goal_position = (27/10)*pres_angle + 26;
+        }
+        else if (abs(pres_angle + 90) < DTHETA) { //Opposite team
             dxl_goal_position = 1023;
         }
         break;
