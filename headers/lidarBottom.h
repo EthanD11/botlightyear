@@ -2,6 +2,8 @@
 #ifndef MECATROMINIBOT_LIDARBOTTOM_H
 #define MECATROMINIBOT_LIDARBOTTOM_H
 #include "lidar.h"
+#include <chrono>
+
 typedef struct Point {
     double x;
     double y;
@@ -15,14 +17,14 @@ typedef struct PlantZone {
     double endAngle;
     bool isAccessible;
     bool empty;
-    int numberPlant = 0;
-    double* aPlant = new double[6];
-    double* dPlant = new double[6];
+    int numberPlant;
+    double* aPlant;
+    double* dPlant;
 }PlantZone;
 
 
 
-int getNumberOfPlantInZone(double x_robot, double y_robot, double theta_robot, int* zone, PlantZone** plantZonePolar);
+int getNumberOfPlantInAllZone(double x_robot, double y_robot, double theta_robot, int* zone, PlantZone** plantZonePolar);
 //void obstaclesPosition(double* dCoin, double* aCoin, double* angles, double* distances, double* dObstacles, double* aObstacles);
 void initBottomLidar(PlantZone** polarCoord);
 

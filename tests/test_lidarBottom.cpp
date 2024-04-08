@@ -12,7 +12,7 @@ int main(int argc, char *argv[]) {
     initBottomLidar(plantZonePolar);
 
 
-    int res = getNumberOfPlantInZone(0.44-1.0, 0.13-1.5, M_PI/2.0, zone, plantZonePolar);
+    int res = getNumberOfPlantInAllZone(0.44-1.0, 0.13-1.5, M_PI/2.0, zone, plantZonePolar);
     if (res==1){
         if (testpython){
     for (size_t i = 0; i < 6; i++)

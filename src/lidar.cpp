@@ -11,25 +11,20 @@
 
 using std::string;
 
-
 //pour lecture fichier
 #include <fstream>
 #include <sstream>
 
-
 using namespace sl;
-IChannel* channelTop; //diff pour les 2 lidars
+IChannel* channelTop;
 ILidarDriver *lidarTop;
 
-
 //idem pour bottom
-IChannel* channelBottom; //diff pour les 2 lidars
+IChannel* channelBottom;
 ILidarDriver *lidarBottom;
-
 
 //SLeep
 #include <unistd.h>
-
 
 
 void StartLidarTop(){

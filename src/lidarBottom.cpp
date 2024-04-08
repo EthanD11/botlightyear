@@ -177,7 +177,7 @@ void lidarGetPlantPosition(Point* robot, double* angles, double* distances, doub
  * @param plantZonePolar : structure with all data need (init by initBottomLidar)
  * @return
  */
-int getNumberOfPlantInZone(double x_robot, double y_robot, double theta_robot, int* zone, PlantZone** plantZonePolar){
+int getNumberOfPlantInAllZone(double x_robot, double y_robot, double theta_robot, int* zone, PlantZone** plantZonePolar){
     double* angles = new double[8000];
     double* distances = new double[8000];
     double* quality = new double[8000];
@@ -187,9 +187,14 @@ int getNumberOfPlantInZone(double x_robot, double y_robot, double theta_robot, i
     robot->y = y_robot;
     robot->theta = theta_robot;
     size_t *asize = new size_t[2]{8000, 8000};
+    auto started = std::chrono::high_resolution_clock::now();
+
     updateDataBottom(angles, distances, quality, asize);
     arraysize = asize[0];
     lidarGetPlantPosition(robot, angles, distances, obj, asize[0],plantZonePolar );
+    auto done = std::chrono::high_resolution_clock::now();
+    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(done-started).count()<< "\n";
+    
     delete(angles);
     delete(distances);
     delete(quality);
@@ -222,12 +227,22 @@ void initBottomLidar(PlantZone** polarCoord){
     zoneP[4]->y = -0.5;
     zoneP[5] = new Point[sizeof(Point)];
     zoneP[5]->x = -0.3;
-    zoneP[5]->y =  -0.5;
+    zoneP[5]->y = -0.5;
 
     for (int i=0; i<6;i++){
         polarCoord[i]= new PlantZone[sizeof(PlantZone)];
         polarCoord[i]->distance=0.0;
+        polarCoord[i]->angle=0.0; // en radians (angle au centre)
+        polarCoord[i]->startAngle = 0.0;
+        polarCoord[i]->endAngle = 0.0;
+        polarCoord[i]->isAccessible=true;
+        polarCoord[i]->empty=false;
+        polarCoord[i]->numberPlant = 0;
+        polarCoord[i]->aPlant = new double[6];
+        polarCoord[i]->dPlant = new double[6];
     }
+
+
 
 }
 
