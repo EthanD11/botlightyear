@@ -6,23 +6,6 @@ static double sizePlant = 0.05;
 int arraysize = 8000;
 bool printplotpy = false;
 
-typedef struct Point {
-    double x;
-    double y;
-    double theta;
-}Point;
-
-typedef struct PlantZone {
-    double distance;
-    double angle; // en radians (angle au centre)
-    double startAngle;
-    double endAngle;
-    bool isAccessible;
-    bool empty;
-    int numberPlant = 0;
-    double* aPlant = new double[6];
-    double* dPlant = new double[6];
-}PlantZone;
 
 ///coordonnées en x,y selon le repère balise b3=(0,0)
 Point* zoneP;
