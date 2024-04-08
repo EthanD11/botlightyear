@@ -27,9 +27,9 @@ int main(int argc, char const *argv[])
     double x = 0; 
     double y = 0; 
     double t = 0;
-    double xr = 0.5; 
+    double xr = 0.2; 
     double yr = 0; 
-    double tr = 0*deg_to_rads;
+    double tr = -60*deg_to_rads;
 
     teensy_set_position(x, y, t);
     teensy_pos_ctrl(xr, yr, tr);
@@ -72,7 +72,7 @@ int main(int argc, char const *argv[])
     #endif
 
     #ifdef SPEED_CONTROL
-    teensy_spd_ctrl(0.4, 0.4);
+    teensy_spd_ctrl(0.2, 0.2);
     #endif
 
     #ifdef DC_CONTROL
