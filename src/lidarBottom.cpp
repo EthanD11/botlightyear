@@ -19,22 +19,15 @@ double calculateAngle(Point *a, Point *b) {
 }
 
 void zoneInPolar(Point* robot, PlantZone** polarCoord) {
-    printf("segfault de merde 1\n");
     for (int i = 0; i < 6; ++i) {
-        printf("segfault de merde 2\n");
         polarCoord[i]->distance = 0.0;
-        printf("segfault de merde 2.5\n");
-
         polarCoord[i]->distance = calculateDistance(robot, zoneP[i]);
-        printf("segfault de merde 3\n");
         polarCoord[i]->angle = calculateAngle(robot, zoneP[i]) - robot->theta;
-        printf("segfault de merde 4\n");
         ///angle compris entre -PI et PI
         polarCoord[i]->angle = std::fmod((polarCoord[i]->angle +M_PI), (2*M_PI))-M_PI;
             printf("segfault de merde 4\n");
 
     }
-    printf("segfault de merde 2\n");
 
     if (printplotpy){
         printf("[%f, %f, %f, %f, %f, %f], ",  polarCoord[0]->angle, polarCoord[1]->angle, polarCoord[2]->angle, polarCoord[3]->angle, polarCoord[4]->angle, polarCoord[5]->angle);
