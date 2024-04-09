@@ -6,8 +6,8 @@ Regulator *init_regulator() {
     // reg->kp = 7.795856e-01; // Former t1_kp
     // reg->ki = 8.398411e-01 * REG_DELAY * 1e-3; // Former t1_ki
     
-    reg->kp = 13.2/4; // Former t1_kp
-    reg->ki = 44.0/4; // Former t1_ki
+    reg->kp = 13.9; // Former t1_kp
+    reg->ki = 33.1; // Former t1_ki
 
     reg->imax = 1; // Anti windup [V/V]
 

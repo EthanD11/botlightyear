@@ -9,6 +9,7 @@
 #include "utils.h"
 
 #define VERBOSE
+// #define SPI_VERBOSE
 
 typedef enum {
   ModeIdle, // No input from RPi, default is to remain still
@@ -68,65 +69,84 @@ void loop() {
   
   if (spi_valid_transmission()) {
     spi_reset_transmission(); 
+    #ifdef SPI_VERBOSE
     printf("SPI received transmission\n");
+    #endif
     switch (spi_get_query()) {
       case QueryDoPathFollowing:
+        #ifdef SPI_VERBOSE
         printf("SPI QueryDoPathFollowing\n");
+        #endif
         spi_handle_path_following(path_follower);
         nextmode = ModePathFollowing;
         break;
 
       case QueryDoPositionControl:
+        #ifdef SPI_VERBOSE
         printf("SPI QueryDoPositionControl\n");
+        #endif
         spi_handle_position_control(position_controller);
-        set_a3pin_duty_cycle(outputs, 0);
         nextmode = ModePositionControl;
         break;
 
       case QueryDoSpeedControl:
+        #ifdef SPI_VERBOSE
         printf("SPI SpeedControl\n");
+        #endif
         spi_handle_speed_control();
         nextmode = ModeSpeedControl;
         break;
 
       case QueryIdle:
+        #ifdef SPI_VERBOSE
         printf("SPI QueryIdle\n");
-        set_a3pin_duty_cycle(outputs, 128);
+        #endif
         nextmode = ModeIdle;
         break;
 
       case QueryAskState:
+        #ifdef SPI_VERBOSE
         printf("SPI QueryAskState\n");
+        #endif
         nextmode = mode;
         break;
 
       case QuerySetPosition:
+        #ifdef SPI_VERBOSE
         printf("SPI QuerySetPosition\n");
+        #endif
         spi_handle_set_position(robot_position);
         nextmode = mode;
         break;
 
       case QueryDoConstantDutyCycle:
+        #ifdef SPI_VERBOSE
         printf("SPI Constant DC\n");
+        #endif
         spi_handle_constant_duty_cycle();
         nextmode = ModeConstantDC;
         break;
 
       case QuerySetPositionControlGains:
+        #ifdef SPI_VERBOSE
         printf("SPI Set Position Control Gains\n");
+        #endif
         spi_handle_set_position_control_gains(position_controller);
         nextmode = mode;
         break;
 
       case QuerySetPathFollowerGains:
+        #ifdef SPI_VERBOSE
         printf("SPI Set Path Follower Gains\n");
+        #endif
         spi_handle_set_path_follower_gains(path_follower);
         nextmode = mode;
         break;
       
       default:
+        #ifdef SPI_VERBOSE
         printf("SPI QueryDefault\n");
-        set_a3pin_duty_cycle(outputs, 255);
+        #endif
         nextmode = mode;
         break;
     }
@@ -212,7 +232,9 @@ void loop() {
 
 
       default: // ModeIdle
+        #ifdef VERBOSE
         printf("Default in output logic\n");
+        #endif
         set_motors_duty_cycle(outputs, 0, 0);
         break;
     }
@@ -223,12 +245,12 @@ void loop() {
     printf("ypos = %.5e\n", robot_position->y);
     printf("thetapos = %.5e\n", robot_position->theta);
     // printf("kif = %.5e\n", path_follower->kif);
-    // printf("vfwd = %.5e\n", robot_position->vfwd);
+    printf("vfwd = %.5e\n", robot_position->vfwd);
     // printf("omega = %.5e\n", robot_position->omega);
-    // printf("speed_left = %.5e\n", robot_position->speed_left);
-    // printf("speed_right = %.5e\n", robot_position->speed_right);
-    // printf("dc left = %d\n", outputs->duty_cycle_l);
-    // printf("dc right = %d\n", outputs->duty_cycle_r);
+    printf("speed_left = %.5e\n", robot_position->speed_left);
+    printf("speed_right = %.5e\n", robot_position->speed_right);
+    printf("dc left = %d\n", outputs->duty_cycle_l);
+    printf("dc right = %d\n", outputs->duty_cycle_r);
     // printf("el_filtered = %.5e\n", speed_regulator->el_filtered);
     // printf("er_filtered = %.5e\n", speed_regulator->er_filtered);
     // printf("isl = %.5e\n", speed_regulator->isl);
@@ -261,9 +283,6 @@ void loop() {
     switch (mode) {
       case ModeIdle:
         nextmode = ModeIdle;
-        if (mode != nextmode) {
-          printf("Mode idle in next state logic");
-        }
         break;
       case ModePositionControl:
         nextmode = ModePositionControl;
@@ -274,7 +293,6 @@ void loop() {
       case ModePathFollowing:
         if (path_following_goal_reached) {
           nextmode = ModePositionControl;
-          // printf("Mode Position control is next\n");
         } else {
           nextmode = ModePathFollowing;
         }
@@ -312,7 +330,5 @@ void loop() {
         break;
     }
   }
-
-  
   
 }
