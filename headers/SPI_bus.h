@@ -1,3 +1,5 @@
+#ifndef _BLY_SPI_BUS_H_
+#define _BLY_SPI_BUS_H_
 
 class SPI_bus
 {
@@ -14,3 +16,5 @@ public:
     void Teensy_write(char *send, int msgSize);
     void Teensy_xfer(char *send, char *receive, int msgSize);
 };
+
+#endif

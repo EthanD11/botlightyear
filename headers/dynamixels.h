@@ -1,5 +1,5 @@
-#ifndef MECATROMINIBOT_DYNAMIXELS_H
-#define MECATROMINIBOT_DYNAMIXELS_H
+#ifndef BLY_DYNAMIXELS_H
+#define BLY_DYNAMIXELS_H
 
 typedef enum {
     Plant, 
