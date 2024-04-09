@@ -8,7 +8,7 @@
 #include "src/regulator/regulator.h"
 #include "utils.h"
 
-// #define VERBOSE
+#define VERBOSE
 
 typedef enum {
   ModeIdle, // No input from RPi, default is to remain still
@@ -132,7 +132,7 @@ void loop() {
     }
     switch_mode = (mode != nextmode);
     mode = nextmode;
-  } else if (current_time - control_time > REG_DELAY) {
+  } else if (current_time - control_time >= REG_DELAY) {
 
     update_localization(robot_position);
     int ncheckpoints = 5;
@@ -192,7 +192,6 @@ void loop() {
       case ModePathFollowing:
         #ifdef VERBOSE
         printf("\nMode path following\n");
-        printf("time = %d\n", current_time);
         #endif
         path_following_goal_reached = update_path_follower_ref_speed(path_follower, 
           robot_position);
@@ -219,20 +218,43 @@ void loop() {
     }
     
     #ifdef VERBOSE
-    printf("dt = %.12e\n", robot_position->dt);
-    printf("xpos = %.10e\n", robot_position->x);
-    printf("ypos = %.10e\n", robot_position->y);
-    printf("thetapos = %.10e\n", robot_position->theta);
-    printf("vfwd = %.10e\n", robot_position->vfwd);
-    printf("omega = %.10e\n", robot_position->omega);
-    printf("speed_left = %.10e\n", robot_position->speed_left);
-    printf("speed_right = %.10e\n", robot_position->speed_right);
-    printf("dc left = %d\n", outputs->duty_cycle_l);
-    printf("dc right = %d\n", outputs->duty_cycle_r);
-    printf("el_filtered = %.10e\n", speed_regulator->el_filtered);
-    printf("er_filtered = %.10e\n", speed_regulator->er_filtered);
-    printf("isl = %.6e\n", speed_regulator->isl);
-    printf("isr = %.6e\n", speed_regulator->isr);
+    printf("dt = %.5e\n", ((double) 1e-6*current_time));
+    printf("xpos = %.5e\n", robot_position->x);
+    printf("ypos = %.5e\n", robot_position->y);
+    printf("thetapos = %.5e\n", robot_position->theta);
+    // printf("kif = %.5e\n", path_follower->kif);
+    // printf("vfwd = %.5e\n", robot_position->vfwd);
+    // printf("omega = %.5e\n", robot_position->omega);
+    // printf("speed_left = %.5e\n", robot_position->speed_left);
+    // printf("speed_right = %.5e\n", robot_position->speed_right);
+    // printf("dc left = %d\n", outputs->duty_cycle_l);
+    // printf("dc right = %d\n", outputs->duty_cycle_r);
+    // printf("el_filtered = %.5e\n", speed_regulator->el_filtered);
+    // printf("er_filtered = %.5e\n", speed_regulator->er_filtered);
+    // printf("isl = %.5e\n", speed_regulator->isl);
+    // printf("isr = %.5e\n", speed_regulator->isr);
+
+    // switch (mode) {
+    //   case ModeSpeedControl:
+    //     printf("ref_speedl = %.6e\n", spi_get_speed_refl());
+    //     printf("ref_speedr = %.6e\n", spi_get_speed_refr());
+    //     break;
+
+    //   case ModePositionControl:
+    //     printf("ref_speedl = %.6e\n", get_speed_refl(position_controller));
+    //     printf("ref_speedr = %.6e\n", get_speed_refr(position_controller));
+    //     break;
+
+    //   case ModePathFollowing:
+    //     printf("ref_speedl = %.6e\n", get_speed_refl(path_follower));
+    //     printf("ref_speedr = %.6e\n", get_speed_refr(path_follower));
+    //     break;
+
+    //   default:
+    //     printf("ref_speedl = NaN\n");
+    //     printf("ref_speedr = NaN\n");
+    //     break;
+    // }
     #endif
 
     // Next state logic
@@ -252,7 +274,7 @@ void loop() {
       case ModePathFollowing:
         if (path_following_goal_reached) {
           nextmode = ModePositionControl;
-          printf("Mode Position control is next\n");
+          // printf("Mode Position control is next\n");
         } else {
           nextmode = ModePathFollowing;
         }
