@@ -6,7 +6,7 @@
 
 // Uncomment to enable
 // When enabled, init_graph_from_file should print out the exact file it has read
-//#define VERBOSE
+#define VERBOSE
 
 typedef struct __graph_targets
 {
@@ -20,7 +20,7 @@ void node_neighbors(ASNeighborList neighbors, void* node, void* context) {
     for (uint8_t i = 0; i < cur_node->nb_neighbors; i++)
     {
         graph_node_t* neighbor = cur_node->neighbors[i];
-        if (neighbor->level > graph_level) continue;
+        if (neighbor->level > graphLevel) continue;
         float cost = hypot(neighbor->x - cur_node->x, neighbor->y - cur_node->y);
         ASNeighborListAdd(neighbors, neighbor, cost);
     }
@@ -32,8 +32,8 @@ float path_cost_heuristic(void* fromNode, void* toNode, void* context) {
     float min = 1e10;
     for (uint8_t i = 0; i < targets->len_targets; i++)
     {
-        graph_node_t* to = graph_nodes + targets->targets[i];
-        if (to->level > graph_level) continue;
+        graph_node_t* to = graphNodes + targets->targets[i];
+        if (to->level > graphLevel) continue;
         float cost = hypot(to->x - from->x, to->y - from->y);
         if (min > cost) min = cost;
     }
@@ -49,8 +49,8 @@ int early_exit(size_t visitedCount, void *visitingNode, void *goalNode, void *co
     graph_targets_t *targets = (graph_targets_t*) context;
     for (size_t i = 0; i < targets->len_targets; i++)
     {
-        graph_node_t *target = graph_nodes + targets->targets[i];
-        if (target->level <= graph_level && node_comparator(current, target, NULL) == 0) return 1; 
+        graph_node_t *target = graphNodes + targets->targets[i];
+        if (target->level <= graphLevel && node_comparator(current, target, NULL) == 0) return 1; 
     }
     return 0;
 }
@@ -70,7 +70,7 @@ graph_path_t *graph_compute_path(const uint8_t from, uint8_t *targets, const uin
     context.targets = targets;
 
     // Start the search
-    ASPath path = ASPathCreate(&source, &context, graph_nodes + from, graph_nodes + targets[0]);
+    ASPath path = ASPathCreate(&source, &context, graphNodes + from, graphNodes + targets[0]);
     if (ASPathGetCount(path) == 0) {
         // Failure, returning
         ASPathDestroy(path);
@@ -111,14 +111,16 @@ graph_path_t *graph_compute_path(const uint8_t from, uint8_t *targets, const uin
 }
 
 void graph_level_update(const int node, const int level, const int propagation) {
-    graph_node_t *_node = &(graph_nodes[node]);
+    graph_node_t *_node = &(graphNodes[node]);
     _node->level = level;
     if (propagation) {
         for (uint8_t i = 0; i < _node->nb_neighbors; i++) {
 
             uint8_t node_affected = 1; // Is this neighbor a plant or a base ?
             for (uint8_t j = 0; j < 6; j++){
-                if (graph_bases[j] == _node->neighbors[i]->id || graph_plants[j] == _node->neighbors[i]->id) {
+                if (graphFriendlyBases[j] == _node->neighbors[i]->id 
+                    || graphAdversaryBases[j] == _node->neighbors[i]->id
+                    || graphPlants[j] == _node->neighbors[i]->id) {
                     node_affected = 0; // If yes, its level should not be affected by the propagation
                     break;
                 }
@@ -132,10 +134,10 @@ void graph_level_update(const int node, const int level, const int propagation) 
 
 uint8_t graph_identify_pos(double x, double y, double *dist) {
     uint8_t id = 0;
-    *dist = hypot(graph_nodes[0].x - x, graph_nodes[0].y - y);
-    for (uint8_t i = 1; i < graph_nb_nodes; i++)
+    *dist = hypot(graphNodes[0].x - x, graphNodes[0].y - y);
+    for (uint8_t i = 1; i < graphNbNodes; i++)
     {
-        double temp = hypot(graph_nodes[i].x - x, graph_nodes[i].y - y);
+        double temp = hypot(graphNodes[i].x - x, graphNodes[i].y - y);
         if (*dist > temp) {
             *dist = temp;
             id = i;
@@ -144,54 +146,62 @@ uint8_t graph_identify_pos(double x, double y, double *dist) {
     return id;
 }
 
-int init_graph_from_file(const char *filename) {
+int init_graph_from_file(const char *filename, team_color_t color) {
+    if (color == NoTeam) return -1;
     FILE *input_file = fopen(filename, "r");
     if (input_file == NULL) return -1;
 
     // Scan number of nodes
-    if (fscanf(input_file, "Number of nodes : %hhd\n", &graph_nb_nodes) != 1) return -1;
+    if (fscanf(input_file, "Number of nodes : %hhd\n", &graphNbNodes) != 1) return -1;
     #ifdef VERBOSE
-    printf("Number of nodes : %d\n", graph_nb_nodes);
+    printf("Number of nodes : %d\n", graphNbNodes);
     #endif
     
     // Malloc graph
-    graph_nodes = (graph_node_t*) malloc(graph_nb_nodes*sizeof(graph_node_t));
-    if (graph_nodes == NULL) return -1;
+    graphNodes = (graph_node_t*) malloc(graphNbNodes*sizeof(graph_node_t));
+    if (graphNodes == NULL) return -1;
 
-    for (int8_t i = 0; i < graph_nb_nodes; i++) {
+    uint8_t trash;
+    for (int8_t i = 0; i < graphNbNodes; i++) {
 
         // Set id & level
-        graph_nodes[i].id = i;
-        graph_nodes[i].level = 0;
+        graphNodes[i].id = i;
+        graphNodes[i].level = 0;
+        graphNodes[i].score = 0;
 
         // Scan x and y coordinates
-        if (fscanf(input_file, "%f,%f\n", &(graph_nodes[i].x), &(graph_nodes[i].y)) != 2) return -1;
+        if (fscanf(input_file, "%hhd:%f,%f\n", &trash, &(graphNodes[i].x), &(graphNodes[i].y)) != 3) return -1;
+        if (trash != i) return -1;
         #ifdef VERBOSE
-        printf("%.3f,%.3f\n", graph_nodes[i].x, graph_nodes[i].y);
+        printf("%d:%.3f,%.3f\n", i, graphNodes[i].x, graphNodes[i].y);
         // Rotation for recentering based on robot modelling's convention
-        //printf("%.3f,%.3f\n", (graph_nodes[i].y-1), -(graph_nodes[i].x-1.5));
+        //printf("%.3f,%.3f\n", (graphNodes[i].y-1), -(graphNodes[i].x-1.5));
         #endif
     }
 
     // Scan neighbors lists
     // One line = the list of comma-separated neighbors of one node
     char list[64];
-    for (size_t i = 0; i < 64; i++){ list[i] = 0; }
     char *token;
     uint8_t node_id;
-    for (uint8_t i = 0; i < graph_nb_nodes; i++)
+    for (uint8_t i = 0; i < graphNbNodes; i++)
     {
-        graph_nodes[i].nb_neighbors = 0;
+        graphNodes[i].nb_neighbors = 0;
         for (size_t i = 0; i < 64; i++){ list[i] = 0; }
-        if (fscanf(input_file, "%s\n", list) != 1) return -1; // Get next line
+        if (fscanf(input_file, "%hhd:%s\n", &trash, list) != 2) return -1; // Get next line
+        if (trash != i) return -1;
+        #ifdef VERBOSE
+        printf("%d:", i);
+        #endif
 
         token = strtok(list, ","); // Split line based on commas, get 1st token
         while (token != NULL) {
 
+            if (graphNodes[i].nb_neighbors == 7) return -1;
             if (sscanf(token,"%hhd", &node_id) != 1) return -1; // Interpret token as a neighbor id
 
-            graph_nodes[i].neighbors[graph_nodes[i].nb_neighbors] = &(graph_nodes[node_id]); // Add to list of neighbors
-            graph_nodes[i].nb_neighbors++;
+            graphNodes[i].neighbors[graphNodes[i].nb_neighbors] = graphNodes + node_id; // Add to list of neighbors
+            graphNodes[i].nb_neighbors++;
             #ifdef VERBOSE
             printf("%d", node_id);
             #endif
@@ -205,18 +215,22 @@ int init_graph_from_file(const char *filename) {
         #endif
     }
 
-    // Scan bases nodes, assign level
-    if (fscanf(input_file, "Bases : %s\n", list) != 1) return -1;
+    // Scan blue bases nodes, assign level
+    for (size_t i = 0; i < 64; i++){ list[i] = 0; }
+    if (fscanf(input_file, "Blue bases, reserved first : %s\n", list) != 1) return -1;
     #ifdef VERBOSE
-    printf("Bases : ");
+    printf("Blue bases, reserved first : ");
     #endif
     token = strtok(list, ",");
-    uint8_t i = 0;
-    while (token != NULL) {
-
+    for (uint8_t i = 0; i < 3; i++) {
+        if (token == NULL) return -1;
         if (sscanf(token, "%hhd", &node_id) != 1) return -1;
-        graph_nodes[node_id].level = 1; 
-        graph_bases[i] = node_id;
+        if (color == TeamBlue) {
+            graphFriendlyBases[i] = node_id;
+        } else {
+            graphNodes[node_id].level = 1; 
+            graphAdversaryBases[i] = node_id;
+        }
         #ifdef VERBOSE
         printf("%d", node_id);
         #endif
@@ -224,24 +238,51 @@ int init_graph_from_file(const char *filename) {
         #ifdef VERBOSE
         if (token != NULL) printf(",");
         #endif
-        i++;
+    }
+    #ifdef VERBOSE
+    printf("\n");
+    #endif
+
+    // Scan yellow bases nodes, assign level
+    for (size_t i = 0; i < 64; i++){ list[i] = 0; }
+    if (fscanf(input_file, "Yellow bases, reserved first : %s\n", list) != 1) return -1;
+    #ifdef VERBOSE
+    printf("Yellow bases, reserved first : ");
+    #endif
+    token = strtok(list, ",");
+    for (uint8_t i = 0; i < 3; i++) {
+        if (token == NULL) return -1;
+        if (sscanf(token, "%hhd", &node_id) != 1) return -1;
+        if (color == TeamYellow) {
+            graphFriendlyBases[i] = node_id;
+        } else {
+            graphNodes[node_id].level = 1; 
+            graphAdversaryBases[i] = node_id;
+        }
+        #ifdef VERBOSE
+        printf("%d", node_id);
+        #endif
+        token = strtok(NULL,",");
+        #ifdef VERBOSE
+        if (token != NULL) printf(",");
+        #endif
     }
     #ifdef VERBOSE
     printf("\n");
     #endif
 
     // Scan plant nodes, assign level
+    for (size_t i = 0; i < 64; i++){ list[i] = 0; }
     if (fscanf(input_file, "Plants : %s\n", list) != 1) return -1;
     #ifdef VERBOSE
     printf("Plants : ");
     #endif
     token = strtok(list, ",");
-    i = 0;
-    while (token != NULL) {
-
+    for (uint8_t i = 0; i < 6; i++) {
+        if (token == NULL) return -1;
         if (sscanf(token, "%hhd", &node_id) != 1) return -1;
-        graph_nodes[node_id].level = 1;
-        graph_plants[i] = node_id;
+        graphNodes[node_id].level = 1;
+        graphPlants[i] = node_id;
         #ifdef VERBOSE
         printf("%d", node_id);
         #endif
@@ -249,24 +290,24 @@ int init_graph_from_file(const char *filename) {
         #ifdef VERBOSE
         if (token != NULL) printf(",");
         #endif
-        i++;
     }    
     #ifdef VERBOSE
     printf("\n");
     #endif
 
     // Scan pot nodes, assign level
-    if (fscanf(input_file, "Pots : %s", list) != 1) return -1;
+    for (size_t i = 0; i < 64; i++){ list[i] = 0; }
+    if (fscanf(input_file, "Pots : %s\n", list) != 1) return -1;
     #ifdef VERBOSE
     printf("Pots : ");
     #endif
     token = strtok(list, ",");
-    i = 0;
-    while (token != NULL) {
+    for (uint8_t i = 0; i < 6; i++) {
+        if (token == NULL) return -1;
 
         if (sscanf(token, "%hhd", &node_id) != 1) return -1;
-        //graph_nodes[node_id].level = 0;
-        graph_pots[i] = node_id;
+        //graphNodes[node_id].level = 0;
+        graphPots[i] = node_id;
         #ifdef VERBOSE
         printf("%d", node_id);
         #endif
@@ -274,17 +315,96 @@ int init_graph_from_file(const char *filename) {
         #ifdef VERBOSE
         if (token != NULL) printf(",");
         #endif
-        i++;
     }    
     #ifdef VERBOSE
     printf("\n");
     #endif
 
-    graph_level = 0;
+    // Scan blue solar panel nodes, assign level
+    for (size_t i = 0; i < 64; i++){ list[i] = 0; }
+    if (fscanf(input_file, "Blue solar panels : %s\n", list) != 1) return -1;
+    #ifdef VERBOSE
+    printf("Blue solar panels : ");
+    #endif
+    token = strtok(list, ",");
+    for (uint8_t i = 0; i < 3; i++) {
+        if (token == NULL) return -1;
+        if (sscanf(token, "%hhd", &node_id) != 1) return -1;
+        if (color == TeamBlue) {
+            graphFriendlySPs[i] = node_id;
+        } else {
+            graphNodes[node_id].level = 1; 
+            graphAdversarySPs[i] = node_id;
+        }
+        #ifdef VERBOSE
+        printf("%d", node_id);
+        #endif
+        token = strtok(NULL,",");
+        #ifdef VERBOSE
+        if (token != NULL) printf(",");
+        #endif
+    }
+    #ifdef VERBOSE
+    printf("\n");
+    #endif
+
+    // Scan yellow solar panel nodes, assign level
+    for (size_t i = 0; i < 64; i++){ list[i] = 0; }
+    if (fscanf(input_file, "Yellow solar panels : %s\n", list) != 1) return -1;
+    #ifdef VERBOSE
+    printf("Yellow solar panels : ");
+    #endif
+    token = strtok(list, ",");
+    for (uint8_t i = 0; i < 3; i++) {
+        if (token == NULL) return -1;
+        if (sscanf(token, "%hhd", &node_id) != 1) return -1;
+        if (color == TeamYellow) {
+            graphFriendlySPs[i] = node_id;
+        } else {
+            graphNodes[node_id].level = 1; 
+            graphAdversarySPs[i] = node_id;
+        }
+        #ifdef VERBOSE
+        printf("%d", node_id);
+        #endif
+        token = strtok(NULL,",");
+        #ifdef VERBOSE
+        if (token != NULL) printf(",");
+        #endif
+    }
+    #ifdef VERBOSE
+    printf("\n");
+    #endif
+
+    // Scan common solar panel nodes, assign level
+    for (size_t i = 0; i < 64; i++){ list[i] = 0; }
+    if (fscanf(input_file, "Common solar panels : %s", list) != 1) return -1;
+    #ifdef VERBOSE
+    printf("Common solar panels : ");
+    #endif
+    token = strtok(list, ",");
+    for (uint8_t i = 0; i < 3; i++) {
+        if (token == NULL) return -1;
+        if (sscanf(token, "%hhd", &node_id) != 1) return -1;
+        graphNodes[node_id].level = 1;
+        graphCommonSPs[i] = node_id;
+        #ifdef VERBOSE
+        printf("%d", node_id);
+        #endif
+        token = strtok(NULL,",");
+        #ifdef VERBOSE
+        if (token != NULL) printf(",");
+        #endif
+    }    
+    #ifdef VERBOSE
+    printf("\n");
+    #endif
+
+    graphLevel = 0;
     return 0;
 }
 
-void free_graph() { free(graph_nodes); }
+void free_graph() { free(graphNodes); }
 
 void print_path(graph_path_t* path) {
     printf("Path towards %d of length %.3fm in %d points\n", path->target, path->total_cost, path->nb_nodes);

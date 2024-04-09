@@ -2,17 +2,6 @@
 #include "SPI_Modules.h"
 #include <unistd.h>
 
-void calibrateAll() {
-    stpr_calibrate(StprFlaps);
-    stpr_calibrate(StprPlate);
-    stpr_calibrate(StprSlider);
-}
-
-void resetAll() {
-    stpr_reset(StprFlaps);
-    stpr_reset(StprPlate);
-    stpr_reset(StprSlider);
-}
 
 int main(int argc, char const *argv[])
 {
@@ -26,11 +15,11 @@ int main(int argc, char const *argv[])
 
     servo_cmd(ServoRaise);
 
-    resetAll(); 
-    stpr_setup_speed(5,10,StprFlaps); 
-    stpr_setup_speed(2,10,StprPlate); 
-    stpr_setup_speed(4,10,StprSlider);
-    calibrateAll();
+    stpr_reset_all(); 
+    stpr_setup_speed(StprFlaps,5,10); 
+    stpr_setup_speed(StprPlate,2,10); 
+    stpr_setup_speed(StprSlider,4,10);
+    stpr_calibrate_all();
     sleep(10);
 
     

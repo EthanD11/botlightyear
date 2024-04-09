@@ -3,7 +3,7 @@
 # Arguments for the compilation
 CXX = g++
 FLAGS:=-Wall -O3
-LIBS:=-llgpio -lm -lpthread -ldxl_sbc_c -lsl_lidar_sdk -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_videoio -lopencv_imgcodecs -lopencv_aruco
+LIBS:=-llgpio -lm -lpthread -ldxl_sbc_c -lsl_lidar_sdk -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_videoio -lopencv_imgcodecs -lopencv_aruco -lSSD1306_OLED_RPI -lbcm2835
 #-lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_videoio -lopencv_imgcodecs -lopencv_aruco
 # Directories 
 HEADERS_DIR:=headers 
@@ -32,7 +32,7 @@ $(OBJ_DIR):
 
 # Compiling a binary file from a source file
 $(OBJ_DIR)/%.o: $(SOURCES_DIR)/%.cpp | $(OBJ_DIR)
-	@$(CXX) -I$(HEADERS_DIR) $(CFLAGS) -o $@ -c $< $(LIBS)
+	$(CXX) -I$(HEADERS_DIR) $(CFLAGS) -o $@ -c $< $(LIBS)
 
 # Compiling all the sources
 compile: $(SOURCES_OBJ)

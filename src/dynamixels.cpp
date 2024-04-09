@@ -182,14 +182,15 @@ void turn_solar(team_t team, double pres_angle) {
         if (abs(pres_angle + 0) < DTHETA) {
             dxl_goal_position = 780; 
         }
-        else if (-90 < pres_angle < 0) {
+        else if ((-90 < pres_angle) && (pres_angle < 0)) {
             dxl_goal_position = (134/45)*pres_angle + 780;
         }
         else if (abs(pres_angle + 90) < DTHETA) {
             dxl_goal_position = 512; //No move
         }
-        else if (-180 < pres_angle < -90) {
+        else if ((-180 < pres_angle) && (pres_angle < -90)) {
             dxl_goal_position = (181/45)*pres_angle + 874;
+            printf("dxl_goal_position:%d", dxl_goal_position); 
         }
         else if (abs(pres_angle + 180) < DTHETA) {
             dxl_goal_position = 150; 
@@ -211,13 +212,13 @@ void turn_solar(team_t team, double pres_angle) {
         if (abs(pres_angle - 0) < DTHETA) {
             dxl_goal_position = 150; 
         }
-        else if (0 < pres_angle < 90) {
+        else if (0 < pres_angle && pres_angle < 90) {
             dxl_goal_position = (181/45)*pres_angle + 150;
         }
         else if (abs(pres_angle - 90) < DTHETA) {
             dxl_goal_position = 512; //No move
         }
-        else if (90 < pres_angle < 180) {
+        else if (90 < pres_angle && pres_angle < 180) {
             dxl_goal_position = (134/45)*pres_angle + 244;
         }
         else if (abs(pres_angle - 180) < DTHETA) {
@@ -272,13 +273,13 @@ void init_sp() {
 }
 
 void solar_panel(team_t team, double angle) {
-   if ((team == Blue) and ((-30 < angle) or (angle < -135))) {
+   if ((team == Blue)) {
     position_solar(DownS); 
     turn_solar(team, angle);
     position_solar(UpS); 
     } 
 
-   else if ((team == Yellow) and (30 < angle < 130)) {
+   else if ((team == Yellow)) {
     position_solar(DownS); 
     turn_solar(team, angle);
     position_solar(UpS); 

@@ -23,7 +23,7 @@ int main(int argc, char const *argv[])
 
 
     #ifdef FINAL_SP
-    solar_panel(Blue, 180);
+    solar_panel(Blue, 0);
     #endif
 
     #ifdef SOLAR_PANELS

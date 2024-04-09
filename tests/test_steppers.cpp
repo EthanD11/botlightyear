@@ -24,17 +24,7 @@
 //      10 Calibre
 //      11 Step + signe direction du stepper (horlogique/antihorlogique)
 
-void calibrateAll() {
-    stpr_calibrate(StprFlaps);
-    stpr_calibrate(StprPlate);
-    stpr_calibrate(StprSlider);
-}
 
-void resetAll() {
-    stpr_reset(StprFlaps);
-    stpr_reset(StprPlate);
-    stpr_reset(StprSlider);
-}
 
 void demoPlate(){
     plate_move(-3);
@@ -53,11 +43,18 @@ int main(int argc, char const *argv[])
     #ifdef TESTS
     
     
-    resetAll();
-    calibrateAll();
+    init_spi2(); 
+    stpr_reset_all();
+    stpr_calibrate_all();
+
+
+    plate_move(-3, CALL_BLOCKING);
+    plate_move(0, CALL_BLOCKING);
+    plate_move(3, CALL_BLOCKING);
+    close_spi2(); 
 
     
-    //stpr_setup_speed(60,500,StprPlate); //60 max
+    //stpr_setup_speed(StprPlate,60,500); //60 max
     //demoPlate();
     //plate_move(-3);
     //plate_move(3);
@@ -65,7 +62,7 @@ int main(int argc, char const *argv[])
     
 
     /*
-    stpr_setup_speed(100,400,StprFlaps);
+    stpr_setup_speed(StprFlaps,100,400);
     flaps_move(FlapsPlant);
     flaps_move(FlapsOpen);
     flaps_move(FlapsPot);
@@ -74,21 +71,21 @@ int main(int argc, char const *argv[])
     #endif
 
     #ifdef RESET_CALIBRATE
-    resetAll(); 
-    calibrateAll();
+    stpr_reset_all(); 
+    stpr_calibrate_all();
     lguSleep(10);
     #endif
 
     #ifdef SETUP_CUSTOM_SPEED_OLD
-    stpr_setup_speed(5,10,StprFlaps); 
-    stpr_setup_speed(2,10,StprPlate); 
-    stpr_setup_speed(4,10,StprSlider);
+    stpr_setup_speed(StprFlaps,5,10); 
+    stpr_setup_speed(StprPlate,2,10); 
+    stpr_setup_speed(StprSlider,4,10);
     #endif 
 
     #ifdef SETUP_CUSTOM_SPEED_NEW
-    stpr_setup_speed(500,1000,StprFlaps); 
-    stpr_setup_speed(200,1000,StprPlate); 
-    stpr_setup_speed(400,1000,StprSlider);
+    stpr_setup_speed(StprFlaps,500,1000); 
+    stpr_setup_speed(StprPlate,200,1000); 
+    stpr_setup_speed(StprSlider,400,1000);
     stepper_setup_acc(StprPlate, 5);
     #endif
 
@@ -113,8 +110,8 @@ int main(int argc, char const *argv[])
     
     sleep(5);
     servo_cmd(ServoIdle);
-    resetAll(); 
-    calibrateAll();
+    stpr_reset_all(); 
+    stpr_calibrate_all();
     #endif
 
     close_spi();
