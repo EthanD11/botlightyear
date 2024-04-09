@@ -2,18 +2,18 @@
 #include <stdio.h>
 
 // #define POSITION_CONTROL
-#define PATH_FOLLOWING
+// #define PATH_FOLLOWING
 // #define IDLE
 // #define SET_POSITION
 // #define SPEED_CONTROL
-// #define DC_CONTROL
+#define DC_CONTROL
 #define ASK_STATE
 // #define SET_POS_CTRL_GAINS
 // #define SET_PATH_FOLLOWER_GAINS
 
 #ifdef DC_CONTROL
-    #define DC_LEFT 50
-    #define DC_RIGHT 50
+    #define DC_LEFT 160
+    #define DC_RIGHT 160
 #endif
 
 const double deg_to_rads = M_PI/180;
@@ -52,9 +52,9 @@ int main(int argc, char const *argv[])
     // double x[5] = {0.0,0.4};
     // double y[5] = {1.5,1.5};
     double theta_start =   0.;
-    double theta_end = 0;
+    double theta_end = M_PI;
     double vref = 0.1;
-    double dist_goal_reached = 0.05;
+    double dist_goal_reached = 0.15;
     teensy_set_position(0, 1.5, 0);
     lguSleep(0.1);
     teensy_pos_ctrl(x[0], y[0], atan2(y[1]-y[0], x[1]-x[0]));

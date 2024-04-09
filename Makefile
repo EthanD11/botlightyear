@@ -59,7 +59,7 @@ tests: $(TESTS:.cpp=.o)
 #Test oled
 oled : oled_program
 	@sudo setcap cap_sys_rawio+ep ./bin/oled
-	@./bin/oled
+	@sudo ./bin/oled
 	@rm ./bin/oled
 
 oled_program:
