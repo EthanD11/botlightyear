@@ -2,10 +2,10 @@
 #include <stdio.h>
 
 // #define POSITION_CONTROL
-// #define PATH_FOLLOWING
+#define PATH_FOLLOWING
 // #define IDLE
 // #define SET_POSITION
-#define SPEED_CONTROL
+//#define SPEED_CONTROL
 // #define DC_CONTROL
 #define ASK_STATE
 // #define SET_POS_CTRL_GAINS
