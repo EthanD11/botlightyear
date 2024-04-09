@@ -56,6 +56,15 @@ valtest_%: $(TESTS_DIR)/test_%.o $(SOURCES_OBJ)
 tests: $(TESTS:.cpp=.o)
 	@$(foreach test, $^, ./$(test);)
 
+#Test oled
+oled : oled_program
+	@sudo setcap cap_sys_rawio+ep ./bin/oled
+	@./bin/oled
+	@rm ./bin/oled
+
+oled_program:
+	@g++ ./tests/test_oled.cpp -o ./bin/oled -I$(HEADERS_DIR) $(FLAGS) $(LIBS)
+
 # Run Camera program
 camera: camera_program
 	@./bin/camera
