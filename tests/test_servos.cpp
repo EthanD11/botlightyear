@@ -37,6 +37,6 @@ int main(int argc, char const *argv[])
     //lguSleep(1);
     gripper_deployer_cmd(DeployerIdle);
 
-    close_spi();
+    spi_close();
     return 0;
 }

@@ -51,7 +51,7 @@ int main(int argc, char const *argv[])
     plate_move(-3, CALL_BLOCKING);
     plate_move(0, CALL_BLOCKING);
     plate_move(3, CALL_BLOCKING);
-    close_spi2(); 
+    spi_close2(); 
 
     
     //stpr_setup_speed(StprPlate,60,500); //60 max
@@ -114,7 +114,7 @@ int main(int argc, char const *argv[])
     stpr_calibrate_all();
     #endif
 
-    close_spi();
+    spi_close();
     
     return 0;
 }

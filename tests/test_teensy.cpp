@@ -106,6 +106,6 @@ int main(int argc, char const *argv[])
     teensy_ask_mode();
     #endif
 
-    close_spi();
+    spi_close();
     return 0;
 }

@@ -24,7 +24,7 @@ int init_spi() {
     return (DE0_handle < 0) | (Teensy_handle  < 0); 
 }
 
-void close_spi() {
+void spi_close() {
     lgSpiClose(DE0_handle);
     lgSpiClose(Teensy_handle);
     pthread_mutex_destroy(&spi_mutex);
@@ -74,7 +74,7 @@ uint8_t init_spi2() {
     return 0;
 }
 
-void close_spi2() {
+void spi_close2() {
     free_gpio(StprSliderGPIO); 
     free_gpio(StprPlateGPIO); 
     free_gpio(StprFlapsGPIO); 

@@ -404,7 +404,7 @@ int init_graph_from_file(const char *filename, team_color_t color) {
     return 0;
 }
 
-void free_graph() { free(graphNodes); }
+void graph_free() { free(graphNodes); }
 
 void print_path(graph_path_t* path) {
     printf("Path towards %d of length %.3fm in %d points\n", path->target, path->total_cost, path->nb_nodes);

@@ -47,18 +47,7 @@ int getch()
 #endif
 }
 
-void *topLidar(void* arg) {
-    StartLidar();
-    while (!lidarEnd) {
-
-    }
-    return NULL;
-    StopLidar();
-}
-
-int main(int argc, char const *argv[])
-{
-
+void ask_user_input_params() {
     printf("Which team do I play for ? Press 'b' for team blue, 'y' for team yellow\n")
     do {
         int keyboard_input = getch();
@@ -66,14 +55,10 @@ int main(int argc, char const *argv[])
         else if (keyboard_input == ASCII_y || keyboard_input == ASCII_Y ) { color = TeamYellow; break; }
         printf("Invalid input color : %c\n", (char) keyboard_input);
     } while (1);
+}
 
-    // ------ INIT -----
-
-    dxl_init_port();
-    dxl_ping(1, 2.0);
-    dxl_ping(3, 2.0);
-    dxl_ping(6, 1.0);
-    dxl_ping(8, 1.0);
+time_t init_main(); {
+    dxl_init();
 
     if (init_spi() != 0) exit(2);
     if (test_spi() != 0) exit(2);
@@ -88,12 +73,10 @@ int main(int argc, char const *argv[])
     if (lgGpioSetUser(GPIOhandle, "Bot Lightyear") < 0) exit(5);
     if (lgGpioClaimInput(GPIOhandle, LG_SET_PULL_NONE, 4) != 0) exit(5);
 
-    // ----- CALIBRATION -----
-
     stpr_reset_all();
     stpr_calibrate_all();
-
-    time_t tOld = 0;
+    
+    time_t tStart;
     {
         #ifdef VERBOSE
         printf("Waiting for starting cord setup... \n");
@@ -116,7 +99,7 @@ int main(int argc, char const *argv[])
             if (start < 0) exit(5);
         } while (!start);
     }
-    time_t tStart = time(NULL);
+    tStart = time(NULL);
 
     lgGpioFree(GPIOhandle, 4);
     lgGpiochipClose(GPIOhandle);
@@ -124,7 +107,42 @@ int main(int argc, char const *argv[])
     #ifdef VERBOSE
     printf("Game started! \n");
     #endif
+    return tStart;
+}
 
+void finish_main() {
+
+    teensy_idle();
+
+    lidarEnd = 1;
+    pthread_join(topLidarID, NULL); 
+
+    if (currentPath != NULL) free(currentPath);
+    graph_free();
+
+    spi_close();
+
+    dxl_close();
+
+}
+
+void *topLidar(void* arg) {
+    StartLidar();
+    while (!lidarEnd) {
+
+    }
+    return NULL;
+    StopLidar();
+}
+
+int main(int argc, char const *argv[])
+{
+
+    ask_user_input_params();
+
+    // ------ INIT -----
+    time_t tOld = 0;
+    time_t tStart = init_main();
     // ----- GAME -----
 
     do {
@@ -138,21 +156,7 @@ int main(int argc, char const *argv[])
 
     // ----- FINISH -----
 
-    teensy_idle();
-
-    lidarEnd = 1;
-    pthread_join(topLidarID, NULL); 
-
-    if (currentPath != NULL) free(currentPath);
-    free_graph();
-
-    close_spi();
-
-    dxl_idle(1, 2.0);
-    dxl_idle(3, 2.0);
-    dxl_idle(6, 1.0);
-    dxl_idle(8, 1.0);
-    dxl_close_port();
+    finish_main();
 
     exit(0);
 }

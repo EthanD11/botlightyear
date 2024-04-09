@@ -66,7 +66,7 @@ int init_graph_from_file(const char *filename, team_color_t color);
 /**
  * @brief Frees the graphNodes array and its nodes
 */
-void free_graph();
+void graph_free();
 
 /**
  * Computes a path sequence from node 'from' to the closest node in the 'targets' array (refer to the visual graph)

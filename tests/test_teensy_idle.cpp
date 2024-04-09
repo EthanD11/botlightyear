@@ -11,6 +11,6 @@ int main(int argc, char const *argv[])
     init_spi(); 
     lguSleep(0.5);
     teensy_idle();
-    close_spi();
+    spi_close();
     return 0;
 }

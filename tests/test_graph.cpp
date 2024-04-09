@@ -49,7 +49,7 @@ int main(int argc, char const *argv[])
     printf("Position (%.3f,%.3f) identifies with node %d with an error of %.3f\n", x, y, id, dist);
 
     free(result);
-    free_graph();
+    graph_free();
 
     return 0;
 }

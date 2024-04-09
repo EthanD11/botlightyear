@@ -78,6 +78,6 @@ int main(int argc, char const *argv[])
     dxl_idle(8, 1.0);
 
     dxl_close_port();
-    close_spi();
+    spi_close();
     return 0;
 }

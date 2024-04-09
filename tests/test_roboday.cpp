@@ -137,7 +137,7 @@ int main(int argc, char const *argv[])
     idle(3, 2.0);
     ax_close_port();
     xl_close_port();
-    close_spi();
+    spi_close();
     
     return 0;
 }

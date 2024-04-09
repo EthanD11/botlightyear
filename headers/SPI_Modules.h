@@ -46,7 +46,7 @@ int init_spi();
 /**
  * @brief Closes the SPI channels
 */
-void close_spi();
+void spi_close();
 
 /**
  * Test SPI communication, returns 0 on success
@@ -72,7 +72,7 @@ uint8_t init_spi2();
 /**
  * @brief Frees the SPI2 GPIOs and closes the chip
 */
-void close_spi2();
+void spi_close2();
 
 /**
  * @brief Claims a GPIO
