@@ -2,10 +2,10 @@
 #include <stdio.h>
 
 // #define POSITION_CONTROL
-// #define PATH_FOLLOWING
+#define PATH_FOLLOWING
 // #define IDLE
 // #define SET_POSITION
-#define SPEED_CONTROL
+// #define SPEED_CONTROL
 // #define DC_CONTROL
 #define ASK_STATE
 // #define SET_POS_CTRL_GAINS
@@ -57,6 +57,8 @@ int main(int argc, char const *argv[])
     double dist_goal_reached = 0.2;
     teensy_set_position(0, 1.5, 0);
     lguSleep(0.1);
+    teensy_pos_ctrl(x[0], y[0], atan2(y[1] - y[0], x[1] - x[0]));
+    lguSleep(2);
     teensy_path_following(x, y, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
     #endif
 

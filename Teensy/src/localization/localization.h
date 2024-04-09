@@ -2,7 +2,6 @@
 #define _LOCALIZATION_H
 
 #include <Encoder.h>
-#include "localization.h"
 #include "../../utils.h"
 
 typedef struct RobotPosition {
