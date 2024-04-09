@@ -195,8 +195,8 @@ void turn_solar(team_t team, double pres_angle) {
         else if (abs(pres_angle + 180) < DTHETA) {
             dxl_goal_position = 150; 
         }
-        else if (pres_angle > 90) { //Opposite team
-            dxl_goal_position = (-5/3)*pres_angle + 212;
+        else if (pres_angle > 0) { //Opposite team
+            dxl_goal_position = (5/3)*pres_angle + 212 + 512;
         }
         else if (abs(pres_angle - 90) < DTHETA) { //Opposite team
             dxl_goal_position = 0;
@@ -210,7 +210,7 @@ void turn_solar(team_t team, double pres_angle) {
         // Write speed
         write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_MOVING_SPEED, 200);
         if (abs(pres_angle - 0) < DTHETA) {
-            dxl_goal_position = 150; 
+            dxl_goal_position = 170; 
         }
         else if (0 < pres_angle && pres_angle < 90) {
             dxl_goal_position = (181/45)*pres_angle + 150;
@@ -224,8 +224,8 @@ void turn_solar(team_t team, double pres_angle) {
         else if (abs(pres_angle - 180) < DTHETA) {
             dxl_goal_position = 780; 
         }
-        else if (pres_angle < -90) {
-            dxl_goal_position = (27/10)*pres_angle + 26;
+        else if (pres_angle < 0) {
+            dxl_goal_position = (30/10)*pres_angle + 26;
         }
         else if (abs(pres_angle + 90) < DTHETA) { //Opposite team
             dxl_goal_position = 1023;
@@ -273,21 +273,39 @@ void init_sp() {
 }
 
 void solar_panel(team_t team, double angle) {
-   if ((team == Blue)) {
-    position_solar(DownS); 
-    turn_solar(team, angle);
-    position_solar(UpS); 
-    } 
 
-   else if ((team == Yellow)) {
     position_solar(DownS); 
     turn_solar(team, angle);
     position_solar(UpS); 
-    }
 
     init_sp(); 
 }
 
+void single_turn_sp(double goal_pos) {
+    uint16_t dxl_goal_position = goal_pos;
+    uint16_t dxl_present_position = 0;
+    dxl_present_position = read2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_AX_PRESENT_POSITION);
+
+    // Enable Dynamixel Torque
+    write1ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_TORQUE_ENABLE, TORQUE_ENABLE);
+
+    // Write CW/CCW position
+    write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_CW_ANGLE_LIMIT, 0); 
+    write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_CCW_ANGLE_LIMIT, 1023);
+
+    // Write speed
+    write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_MOVING_SPEED, 200);
+
+    // Write goal position
+    write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_GOAL_POSITION, dxl_goal_position);
+
+   while ((abs(dxl_goal_position - dxl_present_position) > DXL_MOVING_STATUS_THRESHOLD)) {
+      // Read present position
+      dxl_present_position = read2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_AX_PRESENT_POSITION);
+      write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_GOAL_POSITION, dxl_goal_position);
+      //printf("position_solar [ID:%03d] GoalPos:%03d  PresPos:%03d\n", 6, dxl_goal_position, dxl_present_position);
+    }
+}
 
 void gripper(object_t object) {
     uint16_t dxl_goal_position = 0;
