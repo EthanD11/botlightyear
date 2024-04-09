@@ -62,7 +62,7 @@ int test_spi() {
 // ----- SPI 2 ------
 
 uint8_t init_spi2() {
-    int SPI2_handle = lgGpiochipOpen(4);
+    int SPI2_handle = lgGpiochipOpen(0);
     if (SPI2_handle < 0) return 1;
     if (lgGpioSetUser(SPI2_handle, "Bot Lightyear") < 0) return 2;
 
@@ -301,7 +301,7 @@ void teensy_pos_ctrl(double xr, double yr, double theta_r) {
 }
 
 
-/*void teensy_spd_ctrl(double speed_left, double speed_right) {
+void teensy_spd_ctrl(double speed_left, double speed_right) {
     // Compression to go to SPI
     char send[5];
     send[0] = (char) QueryDoSpeedControl;
@@ -326,7 +326,7 @@ void teensy_pos_ctrl(double xr, double yr, double theta_r) {
     pthread_mutex_unlock(&spi_mutex);
     #endif
     
-}*/
+}
 
 void teensy_constant_dc(int dc_refl, int dc_refr) {
     // Compression to go to SPI
@@ -602,7 +602,6 @@ void stpr_move(steppers_t stepperName, uint32_t steps, uint8_t neg, uint8_t bloc
     pthread_mutex_lock(&spi_mutex);
     lgSpiWrite(DE0_handle, send, 5);
     pthread_mutex_unlock(&spi_mutex);
-
      if (blocking == CALL_BLOCKING) {
         
         spi2_gpio_t stepper_gpio; 
@@ -629,7 +628,9 @@ void stpr_move(steppers_t stepperName, uint32_t steps, uint8_t neg, uint8_t bloc
                 return;
             }
             lguSleep(0.001);
+            printf("Waiting\n");
         } while (!isIdle);
+        printf("Done !\n");
     }
 }
 
@@ -743,7 +744,7 @@ void plate_move(int8_t pot, uint8_t blocking){
     //pot est une variable allant de -3 a 3 avec 0 la position de repos
     int direction = 0;
     if (pot == 0){
-        stpr_move(StprPlate, 0, 0);   
+        stpr_move(StprPlate, 0, 0, blocking);   
     } else {
         if (pot < 0) {
             pot = -pot;
@@ -781,7 +782,7 @@ void stpr_setup_speed(steppers_t stepperName, int nominalSpeed, int initialSpeed
             printf("Error : not a stepper"); 
             return; 
     }
-    
+    printf("Speeds : %d, %d, %d", nominalSpeed2, initialSpeed1, initialSpeed2);
     char send[] = {request,nominalSpeed1,nominalSpeed2, initialSpeed1, initialSpeed2};
     pthread_mutex_lock(&spi_mutex);
     lgSpiWrite(DE0_handle, send, 5); 

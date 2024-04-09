@@ -1,5 +1,5 @@
 #include "SPI_Modules.h"
-
+#include <stdio.h>
 int main(int argc, char const *argv[])
 {
     //Init Starting Switch

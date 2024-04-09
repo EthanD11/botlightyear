@@ -148,8 +148,8 @@ typedef enum {
 
 /**
  * @brief Send constant speed query to Teensy. Must be called after init_spi.
-
-void teensy_spd_ctrl(double speed_left, double speed_right);*/
+ */
+void teensy_spd_ctrl(double speed_left, double speed_right);
 
 /**
  * @brief Ask the teensy to enter the position control mode with the specified reference position.

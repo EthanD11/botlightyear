@@ -1,5 +1,5 @@
 #include "SPI_Modules.h"
-
+#include <stdio.h>
 //#define RESET_CALIBRATE
 //#define SETUP_CUSTOM_SPEED_OLD
 //#define SETUP_CUSTOM_SPEED_NEW
@@ -41,16 +41,26 @@ int main(int argc, char const *argv[])
     if (init_spi() != 0) return -1;  
 
     #ifdef TESTS
-    
-    
-    init_spi2(); 
+    // stpr_setup_speed(StprFlaps,500,1000); 
+    stpr_setup_speed(StprPlate,60,500); 
+    // stpr_setup_speed(StprSlider,400,1000);
+
     stpr_reset_all();
     stpr_calibrate_all();
+    // slider_move(SliderPlate);
 
+    // stpr_calibrate(StprSlider); 
+    
+    
+    int val = init_spi2(); 
+    if (val !=0) {
+        printf("Error init spi2 : %d\n", init_spi2()); 
+    }
 
-    plate_move(-3, CALL_BLOCKING);
-    plate_move(0, CALL_BLOCKING);
-    plate_move(3, CALL_BLOCKING);
+    sleep(5);
+    plate_move(3);
+    plate_move(0);
+    // plate_move(3, CALL_BLOCKING);
     close_spi2(); 
 
     
