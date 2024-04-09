@@ -39,7 +39,7 @@ compile: $(SOURCES_OBJ)
 
 #Compiling a random file that use SOURCES file
 %.o: %.cpp $(SOURCES_OBJ)
-	$(CXX) -I$(HEADERS_DIR) $(FLAGS) $^ -o $@ $(LIBS)
+	@$(CXX) -I$(HEADERS_DIR) $(FLAGS) $^ -o $@ $(LIBS)
 
 
 #Do an individual test
