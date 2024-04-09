@@ -807,7 +807,7 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
     double *distances = new double[8000];
     double *quality = new double[8000];
     size_t *as = new size_t[2]{8000, 8000};
-    updateData(angles, distances, quality, as);
+    updateDataTop(angles, distances, quality, as);
     //updateDataFile(angles, distances, quality, "testLidarMobile/" + std::to_string(i), as);
     arraySize = as[0];
     if (fromOdo){
@@ -875,6 +875,7 @@ void init_lidar(LidarData *lidarData) {
 
 void clear_lidar(LidarData *lidarData) {
     delete (lidarData->beaconAdv);
+    delete(lidarData);
 }
 
 /*

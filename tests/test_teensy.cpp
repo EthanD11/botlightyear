@@ -5,7 +5,7 @@
 #define PATH_FOLLOWING
 // #define IDLE
 // #define SET_POSITION
-//#define SPEED_CONTROL
+// #define SPEED_CONTROL
 // #define DC_CONTROL
 #define ASK_STATE
 // #define SET_POS_CTRL_GAINS
@@ -46,17 +46,19 @@ int main(int argc, char const *argv[])
     double kv_en = 12;
     teensy_set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
     lguSleep(0.1);
-    int ncheckpoints = 2;
+    int ncheckpoints = 5;
     double x[5] = {0.0,0.4,0.8,0.4,0.0};
     double y[5] = {1.5,1.7,1.5,1.3,1.5};
     // double x[5] = {0.0,0.4};
     // double y[5] = {1.5,1.5};
     double theta_start =   0.;
     double theta_end = 0;
-    double vref = 0.3;
-    double dist_goal_reached = 0.2;
+    double vref = 0.1;
+    double dist_goal_reached = 0.05;
     teensy_set_position(0, 1.5, 0);
     lguSleep(0.1);
+    teensy_pos_ctrl(x[0], y[0], atan2(y[1]-y[0], x[1]-x[0]));
+    lguSleep(2);
     teensy_path_following(x, y, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
     #endif
 
@@ -72,7 +74,7 @@ int main(int argc, char const *argv[])
     #endif
 
     #ifdef SPEED_CONTROL
-    teensy_spd_ctrl(0.4, 0.4);
+    teensy_spd_ctrl(0.2, 0.2);
     #endif
 
     #ifdef DC_CONTROL
