@@ -32,7 +32,6 @@ int main(int argc, char const *argv[])
 
     #ifdef TESTS  
     
-    init_spi2(); 
     steppers.reset_all();
     steppers.calibrate_all();
 
@@ -40,7 +39,6 @@ int main(int argc, char const *argv[])
     steppers.plate_move(-3, CALL_BLOCKING);
     steppers.plate_move(0, CALL_BLOCKING);
     steppers.plate_move(3, CALL_BLOCKING);
-    spi_close2(); 
 
     
     // steppers.setup_speed(StprPlate,60,500); //60 max
