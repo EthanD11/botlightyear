@@ -27,8 +27,10 @@ typedef enum {
 
 class Steppers : private SPIUser
 {
-private:
-    /* data */
+
+    
+
+public:
 
     /**
      * @brief Move the stepper 'stepperName' of 'steps' steps in the 'neg' direction (0 for positive, 1 for negative)
@@ -40,7 +42,6 @@ private:
     */
     void move(steppers_t stepperName, uint32_t steps, uint8_t neg, uint8_t blocking = CALL_NON_BLOCKING);
 
-public:
     /**
      * @brief Move flaps stepper to 'pos' (FlapsOpen, FlapsPlant or FlapsPot)
      * @param pos the position of the flaps stepper (FlapsOpen, FlapsPlant or FlapsPot)

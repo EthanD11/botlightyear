@@ -1,10 +1,13 @@
-#include "SPI_Modules.h"
+#include "SPI_bus.h"
+
+
+SPIBus spi_bus = SPIBus(); 
 
 int main(int argc, char const *argv[])
 {
-    int DE0_handle = lgSpiOpen(0, SPI_DE0, SPI_SPEED_HZ_DEFAULT, SPI_MODE_DEFAULT);
     char send[] = {0x81,0,0,0,1};
-    lgSpiWrite(DE0_handle, send, 5);
-    lgSpiClose(DE0_handle);
+    spi_bus.lock(); 
+    spi_bus.DE0_write(send); 
+    spi_bus.unlock();
     return 0;
 }
