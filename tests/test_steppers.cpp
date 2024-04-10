@@ -11,7 +11,7 @@
 #define TESTS
 
 SPIBus spi_bus = SPIBus();
-DE0_feedback pins = DE0_feedback(); 
+GPIOPins pins = GPIOPins(); 
 
 Steppers steppers = Steppers(&spi_bus); 
 Flaps servo_flaps = Flaps(&spi_bus); 

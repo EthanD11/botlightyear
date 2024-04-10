@@ -2,11 +2,12 @@
 #define _BLY_TEENSY_H_
 
 #include "SPI_bus.h"
+#include "GPIO.h"
 
-class Teensy : SPIUser
+class Teensy : SPIUser, GPIOUser
 {
 public:
-    Teensy(SPIBus *bus) : SPIUser(bus) {}
+    Teensy(SPIBus *bus, GPIO *pins) : SPIUser(bus), GPIOUser(pins) {}
     void path_following(double *x, double *y, int ncheckpoints,
                         double theta_start, double theta_end,
                         double vref, double dist_goal_reached);

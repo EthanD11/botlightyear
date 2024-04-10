@@ -1,15 +1,4 @@
 #include "servos.h"
-void Flaps::deploy() {
-    this->send_flaps_dutyCycle(680,620);
-}
-
-void Flaps::raise() {
-    this->send_flaps_dutyCycle(500,800);
-}
-
-void Flaps::idle() {
-    this->send_flaps_dutyCycle(0,0);
-}
 
 void Flaps::send_flaps_dutyCycle(uint16_t servo_flaps1_duty_cycle, uint16_t servo_flaps2_duty_cycle) {
     char send[5];

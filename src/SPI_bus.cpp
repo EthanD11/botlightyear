@@ -22,7 +22,7 @@ SPIBus::~SPIBus() {
     pthread_mutex_destroy(&mutex);
 }
 
-SPIBus::test() {
+int SPIBus::test() {
     char send1[5]; send1[0] = 0; // Test read
     char send2[] = {0x9F,0x05,0x04,0x03,0x02}; // Test write
     char send3[5]; send3[0] = 0x1F;
@@ -50,28 +50,27 @@ SPIBus::test() {
     return failure;
 }
 
-SPIBus::lock() {
+void SPIBus::lock() {
     pthread_mutex_lock(&mutex);
 }
 
-SPIBus::unlock() {
+void SPIBus::unlock() {
     pthread_mutex_unlock(&mutex);
 }
 
-
-SPIBus::DE0_write(char *send) {
+void SPIBus::DE0_write(char *send) {
     lgSpiWrite(DE0_handle, send, 5);
 }
 
-SPIBus::DE0_xfer(char *send, char *receive) {
+void SPIBus::DE0_xfer(char *send, char *receive) {
     lgSpiXfer(DE0_handle, send, receive, 5);
 }
 
-SPIBus::Teensy_write(char *send, int msgSize) {
+void SPIBus::Teensy_write(char *send, int msgSize) {
     lgSpiWrite(Teensy_handle, send, msgSize);
 }
 
-SPIBus::Teensy_xfer(char *send, char *receive, int msgSize) {
+void SPIBus::Teensy_xfer(char *send, char *receive, int msgSize) {
     lgSpiXfer(Teensy_handle, send, receive, msgSize);
 }
 

@@ -7,15 +7,24 @@ typedef enum {
     StprFlapsGPIO = 6, 
     BpSwitchFlapsLeftGPIO = 13, 
     BpSwitchFlapsRightGPIO = 19
-} feedback_GPIO_DE0_t;
+} GPIO_t;
 
-class DE0_feedback
+class GPIOPins
 {
 private:
-    uint8_t claim_gpio(feedback_GPIO_DE0_t gpio_pin); 
-    void free_gpio(feedback_GPIO_DE0_t gpio_pin);
+    int handle;
+    uint8_t claim_gpio(GPIO_t gpio_pin); 
+    void free_gpio(GPIO_t gpio_pin);
 public:
-    DE0_feedback();
-    ~DE0_feedback();
-    void wait_for_gpio_value(feedback_GPIO_DE0_t gpio, uint8_t val); 
+    GPIOPins();
+    ~GPIOPins();
+    void wait_for_gpio_value(GPIO_t gpio, uint8_t val); 
+};
+
+class GPIOUser
+{
+public:
+    GPIOPins *pins;
+    GPIOUser(GPIOPins *pins);
+    ~GPIOUser();
 };

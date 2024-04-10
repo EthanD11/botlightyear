@@ -1,4 +1,5 @@
 #include "SPI_bus.h"
+#include "GPIO.h"
 #include <stdint.h>
 
 #define CALL_BLOCKING 1
@@ -25,11 +26,11 @@ typedef enum {
     SliderDeposit
 } slider_pos_t;
 
-class Steppers : private SPIUser
+class Steppers : private SPIUser, private GPIOUser
 {
 public:
 
-    Steppers(SPIBus *bus) : SPIUser(bus) {}
+    Steppers(SPIBus *bus, GPIOPins *pins) : SPIUser(bus), GPIOUser(pins) {}
 
     /**
      * @brief Move the stepper 'stepperName' of 'steps' steps in the 'neg' direction (0 for positive, 1 for negative)

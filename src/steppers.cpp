@@ -44,7 +44,7 @@ void Steppers::move(steppers_t stepperName, uint32_t steps, uint8_t neg, uint8_t
 
      if (blocking == CALL_BLOCKING) {
         
-        feedback_GPIO_DE0_t stepper_gpio; 
+        GPIO_t stepper_gpio; 
         switch (stepperName) {
             case StprPlate :
                 stepper_gpio = StprPlateGPIO; 
@@ -59,7 +59,7 @@ void Steppers::move(steppers_t stepperName, uint32_t steps, uint8_t neg, uint8_t
                 printf("Error : not a stepper %d \n", stepperName); 
                 return; 
         }
-        DE0_feedback::wait_for_gpio_value(stepper_gpio, 0); 
+        pins.wait_for_gpio_value(stepper_gpio, 0); 
     }
 }
 
@@ -92,7 +92,7 @@ void Steppers::calibrate(steppers_t stepperName, uint8_t blocking) {
 
     if (blocking == CALL_BLOCKING) {
         
-        feedback_GPIO_DE0_t stepper_gpio; 
+        GPIO_t stepper_gpio; 
         switch (stepperName) {
             case StprPlate :
                 stepper_gpio = StprPlateGPIO; 
@@ -107,7 +107,7 @@ void Steppers::calibrate(steppers_t stepperName, uint8_t blocking) {
                 printf("Error : not a stepper %d \n", stepperName); 
                 return; 
         }
-        DE0_feedback::wait_for_gpio_value(stepper_gpio, 0); 
+        pins.wait_for_gpio_value(stepper_gpio, 0); 
     }
 }
 
