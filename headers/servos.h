@@ -2,13 +2,39 @@
 #define _BLY_SERVOS_H_
 
 #include "SPI_bus.h"
+#include <stdint.h>
 
-class Flaps : SPIUser
+class Flaps : private SPIUser
 {
+private:
+void send_flaps_dutyCycle(uint16_t servo_flaps1_duty_cycle, uint16_t servo_flaps2_duty_cycle); 
 public:
     void deploy();
     void raise();
     void idle();
+};
+
+class GripperDeployer : private SPIUser
+{
+private:
+void send_dutyCycle(uint16_t duty_cycle); 
+public:
+    void idle();
+    void half();
+    void deploy();
+    void raise();
+};
+
+class GripperHolder : private SPIUser
+{
+private:
+void send_dutyCycle(uint16_t duty_cycle); 
+public:
+    void idle();
+    void close(); 
+    void open(); 
+    void hold_pot(); 
+    void hold_plant(); 
 };
 
 #endif

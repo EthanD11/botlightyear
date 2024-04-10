@@ -19,16 +19,15 @@ public:
 
 class SPIUser
 {
-private:
-    SPIBus *bus;
 public:
+    SPIBus *bus;
     SPIUser(SPIBus *bus);
     ~SPIUser();
-}
+}; 
 
 SPIUser::SPIUser(SPIBus *bus) {
     this->bus = bus;
 }
 
-SPIUser::~SPIUser() {}
+SPIUser::~SPIUser() {}; 
 #endif

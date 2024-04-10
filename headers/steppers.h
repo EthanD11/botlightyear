@@ -25,7 +25,7 @@ typedef enum {
     SliderDeposit
 } slider_pos_t;
 
-class Steppers
+class Steppers : private SPIUser
 {
 private:
     /* data */
@@ -41,8 +41,6 @@ private:
     void move(steppers_t stepperName, uint32_t steps, uint8_t neg, uint8_t blocking = CALL_NON_BLOCKING);
 
 public:
-    Steppers(/* args */);
-    ~Steppers();
     /**
      * @brief Move flaps stepper to 'pos' (FlapsOpen, FlapsPlant or FlapsPot)
      * @param pos the position of the flaps stepper (FlapsOpen, FlapsPlant or FlapsPot)

@@ -8,13 +8,6 @@
 #define PLATEAU_ANGLE_OUVERTURE 103.33
 #define PLATEAU_TIC_STEPPER 1600
 
-Steppers::Steppers(/* args */)
-{
-}
-
-Steppers::~Steppers()
-{
-}
 
 void Steppers::move(steppers_t stepperName, uint32_t steps, uint8_t neg, uint8_t blocking) {
     char request; 
@@ -45,9 +38,9 @@ void Steppers::move(steppers_t stepperName, uint32_t steps, uint8_t neg, uint8_t
     char steps3 = steps & 0xFF;
 
     char send[] = {request,direction,steps1,steps2,steps3};
-    pthread_mutex_lock(&spi_mutex);
-    lgSpiWrite(DE0_handle, send, 5);
-    pthread_mutex_unlock(&spi_mutex);
+    this->bus->lock();
+    this->bus->DE0_write(send);
+    this->bus->unlock();
 
      if (blocking == CALL_BLOCKING) {
         
@@ -102,9 +95,10 @@ void Steppers::calibrate(steppers_t stepperName, uint8_t blocking) {
             return; 
     }
     char send[] = {request,calibDir,0,0,0};
-    pthread_mutex_lock(&spi_mutex);
-    lgSpiWrite(DE0_handle, send, 5);
-    pthread_mutex_unlock(&spi_mutex);
+    this->bus->lock();
+    this->bus->DE0_write(send);
+    this->bus->unlock();
+
     if (blocking == CALL_BLOCKING) {
         
         spi2_gpio_t stepper_gpio; 
@@ -229,9 +223,9 @@ void Steppers::setup_speed(steppers_t stepperName, int nominalSpeed, int initial
     }
     
     char send[] = {request,nominalSpeed1,nominalSpeed2, initialSpeed1, initialSpeed2};
-    pthread_mutex_lock(&spi_mutex);
-    lgSpiWrite(DE0_handle, send, 5); 
-    pthread_mutex_unlock(&spi_mutex);
+    this->bus->lock();
+    this->bus->DE0_write(send);
+    this->bus->unlock();
 }
 
 
@@ -257,9 +251,9 @@ void Steppers::setup_calib_speed(steppers_t stepperName, int calibrationSpeed, i
             return; 
     }
     char send[] = {request,calibrationSpeed1, calibrationSpeed2, smallCalibrationSpeed1, smallCalibrationSpeed2};
-    pthread_mutex_lock(&spi_mutex);
-    lgSpiWrite(DE0_handle, send, 5); 
-    pthread_mutex_unlock(&spi_mutex);
+    this->bus->lock();
+    this->bus->DE0_write(send);
+    this->bus->unlock();
 }
 
 
@@ -292,14 +286,12 @@ void Steppers::reset(steppers_t stepperName) {
     char send1[] = {request,0,0,0,0}; // set the Module command to Idle
     char send2[] = {request2,0,1,0,0}; // send 1 to reset the module completely
 
-    pthread_mutex_lock(&spi_mutex);
-    lgSpiWrite(DE0_handle, send1, 5);
-    lgSpiWrite(DE0_handle, send2, 5); // send 0 to stop resetting
-    send2[2] = 0; 
-    //sleep(1);
-    lgSpiWrite(DE0_handle, send2, 5); // send 0 to stop resetting
-    pthread_mutex_unlock(&spi_mutex);
-
+    this->bus->lock();
+    this->bus->DE0_write(send1);
+    this->bus->DE0_write(send2);
+    send2[2] = 0; // send 0 to stop resetting
+    this->bus->DE0_write(send2); 
+    this->bus->unlock();
 }
 
 void Steppers::setup_acc(steppers_t stepperName, uint8_t accSteps) {
@@ -322,9 +314,9 @@ void Steppers::setup_acc(steppers_t stepperName, uint8_t accSteps) {
     } 
 
     char send[] = {request,0,0,0,accSteps}; // send 1 to reset the module completely
-    pthread_mutex_lock(&spi_mutex);
-    lgSpiWrite(DE0_handle, send, 5);
-    pthread_mutex_unlock(&spi_mutex);
+    this->bus->lock();
+    this->bus->DE0_write(send);
+    this->bus->unlock();
 
 }
 

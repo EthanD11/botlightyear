@@ -549,24 +549,3 @@ void gripper_deployer_cmd(gripper_deployer_cmd_t command) {
     lgSpiWrite(DE0_handle, send, 5);
     pthread_mutex_unlock(&spi_mutex);
 }
-
-// ----- Steppers -----
-
-// 8x (8 = ecrire)(x = stepper)
-// 1 plateau
-// 2 .. config vitesse
-// 3 .. config reste
-// 4 slider, rail lineaire
-// 5 .. config vitesse
-// 6 .. config reste
-// 7 flaps stepper
-// 8 .. config vitesse
-// 9 .. config reste
-
-// 00(mode) 0(Signe) 00...00(29->step)
-// mode: 
-//      00 OFF     
-//      01 Idle
-//      10 Calibre
-//      11 Step + signe direction du stepper (horlogique/antihorlogique)
-
