@@ -52,6 +52,10 @@ void GPIOPins::wait_for_gpio_value(GPIO_t gpio, uint8_t val) {
     } while (readValue != val);
 }
 
+uint8_t GPIOPins::read(GPIO_t gpio) {
+    return lgGpioRead(handle, gpio);
+}
+
 GPIOUser::GPIOUser(GPIOPins *pins)
 {
     this->pins = pins;

@@ -18,7 +18,8 @@ private:
 public:
     GPIOPins();
     ~GPIOPins();
-    void wait_for_gpio_value(GPIO_t gpio, uint8_t val); 
+    void wait_for_gpio_value(GPIO_t gpio, uint8_t val);
+    uint8_t read(GPIO_t gpio);
 };
 
 class GPIOUser
