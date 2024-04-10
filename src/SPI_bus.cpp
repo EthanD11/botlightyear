@@ -8,7 +8,7 @@
 
 pthread_mutex_t mutex;
 
-SPI_bus::SPI_bus() {
+SPIBus::SPIBus() {
     DE0_handle = lgSpiOpen(0, 1, SPI_CLK_FREQ, SPI_MODE_DEFAULT);
     Teensy_handle = lgSpiOpen(0, 0, SPI_CLK_FREQ, SPI_MODE_DEFAULT);
     if (pthread_mutex_init(&mutex,NULL) < 0 || DE0_handle < 0 || Teensy_handle < 0) exit(-1);
@@ -16,13 +16,13 @@ SPI_bus::SPI_bus() {
     if (test_res != 0) exit(test_res);
 }
 
-SPI_bus::~SPI_bus() {
+SPIBus::~SPIBus() {
     lgSpiClose(DE0_handle);
     lgSpiClose(Teensy_handle);
     pthread_mutex_destroy(&mutex);
 }
 
-SPI_bus::test() {
+SPIBus::test() {
     char send1[5]; send1[0] = 0; // Test read
     char send2[] = {0x9F,0x05,0x04,0x03,0x02}; // Test write
     char send3[5]; send3[0] = 0x1F;
@@ -50,27 +50,27 @@ SPI_bus::test() {
     return failure;
 }
 
-SPI_bus::lock() {
+SPIBus::lock() {
     pthread_mutex_lock(&mutex);
 }
 
-SPI_bus::unlock() {
+SPIBus::unlock() {
     pthread_mutex_unlock(&mutex);
 }
 
 
-SPI_bus::DE0_write(char *send) {
+SPIBus::DE0_write(char *send) {
     lgSpiWrite(DE0_handle, send, 5);
 }
 
-SPI_bus::DE0_xfer(char *send, char *receive) {
+SPIBus::DE0_xfer(char *send, char *receive) {
     lgSpiXfer(DE0_handle, send, receive, 5);
 }
 
-SPI_bus::Teensy_write(char *send, int msgSize) {
+SPIBus::Teensy_write(char *send, int msgSize) {
     lgSpiWrite(Teensy_handle, send, msgSize);
 }
 
-SPI_bus::Teensy_xfer(char *send, char *receive, int msgSize) {
+SPIBus::Teensy_xfer(char *send, char *receive, int msgSize) {
     lgSpiXfer(Teensy_handle, send, receive, msgSize);
 }

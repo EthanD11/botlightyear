@@ -1,13 +1,13 @@
 #ifndef _BLY_SPI_BUS_H_
 #define _BLY_SPI_BUS_H_
 
-class SPI_bus
+class SPIBus
 {
 private:
     int DE0_handle, Teensy_handle;
 public:
-    SPI_bus();
-    ~SPI_bus();
+    SPIBus();
+    ~SPIBus();
     int test();
     void lock();
     void unlock();
@@ -17,4 +17,18 @@ public:
     void Teensy_xfer(char *send, char *receive, int msgSize);
 };
 
+class SPIUser
+{
+private:
+    SPIBus *bus;
+public:
+    SPIUser(SPIBus *bus);
+    ~SPIUser();
+}
+
+SPIUser::SPIUser(SPIBus *bus) {
+    this->bus = bus;
+}
+
+SPIUser::~SPIUser() {}
 #endif

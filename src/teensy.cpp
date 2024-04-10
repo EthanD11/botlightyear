@@ -20,15 +20,6 @@ typedef enum {
 	QuerySetPathFollowerGains
 } query_t;
 
-Teensy::Teensy(SPI_bus *bus)
-{
-    this->bus = bus;
-}
-
-Teensy::~Teensy()
-{
-}
-
 void Teensy::path_following(double *x, double *y, int ncheckpoints,
                         double theta_start, double theta_end,
                         double vref, double dist_goal_reached) {

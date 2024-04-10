@@ -3,13 +3,9 @@
 
 #include "SPI_bus.h"
 
-class Teensy
+class Teensy : SPIUser
 {
-private:
-    SPI_bus *bus;
 public:
-    Teensy(SPI_bus *bus);
-    ~Teensy();
     void path_following(double *x, double *y, int ncheckpoints,
                         double theta_start, double theta_end,
                         double vref, double dist_goal_reached);
