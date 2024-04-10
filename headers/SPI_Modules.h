@@ -49,13 +49,6 @@ int test_spi();
 
 // ----- SPI2 -----
 
-typedef enum {
-    StprSliderGPIO = 0, 
-    StprPlateGPIO = 5, 
-    StprFlapsGPIO = 6, 
-    BpSwitchFlapsLeftGPIO = 13, 
-    BpSwitchFlapsRightGPIO = 19
-} spi2_gpio_t;
 
 /**
  * @brief Claims the SPI2 GPIOs and opens the chip

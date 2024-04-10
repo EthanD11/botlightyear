@@ -1,5 +1,6 @@
 #include "steppers.h"
 #include <stdio.h>
+#include "GPIO.h"
 
 // Steppers
 #define FALSE 0
@@ -44,7 +45,7 @@ void Steppers::move(steppers_t stepperName, uint32_t steps, uint8_t neg, uint8_t
 
      if (blocking == CALL_BLOCKING) {
         
-        spi2_gpio_t stepper_gpio; 
+        feedback_GPIO_DE0_t stepper_gpio; 
         switch (stepperName) {
             case StprPlate :
                 stepper_gpio = StprPlateGPIO; 
@@ -59,16 +60,7 @@ void Steppers::move(steppers_t stepperName, uint32_t steps, uint8_t neg, uint8_t
                 printf("Error : not a stepper %d \n", stepperName); 
                 return; 
         }
-        lguSleep(0.001); // Sleep to avoid timing conflicts with spi message
-        int isIdle;
-        do {
-            isIdle = lgGpioRead(SPI2_handle,4);
-            if (isIdle < 0) {
-                printf("Error : gpio %d not readable \n", stepper_gpio); 
-                return;
-            }
-            lguSleep(0.001);
-        } while (!isIdle);
+        DE0_feedback::wait_for_gpio_value(stepper_gpio, 0); 
     }
 }
 
@@ -101,7 +93,7 @@ void Steppers::calibrate(steppers_t stepperName, uint8_t blocking) {
 
     if (blocking == CALL_BLOCKING) {
         
-        spi2_gpio_t stepper_gpio; 
+        feedback_GPIO_DE0_t stepper_gpio; 
         switch (stepperName) {
             case StprPlate :
                 stepper_gpio = StprPlateGPIO; 
@@ -116,16 +108,7 @@ void Steppers::calibrate(steppers_t stepperName, uint8_t blocking) {
                 printf("Error : not a stepper %d \n", stepperName); 
                 return; 
         }
-        lguSleep(0.001); // Sleep to avoid timing conflicts with spi message
-        int isIdle;
-        do {
-            isIdle = lgGpioRead(SPI2_handle,4);
-            if (isIdle < 0) {
-                printf("Error : gpio %d not readable \n", stepper_gpio); 
-                return;
-            }
-            lguSleep(0.001);
-        } while (!isIdle);
+        DE0_feedback::wait_for_gpio_value(stepper_gpio, 0); 
     }
 }
 
