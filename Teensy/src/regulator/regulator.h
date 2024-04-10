@@ -10,7 +10,7 @@
 
 #define ADZ_ENABLE
 #ifdef ADZ_ENABLE
-const int adz = 35;
+const int adz = 60;
 #endif
 
 typedef struct Regulator {
@@ -41,5 +41,7 @@ inline int get_duty_cycle_refl(Regulator *speed_regulator) {
 inline int get_duty_cycle_refr(Regulator *speed_regulator) {
     return speed_regulator->duty_cycle_refr;
 }
+
+void reset_regulator(Regulator *speed_regulator);
 
 #endif

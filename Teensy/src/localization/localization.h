@@ -2,7 +2,6 @@
 #define _LOCALIZATION_H
 
 #include <Encoder.h>
-#include "localization.h"
 #include "../../utils.h"
 
 typedef struct RobotPosition {
@@ -20,5 +19,6 @@ typedef struct RobotPosition {
 RobotPosition* init_robot_position(double x0, double y0, double theta_0); 
 void free_robot_position(RobotPosition *robot_position);
 void update_localization(RobotPosition *robot_position);
+void reset_encoders(RobotPosition *robot_position);
 
 #endif

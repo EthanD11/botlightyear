@@ -1,6 +1,7 @@
 #include "SPIInterface.h"
 #include "SPISlave_T4.h"
 
+// #define VERBOSE
 typedef struct SPIInterface {
     SPISlave_T4 *spi_slave;
     uint32_t i, n; // Number of bytes received, expected and actual
@@ -32,14 +33,6 @@ void init_spi_interface() {
     __spi_interface->spi_slave->onReceive(__spi_receive_event);
 }
 
-void spi_send_data(char mode, double x, double y, double theta) {
-	__spi_interface->mode = mode;
-    __spi_interface->x = x;
-    __spi_interface->y = y;
-    __spi_interface->theta = theta;
-    printf("mode is %d\n", (int) mode);
-}
-
 query_t spi_get_query() {
     return __spi_interface->query;
 }
@@ -60,7 +53,9 @@ void __spi_receive_event() {
         
 		if (i == 0) {
 			__spi_interface->query = (query_t) data;
+            #ifdef VERBOSE
 			printf("query = %d\n", (int) data);
+            #endif
 			switch(__spi_interface->query) {
 				case QueryIdle:
 					__spi_interface->n = 1; // 1 of query
@@ -88,7 +83,9 @@ void __spi_receive_event() {
                     break;
 
 				case QueryAskState:
+                    #ifdef VERBOSE
                     printf("state is %d\n", (int) __spi_interface->state);
+                    #endif
                     mySPI->pushr(__spi_interface->state);
                     __spi_interface->n = 4;
 					break;
@@ -167,7 +164,9 @@ void spi_handle_set_position(RobotPosition *rp) {
     double_byte = *((uint16_t *) two_bytes);
     rp->theta = (((double) double_byte)/UINT16_MAX)*2*M_PI - M_PI;
 
+    #ifdef VERBOSE
 	printf("x = %f\ny = %f\ntheta = %f\n", rp->x, rp->y, rp->theta);
+    #endif
 }
 
 void spi_handle_position_control(PositionController *pc) 
@@ -192,7 +191,9 @@ void spi_handle_position_control(PositionController *pc)
     double_byte = *((uint16_t *) two_bytes);
     pc->theta_ref = (((double) double_byte)/UINT16_MAX)*2*M_PI - M_PI;
 
+    #ifdef VERBOSE
 	printf("xref = %f\nyref = %f\ntheta_ref = %f\n", pc->xref, pc->yref, pc->theta_ref);
+    #endif
 }
 
 void spi_handle_path_following(PathFollower *path_follower) {
@@ -239,6 +240,7 @@ void spi_handle_path_following(PathFollower *path_follower) {
 
     init_path_following(path_follower, x, y, ncheckpoints, theta_start, theta_stop, vref, dist_goal_reached);
     
+    #ifdef VERBOSE
     for (int i = 0; i < ncheckpoints; i++) {
         printf("(x[%d], y[%d]) = (%f,%f)\n", i, i, x[i], y[i]);
     }
@@ -246,7 +248,7 @@ void spi_handle_path_following(PathFollower *path_follower) {
     printf("theta_end = %f\n", theta_stop);
     printf("vref = %f\n", path_follower->vref);
     printf("dist_goal_reached = %f\n", path_follower->dist_goal_reached);
-
+    #endif
 
     free(x);
     free(y);
@@ -268,7 +270,9 @@ void spi_handle_speed_control() {
     double_byte = *((uint16_t *) two_bytes);
     __spi_interface->speed_refr = 2.0*((double) double_byte)/UINT16_MAX;
 
+    #ifdef VERBOSE
 	printf("speed_refl = %f\nspeed_refr = %f\n", __spi_interface->speed_refl, __spi_interface->speed_refr);
+    #endif
 }
 
 double spi_get_speed_refl() {
@@ -296,7 +300,9 @@ void spi_handle_constant_duty_cycle() {
     double_byte = *((uint16_t *) two_bytes);
    __spi_interface->dc_refr = (int) (((double) double_byte) - 255.0);
 
+    #ifdef VERBOSE
 	printf("dc_refl = %d\ndc_refr = %d\n", __spi_interface->dc_refl, __spi_interface->dc_refr);
+    #endif
 }
 
 double spi_get_dc_refl() {
@@ -333,8 +339,10 @@ void spi_handle_set_position_control_gains(PositionController *pc) {
     double_byte = *((uint16_t *) two_bytes);
     pc->kw = 50.0*(((double) double_byte)/UINT16_MAX);
 
+    #ifdef VERBOSE
 	printf("kp   = %f\nka = %f\nkb = %f\nkw = %f\n", 
         pc->kp, pc->ka, pc->kb, pc->kw);
+    #endif
 }
 
 void spi_handle_set_path_follower_gains(PathFollower *pf) {
@@ -383,8 +391,10 @@ void spi_handle_set_path_follower_gains(PathFollower *pf) {
     double_byte = *((uint16_t *) two_bytes);
     pf->wn = 100.0*(((double) double_byte)/UINT16_MAX);
 
+    #ifdef VERBOSE
 	printf("kt = %f\nkn = %f\nkz = %f\nsigma = %f\nepsilon = %f\nkv_en = %f\ndelta = %f\nwn = %f\n", 
         pf->kt, pf->kn, pf->kz, pf->sigma, pf->epsilon, pf->kv_en, pf->delta, pf->wn);
+    #endif
 }
 
 

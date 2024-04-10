@@ -1,16 +1,16 @@
 #include "position_control.h"
-// #define VERBOSE
+#define VERBOSE
 PositionController *init_position_controller() {
     PositionController* pc = (PositionController *) malloc(sizeof(PositionController));
     
     pc->speed_refl = 0.0;
     pc->speed_refr = 0.0;
 
-    pc->kp =  .8; // Proportional coefficient for distance error
+    pc->kp =  0.5; // Proportional coefficient for distance error
     pc->ka =  3.0; // Proportional coefficient for direction error
     pc->kb = -0.5; // Proportional coefficient for orientation error
-    pc->kw =  2.0; // Propoortional coefficient for orientation error when position is reached
-    pc->position_tol = 1e-2;      // Acceptable static error on position (m)
+    pc->kw =  3.0; // Propoortional coefficient for orientation error when position is reached
+    pc->position_tol = POSITION_TOL_IN;      // Acceptable static error on position (m)
     pc->drift_tol    = 2e-1;      // Acceptable drift from reference position when reorienting (m)
     pc->angular_tol  = 1*M_PI/180; // Acceptable static error on orientation (rad, eq to 5 degrees)
 
@@ -56,17 +56,18 @@ void control_position(
     dx = x_ref - x;
     dy = y_ref - y;
     p = hypot(dx, dy);
-    int flag_goal_reached = (p < pc->position_tol); // Stop at 1cm
+    int flag_goal_reached = (abs(p) < pc->position_tol);
     //int flag_too_far_away = (p > 1.0); // Stop if further than 50cm away from the target
     #ifdef VERBOSE
-    printf("xref = %f\n", x_ref);
-    printf("yref = %f\n", y_ref);
-    printf("theta_ref = %f\n", theta_ref);
-    printf("xpos = %f\n", x);
-    printf("ypos = %f\n", y);
-    printf("theta = %f\n", theta);
-    printf("dx = %f\n", dx);
-    printf("dy = %f\n", dy);
+    // printf("xref = %f\n", x_ref);
+    // printf("yref = %f\n", y_ref);
+    // printf("theta_ref = %f\n", theta_ref);
+    // printf("xpos = %f\n", x);
+    // printf("ypos = %f\n", y);
+    // printf("theta = %f\n", theta);
+    // printf("p = %f\n");
+    // printf("dx = %f\n", dx);
+    // printf("dy = %f\n", dy);
     #endif
     
     switch (flag_goal_reached)
@@ -93,6 +94,7 @@ void control_position(
             #endif
             vref = kp*p; //*SMOOTH_WINDOW(a, 0.8*M_PI/2, 5);
             omega_ref = ka*a + kb*b;
+            pc->position_tol = POSITION_TOL_IN;
             break;
         }
 
@@ -103,6 +105,7 @@ void control_position(
             #ifdef VERBOSE
             printf("Goal reached\n");
             #endif
+            pc->position_tol = POSITION_TOL_OUT;
             break;
         }
 

@@ -1,4 +1,7 @@
 #include "localization.h"
+
+// #define VERBOSE
+
 RobotPosition* init_robot_position(double x0, double y0, double theta_0) 
 {
     RobotPosition* robot_position = (RobotPosition *) malloc(sizeof(RobotPosition));
@@ -7,8 +10,7 @@ RobotPosition* init_robot_position(double x0, double y0, double theta_0)
     robot_position->theta = theta_0;
     robot_position->omega = 0;
     robot_position->vfwd = 0;
-    robot_position->old_tick_left = 0;
-    robot_position->old_tick_right = 0;
+    
     
     #ifdef ODOMETERS_ENC
     robot_position->enc_l = new Encoder(26,25);
@@ -18,6 +20,11 @@ RobotPosition* init_robot_position(double x0, double y0, double theta_0)
     robot_position->enc_r = new Encoder(30, 31);
     #endif
 
+    robot_position->enc_l->write(0);
+    robot_position->enc_r->write(0);
+    robot_position->old_tick_left =  robot_position->enc_l->read();
+    robot_position->old_tick_right = robot_position->enc_r->read();
+
     return robot_position;
 }
 
@@ -25,6 +32,13 @@ void free_robot_position(RobotPosition *robot_position) {
     delete robot_position->enc_l;
     delete robot_position->enc_r;
     free(robot_position);
+}
+
+void reset_encoders(RobotPosition *robot_position) {
+    robot_position->enc_l->write(0);
+    robot_position->enc_r->write(0);
+    robot_position->old_tick_left = 0;
+    robot_position->old_tick_right = 0;
 }
 
 void update_localization(RobotPosition *robot_position) 
@@ -42,15 +56,15 @@ void update_localization(RobotPosition *robot_position)
     // Updating values according to encoders
     tick_left  = enc_l->read(); 
     tick_right = enc_r->read();
-    enc_l->write(0); 
-    enc_r->write(0);
 
-    delta_left  = ((double) (tick_left))*TICKS_TO_M;
-    delta_right = ((double) (tick_right))*TICKS_TO_M;
+    delta_left  = ((double) (tick_left - robot_position->old_tick_left))*TICKS_TO_M;
+    delta_right = ((double) (tick_right - robot_position->old_tick_right))*TICKS_TO_M;
+    robot_position->old_tick_left = tick_left;
+    robot_position->old_tick_right = tick_right;
     
-
     #ifdef VERBOSE
-    printf("Ticks : %d, %d\n", tick_left, tick_right);
+    printf("tickl = %d\n", tick_left);
+    printf("tickr = %d\n", tick_right);
     #endif
 
     // Update position estimate from encoder data
@@ -66,7 +80,7 @@ void update_localization(RobotPosition *robot_position)
     robot_position->speed_left  = delta_left / dt;
     robot_position->speed_right = delta_right / dt;
 
-    #ifdef VERBOSE
-    printf("Speed : %.4f\t%.4f\n", speed_left, speed_right);
-    #endif
+    // #ifdef VERBOSE
+    // printf("Speed : %.4f\t%.4f\n", speed_left, speed_right);
+    // #endif
 }

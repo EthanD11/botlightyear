@@ -79,6 +79,8 @@ typedef struct PathFollower {
     double xref, yref;
     double s;
 
+    double et, en;
+
     // Angular position at last checkpoint (needed to switch to position control)
     // double theta_ref_last; // not implemented
     // outputs

@@ -1,25 +1,28 @@
 #include "teensy.h"
+#include "odometry.h"
 #include <stdio.h>
 #include <unistd.h>
 #include <cmath>
 
 // #define POSITION_CONTROL
-// #define PATH_FOLLOWING
+#define PATH_FOLLOWING
 // #define IDLE
 // #define SET_POSITION
 #define SPEED_CONTROL
 // #define DC_CONTROL
 #define ASK_STATE
+
 // #define SET_POS_CTRL_GAINS
 // #define SET_PATH_FOLLOWER_GAINS
 
 #ifdef DC_CONTROL
-    #define DC_LEFT 50
-    #define DC_RIGHT 50
+    #define DC_LEFT 160
+    #define DC_RIGHT 160
 #endif
 
 SPIBus spiBus = SPIBus();
 Teensy teensy = Teensy(&spiBus);
+Odometry odo = Odometry(&spiBus);
 
 const double deg_to_rads = M_PI/180;
 
@@ -50,18 +53,27 @@ int main(int argc, char const *argv[])
     double kv_en = 12;
     teensy.set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
     usleep(100000);
-    int ncheckpoints = 2;
+    int ncheckpoints = 5;
     double x[5] = {0.0,0.4,0.8,0.4,0.0};
     double y[5] = {1.5,1.7,1.5,1.3,1.5};
     // double x[5] = {0.0,0.4};
     // double y[5] = {1.5,1.5};
     double theta_start =   0.;
-    double theta_end = 0;
-    double vref = 0.3;
-    double dist_goal_reached = 0.2;
+    double theta_end = M_PI;
+    double vref = 0.1;
+    double dist_goal_reached = 0.15;
     teensy.set_position(0, 1.5, 0);
     usleep(100000);
+    teensy.pos_ctrl(x[0], y[0], atan2(y[1]-y[0], x[1]-x[0]));
+    lguSleep(2);
     teensy.path_following(x, y, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
+
+    double *xpos, *ypos, *thetapos;
+    while (true) {
+        odo.get_pos(xpos, ypos, thetapos);
+        lguSleep(0.1);
+        teensy.set_position(*xpos, *ypos, *thetapos);
+    }
     #endif
 
     #ifdef SET_POSITION
@@ -76,7 +88,7 @@ int main(int argc, char const *argv[])
     #endif
 
     #ifdef SPEED_CONTROL
-    teensy.spd_ctrl(0.4, 0.4);
+    teensy.spd_ctrl(0.3, 0.3);
     #endif
 
     #ifdef DC_CONTROL

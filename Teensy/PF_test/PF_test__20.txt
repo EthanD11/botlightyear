@@ -1,0 +1,104 @@
+SPI received transmission
+SPI Set Path Follower Gains
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QueryDoPositionControl
+Switch to mode position control
+xpos = 9.99771e-02
+ypos = 1.49998e+00
+thetapos = -4.79376e-05
+SPI received transmission
+SPI QueryDoPathFollowing
+Switch to mode path following
+xpos = 3.05869e-01
+ypos = 1.49321e+00
+thetapos = -3.83832e-02
+Switch to mode position control
+xpos = 4.99765e-01
+ypos = 1.48119e+00
+thetapos = -5.55867e-02
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
+SPI received transmission
+SPI QuerySetPosition
