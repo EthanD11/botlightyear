@@ -1,5 +1,5 @@
-#include "SPI_Modules.h"
 #include <stdio.h>
+#include <lgpio.h>
 
 int main(int argc, char const *argv[])
 {

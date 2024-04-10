@@ -1,4 +1,6 @@
-#include "SPI_Modules.h"
+#include "SPI_bus.h"
+#include "steppers.h"
+#include "servos.h"
 #include "lidarTop.h"
 #include "dynamixels.h"
 #include "graph.h"
@@ -30,6 +32,9 @@ pthread_rwlock_t graph_lock;
 graph_path_t *currentPath = NULL;
 uint8_t bases[3];
 
+SPIBus spi_bus = SPIBus();
+Steppers steppers = SPIUser(&spi_bus);
+
 int getch()
 {
 #if defined(__linux__) || defined(__APPLE__)
@@ -60,21 +65,23 @@ void ask_user_input_params() {
 time_t init_main(); {
     dxl_init();
 
-    if (init_spi() != 0) exit(2);
-    if (test_spi() != 0) exit(2);
+    // if (init_spi() != 0) exit(2);
+    // if (test_spi() != 0) exit(2);
     
     if (init_graph_from_file("./graphs/BL_V2.txt", color) != 0) exit(3);
     graph_level_update(graphAdversaryBases[0], 3, DISABLE_PROPAGATION);
 
     if (pthread_create(&topLidarID, NULL, topLidar, NULL) != 0) exit(4);
+
+    steppers.reset_all();
+    steppers.calibrate_all();
     
     int GPIOhandle = lgGpiochipOpen(4);
     if (GPIOhandle < 0) exit(5);
     if (lgGpioSetUser(GPIOhandle, "Bot Lightyear") < 0) exit(5);
     if (lgGpioClaimInput(GPIOhandle, LG_SET_PULL_NONE, 4) != 0) exit(5);
 
-    stpr_reset_all();
-    stpr_calibrate_all();
+    
     
     time_t tStart;
     {
@@ -120,7 +127,7 @@ void finish_main() {
     if (currentPath != NULL) free(currentPath);
     graph_free();
 
-    spi_close();
+    // spi_close();
 
     dxl_close();
 

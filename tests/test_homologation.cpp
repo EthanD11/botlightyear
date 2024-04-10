@@ -1,9 +1,14 @@
-#include "SPI_Modules.h"
+#include "SPI_bus.h"
+#include "servos.h"
+#include "steppers.h"
 #include "dynamixels.h"
 #include <unistd.h>
 #include <cstdio>
 
+SPIBus spi_bus = SPIBus(); 
+Steppers steppers = SPIUser(&spi_bus); 
 
+Flaps servo_flaps = SPIUser(&spi_bus); 
 
 int main(int argc, char const *argv[])
 {
@@ -16,56 +21,56 @@ int main(int argc, char const *argv[])
     dxl_ping(6, 1.0);
     dxl_ping(8, 1.0);
 
-    flaps_servo_cmd(FlapsRaise);
-    stpr_setup_speed(StprFlaps,100,600); 
-    stpr_setup_speed(StprPlate,60,500); 
-    stpr_setup_speed(StprSlider,300,400);
-    stpr_reset_all(); 
-    stpr_calibrate_all();
+    servo_flaps.raise();
+    steppers.setup_speed(StprFlaps,100,600); 
+    steppers.setup_speed(StprPlate,60,500); 
+    steppers.setup_speed(StprSlider,300,400);
+    steppers.reset_all(); 
+    steppers.calibrate_all();
 
     sleep(5); 
 
 
-    flaps_servo_cmd(FlapsDeploy);
-    flaps_move(FlapsPlant);
+    servo_flaps.deploy();
+    steppers.flaps_move(FlapsPlant);
     lguSleep(3);
-    flaps_move(FlapsOpen);
+    steppers.flaps_move(FlapsOpen);
     gripper(Open);
     position_gripper(Down);
     lguSleep(1);
-    slider_move(SliderLow);
+    steppers.slider_move(SliderLow);
     lguSleep(3);
     gripper(Plant); 
     lguSleep(0.5);
-    slider_move(SliderPlate);
+    steppers.slider_move(SliderPlate);
     lguSleep(2);
-    plate_move(2);
+    steppers.plate_move(2);
     lguSleep(2);
     //position_gripper(Down);
     gripper(Open); 
     position_gripper(Up);
-    plate_move(0);
+    steppers.plate_move(0);
 
     lguSleep(5);
 
-    slider_move(SliderHigh); 
-    plate_move(2);
+    steppers.slider_move(SliderHigh); 
+    steppers.plate_move(2);
     gripper(Open);
     lguSleep(2);
     position_gripper(Down);
     lguSleep(3);
-    slider_move(SliderTake); 
+    steppers.slider_move(SliderTake); 
     lguSleep(2); 
     gripper(Plant); 
-    slider_move(SliderHigh); 
+    steppers.slider_move(SliderHigh); 
     lguSleep(1); 
-    plate_move(0); 
+    steppers.plate_move(0); 
     lguSleep(2); 
-    slider_move(SliderDeposit); 
+    steppers.slider_move(SliderDeposit); 
     lguSleep(3); 
     gripper(Open); 
     lguSleep(2); 
-    slider_move(SliderPlate); 
+    steppers.slider_move(SliderPlate); 
     lguSleep(1);
     gripper(Close); 
 

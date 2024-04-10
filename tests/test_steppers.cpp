@@ -1,5 +1,6 @@
 #include "SPI_bus.h"
 #include "steppers.h"
+#include "servos.h"
 #include <lgpio.h>
 
 //#define RESET_CALIBRATE
@@ -10,7 +11,8 @@
 
 SPIBus spi_bus = SPIBus(); 
 
-Steppers steppers = SPIUser(); 
+Steppers steppers = SPIUser(&spi_bus); 
+Flaps servo_flaps = SPIUser(&spi_bus); 
 
 
 void demoPlate(){
@@ -75,26 +77,26 @@ int main(int argc, char const *argv[])
     #endif
 
     #ifdef DEMO_S6
-    servo_cmd(ServoDeploy); 
+    servo_flaps.deploy(); 
     steppers.flaps_move(FlapsPlant);
     lguSleep(4);
     steppers.flaps_move(FlapsOpen);
     steppers.slider_move(SliderLow);
     lguSleep(2);
-    servo_cmd(ServoRaise);
+    servo_flaps.raise(); 
     lguSleep(3);
     steppers.slider_move(SliderPlate);
     lguSleep(5);
     demoPlate();
     lguSleep(5);
-    //slider_move(SliderLow);
+    //steppers.slider_move(SliderLow);
     steppers.move(StprFlaps, 600,0);
     lguSleep(5);
     steppers.plate_move(1);
-    servo_cmd(ServoDeploy); 
+    servo_flaps.deploy(); 
     
     lguSleep(5);
-    servo_cmd(ServoIdle);
+    servo_flaps.idle();
     steppers.reset_all(); 
     steppers.calibrate_all();
     #endif

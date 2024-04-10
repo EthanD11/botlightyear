@@ -1,11 +1,15 @@
 #include "old_dynamixels.h"
-#include "SPI_Modules.h"
+#include "SPI_bus.h"
+#include "steppers.h"
+#include "servos.h"
 #include <unistd.h>
 
+SPIBus spi_bus = SPIBus();
+Steppers steppers = SPIUser(); 
+Flaps servo_flaps = SPIUser(); 
 
 int main(int argc, char const *argv[])
 {
-    init_spi();
     ax_init_port();
 
     if (xl_ping(1) != 0) return -1;
@@ -13,125 +17,125 @@ int main(int argc, char const *argv[])
     if (ax_ping(6) != 0) return -1;
     if (ax_ping(8) != 0) return -1;
 
-    servo_cmd(ServoRaise);
+    servo_flaps.raise(); 
 
-    stpr_reset_all(); 
-    stpr_setup_speed(StprFlaps,5,10); 
-    stpr_setup_speed(StprPlate,2,10); 
-    stpr_setup_speed(StprSlider,4,10);
-    stpr_calibrate_all();
+    steppers.reset_all(); 
+    steppers.setup_speed(StprFlaps,5,10); 
+    steppers.setup_speed(StprPlate,2,10); 
+    steppers.setup_speed(StprSlider,4,10);
+    steppers.calibrate_all();
     sleep(10);
 
     
-    servo_cmd(ServoDeploy); 
-    flaps_move(FlapsPot);
+    servo_flaps.deploy();
+    steppers.flaps_move(FlapsPot);
     sleep(3);
-    flaps_move(FlapsOpen);
+    steppers.flaps_move(FlapsOpen);
     sleep(1);
-    servo_cmd(ServoRaise);
+    servo_flaps.raise();
     open_gripper();
     deploy_gripper();
-    slider_move(SliderLow);
+    steppers.slider_move(SliderLow);
     sleep(6);
     close_gripper_pot();
     sleep(1);
-    slider_move(SliderPlate);
+    steppers.slider_move(SliderPlate);
     sleep(6);
-    plate_move(2);
+    steppers.plate_move(2);
     sleep(4); 
     open_gripper(); 
     raise_gripper(); 
     close_gripper();
-    plate_move(0);
+    steppers.plate_move(0);
     sleep(5); 
 
     open_gripper();
     deploy_gripper(); 
-    servo_cmd(ServoDeploy); 
-    flaps_move(FlapsPot); 
+    servo_flaps.deploy();
+    steppers.flaps_move(FlapsPot); 
     sleep(3); 
-    flaps_move(FlapsOpen); 
+    steppers.flaps_move(FlapsOpen); 
     sleep(1); 
-    servo_cmd(ServoRaise); 
-    slider_move(SliderLow); 
+    servo_flaps.raise();
+    steppers.slider_move(SliderLow); 
     sleep(6); 
     close_gripper_pot(); 
     sleep(1); 
-    slider_move(SliderPlate); 
+    steppers.slider_move(SliderPlate); 
     sleep(6); 
-    plate_move(1); 
+    steppers.plate_move(1); 
     sleep(3); 
     open_gripper(); 
     raise_gripper(); 
-    plate_move(0);
+    steppers.plate_move(0);
     sleep(3);
 
     open_gripper();
     deploy_gripper();
-    servo_cmd(ServoDeploy); 
-    flaps_move(FlapsPlant); 
+    servo_flaps.deploy();
+    steppers.flaps_move(FlapsPlant); 
     sleep(3); 
-    flaps_move(FlapsOpen);
+    steppers.flaps_move(FlapsOpen);
     sleep(1);
-    servo_cmd(ServoRaise); 
-    slider_move(SliderLow); 
+    servo_flaps.raise();
+    steppers.slider_move(SliderLow); 
     sleep(6); 
     close_gripper_plant(); 
     sleep(1);
-    slider_move(SliderPlate); 
+    steppers.slider_move(SliderPlate); 
     sleep(6); 
     mid_gripper(); 
-    plate_move(2); 
+    steppers.plate_move(2); 
     sleep(4); 
     deploy_gripper(); 
     open_gripper();
     raise_gripper();
     close_gripper();
-    plate_move(0); 
+    steppers.plate_move(0); 
     sleep(3);
 
     open_gripper();
     deploy_gripper();
-    servo_cmd(ServoDeploy); 
-    flaps_move(FlapsPlant); 
+    servo_flaps.deploy();
+    steppers.flaps_move(FlapsPlant); 
     sleep(3); 
-    flaps_move(FlapsOpen);
+    steppers.flaps_move(FlapsOpen);
     sleep(1);
-    servo_cmd(ServoRaise); 
-    slider_move(SliderLow); 
+    servo_flaps.raise();
+    steppers.slider_move(SliderLow); 
     sleep(6); 
     close_gripper_plant(); 
     sleep(1);
-    slider_move(SliderPlate); 
+    steppers.slider_move(SliderPlate); 
     sleep(6); 
     mid_gripper(); 
-    plate_move(1); 
+    steppers.plate_move(1); 
     sleep(4); 
     deploy_gripper(); 
     open_gripper();
     raise_gripper();
     close_gripper();
-    plate_move(0); 
+    steppers.plate_move(0); 
     sleep(3);
 
-    plate_move(1); 
+    steppers.plate_move(1); 
     open_gripper(); 
     deploy_gripper();
     sleep(5);
-    slider_move(SliderTake);
+    steppers.slider_move(SliderTake);
     sleep(3); 
     close_gripper_pot(); 
     sleep(1);
     mid_gripper(); 
-    plate_move(0); 
+    steppers.plate_move(0); 
     sleep(2);
     deploy_gripper(); 
-    slider_move(SliderLow); 
+    steppers.slider_move(SliderLow); 
     sleep(5); 
     open_gripper(); 
     raise_gripper(); 
-    slider_move(SliderTake); 
-    //stpr_reset(StprPlate); 
+    steppers.slider_move(SliderTake); 
+    //steppers.reset(StprPlate); 
     
     idle(1, 2.0);
     idle(3, 2.0);

@@ -1,41 +1,54 @@
-#include "SPI_Modules.h"
+#include "SPI_bus.h"
+#include "servos.h"
+#include "steppers.h"
+#include <lgpio.h>
+
+SPIBus spi_bus = SPIBus(); 
+Steppers steppers = SPIUser(&spi_bus); 
+
+Flaps servo_flaps = SPIUser(&spi_bus); 
+GripperDeployer servo_gripper_deployer = SPIUser(&spi_bus); 
+GripperHolder servo_gripper_holder = SPIUser(&spi_bus);
+
 
 int main(int argc, char const *argv[])
 {
-    if (init_spi() != 0) return -1;
-    if (test_spi() != 0) exit(2);
+    // if (init_spi() != 0) return -1;
+    // if (test_spi() != 0) exit(2);
 
-    /*stpr_reset_all();
-    lguSleep(1);
-    stpr_calibrate_all();*/
+    // steppers.reset_all();
+    // lguSleep(1);
+    // steppers.calibrate_all();
 
-    /*plate_move(1);
-    lguSleep(3);
-    stpr_reset_all();*/
+    // steppers.plate_move(1);
+    // lguSleep(3);
+    // steppers.reset_all();
 
-    /*flaps_servo_cmd(FlapsDeploy);
-    lguSleep(3);
-    flaps_servo_cmd(FlapsRaise);
-    lguSleep(1);*/
-    flaps_servo_cmd(FlapsIdle);
+    // servo_flaps.deploy(); 
+    // lguSleep(3);
+    // servo_flaps.raise();
+    // lguSleep(1);
+
+    servo_flaps.idle();
     
-    /*gripper_holder_cmd(HolderClosed);
-    lguSleep(3);
-    gripper_holder_cmd(HolderOpen);
-    lguSleep(3);
-    gripper_holder_cmd(HolderPlant);
-    lguSleep(3);
-    gripper_holder_cmd(HolderPot);
-    lguSleep(1);*/
-    gripper_holder_cmd(HolderIdle);
+    // servo_gripper_holder.close(); 
+    // lguSleep(3);
+    // servo_gripper_holder.open(); 
+    // lguSleep(3);
+    // servo_gripper_holder.hold_plant(); 
+    // lguSleep(3);
+    // servo_gripper_holder.hold_pot(); 
+    // lguSleep(1);
+    servo_gripper_holder.idle();
 
-    //gripper_deployer_cmd(DeployerDeploy);
-    //lguSleep(3);
-    //gripper_deployer_cmd(DeployerHalf);
-    //lguSleep(3);
-    //gripper_deployer_cmd(DeployerRaise);
-    //lguSleep(1);
+    // servo_gripper_deployer.deploy();
+    // lguSleep(3);
+    // servo_gripper_deployer.half(); 
+    // lguSleep(3);
+    // servo_gripper_deployer.raise();
+    // lguSleep(1);
     gripper_deployer_cmd(DeployerIdle);
+    servo_gripper_deployer.idle(); 
 
     spi_close();
     return 0;
