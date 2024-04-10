@@ -26,6 +26,14 @@ Regulator *init_regulator() {
 void free_regulator(Regulator *regulator) {
     free(regulator);
 }
+
+void reset_regulator(Regulator *speed_regulator) {
+    speed_regulator->isl = 0.0;
+    speed_regulator->isr = 0.0;
+    speed_regulator->el_filtered = 0.0;
+    speed_regulator->er_filtered = 0.0;
+}
+
 void control_speed(
     Regulator *reg,
     RobotPosition *rob_pos,

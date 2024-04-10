@@ -6,6 +6,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#define POSITION_TOL_IN 5e-3 // Tolerance to enter the goal reached state
+#define POSITION_TOL_OUT 10e-3 // Tolerance to leave the goal reached state
+
 typedef struct PositionController {
     
     double xref, yref, theta_ref; // Input position reference

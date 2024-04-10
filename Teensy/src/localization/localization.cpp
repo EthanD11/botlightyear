@@ -1,6 +1,6 @@
 #include "localization.h"
 
-#define VERBOSE
+// #define VERBOSE
 
 RobotPosition* init_robot_position(double x0, double y0, double theta_0) 
 {
@@ -32,6 +32,13 @@ void free_robot_position(RobotPosition *robot_position) {
     delete robot_position->enc_l;
     delete robot_position->enc_r;
     free(robot_position);
+}
+
+void reset_encoders(RobotPosition *robot_position) {
+    robot_position->enc_l->write(0);
+    robot_position->enc_r->write(0);
+    robot_position->old_tick_left = 0;
+    robot_position->old_tick_right = 0;
 }
 
 void update_localization(RobotPosition *robot_position) 

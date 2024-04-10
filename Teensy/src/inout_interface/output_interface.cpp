@@ -36,14 +36,10 @@ OutputInterface *init_outputs() {
     pinMode(A1, OUTPUT);
     pinMode(A2, OUTPUT);
     pinMode(A3, OUTPUT);
-
-    analogWriteFrequency(A1, 20e3);
-    analogWriteFrequency(A2, 20e3);
-    analogWriteFrequency(A3, 20e3);
-
-    analogWrite(A1, 0);
-    analogWrite(A2, 0);
-    analogWrite(A3, 0);
+        
+    digitalWrite(A1, 0);
+    digitalWrite(A2, 0);
+    digitalWrite(A3, 0);
 
     return outputs;
 }

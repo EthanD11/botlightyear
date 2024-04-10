@@ -12,7 +12,7 @@ PathFollower* init_path_follower() {
     path_follower->speed_refr = 0;
     path_follower->kt = 2.0;
     path_follower->kn = 0.32; // 0 < kn <= 1
-    path_follower->kz = 30.0;
+    path_follower->kz = 20.0;
     path_follower->delta = 15e-3; // delta is in meters
     path_follower->sigma = .0;
     path_follower->epsilon = M_PI/8; // epsilon is in radians
@@ -20,6 +20,9 @@ PathFollower* init_path_follower() {
     path_follower->kv_en = 12; // 
     path_follower->vref = 0.2;
     path_follower->dist_goal_reached = 0.2;
+
+    path_follower->et = 0; // for print in main loop
+    path_follower->en = 0;// for print in main loop
     return path_follower;
 }
 
@@ -236,6 +239,8 @@ int update_path_follower_ref_speed(
     // Compute error in the Serret-Frenet frame
     et =  cos(kir) * ex + sin(kir) * ey;
     en = -sin(kir) * ex + cos(kir) * ey;
+    pf->et = et;
+    pf->en = en;
     kid = kir - asin(kn*en / (delta + fabs(en)));
     kidtilde = PIPERIODIC(kid - kir);
 
