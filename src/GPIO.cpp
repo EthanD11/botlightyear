@@ -1,10 +1,18 @@
 #include "GPIO.h"
 #include <lgpio.h>
+#include <stdlib.h>
 
-uint8_t DE0_feedback::init() {
+#define PI5
+
+DE0_feedback::DE0_feedback() {
+
+    #ifdef PI5
     int SPI2_handle = lgGpiochipOpen(4);
-    if (SPI2_handle < 0) return 1;
-    if (lgGpioSetUser(SPI2_handle, "Bot Lightyear") < 0) return 2;
+    #else
+    int SPI2_handle = lgGpiochipOpen(1);
+    #endif
+    if (SPI2_handle < 0) exit(1);
+    if (lgGpioSetUser(SPI2_handle, "Bot Lightyear") < 0) exit(2);
 
     this->claim_gpio(StprSliderGPIO); 
     this->claim_gpio(StprPlateGPIO); 
@@ -14,7 +22,7 @@ uint8_t DE0_feedback::init() {
     return 0;
 }
 
-void DE0_feedback::close() {
+void DE0_feedback::~DE0_feedback() {
     this->free_gpio(StprSliderGPIO); 
     this->free_gpio(StprPlateGPIO); 
     this->free_gpio(StprFlapsGPIO); 

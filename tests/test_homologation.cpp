@@ -6,15 +6,14 @@
 #include <cstdio>
 
 SPIBus spi_bus = SPIBus(); 
-Steppers steppers = SPIUser(&spi_bus); 
+Steppers steppers = Steppers(&spi_bus); 
 
-Flaps servo_flaps = SPIUser(&spi_bus); 
+Flaps servo_flaps = Flaps(&spi_bus); 
 
 int main(int argc, char const *argv[])
 {
 
     // Init ports, and test ping
-    init_spi();
     dxl_init_port();
     dxl_ping(1, 2.0);
     dxl_ping(3, 2.0);
@@ -83,6 +82,5 @@ int main(int argc, char const *argv[])
     dxl_idle(8, 1.0);
 
     dxl_close_port();
-    spi_close();
     return 0;
 }

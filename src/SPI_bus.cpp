@@ -74,3 +74,13 @@ SPIBus::Teensy_write(char *send, int msgSize) {
 SPIBus::Teensy_xfer(char *send, char *receive, int msgSize) {
     lgSpiXfer(Teensy_handle, send, receive, msgSize);
 }
+
+SPIUser::SPIUser(SPIBus *bus) {
+    this->bus = bus;
+}
+
+SPIUser::~SPIUser() {
+    if (bus == NULL) return;
+    bus->~SPIBus();
+    bus = NULL;
+}; 

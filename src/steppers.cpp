@@ -9,7 +9,6 @@
 #define PLATEAU_ANGLE_OUVERTURE 103.33
 #define PLATEAU_TIC_STEPPER 1600
 
-
 void Steppers::move(steppers_t stepperName, uint32_t steps, uint8_t neg, uint8_t blocking) {
     char request; 
     char direction; 
@@ -39,9 +38,9 @@ void Steppers::move(steppers_t stepperName, uint32_t steps, uint8_t neg, uint8_t
     char steps3 = steps & 0xFF;
 
     char send[] = {request,direction,steps1,steps2,steps3};
-    this->bus->lock();
-    this->bus->DE0_write(send);
-    this->bus->unlock();
+    bus->lock();
+    bus->DE0_write(send);
+    bus->unlock();
 
      if (blocking == CALL_BLOCKING) {
         
@@ -87,9 +86,9 @@ void Steppers::calibrate(steppers_t stepperName, uint8_t blocking) {
             return; 
     }
     char send[] = {request,calibDir,0,0,0};
-    this->bus->lock();
-    this->bus->DE0_write(send);
-    this->bus->unlock();
+    bus->lock();
+    bus->DE0_write(send);
+    bus->unlock();
 
     if (blocking == CALL_BLOCKING) {
         
@@ -130,7 +129,7 @@ void Steppers::flaps_move(flaps_pos_t pos, uint8_t blocking) {
         steps = 0; 
         return;
     }
-    this->move(StprFlaps, steps, 0, blocking); 
+    move(StprFlaps, steps, 0, blocking); 
 }
 
 void Steppers::slider_move(slider_pos_t pos, uint8_t blocking){
@@ -158,7 +157,7 @@ void Steppers::slider_move(slider_pos_t pos, uint8_t blocking){
         steps = 0; 
         return;
     }
-    this->move(StprSlider,steps,0, blocking);
+    move(StprSlider,steps,0, blocking);
 }
 
 
@@ -166,7 +165,7 @@ void Steppers::plate_move(int8_t pot, uint8_t blocking){
     //pot est une variable allant de -3 a 3 avec 0 la position de repos
     int direction = 0;
     if (pot == 0){
-        this->move(StprPlate, 0, 0);   
+        move(StprPlate, 0, 0);   
     } else {
         if (pot < 0) {
             pot = -pot;
@@ -176,7 +175,7 @@ void Steppers::plate_move(int8_t pot, uint8_t blocking){
         double anglePlateau = (PLATEAU_ANGLE_OUVERTURE)/2 + (pot)* (360-PLATEAU_ANGLE_OUVERTURE)/5;
         double angleStepper = anglePlateau * PLATEAU_REDUCTION;
         double ticStepper = angleStepper/360 * PLATEAU_TIC_STEPPER;
-        this->move(StprPlate,(int)ticStepper,direction, blocking);
+        move(StprPlate,(int)ticStepper,direction, blocking);
     }   
 
 }
@@ -206,9 +205,9 @@ void Steppers::setup_speed(steppers_t stepperName, int nominalSpeed, int initial
     }
     
     char send[] = {request,nominalSpeed1,nominalSpeed2, initialSpeed1, initialSpeed2};
-    this->bus->lock();
-    this->bus->DE0_write(send);
-    this->bus->unlock();
+    bus->lock();
+    bus->DE0_write(send);
+    bus->unlock();
 }
 
 
@@ -234,9 +233,9 @@ void Steppers::setup_calib_speed(steppers_t stepperName, int calibrationSpeed, i
             return; 
     }
     char send[] = {request,calibrationSpeed1, calibrationSpeed2, smallCalibrationSpeed1, smallCalibrationSpeed2};
-    this->bus->lock();
-    this->bus->DE0_write(send);
-    this->bus->unlock();
+    bus->lock();
+    bus->DE0_write(send);
+    bus->unlock();
 }
 
 
@@ -269,12 +268,12 @@ void Steppers::reset(steppers_t stepperName) {
     char send1[] = {request,0,0,0,0}; // set the Module command to Idle
     char send2[] = {request2,0,1,0,0}; // send 1 to reset the module completely
 
-    this->bus->lock();
-    this->bus->DE0_write(send1);
-    this->bus->DE0_write(send2);
+    bus->lock();
+    bus->DE0_write(send1);
+    bus->DE0_write(send2);
     send2[2] = 0; // send 0 to stop resetting
-    this->bus->DE0_write(send2); 
-    this->bus->unlock();
+    bus->DE0_write(send2); 
+    bus->unlock();
 }
 
 void Steppers::setup_acc(steppers_t stepperName, uint8_t accSteps) {
@@ -297,20 +296,20 @@ void Steppers::setup_acc(steppers_t stepperName, uint8_t accSteps) {
     } 
 
     char send[] = {request,0,0,0,accSteps}; // send 1 to reset the module completely
-    this->bus->lock();
-    this->bus->DE0_write(send);
-    this->bus->unlock();
+    bus->lock();
+    bus->DE0_write(send);
+    bus->unlock();
 
 }
 
 void Steppers::calibrate_all(uint8_t blocking) {
-    this->calibrate(StprFlaps, blocking);
-    this->calibrate(StprPlate, blocking);
-    this->calibrate(StprSlider, blocking);
+    calibrate(StprFlaps, blocking);
+    calibrate(StprPlate, blocking);
+    calibrate(StprSlider, blocking);
 }
 
 void Steppers::reset_all() {
-    this->reset(StprFlaps);
-    this->reset(StprPlate);
-    this->reset(StprSlider);
+    reset(StprFlaps);
+    reset(StprPlate);
+    reset(StprSlider);
 }

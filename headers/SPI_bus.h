@@ -1,5 +1,6 @@
 #ifndef _BLY_SPI_BUS_H_
 #define _BLY_SPI_BUS_H_
+#include <cstddef>
 
 class SPIBus
 {
@@ -20,14 +21,9 @@ public:
 class SPIUser
 {
 public:
-    SPIBus *bus;
+    SPIBus *bus = NULL;
     SPIUser(SPIBus *bus);
     ~SPIUser();
-}; 
+};
 
-SPIUser::SPIUser(SPIBus *bus) {
-    this->bus = bus;
-}
-
-SPIUser::~SPIUser() {}; 
 #endif

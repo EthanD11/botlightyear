@@ -1,7 +1,8 @@
 #include "SPI_bus.h"
+#include "GPIO.h"
 #include "steppers.h"
 #include "servos.h"
-#include <lgpio.h>
+#include <unistd.h> 
 
 //#define RESET_CALIBRATE
 // #define SETUP_CUSTOM_SPEED_OLD
@@ -9,18 +10,19 @@
 #define DEMO_S6
 #define TESTS
 
-SPIBus spi_bus = SPIBus(); 
+SPIBus spi_bus = SPIBus();
+DE0_feedback pins = DE0_feedback(); 
 
-Steppers steppers = SPIUser(&spi_bus); 
-Flaps servo_flaps = SPIUser(&spi_bus); 
+Steppers steppers = Steppers(&spi_bus); 
+Flaps servo_flaps = Flaps(&spi_bus); 
 
 
 void demoPlate(){
     steppers.plate_move(-3);
-    lguSleep(3);
+    sleep(3);
     for(int i = -2; i<= 3; i++) {
         steppers.plate_move(i);
-        lguSleep(2);
+        sleep(2);
     }
     steppers.plate_move(0);
 }
@@ -60,7 +62,7 @@ int main(int argc, char const *argv[])
     #ifdef RESET_CALIBRATE
     steppers.reset_all(); 
     steppers.calibrate_all();
-    lguSleep(10);
+    sleep(10);
     #endif
 
     #ifdef SETUP_CUSTOM_SPEED_OLD
@@ -79,23 +81,23 @@ int main(int argc, char const *argv[])
     #ifdef DEMO_S6
     servo_flaps.deploy(); 
     steppers.flaps_move(FlapsPlant);
-    lguSleep(4);
+    sleep(4);
     steppers.flaps_move(FlapsOpen);
     steppers.slider_move(SliderLow);
-    lguSleep(2);
+    sleep(2);
     servo_flaps.raise(); 
-    lguSleep(3);
+    sleep(3);
     steppers.slider_move(SliderPlate);
-    lguSleep(5);
+    sleep(5);
     demoPlate();
-    lguSleep(5);
+    sleep(5);
     //steppers.slider_move(SliderLow);
     steppers.move(StprFlaps, 600,0);
-    lguSleep(5);
+    sleep(5);
     steppers.plate_move(1);
     servo_flaps.deploy(); 
     
-    lguSleep(5);
+    sleep(5);
     servo_flaps.idle();
     steppers.reset_all(); 
     steppers.calibrate_all();

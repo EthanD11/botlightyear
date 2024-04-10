@@ -6,34 +6,44 @@
 
 // Uncomment to enable
 // When enabled, init_graph_from_file should print out the exact file it has read
-#define VERBOSE
+//#define VERBOSE
 
 typedef struct __graph_targets
 {
     uint8_t len_targets;
     uint8_t *targets;
-} graph_targets_t;
+    Graph *graph;
+} context_t;
 
+Graph::Graph() {
+    nNodes = -1;
+    nodes = NULL;
+}
+
+Graph::~Graph() {
+    if (nNodes != -1 && nodes != NULL) free(nodes);
+}
 
 void node_neighbors(ASNeighborList neighbors, void* node, void* context) {
-    graph_node_t* cur_node = (graph_node_t*) node;
-    for (uint8_t i = 0; i < cur_node->nb_neighbors; i++)
+    graph_node_t* curNode = (graph_node_t*) node;
+    Graph *graph = ((context_t *) context)->graph;
+    for (uint8_t i = 0; i < curNode->nNeighbors; i++)
     {
-        graph_node_t* neighbor = cur_node->neighbors[i];
-        if (neighbor->level > graphLevel) continue;
-        float cost = hypot(neighbor->x - cur_node->x, neighbor->y - cur_node->y);
+        graph_node_t* neighbor = curNode->neighbors[i];
+        if (neighbor->level > graph->level) continue;
+        float cost = hypot(neighbor->x - curNode->x, neighbor->y - curNode->y);
         ASNeighborListAdd(neighbors, neighbor, cost);
     }
 }
 
 float path_cost_heuristic(void* fromNode, void* toNode, void* context) {
     graph_node_t* from = (graph_node_t*) fromNode;
-    graph_targets_t* targets = (graph_targets_t*) context;
+    context_t* ctx = (context_t*) context;
     float min = 1e10;
-    for (uint8_t i = 0; i < targets->len_targets; i++)
+    for (uint8_t i = 0; i < ctx->len_targets; i++)
     {
-        graph_node_t* to = graphNodes + targets->targets[i];
-        if (to->level > graphLevel) continue;
+        graph_node_t* to = ctx->graph->nodes + ctx->targets[i];
+        if (to->level > ctx->graph->level) continue;
         float cost = hypot(to->x - from->x, to->y - from->y);
         if (min > cost) min = cost;
     }
@@ -46,16 +56,16 @@ int node_comparator(void *node1, void *node2, void *context) {
 
 int early_exit(size_t visitedCount, void *visitingNode, void *goalNode, void *context) {
     graph_node_t *current = (graph_node_t*) visitingNode;
-    graph_targets_t *targets = (graph_targets_t*) context;
-    for (size_t i = 0; i < targets->len_targets; i++)
+    context_t *ctx = (context_t*) context;
+    for (size_t i = 0; i < ctx->len_targets; i++)
     {
-        graph_node_t *target = graphNodes + targets->targets[i];
-        if (target->level <= graphLevel && node_comparator(current, target, NULL) == 0) return 1; 
+        graph_node_t *target = ctx->graph->nodes + ctx->targets[i];
+        if (node_comparator(current, target, NULL) == 0 && target->level <= ctx->graph->level) return 1; 
     }
     return 0;
 }
 
-graph_path_t *graph_compute_path(const uint8_t from, uint8_t *targets, const uint8_t len_targets, const uint8_t oversampling) {
+graph_path_t *Graph::compute_path(uint8_t from, uint8_t *targets, uint8_t len_targets, uint8_t oversampling) {
     if (len_targets == 0) return NULL;
 
     // Initiate search arguments
@@ -65,12 +75,13 @@ graph_path_t *graph_compute_path(const uint8_t from, uint8_t *targets, const uin
     source.pathCostHeuristic = path_cost_heuristic;
     source.earlyExit = early_exit;
     source.nodeComparator = node_comparator;
-    graph_targets_t context;
+    context_t context;
     context.len_targets = len_targets;
     context.targets = targets;
+    context.graph = this;
 
     // Start the search
-    ASPath path = ASPathCreate(&source, &context, graphNodes + from, graphNodes + targets[0]);
+    ASPath path = ASPathCreate(&source, &context, this->nodes + from, this->nodes + targets[0]);
     if (ASPathGetCount(path) == 0) {
         // Failure, returning
         ASPathDestroy(path);
@@ -78,66 +89,66 @@ graph_path_t *graph_compute_path(const uint8_t from, uint8_t *targets, const uin
     }
 
     // Success, create arrays of coordinates for path following and cost
-    uint8_t n_keypoints = ASPathGetCount(path);
-    uint8_t n_nodes = n_keypoints + oversampling * (n_keypoints-1);
+    uint8_t nKeyPoints = ASPathGetCount(path);
+    nNodes = nKeyPoints + oversampling * (nKeyPoints-1);
 
-    void *temp = malloc(sizeof(graph_path_t) + 2*n_nodes*sizeof(double));
+    void *temp = malloc(sizeof(graph_path_t) + 2*nNodes*sizeof(double));
     graph_path_t *result = (graph_path_t*) temp;
     result->x = (double *) (((uint8_t*)temp) + sizeof(graph_path_t));
-    result->y = (double *) (((uint8_t*)temp) + sizeof(graph_path_t) + n_nodes*sizeof(double));
+    result->y = (double *) (((uint8_t*)temp) + sizeof(graph_path_t) + nNodes*sizeof(double));
     
-    result->nb_nodes = n_nodes;
-    result->total_cost = ASPathGetCost(path);
+    result->nNodes = nNodes;
+    result->totalCost = ASPathGetCost(path);
 
-    graph_node_t *curr_node = (graph_node_t *) ASPathGetNode(path, 0);
-    graph_node_t *next_node;
-    uint8_t n_points = oversampling + 1; // Number of points between current node (included) and next node (excluded)
-    for (uint8_t i = 0; i < n_keypoints-1; i++)
+    graph_node_t *curNode = (graph_node_t *) ASPathGetNode(path, 0);
+    graph_node_t *nextNode;
+    uint8_t nPoints = oversampling + 1; // Number of points between current node (included) and next node (excluded)
+    for (uint8_t i = 0; i < nKeyPoints-1; i++)
     {
-        next_node = (graph_node_t *) ASPathGetNode(path, i+1);
-        for (uint8_t j = 0; j < n_points; j++)
+        nextNode = (graph_node_t *) ASPathGetNode(path, i+1);
+        for (uint8_t j = 0; j < nPoints; j++)
         {
-            result->x[i*n_points+j] = (j*next_node->x + (n_points-j) * curr_node->x) / n_points;
-            result->y[i*n_points+j] = (j*next_node->y + (n_points-j) * curr_node->y) / n_points;
+            result->x[i*nPoints+j] = (j*nextNode->x + (nPoints-j) * curNode->x) / nPoints;
+            result->y[i*nPoints+j] = (j*nextNode->y + (nPoints-j) * curNode->y) / nPoints;
         }
-        curr_node = next_node;
+        curNode = nextNode;
     }
-    result->x[n_nodes-1] = curr_node->x;
-    result->y[n_nodes-1] = curr_node->y;
-    result->target = curr_node->id;
+    result->x[nNodes-1] = curNode->x;
+    result->y[nNodes-1] = curNode->y;
+    result->target = curNode->id;
 
     ASPathDestroy(path);
     return result;    
 }
 
-void graph_level_update(const int node, const int level, const int propagation) {
-    graph_node_t *_node = &(graphNodes[node]);
+void Graph::node_level_update(int node, int level, int propagation) {
+    graph_node_t *_node = &(nodes[node]);
     _node->level = level;
     if (propagation) {
-        for (uint8_t i = 0; i < _node->nb_neighbors; i++) {
+        for (uint8_t i = 0; i < _node->nNeighbors; i++) {
 
-            uint8_t node_affected = 1; // Is this neighbor a plant or a base ?
+            uint8_t nodeAffected = 1; // Is this neighbor a plant or a base ?
             for (uint8_t j = 0; j < 6; j++){
-                if (graphFriendlyBases[j] == _node->neighbors[i]->id 
-                    || graphAdversaryBases[j] == _node->neighbors[i]->id
-                    || graphPlants[j] == _node->neighbors[i]->id) {
-                    node_affected = 0; // If yes, its level should not be affected by the propagation
+                if (friendlyBases[j] == _node->neighbors[i]->id 
+                    || adversaryBases[j] == _node->neighbors[i]->id
+                    || plants[j] == _node->neighbors[i]->id) {
+                    nodeAffected = 0; // If yes, its level should not be affected by the propagation
                     break;
                 }
             }
             
             // If affected, update neighbor to max(0, level-1)
-            if (node_affected) _node->neighbors[i]->level = (level <= 1) ? 0 : level-1;
+            if (nodeAffected) _node->neighbors[i]->level = (level <= 1) ? 0 : level-1;
         }   
     }
 }
 
-uint8_t graph_identify_pos(double x, double y, double *dist) {
+uint8_t Graph::identify_pos(double x, double y, double *dist) {
     uint8_t id = 0;
-    *dist = hypot(graphNodes[0].x - x, graphNodes[0].y - y);
-    for (uint8_t i = 1; i < graphNbNodes; i++)
+    *dist = hypot(nodes[0].x - x, nodes[0].y - y);
+    for (uint8_t i = 1; i < nNodes; i++)
     {
-        double temp = hypot(graphNodes[i].x - x, graphNodes[i].y - y);
+        double temp = hypot(nodes[i].x - x, nodes[i].y - y);
         if (*dist > temp) {
             *dist = temp;
             id = i;
@@ -146,36 +157,36 @@ uint8_t graph_identify_pos(double x, double y, double *dist) {
     return id;
 }
 
-int init_graph_from_file(const char *filename, team_color_t color) {
+int Graph::init_from_file(const char *filename, team_color_t color) {
     if (color == NoTeam) return -1;
     FILE *input_file = fopen(filename, "r");
     if (input_file == NULL) return -1;
 
     // Scan number of nodes
-    if (fscanf(input_file, "Number of nodes : %hhd\n", &graphNbNodes) != 1) return -1;
+    if (fscanf(input_file, "Number of nodes : %hhd\n", &nNodes) != 1) return -1;
     #ifdef VERBOSE
-    printf("Number of nodes : %d\n", graphNbNodes);
+    printf("Number of nodes : %d\n", nNodes);
     #endif
     
     // Malloc graph
-    graphNodes = (graph_node_t*) malloc(graphNbNodes*sizeof(graph_node_t));
-    if (graphNodes == NULL) return -1;
+    nodes = (graph_node_t*) malloc(nNodes*sizeof(graph_node_t));
+    if (nodes == NULL) return -1;
 
     uint8_t trash;
-    for (int8_t i = 0; i < graphNbNodes; i++) {
+    for (int8_t i = 0; i < nNodes; i++) {
 
         // Set id & level
-        graphNodes[i].id = i;
-        graphNodes[i].level = 0;
-        graphNodes[i].score = 0;
+        nodes[i].id = i;
+        nodes[i].level = 0;
+        nodes[i].score = 0;
 
         // Scan x and y coordinates
-        if (fscanf(input_file, "%hhd:%f,%f\n", &trash, &(graphNodes[i].x), &(graphNodes[i].y)) != 3) return -1;
+        if (fscanf(input_file, "%hhd:%f,%f\n", &trash, &(nodes[i].x), &(nodes[i].y)) != 3) return -1;
         if (trash != i) return -1;
         #ifdef VERBOSE
-        printf("%d:%.3f,%.3f\n", i, graphNodes[i].x, graphNodes[i].y);
+        printf("%d:%.3f,%.3f\n", i, nodes[i].x, nodes[i].y);
         // Rotation for recentering based on robot modelling's convention
-        //printf("%.3f,%.3f\n", (graphNodes[i].y-1), -(graphNodes[i].x-1.5));
+        //printf("%.3f,%.3f\n", (nodes[i].y-1), -(nodes[i].x-1.5));
         #endif
     }
 
@@ -184,9 +195,9 @@ int init_graph_from_file(const char *filename, team_color_t color) {
     char list[64];
     char *token;
     uint8_t node_id;
-    for (uint8_t i = 0; i < graphNbNodes; i++)
+    for (uint8_t i = 0; i < nNodes; i++)
     {
-        graphNodes[i].nb_neighbors = 0;
+        nodes[i].nNeighbors = 0;
         for (size_t i = 0; i < 64; i++){ list[i] = 0; }
         if (fscanf(input_file, "%hhd:%s\n", &trash, list) != 2) return -1; // Get next line
         if (trash != i) return -1;
@@ -197,11 +208,11 @@ int init_graph_from_file(const char *filename, team_color_t color) {
         token = strtok(list, ","); // Split line based on commas, get 1st token
         while (token != NULL) {
 
-            if (graphNodes[i].nb_neighbors == 7) return -1;
+            if (nodes[i].nNeighbors == 7) return -1;
             if (sscanf(token,"%hhd", &node_id) != 1) return -1; // Interpret token as a neighbor id
 
-            graphNodes[i].neighbors[graphNodes[i].nb_neighbors] = graphNodes + node_id; // Add to list of neighbors
-            graphNodes[i].nb_neighbors++;
+            nodes[i].neighbors[nodes[i].nNeighbors] = nodes + node_id; // Add to list of neighbors
+            nodes[i].nNeighbors++;
             #ifdef VERBOSE
             printf("%d", node_id);
             #endif
@@ -226,10 +237,10 @@ int init_graph_from_file(const char *filename, team_color_t color) {
         if (token == NULL) return -1;
         if (sscanf(token, "%hhd", &node_id) != 1) return -1;
         if (color == TeamBlue) {
-            graphFriendlyBases[i] = node_id;
+            friendlyBases[i] = node_id;
         } else {
-            graphNodes[node_id].level = 1; 
-            graphAdversaryBases[i] = node_id;
+            nodes[node_id].level = 1; 
+            adversaryBases[i] = node_id;
         }
         #ifdef VERBOSE
         printf("%d", node_id);
@@ -254,10 +265,65 @@ int init_graph_from_file(const char *filename, team_color_t color) {
         if (token == NULL) return -1;
         if (sscanf(token, "%hhd", &node_id) != 1) return -1;
         if (color == TeamYellow) {
-            graphFriendlyBases[i] = node_id;
+            friendlyBases[i] = node_id;
         } else {
-            graphNodes[node_id].level = 1; 
-            graphAdversaryBases[i] = node_id;
+            nodes[node_id].level = 1; 
+            adversaryBases[i] = node_id;
+        }
+        #ifdef VERBOSE
+        printf("%d", node_id);
+        #endif
+        token = strtok(NULL,",");
+        #ifdef VERBOSE
+        if (token != NULL) printf(",");
+        #endif
+    }
+    #ifdef VERBOSE
+    printf("\n");
+    #endif
+
+    // Scan blue planters nodes
+    for (size_t i = 0; i < 64; i++){ list[i] = 0; }
+    if (fscanf(input_file, "Blue planters, reserved first : %s\n", list) != 1) return -1;
+    #ifdef VERBOSE
+    printf("Blue planter, reserved first : ");
+    #endif
+    token = strtok(list, ",");
+    for (uint8_t i = 0; i < 3; i++) {
+        if (token == NULL) return -1;
+        if (sscanf(token, "%hhd", &node_id) != 1) return -1;
+        if (color == TeamBlue) {
+            friendlyPlanters[i] = node_id;
+        } else {
+            adversaryPlanters[i] = node_id;
+        }
+        #ifdef VERBOSE
+        printf("%d", node_id);
+        #endif
+        token = strtok(NULL,",");
+        #ifdef VERBOSE
+        if (token != NULL) printf(",");
+        #endif
+    }
+    #ifdef VERBOSE
+    printf("\n");
+    #endif
+
+    // Scan yellow planters nodes
+    for (size_t i = 0; i < 64; i++){ list[i] = 0; }
+    if (fscanf(input_file, "Yellow planters, reserved first : %s\n", list) != 1) return -1;
+    #ifdef VERBOSE
+    printf("Yellow planters, reserved first : ");
+    #endif
+    token = strtok(list, ",");
+    for (uint8_t i = 0; i < 3; i++) {
+        if (token == NULL) return -1;
+        if (sscanf(token, "%hhd", &node_id) != 1) return -1;
+        if (color == TeamYellow) {
+            friendlyBases[i] = node_id;
+        } else {
+            nodes[node_id].level = 1; 
+            adversaryBases[i] = node_id;
         }
         #ifdef VERBOSE
         printf("%d", node_id);
@@ -281,8 +347,8 @@ int init_graph_from_file(const char *filename, team_color_t color) {
     for (uint8_t i = 0; i < 6; i++) {
         if (token == NULL) return -1;
         if (sscanf(token, "%hhd", &node_id) != 1) return -1;
-        graphNodes[node_id].level = 1;
-        graphPlants[i] = node_id;
+        nodes[node_id].level = 1;
+        plants[i] = node_id;
         #ifdef VERBOSE
         printf("%d", node_id);
         #endif
@@ -306,8 +372,8 @@ int init_graph_from_file(const char *filename, team_color_t color) {
         if (token == NULL) return -1;
 
         if (sscanf(token, "%hhd", &node_id) != 1) return -1;
-        //graphNodes[node_id].level = 0;
-        graphPots[i] = node_id;
+        //nodes[node_id].level = 0;
+        pots[i] = node_id;
         #ifdef VERBOSE
         printf("%d", node_id);
         #endif
@@ -331,10 +397,10 @@ int init_graph_from_file(const char *filename, team_color_t color) {
         if (token == NULL) return -1;
         if (sscanf(token, "%hhd", &node_id) != 1) return -1;
         if (color == TeamBlue) {
-            graphFriendlySPs[i] = node_id;
+            friendlySPs[i] = node_id;
         } else {
-            graphNodes[node_id].level = 1; 
-            graphAdversarySPs[i] = node_id;
+            nodes[node_id].level = 1; 
+            adversarySPs[i] = node_id;
         }
         #ifdef VERBOSE
         printf("%d", node_id);
@@ -359,10 +425,10 @@ int init_graph_from_file(const char *filename, team_color_t color) {
         if (token == NULL) return -1;
         if (sscanf(token, "%hhd", &node_id) != 1) return -1;
         if (color == TeamYellow) {
-            graphFriendlySPs[i] = node_id;
+            friendlySPs[i] = node_id;
         } else {
-            graphNodes[node_id].level = 1; 
-            graphAdversarySPs[i] = node_id;
+            nodes[node_id].level = 1; 
+            adversarySPs[i] = node_id;
         }
         #ifdef VERBOSE
         printf("%d", node_id);
@@ -386,8 +452,8 @@ int init_graph_from_file(const char *filename, team_color_t color) {
     for (uint8_t i = 0; i < 3; i++) {
         if (token == NULL) return -1;
         if (sscanf(token, "%hhd", &node_id) != 1) return -1;
-        graphNodes[node_id].level = 1;
-        graphCommonSPs[i] = node_id;
+        nodes[node_id].level = 1;
+        commonSPs[i] = node_id;
         #ifdef VERBOSE
         printf("%d", node_id);
         #endif
@@ -400,15 +466,13 @@ int init_graph_from_file(const char *filename, team_color_t color) {
     printf("\n");
     #endif
 
-    graphLevel = 0;
+    level = 0;
     return 0;
 }
 
-void graph_free() { free(graphNodes); }
-
-void print_path(graph_path_t* path) {
-    printf("Path towards %d of length %.3fm in %d points\n", path->target, path->total_cost, path->nb_nodes);
-    for (uint8_t i = 0; i < path->nb_nodes; i++)
+void Graph::print_path(graph_path_t* path) {
+    printf("Path towards %d of length %.3fm in %d points\n", path->target, path->totalCost, path->nNodes);
+    for (uint8_t i = 0; i < path->nNodes; i++)
     {
         printf("(%.3f,%.3f) ", path->x[i], path->y[i]);
     }

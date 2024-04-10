@@ -1,16 +1,11 @@
-#include "../headers/SPI_Modules.h"
+#include "teensy.h"
 #include <stdio.h>
 
-#define IDLE
-
-
-const double deg_to_rads = M_PI/180;
+SPIBus spi = SPIBus();
+Teensy teensy = Teensy(&spi);
 
 int main(int argc, char const *argv[])
 {
-    init_spi(); 
-    lguSleep(0.5);
-    teensy_idle();
-    spi_close();
+    teensy.idle();
     return 0;
 }

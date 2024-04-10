@@ -27,10 +27,9 @@ typedef enum {
 
 class Steppers : private SPIUser
 {
-
-    
-
 public:
+
+    Steppers(SPIBus *bus) : SPIUser(bus) {}
 
     /**
      * @brief Move the stepper 'stepperName' of 'steps' steps in the 'neg' direction (0 for positive, 1 for negative)

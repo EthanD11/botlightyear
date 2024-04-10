@@ -16,17 +16,17 @@ typedef struct graph_node
     float x, y; // X & Y Coordinates (refer to the visual graph)
     int8_t level; // Level of availability of this node (see 'graphLevel')
     int8_t score; // Potential interest to go to this node for game points
-    uint8_t nb_neighbors; // Number of neighbors
+    uint8_t nNeighbors; // Number of neighbors
     struct graph_node* neighbors[7]; // List of neighbors
 } graph_node_t;
 
 typedef struct graph_path
 {
     uint8_t target; // Target of the path
-    uint8_t nb_nodes; // Number of nodes in the path
+    uint8_t nNodes; // Number of nodes in the path
     double *x; // Array of x coordinates
     double *y; // Array of y coordinates
-    double total_cost; // Total distance of travel for this path
+    double totalCost; // Total distance of travel for this path
 } graph_path_t;
 
 typedef enum {
@@ -35,70 +35,135 @@ typedef enum {
     NoTeam
 } team_color_t; // Team colors
 
-inline uint8_t graphNbNodes; // Number of nodes in the graph
+class Graph
+{
+public:
+    int8_t nNodes; // Number of nodes in the graph
+    graph_node_t *nodes; // Array of graph nodes
+    /**
+     * Any node such that node.level > graphLevel will be ignored by the graph search
+     * A higher graphLevel therefore means a higher tolerance of obstacles near the path (more risky but faster)
+     *  General idea :
+     * 0 = Free, the node is not obstructed
+     * 1 = Danger, the node is obstructed by game items or close to a large object (typically another robot)
+     * 2 = Blocked, the node is obstructed by a large object (typically another robot) and/or cannot be reached at this time
+    */
+    int8_t level;
+    uint8_t friendlyBases[3]; // Array of friendly bases ids, first one is reserved
+    uint8_t adversaryBases[3]; // Array of adversary bases ids, first one is reserved
+    uint8_t friendlyPlanters[3]; // Array of friendly planter ids, first one is reserved
+    uint8_t adversaryPlanters[3]; // Array of adversary planter ids, first one is reserved
+    uint8_t friendlySPs[6]; // Array of friendly reserved solar panel ids
+    uint8_t adversarySPs[6]; // Array of adversary reserved solar panel ids
+    uint8_t commonSPs[3]; // Array of unreserved solar panels ids
+    uint8_t plants[6]; // Array of plant spots ids
+    uint8_t pots[6]; // Array of pot spots ids
+    Graph();
+    ~Graph();
+
+    /**
+    * Initializes 'nodes' from file 'filename'.
+    * Adapts Friendly/Adversary structures based on color.
+    * Returns 0 on success, -1 otherwise.
+    */
+    int init_from_file(const char *filename, team_color_t color);
+
+    /**
+    * Computes a path sequence from node 'from' to the closest node in the 'targets' array (refer to the visual graph)
+    * The level of the 'targets' and/or the graphLevel must be set accordingly before the call
+    * 'oversampling' intermediate points are added between each key point for better path following (recommended values : 0, 1 or 2)
+    * Returns NULL if no path is found
+    * Note that the arrays of x and y coordinates are directly next to the structure in the memory
+    * Only the pointer returned must be passed to free() after the call, not the x and y arrays of the structure
+    */
+    graph_path_t *compute_path(uint8_t from, uint8_t *targets, uint8_t len_targets, uint8_t oversampling);
+
+    /**
+    * Updates the level of 'node' to 'level'
+    * Propagates 'level'-1 to the neighbors of 'node' if 'propagation' != 0
+    * Plants and bases are not affected by propagation
+    */
+    void node_level_update(int node, int level, int propagation);
+
+    /**
+    * @brief Prints cost, number of nodes, and coordinates in this path
+    */
+    static void print_path(graph_path_t* path);
+
+    /**
+    * Identify the given (x,y) coordinates to a node of the graph.
+    * Returns identified node id.
+    * Stores the distance to this node into 'dist'
+    */
+    uint8_t identify_pos(double x, double y, double *dist);
+
+};
+
+/*
+inline uint8_t graphNbNodes; 
 inline graph_node_t* graphNodes; // Array of size 'graphNbNodes' (after initialization !) containing each node
 
-/**
+**
  * Any node such that node.level > graphLevel will be ignored by the graph search
  * A higher graphLevel therefore means a higher tolerance of obstacles near the path (more risky but faster)
  *  General idea :
  * 0 = Free, the node is not obstructed
  * 1 = Danger, the node is obstructed by game items or close to a large object (typically another robot)
  * 2 = Blocked, the node is obstructed by a large object (typically another robot) and/or cannot be reached at this time
-*/
+*
 inline int8_t graphLevel;
 
-inline uint8_t graphFriendlyBases[3]; // Array of friendly bases ids, first one is reserved
-inline uint8_t graphAdversaryBases[3]; // Array of adversary bases ids, first one is reserved
-inline uint8_t graphFriendlySPs[6]; // Array of friendly reserved solar panel ids
-inline uint8_t graphAdversarySPs[6]; // Array of adversary reserved solar panel ids
-inline uint8_t graphCommonSPs[6]; // Array of unreserved solar panels ids
-inline uint8_t graphPlants[6]; // Array of plant spots ids
-inline uint8_t graphPots[6]; // Array of pot spots ids
+inline uint8_t friendlyBases[3]; // Array of friendly bases ids, first one is reserved
+inline uint8_t adversaryBases[3]; // Array of adversary bases ids, first one is reserved
+inline uint8_t friendlySPs[6]; // Array of friendly reserved solar panel ids
+inline uint8_t adversarySPs[6]; // Array of adversary reserved solar panel ids
+inline uint8_t commonSPs[6]; // Array of unreserved solar panels ids
+inline uint8_t plants[6]; // Array of plant spots ids
+inline uint8_t pots[6]; // Array of pot spots ids
 
-/**
+**
  * Initializes graphNodes from file 'filename'.
  * Adapts Friendly/Adversary structures based on color.
  * Returns 0 on success, -1 otherwise.
-*/
+
 int init_graph_from_file(const char *filename, team_color_t color);
 
-/**
+**
  * @brief Frees the graphNodes array and its nodes
-*/
+*
 void graph_free();
 
-/**
+**
  * Computes a path sequence from node 'from' to the closest node in the 'targets' array (refer to the visual graph)
  * The level of the 'targets' and/or the graphLevel must be set accordingly before the call
  * 'oversampling' intermediate points are added between each key point for better path following (recommended values : 0, 1 or 2)
  * Returns NULL if no path is found
  * Note that the arrays of x and y coordinates are directly next to the structure in the memory
  * Only the pointer returned must be passed to free() after the call, not the x and y arrays of the structure
-*/
+*
 graph_path_t *graph_compute_path(const uint8_t from, uint8_t *targets, const uint8_t len_targets, const uint8_t oversampling);
 
-/**
+**
  * Updates the level of 'node' to 'level'
  * Propagates 'level'-1 to the neighbors of 'node' if 'propagation' != 0
  * Plants and bases are not affected by propagation
-*/
+*
 void graph_level_update(const int node, const int level, const int propagation);
 
-/**
+**
  * @brief Prints cost, number of nodes, and coordinates in this path
-*/
+*
 void print_path(graph_path_t* path); 
 
-/**
+**
  * Identify the given (x,y) coordinates to a node of the graph.
  * Returns identified node id.
  * Stores the distance to this node into 'dist'
- */
+ *
 uint8_t graph_identify_pos(double x, double y, double *dist);
 
 
-/*
+
 // Total number of nodes
 const int graphNbNodes = 41;
 

@@ -143,6 +143,32 @@ void Teensy::constant_dc(int dc_refl, int dc_refr) {
     #endif
 }
 
+void Teensy::spd_ctrl(double speed_left, double speed_right) {
+    // Compression to go to SPI
+    char send[5];
+    send[0] = (char) QueryDoSpeedControl;
+
+    uint16_t *send_ref = (uint16_t *) (send + sizeof(char));
+    send_ref[0] = (uint16_t) ((speed_left/2.0)*UINT16_MAX);   // speed_left compressed
+    send_ref[1] = (uint16_t) ((speed_right/2.0)*UINT16_MAX);   // speed_right compressed
+
+    #ifdef VERBOSE
+    char receive[5];
+    bus->lock();
+    bus->Teensy_xfer(send, receive, 5);
+    bus->unlock();
+    printf("Sending Speed ctrl \n");
+    for (int i = 0; i < 5; i++)
+    {
+        printf("%d, %d\n",send[i], receive[i]);
+    }
+    #else
+    bus->lock();
+    bus->Teensy_write(send, 5);
+    bus->unlock();
+    #endif
+}
+
 void Teensy::idle() {
     char send = (char) QueryIdle;
     bus->lock();
