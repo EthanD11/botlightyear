@@ -17,13 +17,19 @@ int main(int argc, char const *argv[])
 
 
     #ifdef FINAL_SP
-    solar_panel(Blue, 0); 
+    solar_panel(Yellow, -70); 
     #endif
 
     #ifdef SOLAR_PANELS
     dxl_deploy(Down);
     sleep(0.5);
-    dxl_turn(Yellow, 0);
+    dxl_position(790);
+    sleep(0.5);
+    dxl_deploy(Mid);
+    sleep(0.5);
+    dxl_deploy(Down);
+    sleep(0.5);
+    dxl_position(790);
     sleep(0.5);
     dxl_deploy(Up);
     sleep(0.5); 

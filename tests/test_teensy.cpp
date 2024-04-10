@@ -49,12 +49,12 @@ int main(int argc, char const *argv[])
     int ncheckpoints = 2;
     // double x[5] = {0.1,0.5,0.9,0.5,0.1};
     // double y[5] = {1.5,1.7,1.5,1.3,1.5};
-    double x[5] = {0.1,0.6};
+    double x[5] = {0.1,1.0};
     double y[5] = {1.5,1.5};
     double theta_start = 0.;
     double theta_end = 0;
     double vref = 0.1;
-    double dist_goal_reached = 0.5;
+    double dist_goal_reached = 0.2;
 
     double xpos, ypos, thetapos;
     odo_set_pos(0.1, 1.5, 0);
@@ -66,10 +66,10 @@ int main(int argc, char const *argv[])
     lguSleep(2);
 
     teensy_path_following(x, y, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
-    lguSleep(0.5);
+    lguSleep(0.3);
     while (true) {
         odo_get_pos(&xpos, &ypos, &thetapos);
-        lguSleep(0.05);
+        lguSleep(0.5);
         teensy_set_position(xpos, ypos, thetapos);
     }
     #endif

@@ -32,7 +32,7 @@ $(OBJ_DIR):
 
 # Compiling a binary file from a source file
 $(OBJ_DIR)/%.o: $(SOURCES_DIR)/%.cpp | $(OBJ_DIR)
-	$(CXX) -I$(HEADERS_DIR) $(CFLAGS) -o $@ -c $< $(LIBS)
+	@$(CXX) -I$(HEADERS_DIR) $(CFLAGS) -o $@ -c $< $(LIBS)
 
 # Compiling all the sources
 compile: $(SOURCES_OBJ)

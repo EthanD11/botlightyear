@@ -91,7 +91,7 @@ void dxl_idle(int ID, float PROTOCOL) {
     printf("Dynamixel %03d has been successfully idled \n", ID);
 }
 
-void dxl_deploy(sp_position_t position) {
+void dxl_deploy(position_t position) {
     uint16_t dxl_goal_position = 0;
     uint16_t dxl_present_position = 0;
 
@@ -199,53 +199,57 @@ void dxl_turn(team_t team, double angle) {
     switch (team) {
         case Blue: 
             if (angle == 0) {
-                dxl_goal_position = 900; 
+                dxl_goal_position = 750; 
             }
-            else if ((angle > -180) && (angle < 45)) {
-                dxl_goal_position = (803/225)*angle + (1757/5);
+            else if ((angle >= -180) && (angle < -90)) {
+                dxl_goal_position = (int)(2.84*angle + 740);
             }
-            else if ((angle > 60) && (angle < 90)) {
+            else if ((angle >= -90) && (angle < 0)) {
+                dxl_goal_position = (int)(4.3*angle + 903);
+            }
+            else if ((angle > 0) && (angle <= 45)) {
+                dxl_goal_position = (int)(2.65*angle + 893);
+            }
+            else if ((angle > 45) && (angle <= 90)) {
                 dxl_goal_position = 0;
             }
-            else if ((angle > 90) && (angle < 150)) {
-                dxl_goal_position = 3*angle + 107;
+            else if ((angle >= 90) && (angle < 150)) {
+                dxl_goal_position = (int)(3.24*angle -288);
             }
-            else if (angle > 150) {
+            else if (angle >= 150) {
                 dxl_goal_position = 200;
             }
             else {
-                printf("Undefined angle for Blue"); 
+                printf("Undefined angle, Blue"); 
             }
          break;
 
         case Yellow:
-        // Write speed
-        write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_MOVING_SPEED, 200);
-        if (abs(angle - 0) < DTHETA) {
-            dxl_goal_position = 170; 
-        }
-        else if (0 < angle && angle < 90) {
-            dxl_goal_position = (181/45)*angle + 150;
-        }
-        else if (abs(angle - 90) < DTHETA) {
-            dxl_goal_position = 512; //No move
-        }
-        else if (90 < angle && angle < 180) {
-            dxl_goal_position = (134/45)*angle + 244;
-        }
-        else if (abs(angle - 180) < DTHETA) {
-            dxl_goal_position = 780; 
-        }
-        else if (angle < 0) {
-            dxl_goal_position = (30/10)*angle + 26;
-        }
-        else if (abs(angle + 90) < DTHETA) { //Opposite team
-            dxl_goal_position = 1023;
-        }
-        else {
-            printf("Undefined angle, Yellow\n"); 
-        }
-        break;
+            if (angle == 0) {
+                dxl_goal_position = 170; 
+            }
+            else if ((angle >= -180) && (angle <=-90)) {
+                dxl_goal_position = (int)(1.7*angle + 1100); 
+            }
+            else if ((angle > -90) && (angle <= -70)) {
+                dxl_goal_position = (int)(3.65*angle + 1275); 
+            }
+            else if ((angle >= -70) && (angle <= -45)) {
+                dxl_goal_position = 1023; 
+            }
+            else if ((angle > -45) && (angle < 0)) {
+                dxl_goal_position = (int)(3.8*angle + 167); 
+            }
+            else if ((angle > 0) && (angle < 90)) {
+                dxl_goal_position = (int)(2.7*angle + 150); 
+            }
+            else if (angle >= 90) {
+                dxl_goal_position = (int)(2.2*angle + 323); 
+            }
+            else {
+                printf("Undefined angle, Yellow\n"); 
+            }
+            break;
     }
 
     // Write goal position
@@ -285,9 +289,9 @@ void dxl_init_sp() {
 }
 
 void solar_panel(team_t team, double angle) {
-    dxl_position(Down); 
+    dxl_deploy(Down); 
     dxl_turn(team, angle);
-    dxl_position(Up); 
+    dxl_deploy(Up); 
     dxl_init_sp(); 
 }
 
