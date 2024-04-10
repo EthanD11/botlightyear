@@ -5,9 +5,15 @@
 #define PATH_FOLLOWING
 // #define IDLE
 // #define SET_POSITION
+<<<<<<< HEAD
+#define SPEED_CONTROL
+// #define DC_CONTROL
+#define ASK_STATE
+=======
 // #define SPEED_CONTROL
 // #define DC_CONTROL
 // #define ASK_STATE
+>>>>>>> 66ecf6b236d7d5439277d733b8f853b143213f79
 // #define SET_POS_CTRL_GAINS
 // #define SET_PATH_FOLLOWER_GAINS
 
@@ -81,7 +87,7 @@ int main(int argc, char const *argv[])
     #endif
 
     #ifdef SPEED_CONTROL
-    teensy_spd_ctrl(0.2, 0.2);
+    teensy_spd_ctrl(0.3, 0.3);
     #endif
 
     #ifdef DC_CONTROL
