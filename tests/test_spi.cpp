@@ -1,7 +1,7 @@
 #include "SPI_bus.h"
 #include <stdio.h>
 
-SPIBus bus = SPIBus();
+SPIBus spiBus = SPIBus();
 
 int main(int argc, char const *argv[])
 {
@@ -25,6 +25,6 @@ int main(int argc, char const *argv[])
     printf("%d\n", receive[0]);
     lgSpiClose(Teensy_Handle);*/
 
-    return bus.test();
+    return spiBus.test();
 
 }

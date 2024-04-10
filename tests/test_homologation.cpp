@@ -5,10 +5,11 @@
 #include <unistd.h>
 #include <cstdio>
 
-SPIBus spi_bus = SPIBus(); 
-Steppers steppers = Steppers(&spi_bus); 
+SPIBus spiBus = SPIBus(); 
+GPIOPins pins = GPIOPins(); 
+Steppers steppers = Steppers(&spiBus, &pins); 
 
-Flaps servo_flaps = Flaps(&spi_bus); 
+Flaps servo_flaps = Flaps(&spiBus); 
 
 int main(int argc, char const *argv[])
 {

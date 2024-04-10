@@ -13,7 +13,7 @@
 SPIBus spi_bus = SPIBus();
 GPIOPins pins = GPIOPins(); 
 
-Steppers steppers = Steppers(&spi_bus); 
+Steppers steppers = Steppers(&spi_bus, &pins); 
 Flaps servo_flaps = Flaps(&spi_bus); 
 
 

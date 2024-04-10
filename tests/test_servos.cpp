@@ -3,7 +3,8 @@
 #include "steppers.h"
 
 SPIBus spi_bus = SPIBus(); 
-Steppers steppers = Steppers(&spi_bus); 
+GPIOPins pins = GPIOPins(); 
+Steppers steppers = Steppers(&spi_bus, &pins); 
 
 Flaps servo_flaps = Flaps(&spi_bus); 
 GripperDeployer servo_gripper_deployer = GripperDeployer(&spi_bus); 

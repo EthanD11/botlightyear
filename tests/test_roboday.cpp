@@ -4,9 +4,10 @@
 #include "servos.h"
 #include <unistd.h>
 
-SPIBus spi_bus = SPIBus();
-Steppers steppers = SPIUser(); 
-Flaps servo_flaps = SPIUser(); 
+SPIBus spiBus = SPIBus();
+GPIOPins pins = GPIOPins(); 
+Steppers steppers = Steppers(&spiBus, &pins); 
+Flaps servo_flaps = Flaps(&spiBus) 
 
 int main(int argc, char const *argv[])
 {

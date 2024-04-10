@@ -7,7 +7,12 @@
 class Teensy : SPIUser, GPIOUser
 {
 public:
-    Teensy(SPIBus *bus, GPIO *pins) : SPIUser(bus), GPIOUser(pins) {}
+    /**
+     * @brief Initialises the Teensy object
+     * @param bus a pointer to the SPIBus object
+     * @param pins a pointer to the GPIOPins object
+     */
+    Teensy(SPIBus *bus, GPIOPins *pins) : SPIUser(bus), GPIOUser(pins) {}
     void path_following(double *x, double *y, int ncheckpoints,
                         double theta_start, double theta_end,
                         double vref, double dist_goal_reached);

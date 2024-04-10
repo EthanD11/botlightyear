@@ -1,7 +1,8 @@
 #include "teensy.h"
 
 SPIBus spiBus = SPIBus();
-Teensy teensy = Teensy(&spiBus);
+GPIOPins pins = GPIOPins(); 
+Teensy teensy = Teensy(&spiBus, &pins);
 
 int main(int argc, char const *argv[]){
     int ncheckpoints = 4;

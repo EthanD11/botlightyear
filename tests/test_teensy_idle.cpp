@@ -1,8 +1,9 @@
 #include "teensy.h"
 #include <stdio.h>
 
-SPIBus spi = SPIBus();
-Teensy teensy = Teensy(&spi);
+SPIBus spiBus = SPIBus();
+GPIOPins pins = GPIOPins(); 
+Teensy teensy = Teensy(&spiBus, &pins);
 
 int main(int argc, char const *argv[])
 {

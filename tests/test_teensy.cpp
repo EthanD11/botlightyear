@@ -21,7 +21,8 @@
 #endif
 
 SPIBus spiBus = SPIBus();
-Teensy teensy = Teensy(&spiBus);
+GPIOPins pins = GPIOPins(); 
+Teensy teensy = Teensy(&spiBus, &pins);
 Odometry odo = Odometry(&spiBus);
 
 const double deg_to_rads = M_PI/180;
