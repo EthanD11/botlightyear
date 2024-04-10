@@ -30,7 +30,7 @@
 typedef struct OutputInterface {
     int duty_cycle_refl, duty_cycle_refr; // Reference duty cycles
     int duty_cycle_l, duty_cycle_r; // Current duty cycle, avoid sharp changes
-    int analog_write_a3pin;
+    int digital_write_a1pin, digital_write_a2pin, digital_write_a3pin;
 } OutputInterface;
 
 OutputInterface *init_outputs();
@@ -49,10 +49,21 @@ inline void set_motors_duty_cycle(OutputInterface *outputs, int dcref_left, int 
  * Updates the duty cycle reference of the motors
  * The duty cycle references are numbers between -256 and 256
  * The duty cycle is thus DC= dcref / 255
- */
-inline void set_a3pin_duty_cycle(OutputInterface *outputs, int value) {
-    outputs->analog_write_a3pin = value;
+ */ 
+inline void set_a1pin(OutputInterface *outputs, int value) {
+    outputs->digital_write_a1pin = value;
 } 
+inline void set_a2pin(OutputInterface *outputs, int value) {
+    outputs->digital_write_a2pin = value;
+}
+inline void set_a3pin(OutputInterface *outputs, int value) {
+    outputs->digital_write_a3pin = value;
+} 
+inline void set_apins(OutputInterface *outputs, int8_t value) {
+    outputs->digital_write_a1pin = (value & 0x01);
+    outputs->digital_write_a2pin = (value & 0x02) >> 1;
+    outputs->digital_write_a3pin = (value & 0x04) >> 2;
+}
 
 inline void duty_cycle_update(OutputInterface *outputs)
 {
@@ -68,12 +79,10 @@ inline void duty_cycle_update(OutputInterface *outputs)
     // Left buffered control
     duty_cycle_l += SAT(duty_cycle_refl - duty_cycle_l, BUF_STEP);
     analogWrite(PWM_L, std::abs(duty_cycle_l));
-    analogWrite(A1, std::abs(duty_cycle_l));
 
     // Right buffered control
     duty_cycle_r += SAT(duty_cycle_refr - duty_cycle_r, BUF_STEP);
     analogWrite(PWM_R, std::abs(duty_cycle_r));
-    analogWrite(A2, std::abs(duty_cycle_r));
 
     outputs->duty_cycle_l = duty_cycle_l;
     outputs->duty_cycle_r = duty_cycle_r;
@@ -98,9 +107,9 @@ inline void duty_cycle_update(OutputInterface *outputs)
 }
 
 inline void write_outputs(OutputInterface *outputs) {
-    analogWrite(A1, outputs->duty_cycle_l);
-    analogWrite(A2, outputs->duty_cycle_r);
-    analogWrite(A3, outputs->analog_write_a3pin);
+    digitalWrite(A1, outputs->digital_write_a1pin);
+    digitalWrite(A2, outputs->digital_write_a2pin);
+    digitalWrite(A3, outputs->digital_write_a3pin);
     duty_cycle_update(outputs);
 }
 

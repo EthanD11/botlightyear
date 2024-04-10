@@ -9,7 +9,8 @@
 #include "utils.h"
 
 #define VERBOSE
-// #define SPI_VERBOSE
+#define SWITCH_VERBOSE
+#define SPI_VERBOSE
 
 typedef enum {
   ModeIdle, // No input from RPi, default is to remain still
@@ -244,13 +245,15 @@ void loop() {
     printf("xpos = %.5e\n", robot_position->x);
     printf("ypos = %.5e\n", robot_position->y);
     printf("thetapos = %.5e\n", robot_position->theta);
+    printf("et = %.5e\n", path_follower->et);
+    printf("en = %.5e\n", path_follower->en);
     // printf("kif = %.5e\n", path_follower->kif);
-    printf("vfwd = %.5e\n", robot_position->vfwd);
+    // printf("vfwd = %.5e\n", robot_position->vfwd);
     // printf("omega = %.5e\n", robot_position->omega);
-    printf("speed_left = %.5e\n", robot_position->speed_left);
-    printf("speed_right = %.5e\n", robot_position->speed_right);
-    printf("dc left = %d\n", outputs->duty_cycle_l);
-    printf("dc right = %d\n", outputs->duty_cycle_r);
+    // printf("speed_left = %.5e\n", robot_position->speed_left);
+    // printf("speed_right = %.5e\n", robot_position->speed_right);
+    // printf("dc left = %d\n", outputs->duty_cycle_l);
+    // printf("dc right = %d\n", outputs->duty_cycle_r);
     // printf("el_filtered = %.5e\n", speed_regulator->el_filtered);
     // printf("er_filtered = %.5e\n", speed_regulator->er_filtered);
     // printf("isl = %.5e\n", speed_regulator->isl);
@@ -317,10 +320,10 @@ void loop() {
 
   // Leave the current mode cleanly (free all malloc'd arrays and structs)
   if (switch_mode) {
-    speed_regulator->isl = 0.0;
-    speed_regulator->isr = 0.0;
-    speed_regulator->el_filtered = 0.0;
-    speed_regulator->er_filtered = 0.0;
+    reset_regulator(speed_regulator);
+    reset_encoders(robot_position);
+    
+    set_apins(outputs, (int8_t) mode);
     switch (mode) {
       case ModePathFollowing:
         close_path_following(path_follower);
@@ -329,6 +332,39 @@ void loop() {
       default:
         break;
     }
+
+    #ifdef SWITCH_VERBOSE
+    switch (mode) {
+      case ModeIdle:
+        printf("Switch to mode idle\n");
+        break;
+      case ModePositionControl:
+        printf("Switch to mode position control\n");
+        printf("xpos = %.5e\n", robot_position->x);
+        printf("ypos = %.5e\n", robot_position->y);
+        printf("thetapos = %.5e\n", robot_position->theta);
+        break;
+      case ModePathFollowingInit:
+        printf("Switch to mode path following init\n");
+        break;
+      case ModePathFollowing:
+        printf("Switch to mode path following\n");
+        printf("xpos = %.5e\n", robot_position->x);
+        printf("ypos = %.5e\n", robot_position->y);
+        printf("thetapos = %.5e\n", robot_position->theta);
+        break;
+      case ModeSpeedControl:
+        printf("Switch to mode speed control\n");
+        break;
+      case ModeConstantDC:
+        printf("Switch to mode constant dc\n");
+        break;
+
+      default:
+        printf("Switch to mode unknown\n");
+        break;
+    } 
+    #endif
   }
   
 }

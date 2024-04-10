@@ -1,6 +1,7 @@
 #include "SPIInterface.h"
 #include "SPISlave_T4.h"
 
+// #define VERBOSE
 typedef struct SPIInterface {
     SPISlave_T4 *spi_slave;
     uint32_t i, n; // Number of bytes received, expected and actual
@@ -30,16 +31,6 @@ void init_spi_interface() {
     __spi_interface->spi_slave->begin(MSBFIRST, SPI_MODE0);
     __spi_interface->spi_slave->swapPins();
     __spi_interface->spi_slave->onReceive(__spi_receive_event);
-}
-
-void spi_send_data(char mode, double x, double y, double theta) {
-	__spi_interface->mode = mode;
-    __spi_interface->x = x;
-    __spi_interface->y = y;
-    __spi_interface->theta = theta;
-    #ifdef VERBOSE
-    printf("mode is %d\n", (int) mode);
-    #endif
 }
 
 query_t spi_get_query() {
