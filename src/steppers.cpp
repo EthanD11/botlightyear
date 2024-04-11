@@ -142,14 +142,14 @@ void Steppers::slider_move(slider_pos_t pos, uint8_t blocking){
     case SliderLow :
         steps = 5300;
         break;
-    case SliderPlate :
-        steps = 350;
-        break; 
-    case SliderTake :
-        steps = 1600;
-        break;      
-    case SliderDeposit : 
-        steps = 5000;
+    case SliderIntermediateLow:
+        steps = 4650;
+        break;
+    case SliderStorage : // Deposit plant, take plant, take pot
+        steps = 1800;
+        break;     
+    case SliderDepositPot : 
+        steps = 1300;
         break; 
     default :
         printf("Error : not a position : %d \n", pos);
@@ -164,17 +164,19 @@ void Steppers::slider_move(slider_pos_t pos, uint8_t blocking){
 void Steppers::plate_move(int8_t pot, uint8_t blocking){
     //pot est une variable allant de -3 a 3 avec 0 la position de repos
     int direction = 0;
+    int offset = 70;
     if (pot == 0){
         move(StprPlate, 0, 0);   
     } else {
         if (pot < 0) {
             pot = -pot;
             direction = 1;
+            offset = -70;
         }
         pot = pot - 1;
         double anglePlateau = (PLATEAU_ANGLE_OUVERTURE)/2 + (pot)* (360-PLATEAU_ANGLE_OUVERTURE)/5;
         double angleStepper = anglePlateau * PLATEAU_REDUCTION;
-        double ticStepper = angleStepper/360 * PLATEAU_TIC_STEPPER;
+        double ticStepper = angleStepper/360 * PLATEAU_TIC_STEPPER -offset;
         move(StprPlate,(int)ticStepper,direction, blocking);
     }   
 

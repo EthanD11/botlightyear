@@ -23,6 +23,7 @@ public:
     GripperDeployer(SPIBus *bus) : SPIUser(bus) {}
     void idle();
     void half();
+    void pot_deposit();
     void deploy();
     void raise();
 };
@@ -36,6 +37,7 @@ public:
     void idle();
     void close(); 
     void open(); 
+    void open_full(); 
     void hold_pot(); 
     void hold_plant(); 
 };

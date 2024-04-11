@@ -5,13 +5,14 @@
 #define CALL_BLOCKING 1
 #define CALL_NON_BLOCKING 0
 
-
+/*The name of a stepper*/
 typedef enum {
     StprPlate, 
     StprSlider, 
     StprFlaps
 } steppers_t;
 
+/*The poisition of a flaps*/
 typedef enum {
     FlapsOpen, 
     FlapsPlant, 
@@ -21,9 +22,11 @@ typedef enum {
 typedef enum {
     SliderLow,
     SliderHigh,
-    SliderPlate, 
-    SliderTake, 
-    SliderDeposit
+    SliderStorage,
+    //SliderPlate, 
+    //SliderTake, 
+    SliderDepositPot, 
+    SliderIntermediateLow
 } slider_pos_t;
 
 class Steppers : private SPIUser, private GPIOUser
