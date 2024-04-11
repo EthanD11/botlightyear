@@ -792,7 +792,7 @@ void stpr_setup_speed(steppers_t stepperName, int nominalSpeed, int initialSpeed
             printf("Error : not a stepper"); 
             return; 
     }
-    printf("Speeds : %d, %d, %d", nominalSpeed2, initialSpeed1, initialSpeed2);
+    // printf("Speeds : %d, %d, %d\n", nominalSpeed2, initialSpeed1, initialSpeed2);
     char send[] = {request,nominalSpeed1,nominalSpeed2, initialSpeed1, initialSpeed2};
     pthread_mutex_lock(&spi_mutex);
     lgSpiWrite(DE0_handle, send, 5); 

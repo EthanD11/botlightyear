@@ -25,6 +25,8 @@
 //      11 Step + signe direction du stepper (horlogique/antihorlogique)
 
 void TakePotCHAIN() {
+    stpr_setup_speed(StprSlider,400,600);
+
     gripper_holder_cmd(HolderIdle);
     gripper_deployer_cmd(DeployerIdle);
     stpr_reset_all();
@@ -34,27 +36,29 @@ void TakePotCHAIN() {
 
     plate_move(0, CALL_BLOCKING); 
     gripper_deployer_cmd(DeployerDeploy);
+    gripper_holder_cmd(HolderOpenFull);
 
-    gripper_holder_cmd(HolderClosed);
+    // Go to intermediate low
     slider_move(SliderIntermediateLow, CALL_BLOCKING);
+    // "Half open" holder
     gripper_holder_cmd(HolderOpen);
 
-
+    // Go to the low
     slider_move(SliderLow, CALL_BLOCKING); 
-    sleep(2);
-
     gripper_holder_cmd(HolderClosed);
+    sleep(1); // to assure grip
 
+    // go back up
     slider_move(SliderHigh, CALL_BLOCKING);
     gripper_deployer_cmd(DeployerPot);
 
     plate_move(3, CALL_BLOCKING); 
 
-    
+    // Go to deposit
     slider_move(SliderDepositPot, CALL_BLOCKING);
     gripper_deployer_cmd(DeployerDeploy); 
     sleep(2);
-    gripper_holder_cmd(HolderOpen);
+    gripper_holder_cmd(HolderOpenFull);
     sleep(2);
 }
 
@@ -115,11 +119,11 @@ int main(int argc, char const *argv[])
 
 
     // gripper_deployer_cmd(DeployerDeploy);
-    slider_move(SliderIntermediateLow);
+    // slider_move(SliderIntermediateLow);
 
-    gripper_holder_cmd(HolderOpen);
+    // gripper_holder_cmd(HolderOpen);
     
-    // TakePotCHAIN();
+    TakePotCHAIN();
 
     // plate_move(3, CALL_BLOCKING);
     // plate_move(0, CALL_BLOCKING);
@@ -187,8 +191,8 @@ int main(int argc, char const *argv[])
     stpr_calibrate_all();
     #endif
 
-    // gripper_holder_cmd(HolderIdle);
-    // gripper_deployer_cmd(DeployerIdle);
+    gripper_holder_cmd(HolderIdle);
+    gripper_deployer_cmd(DeployerIdle);
     close_spi2(); 
 
     close_spi();
