@@ -8,16 +8,15 @@
 #define PATH_FOLLOWING
 // #define IDLE
 // #define SET_POSITION
-#define SPEED_CONTROL
+// #define SPEED_CONTROL
 // #define DC_CONTROL
-#define ASK_STATE
-
+// #define ASK_STATE
 // #define SET_POS_CTRL_GAINS
 // #define SET_PATH_FOLLOWER_GAINS
 
 #ifdef DC_CONTROL
-    #define DC_LEFT 160
-    #define DC_RIGHT 160
+    #define DC_LEFT 60
+    #define DC_RIGHT 60
 #endif
 
 SPIBus spiBus = SPIBus();
@@ -32,48 +31,75 @@ int main(int argc, char const *argv[])
     usleep(500000);
 
     #ifdef POSITION_CONTROL
+    double kp = 1.0;
+    double ka = 4.0;
+    double kb = -1.5;
+    double kw = 5.0;
+    teensy_set_position_controller_gains(kp, ka, kb, kw);
+
     double x = 0; 
     double y = 0; 
     double t = 0;
-    double xr = 0.2; 
-    double yr = 0; 
-    double tr = -60*deg_to_rads;
+    double xr = 0.5; 
+    double yr = 0.1; 
+    double tr = 30*deg_to_rads;
+    double xpos, ypos, thetapos;
 
-    teensy.set_position(x, y, t);
-    teensy.pos_ctrl(xr, yr, tr);
+    teensy_set_position(x, y, t);
+    odo_set_pos(x, y, t);
+    lguSleep(0.1);
+    teensy_pos_ctrl(xr, yr, tr);
+
+    lguSleep(0.1);
+    while (true) {
+        odo_get_pos(&xpos, &ypos, &thetapos);
+        teensy_set_position(xpos, ypos, thetapos);
+        lguSleep(0.1);
+    }
     #endif
 
     #ifdef PATH_FOLLOWING
-    double kt = 2.0;
-    double kn = 0.32; // 0 < kn <= 1
-    double kz = 30.0;
-    double delta = 15e-3; // delta is in meters
-    double sigma = 0.0;
-    double epsilon = M_PI/8; // epsilon is in radians
-    double wn = 0.25; // Command filter discrete cutoff frequency
-    double kv_en = 12;
-    teensy.set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
-    usleep(100000);
-    int ncheckpoints = 5;
-    double x[5] = {0.0,0.4,0.8,0.4,0.0};
-    double y[5] = {1.5,1.7,1.5,1.3,1.5};
-    // double x[5] = {0.0,0.4};
-    // double y[5] = {1.5,1.5};
-    double theta_start =   0.;
-    double theta_end = M_PI;
-    double vref = 0.1;
-    double dist_goal_reached = 0.15;
-    teensy.set_position(0, 1.5, 0);
-    usleep(100000);
-    teensy.pos_ctrl(x[0], y[0], atan2(y[1]-y[0], x[1]-x[0]));
-    lguSleep(2);
-    teensy.path_following(x, y, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
+    double kp = 0.8;
+    double ka = 2.5;
+    double kb = -0.8;
+    double kw = 4.0;
+    teensy_set_position_controller_gains(kp, ka, kb, kw);
 
-    double *xpos, *ypos, *thetapos;
+    double kt = 2.0;
+    double kn = 0.3; // 0 < kn <= 1
+    double kz = 25.0;
+    double delta = 20e-3; // delta is in meters
+    double sigma = 10;
+    double epsilon = M_PI/8; // epsilon is in radians
+    double wn = 0.2; // Command filter discrete cutoff frequency
+    double kv_en = 0.;
+    teensy_set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
+    lguSleep(0.1);
+    int ncheckpoints = 5;
+    double x[5] = {0.1,0.5,0.9,0.5,0.1};
+    double y[5] = {1.5,1.7,1.5,1.3,1.5};
+    // double x[5] = {0.1,1.2};
+    // double y[5] = {1.5,1.5};
+    double theta_start = 0.;
+    double theta_end = M_PI;
+    double vref = 0.25;
+    double dist_goal_reached = 0.25;
+
+    double xpos, ypos, thetapos;
+    odo_set_pos(x[0], y[0], 0);
+    lguSleep(0.5);
+    teensy_set_position(x[0], y[0], 0);
+    lguSleep(1);
+
+    teensy_pos_ctrl(x[0], y[0], atan2(y[1]-y[0], x[1]-x[0]));
+    lguSleep(2);
+
+    teensy_path_following(x, y, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
+    lguSleep(0.1);
     while (true) {
-        odo.get_pos(xpos, ypos, thetapos);
-        lguSleep(0.1);
-        teensy.set_position(*xpos, *ypos, *thetapos);
+        odo_get_pos(&xpos, &ypos, &thetapos);
+        teensy_set_position(xpos, ypos, thetapos);
+        lguSleep(0.3);
     }
     #endif
 
@@ -85,7 +111,16 @@ int main(int argc, char const *argv[])
     #endif
 
     #ifdef IDLE
-    teensy.idle();
+    teensy_idle();
+
+    double xpos, ypos, thetapos;
+    teensy_set_position(1.6, 3.651e-3, M_PI/2);
+    odo_set_pos(1.6, 3.651e-3, M_PI/2);
+    while (true) {
+        odo_get_pos(&xpos, &ypos, &thetapos);
+        lguSleep(0.1);
+        teensy_set_position(xpos, ypos, thetapos);
+    }
     #endif
 
     #ifdef SPEED_CONTROL

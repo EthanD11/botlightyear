@@ -15,7 +15,39 @@ GPIOPins pins = GPIOPins();
 
 Steppers steppers = Steppers(&spi_bus, &pins); 
 Flaps servo_flaps = Flaps(&spi_bus); 
+void TakePotCHAIN() {
+    gripper_holder_cmd(HolderIdle);
+    gripper_deployer_cmd(DeployerIdle);
+    stpr_reset_all();
+    stpr_calibrate(StprPlate, CALL_BLOCKING); 
+    stpr_calibrate(StprSlider, CALL_BLOCKING); 
 
+
+    plate_move(0, CALL_BLOCKING); 
+    gripper_deployer_cmd(DeployerDeploy);
+
+    gripper_holder_cmd(HolderClosed);
+    slider_move(SliderIntermediateLow, CALL_BLOCKING);
+    gripper_holder_cmd(HolderOpen);
+
+
+    slider_move(SliderLow, CALL_BLOCKING); 
+    sleep(2);
+
+    gripper_holder_cmd(HolderClosed);
+
+    slider_move(SliderHigh, CALL_BLOCKING);
+    gripper_deployer_cmd(DeployerPot);
+
+    plate_move(3, CALL_BLOCKING); 
+
+    
+    slider_move(SliderDepositPot, CALL_BLOCKING);
+    gripper_deployer_cmd(DeployerDeploy); 
+    sleep(2);
+    gripper_holder_cmd(HolderOpen);
+    sleep(2);
+}
 
 void demoPlate(){
     steppers.plate_move(-3);
@@ -29,16 +61,62 @@ void demoPlate(){
 
 int main(int argc, char const *argv[])
 {
+    if (init_spi() != 0) return -1;  
+    int val = init_spi2(); 
+    if (val !=0) {
+        printf("Error init spi2 : %d\n", init_spi2()); 
+    }
 
-    #ifdef TESTS  
+    #ifdef TESTS
+    // stpr_setup_speed(StprFlaps,500,800); 
+    // stpr_setup_speed(StprPlate,60,500); 
+    // stpr_setup_speed(StprSlider,300,600);
+    // stpr_setup_speed(StprFlaps,100,400);
+    // stpr_setup_calib_speed(400,500,StprFlaps);
+
+    // gripper_holder_cmd(HolderIdle);
+    // gripper_deployer_cmd(DeployerIdle);
+    // stpr_reset_all();
+
+    // stpr_calibrate(StprPlate, CALL_BLOCKING); 
+    // stpr_calibrate(StprSlider, CALL_BLOCKING); 
+
+    // sleep(5);
+    // slider_move(SliderPlate, CALL_BLOCKING);
+    // slider_move(SliderTake, CALL_BLOCKING);
+    // slider_move(SliderDeposit, CALL_BLOCKING);
+    // slider_move(SliderPlate, CALL_BLOCKING);
+    //1800 : TAKE-PLANT, TAKE-POT, DEPOSIT-PLANT-not in pot, 
+    //1000 : DEPOSIT_POT
+    //5300 : butée : slider_low : take plant or pot
+
+    // stpr_move(StprSlider, 5300, 0); 
+    // plate_move(1, CALL_BLOCKING);
+    // stpr_calibrate(StprSlider); 
+    // slider_move(SliderDepositPot);
+    // gripper_holder_cmd(HolderPot);
+    // gripper_holder_cmd(HolderOpen);
+    // gripper_deployer_cmd(DeployerPot);
+    // gripper_deployer_cmd(DeployerDeploy);
     
-    steppers.reset_all();
-    steppers.calibrate_all();
+    // stpr_move(StprPlate, 70, 1);
+    // stpr_reset(StprPlate); 
+    // stpr_calibrate(StprPlate, CALL_BLOCKING); 
+    // plate_move(0, CALL_BLOCKING); 
 
 
-    steppers.plate_move(-3, CALL_BLOCKING);
-    steppers.plate_move(0, CALL_BLOCKING);
-    steppers.plate_move(3, CALL_BLOCKING);
+    // gripper_deployer_cmd(DeployerDeploy);
+    slider_move(SliderIntermediateLow);
+
+    gripper_holder_cmd(HolderOpen);
+    
+    // TakePotCHAIN();
+
+    // plate_move(3, CALL_BLOCKING);
+    // plate_move(0, CALL_BLOCKING);
+    // plate_move(3, CALL_BLOCKING);
+    // plate_move(0, CALL_BLOCKING);
+    // TakePotCHAIN(); 
 
     
     // steppers.setup_speed(StprPlate,60,500); //60 max
@@ -100,6 +178,9 @@ int main(int argc, char const *argv[])
     steppers.reset_all(); 
     steppers.calibrate_all();
     #endif
+
+    // gripper_holder_cmd(HolderIdle);
+    // gripper_deployer_cmd(DeployerIdle);
     
     return 0;
 }
