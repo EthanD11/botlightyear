@@ -107,7 +107,7 @@ void Steppers::calibrate(steppers_t stepperName, uint8_t blocking) {
                 printf("Error : not a stepper %d \n", stepperName); 
                 return; 
         }
-        pins->wait_for_gpio_value(stepper_gpio, 1); 
+        pins->wait_for_gpio_value(stepper_gpio, 1, 10000); 
     }
 }
 
