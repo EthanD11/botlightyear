@@ -1,6 +1,7 @@
 #include "GPIO.h"
 #include <lgpio.h>
 #include <stdlib.h>
+#include <time.h>
 
 //#define PI5
 
@@ -18,7 +19,10 @@ GPIOPins::GPIOPins() {
     this->claim_gpio(StprPlateGPIO); 
     this->claim_gpio(StprFlapsGPIO); 
     this->claim_gpio(BpSwitchFlapsLeftGPIO); 
-    this->claim_gpio(BpSwitchFlapsRightGPIO); 
+    this->claim_gpio(BpSwitchFlapsRightGPIO);
+    this->claim_gpio(TeensyA1);
+    this->claim_gpio(TeensyA2);
+    this->claim_gpio(TeensyA3);
 }
 
 GPIOPins::~GPIOPins() {
@@ -26,7 +30,10 @@ GPIOPins::~GPIOPins() {
     this->free_gpio(StprPlateGPIO); 
     this->free_gpio(StprFlapsGPIO); 
     this->free_gpio(BpSwitchFlapsLeftGPIO); 
-    this->free_gpio(BpSwitchFlapsRightGPIO); 
+    this->free_gpio(BpSwitchFlapsRightGPIO);
+    this->free_gpio(TeensyA1);
+    this->free_gpio(TeensyA2);
+    this->free_gpio(TeensyA3);
     lgGpiochipClose(handle);
 }
 
@@ -39,21 +46,29 @@ void GPIOPins::free_gpio(GPIO_t gpio_pin) {
     lgGpioFree(handle, gpio_pin);
 }
 
-void GPIOPins::wait_for_gpio_value(GPIO_t gpio, uint8_t val) {
-    lguSleep(0.001); // Sleep to avoid timing conflicts with spi message
+void GPIOPins::wait_for_gpio_value(GPIO_t gpio, uint8_t val, uint32_t msMaxWait) {
     int readValue;
+    uint32_t msElapsed;
+    struct timespec start_ts;
+    struct timespec now_ts;
+    clock_gettime(CLOCK_BOOTTIME, &start_ts);
+    lguSleep(0.001); // Sleep to avoid timing conflicts with spi message
     do {
         readValue = lgGpioRead(handle,4);
-        if (readValue < 0) {
-            printf("Error : gpio %d not readable \n", gpio); 
-            return;
-        }
+        if (readValue < 0) printf("Error : gpio %d not readable \n", gpio); 
         lguSleep(0.001);
-    } while (readValue != val);
+        clock_gettime(CLOCK_BOOTTIME, &now_ts);
+        msElapsed = (now_ts.tv_sec - start_ts.tv_sec) * 1000 + (uint32_t) ((now_ts.tv_nsec-start_ts.tv_nsec)/1000000);
+    } while (readValue != val && msElapsed < msMaxWait);
 }
 
-uint8_t GPIOPins::read(GPIO_t gpio) {
-    return lgGpioRead(handle, gpio);
+int8_t GPIOPins::read(GPIO_t gpio) {
+    for (int8_t i = 0; i < 5; i++) {
+        int res = lgGpioRead(handle, gpio);
+        if (res >= 0) return (int8_t) res;
+        printf("Error : gpio %d not readable \n", gpio);
+    }
+    return -1;
 }
 
 GPIOUser::GPIOUser(GPIOPins *pins)

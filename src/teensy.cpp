@@ -176,8 +176,8 @@ void Teensy::idle() {
     bus->unlock();
 }
 
-int Teensy::ask_mode() {
-    char send[4];
+teensy_mode_t Teensy::ask_mode() {
+    /*char send[4];
     char receive[4];
     send[0] = QueryAskState;
     send[1] = 0; // Not needed
@@ -192,7 +192,27 @@ int Teensy::ask_mode() {
         printf("%d, %d\n", send[i], receive[i]);
     }
     #endif
-    return (int) receive[2];
+    return (int) receive[2];*/
+    for (size_t i = 0; i < 5; i++) {
+        int8_t mode = (int8_t) (pins->read(TeensyA1) | (pins->read(TeensyA2) << 1) | (pins->read(TeensyA3) << 2));
+        switch ((teensy_mode_t) mode)
+        {
+        case ModeIdle:
+            return ModeIdle;
+        case ModePositionControl:
+            return ModePositionControl;
+        case ModePathFollowingInit:
+            return ModePathFollowingInit;
+        case ModePathFollowing:
+            return ModePathFollowing;
+        case ModeSpeedControl:
+            return ModeSpeedControl;
+        case ModeConstantDC:
+            return ModeConstantDC;
+        }
+    }
+    printf("Unkown teensy mode\n");
+    return ModeUnknown;
 }
 
 void Teensy::set_position_controller_gains(double kp, double ka, double kb, double kw) {
