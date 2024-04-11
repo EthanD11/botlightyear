@@ -112,7 +112,7 @@ public:
     void setup_acc(steppers_t stepperName, uint8_t accSteps);
 
     /**
-     * @brief Calibrates all the steppers (non-blocking assignment)
+     * @brief Calibrates all the steppers
     */
     void calibrate_all(uint8_t blocking = CALL_NON_BLOCKING);
 
