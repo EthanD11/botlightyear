@@ -45,7 +45,7 @@ void TakePotCHAIN() {
 
     // Go to the low
     slider_move(SliderLow, CALL_BLOCKING); 
-    gripper_holder_cmd(HolderClosed);
+    gripper_holder_cmd(HolderPot);
     sleep(1); // to assure grip
 
     // go back up
@@ -81,6 +81,9 @@ int main(int argc, char const *argv[])
     }
 
     #ifdef TESTS
+    // stpr_reset(StprFlaps);
+    // stpr_calibrate(StprFlaps, CALL_BLOCKING); 
+
     // stpr_setup_speed(StprFlaps,500,800); 
     // stpr_setup_speed(StprPlate,60,500); 
     // stpr_setup_speed(StprSlider,300,600);
@@ -123,7 +126,7 @@ int main(int argc, char const *argv[])
 
     // gripper_holder_cmd(HolderOpen);
     
-    TakePotCHAIN();
+    // TakePotCHAIN();
 
     // plate_move(3, CALL_BLOCKING);
     // plate_move(0, CALL_BLOCKING);
