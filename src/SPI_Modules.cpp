@@ -62,7 +62,7 @@ int test_spi() {
 // ----- SPI 2 ------
 
 uint8_t init_spi2() {
-    int SPI2_handle = lgGpiochipOpen(0);
+    SPI2_handle = lgGpiochipOpen(0);
     if (SPI2_handle < 0) return 1;
     if (lgGpioSetUser(SPI2_handle, "Bot Lightyear") < 0) return 2;
 
@@ -501,6 +501,10 @@ void gripper_holder_cmd(gripper_holder_cmd_t command) {
             servo_holder_duty_cycle = 860;
             break;
 
+        case HolderOpenFull:
+            servo_holder_duty_cycle = 1100;
+            break;
+
         case HolderPot:
             servo_holder_duty_cycle = 725;
             break;
@@ -534,6 +538,10 @@ void gripper_deployer_cmd(gripper_deployer_cmd_t command) {
 
         case DeployerHalf:
             servo_deployer_duty_cycle = 650;
+            break;
+        
+        case DeployerPot:
+            servo_deployer_duty_cycle = 500;
             break;
 
         case DeployerDeploy:
@@ -622,15 +630,15 @@ void stpr_move(steppers_t stepperName, uint32_t steps, uint8_t neg, uint8_t bloc
         lguSleep(0.001); // Sleep to avoid timing conflicts with spi message
         int isIdle;
         do {
-            isIdle = lgGpioRead(SPI2_handle,4);
+            isIdle = lgGpioRead(SPI2_handle,stepper_gpio);
             if (isIdle < 0) {
                 printf("Error : gpio %d not readable \n", stepper_gpio); 
-                return;
+                
             }
             lguSleep(0.001);
-            printf("Waiting\n");
-        } while (!isIdle);
-        printf("Done !\n");
+            // printf("Waiting : isIdle is %d \n", isIdle);
+        } while (isIdle !=1);
+        // printf("Done ! isIdle is %d \n", isIdle);
     }
 }
 
@@ -680,13 +688,13 @@ void stpr_calibrate(steppers_t stepperName, uint8_t blocking) {
         lguSleep(0.001); // Sleep to avoid timing conflicts with spi message
         int isIdle;
         do {
-            isIdle = lgGpioRead(SPI2_handle,4);
+            isIdle = lgGpioRead(SPI2_handle,stepper_gpio);
             if (isIdle < 0) {
                 printf("Error : gpio %d not readable \n", stepper_gpio); 
                 return;
             }
             lguSleep(0.001);
-        } while (!isIdle);
+        } while (isIdle !=1);
     }
 }
 
@@ -721,14 +729,14 @@ void slider_move(slider_pos_t pos, uint8_t blocking){
     case SliderLow :
         steps = 5300;
         break;
-    case SliderPlate :
-        steps = 350;
-        break; 
-    case SliderTake :
-        steps = 1600;
-        break;      
-    case SliderDeposit : 
-        steps = 5000;
+    case SliderIntermediateLow:
+        steps = 4650;
+        break;
+    case SliderStorage : // Deposit plant, take plant, take pot
+        steps = 1800;
+        break;     
+    case SliderDepositPot : 
+        steps = 1300;
         break; 
     default :
         printf("Error : not a position : %d \n", pos);
@@ -743,17 +751,19 @@ void slider_move(slider_pos_t pos, uint8_t blocking){
 void plate_move(int8_t pot, uint8_t blocking){
     //pot est une variable allant de -3 a 3 avec 0 la position de repos
     int direction = 0;
+    int offset = 70;
     if (pot == 0){
         stpr_move(StprPlate, 0, 0, blocking);   
     } else {
         if (pot < 0) {
             pot = -pot;
             direction = 1;
+            offset = -70;
         }
         pot = pot - 1;
         double anglePlateau = (PLATEAU_ANGLE_OUVERTURE)/2 + (pot)* (360-PLATEAU_ANGLE_OUVERTURE)/5;
         double angleStepper = anglePlateau * PLATEAU_REDUCTION;
-        double ticStepper = angleStepper/360 * PLATEAU_TIC_STEPPER;
+        double ticStepper = angleStepper/360 * PLATEAU_TIC_STEPPER -offset;
         stpr_move(StprPlate,(int)ticStepper,direction, blocking);
     }   
 

@@ -56,11 +56,11 @@ int test_spi();
 // ----- SPI2 -----
 
 typedef enum {
-    StprSliderGPIO = 0, 
-    StprPlateGPIO = 5, 
-    StprFlapsGPIO = 6, 
-    BpSwitchFlapsLeftGPIO = 13, 
-    BpSwitchFlapsRightGPIO = 19
+    StprSliderGPIO = 25, 
+    StprPlateGPIO = 1, 
+    StprFlapsGPIO = 12, 
+    BpSwitchFlapsLeftGPIO = 16, 
+    BpSwitchFlapsRightGPIO = 20
 } spi2_gpio_t;
 
 /**
@@ -212,6 +212,7 @@ typedef enum {
     HolderIdle, 
     HolderClosed,
     HolderOpen, 
+    HolderOpenFull,
     HolderPot,
     HolderPlant
 } gripper_holder_cmd_t; // Commands for gripper holder servomotor
@@ -220,6 +221,7 @@ typedef enum {
     DeployerIdle, 
     DeployerRaise,
     DeployerHalf, 
+    DeployerPot, 
     DeployerDeploy
 } gripper_deployer_cmd_t; // Commands for griper deployer servomotor
 
@@ -256,12 +258,20 @@ typedef enum {
     FlapsPot
 } flaps_pos_t;
 
+// typedef enum {
+//     SliderLow,
+//     SliderHigh,
+//     SliderPlate, 
+//     SliderTake, 
+//     SliderDeposit
+// } slider_pos_t; // Old values
+
 typedef enum {
     SliderLow,
+    SliderIntermediateLow,
     SliderHigh,
-    SliderPlate, 
-    SliderTake, 
-    SliderDeposit
+    SliderStorage,
+    SliderDepositPot
 } slider_pos_t;
 
 /**
