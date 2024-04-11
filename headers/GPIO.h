@@ -1,3 +1,6 @@
+#ifndef BLY_GPIO_H
+#define BLY_GPIO_H
+
 #include <stdint.h>
 
 
@@ -21,7 +24,7 @@ private:
 public:
     GPIOPins();
     ~GPIOPins();
-    void wait_for_gpio_value(GPIO_t gpio, uint8_t val, uint32_t msMaxWait);
+    void wait_for_gpio_value(GPIO_t gpio, uint8_t val, uint32_t msMaxWait = 5000);
     int8_t read(GPIO_t gpio);
 };
 
@@ -32,3 +35,5 @@ public:
     GPIOUser(GPIOPins *pins);
     ~GPIOUser();
 };
+
+#endif

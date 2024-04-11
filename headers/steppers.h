@@ -1,3 +1,6 @@
+#ifndef BLY_STEPPERS_H
+#define BLY_STEPPERS_H
+
 #include "SPI_bus.h"
 #include "GPIO.h"
 #include <stdint.h>
@@ -119,5 +122,4 @@ public:
     void reset_all();
 };
 
-
-
+#endif

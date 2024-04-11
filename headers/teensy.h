@@ -4,7 +4,7 @@
 #include "SPI_bus.h"
 #include "GPIO.h"
 
-typedef enum int8_t {
+enum __teensy_mode_t : int8_t {
     ModeIdle,
     ModePositionControl,
     ModePathFollowingInit,
@@ -12,7 +12,8 @@ typedef enum int8_t {
     ModeSpeedControl,
     ModeConstantDC,
     ModeUnknown = -1
-} teensy_mode_t;
+};
+typedef __teensy_mode_t teensy_mode_t;
 
 class Teensy : SPIUser, GPIOUser
 {

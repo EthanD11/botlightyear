@@ -3,11 +3,12 @@
 #include "steppers.h"
 #include "servos.h"
 #include <unistd.h> 
+#include <stdio.h>
 
 //#define RESET_CALIBRATE
-// #define SETUP_CUSTOM_SPEED_OLD
-// #define SETUP_CUSTOM_SPEED_NEW
-#define DEMO_S6
+//#define SETUP_CUSTOM_SPEED_OLD
+//#define SETUP_CUSTOM_SPEED_NEW
+//#define DEMO_S6
 #define TESTS
 
 SPIBus spi_bus = SPIBus();
@@ -22,34 +23,34 @@ void TakePotCHAIN() {
     holder.idle();
     deployer.idle();
     steppers.reset_all(); 
-    steppers.reset(StprPlate, CALL_BLOCKING)
-    steppers.reset(StprSlider, CALL_BLOCKING); 
+    steppers.calibrate(StprPlate, CALL_BLOCKING);
+    steppers.calibrate(StprSlider, CALL_BLOCKING); 
 
 
-    steppers.plate_move(0, CALL_BLOCKING); 
-    deployer.deploy();
+    // steppers.plate_move(0, CALL_BLOCKING); 
+    // deployer.deploy();
 
-    holder.open_full();
-    steppers.slider_move(SliderIntermediateLow, CALL_BLOCKING);
-    holder.open();
+    // holder.open_full();
+    // steppers.slider_move(SliderIntermediateLow, CALL_BLOCKING);
+    // holder.open();
 
 
-    steppers.slider_move(SliderLow, CALL_BLOCKING); 
-    sleep(2);
+    // steppers.slider_move(SliderLow, CALL_BLOCKING); 
+    // sleep(2);
 
-    holder.hold_pot();
+    // holder.hold_pot();
 
-    steppers.slider_move(SliderHigh, CALL_BLOCKING);
-    deployer.pot_deposit();
+    // steppers.slider_move(SliderHigh, CALL_BLOCKING);
+    // deployer.pot_deposit();
 
-    steppers.plate_move(3, CALL_BLOCKING); 
+    // steppers.plate_move(3, CALL_BLOCKING); 
 
     
-    steppers.slider_move(SliderDepositPot, CALL_BLOCKING);
-    deployer.deploy(); 
-    sleep(2);
-    holder.open();
-    sleep(2);
+    // steppers.slider_move(SliderDepositPot, CALL_BLOCKING);
+    // deployer.deploy(); 
+    // sleep(2);
+    // holder.open();
+    // sleep(2);
 }
 
 void demoPlate(){
@@ -64,7 +65,7 @@ void demoPlate(){
 
 int main(int argc, char const *argv[])
 {
-
+    printf("PANCAKES GOOOOOO\n");
     #ifdef TESTS
     // steppers.setup_speed(StprFlaps,500,800); 
     // steppers.setup_speed(StprPlate,60,500); 
@@ -103,16 +104,16 @@ int main(int argc, char const *argv[])
 
 
     // deployer.deploy();
-    steppers.slider_move(SliderIntermediateLow);
+    // steppers.slider_move(SliderIntermediateLow);
 
-    holder.open();
+    // holder.open();
     
 
     // steppers.plate_move(3, CALL_BLOCKING);
     // steppers.plate_move(0, CALL_BLOCKING);
     // steppers.plate_move(3, CALL_BLOCKING);
     // steppers.plate_move(0, CALL_BLOCKING);
-    // TakePotCHAIN(); 
+    TakePotCHAIN(); 
 
     
     // steppers.setup_speed(StprPlate,60,500); //60 max
@@ -159,7 +160,7 @@ int main(int argc, char const *argv[])
     sleep(2);
     servo_flaps.raise(); 
     sleep(3);
-    steppers.slider_move(SliderPlate);
+    steppers.slider_move(SliderHigh);
     sleep(5);
     demoPlate();
     sleep(5);
@@ -175,8 +176,8 @@ int main(int argc, char const *argv[])
     steppers.calibrate_all();
     #endif
 
-    // gripper_holder_cmd(HolderIdle);
-    // gripper_deployer_cmd(DeployerIdle);
+    // holder.idle();
+    // deployer.idle();
     
     return 0;
 }

@@ -2,6 +2,7 @@
 #include <lgpio.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <stdio.h>
 
 #define SPI_CLK_FREQ 100000
 #define SPI_MODE_DEFAULT 0

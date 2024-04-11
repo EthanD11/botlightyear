@@ -2,27 +2,28 @@
 #include <lgpio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <stdio.h>
 
 //#define PI5
 
 GPIOPins::GPIOPins() {
 
     #ifdef PI5
-    int handle = lgGpiochipOpen(4);
+    handle = lgGpiochipOpen(4);
     #else
-    int handle = lgGpiochipOpen(0);
+    handle = lgGpiochipOpen(0);
     #endif
     if (handle < 0) exit(1);
     if (lgGpioSetUser(handle, "Bot Lightyear") < 0) exit(2);
 
-    this->claim_gpio(StprSliderGPIO); 
-    this->claim_gpio(StprPlateGPIO); 
-    this->claim_gpio(StprFlapsGPIO); 
-    this->claim_gpio(BpSwitchFlapsLeftGPIO); 
-    this->claim_gpio(BpSwitchFlapsRightGPIO);
-    this->claim_gpio(TeensyA1);
-    this->claim_gpio(TeensyA2);
-    this->claim_gpio(TeensyA3);
+    if (this->claim_gpio(StprSliderGPIO) != 0) exit(3); 
+    if (this->claim_gpio(StprPlateGPIO) != 0) exit(3); 
+    if (this->claim_gpio(StprFlapsGPIO) != 0) exit(3); 
+    if (this->claim_gpio(BpSwitchFlapsLeftGPIO) != 0) exit(3); 
+    if (this->claim_gpio(BpSwitchFlapsRightGPIO) != 0) exit(3);
+    if (this->claim_gpio(TeensyA1) != 0) exit(3);
+    if (this->claim_gpio(TeensyA2) != 0) exit(3);
+    if (this->claim_gpio(TeensyA3) != 0) exit(3);
 }
 
 GPIOPins::~GPIOPins() {
@@ -54,7 +55,7 @@ void GPIOPins::wait_for_gpio_value(GPIO_t gpio, uint8_t val, uint32_t msMaxWait)
     clock_gettime(CLOCK_BOOTTIME, &start_ts);
     lguSleep(0.001); // Sleep to avoid timing conflicts with spi message
     do {
-        readValue = lgGpioRead(handle,4);
+        readValue = lgGpioRead(handle,gpio);
         if (readValue < 0) printf("Error : gpio %d not readable \n", gpio); 
         lguSleep(0.001);
         clock_gettime(CLOCK_BOOTTIME, &now_ts);
