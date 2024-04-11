@@ -1,4 +1,5 @@
-#include "SPI_Modules.h"
+#include "odometry.h"
+#include "teensy.h"
 #include "lidarTop.h"
 #include "dynamixels.h"
 #include <unistd.h>
@@ -28,42 +29,19 @@ typedef enum {
   ModeConstantDC
 } controlmode_t; 
 
-
-
-void updateRobotPosition() {
-    int32_t ticks_l, ticks_r; // Current values of ticks, left and right
-    double step_l, step_r; // Distance traveled during the last iteration (m), left and right 
-    double fwd, rot; // Forward and rotational components
-    
-    // Updating values via SPI
-    odo_get_tick(&ticks_l, &ticks_r);
-    step_l = (ticks_l - old_ticks_l) * ODO_TICKS_TO_M;
-    step_r = (ticks_r - old_ticks_r) * ODO_TICKS_TO_M;
-    old_ticks_l = ticks_l;
-    old_ticks_r = ticks_r;
-
-    // Forward & rotation component
-    fwd = (step_l + step_r) / 2;
-    rot = (step_r - step_l) / (ODO_WHEEL_L);
-
-    // Estimate new position
-    x += fwd * cos(theta + rot / 2);
-    y += fwd * sin(theta + rot / 2);
-    theta += rot;
-}
-
-
+SPIBus spiBus = SPIBus();
+Odometry odo = Odometry(&spiBus);
+Teensy teensy = Teensy(&spiBus);
 
 void *homologation(void* v) {
     printf("Entering homologation thread \n");
     //Init ports
-    init_spi();
 
     //Set initial robot position and path following useful variables
     double x0 = 0.035;
     double y0 = 0.2;
     double theta0 = 0.0;
-    teensy_set_position(x0, y0, theta0);
+    teensy.set_position(x0, y0, theta0);
     //Path following : Go grab a plant
     if (!ADVERSARY_FLAG) {
         printf("No adversary, taking path following \n");
@@ -71,7 +49,7 @@ void *homologation(void* v) {
         // double ka = 4.0;
         // double kb = -0.5;
         // double kw = 10.0;
-        // teensy_set_position_controller_gains(kp, ka, kb, kw);
+        // teensy.set_position_controller_gains(kp, ka, kb, kw);
         double kt = 2.0;
         double kn = 0.32; // 0 < kn <= 1
         double kz = 30.0;
@@ -80,13 +58,13 @@ void *homologation(void* v) {
         double epsilon = M_PI/8; // epsilon is in radians
         double wn = 0.25; // Command filter discrete cutoff frequency
         double kv_en = 12;
-        //teensy_set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
-        lguSleep(0.1);  
+        //teensy.set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
+        usleep(100000);  
         
-        lguSleep(0.1);
-        teensy_pos_ctrl(0.2, 0.2, theta0);
-        // teensy_pos_ctrl(x0, y0, theta_start + (atan2(yr[1]-yr[0], xr[1]-xr[0])-theta_start)/2.0);
-        lguSleep(5);
+        usleep(100000);
+        teensy.pos_ctrl(0.2, 0.2, theta0);
+        // teensy.pos_ctrl(x0, y0, theta_start + (atan2(yr[1]-yr[0], xr[1]-xr[0])-theta_start)/2.0);
+        sleep(5);
 
         int ncheckpoints = 3;
         double xr[3] = {0.2, 0.5, 0.7};
@@ -95,12 +73,12 @@ void *homologation(void* v) {
         double theta_end = M_PI/2.0;
         double vref = 0.35;
         double dist_goal_reached = 0.05;
-        teensy_path_following(xr, yr, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
-        /*while (((controlmode_t) teensy_ask_mode()) == ModePathFollowing) {
+        teensy.path_following(xr, yr, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
+        /*while (((controlmode_t) teensy.ask_mode()) == ModePathFollowing) {
             printf("Moving \n");
             if (ADVERSARY_FLAG) {
                 printf("Adversary found \n");
-                teensy_idle();
+                teensy.idle();
                 break;
                 exit(1); 
             }
@@ -108,21 +86,21 @@ void *homologation(void* v) {
     }
 
     //Grab the plant:
-    lguSleep(2);
-    teensy_ask_mode();
-    lguSleep(2);
-    teensy_ask_mode();
-    lguSleep(2);
-    teensy_ask_mode();
-    lguSleep(2);
-    teensy_ask_mode();
-    /*lguSleep(2);
-    teensy_ask_mode();
-    lguSleep(2);
-    teensy_ask_mode();
-    lguSleep(2);
-    teensy_ask_mode();*/
-    lguSleep(2);
+    sleep(2);
+    teensy.ask_mode();
+    sleep(2);
+    teensy.ask_mode();
+    sleep(2);
+    teensy.ask_mode();
+    sleep(2);
+    teensy.ask_mode();
+    /*sleep(2);
+    teensy.ask_mode();
+    sleep(2);
+    teensy.ask_mode();
+    sleep(2);
+    teensy.ask_mode();*/
+    sleep(2);
     
 
 
@@ -136,14 +114,14 @@ void *homologation(void* v) {
         double theta_end = M_PI/2.0;
         double vref = 0.2;
         double dist_goal_reached = 0.1;
-        //teensy_set_position(xr[0], yr[0], theta_start);
-        lguSleep(0.1);
-        teensy_path_following(xr, yr, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
-        /*while (((controlmode_t) teensy_ask_mode()) == ModePathFollowing) {
+        //teensy.set_position(xr[0], yr[0], theta_start);
+        usleep(100000);
+        teensy.path_following(xr, yr, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
+        /*while (((controlmode_t) teensy.ask_mode()) == ModePathFollowing) {
             printf("Moving \n");
             if (ADVERSARY_FLAG) {
                 printf("Adversary found \n");
-                teensy_idle();
+                teensy.idle();
                 break;
                 exit(1); 
             }
@@ -154,24 +132,24 @@ void *homologation(void* v) {
     
 
     //Path following: Go to solar panels
-    lguSleep(2);
-    teensy_ask_mode();
-    lguSleep(2);
-    /*teensy_ask_mode();
-    lguSleep(2);
-    teensy_ask_mode();
-    lguSleep(2);
-    teensy_ask_mode();
-    lguSleep(2);
-    teensy_ask_mode();
-    lguSleep(2);
-    teensy_ask_mode();
-    lguSleep(2);
-    teensy_ask_mode();
-    lguSleep(2);
-    teensy_ask_mode();
-    lguSleep(2);
-    teensy_ask_mode();*/
+    sleep(2);
+    teensy.ask_mode();
+    sleep(2);
+    /*teensy.ask_mode();
+    sleep(2);
+    teensy.ask_mode();
+    sleep(2);
+    teensy.ask_mode();
+    sleep(2);
+    teensy.ask_mode();
+    sleep(2);
+    teensy.ask_mode();
+    sleep(2);
+    teensy.ask_mode();
+    sleep(2);
+    teensy.ask_mode();
+    sleep(2);
+    teensy.ask_mode();*/
 
     if ((!ADVERSARY_FLAG)) {
         printf("No adversary, taking path following \n");
@@ -182,40 +160,40 @@ void *homologation(void* v) {
         double theta_end = -1.01*M_PI/2.0;
         double vref = 0.2;
         double dist_goal_reached = 0.1;
-        teensy_pos_ctrl(xr[0], yr[0], M_PI/8.0);
-        lguSleep(4);
-        teensy_pos_ctrl(xr[0], yr[0], -M_PI/4.0);
-        lguSleep(5);
-        teensy_path_following(xr, yr, ncheckpoints, -M_PI/2.0, theta_end, vref, dist_goal_reached);
-        /*while (((controlmode_t) teensy_ask_mode()) == ModePathFollowing) {
+        teensy.pos_ctrl(xr[0], yr[0], M_PI/8.0);
+        sleep(4);
+        teensy.pos_ctrl(xr[0], yr[0], -M_PI/4.0);
+        sleep(5);
+        teensy.path_following(xr, yr, ncheckpoints, -M_PI/2.0, theta_end, vref, dist_goal_reached);
+        /*while (((controlmode_t) teensy.ask_mode()) == ModePathFollowing) {
             printf("Moving \n");
             if (ADVERSARY_FLAG) {
                 printf("Adversary found \n");
-                teensy_idle();
+                teensy.idle();
                 break;
                 exit(1); 
             }
         };*/
     }
     //Turn solar panel
-    lguSleep(2);
-    teensy_ask_mode();
-    lguSleep(2);
-    teensy_ask_mode();
-    lguSleep(2);
-    teensy_ask_mode();
-    lguSleep(2);
-    teensy_ask_mode();
-    lguSleep(2);
-    teensy_ask_mode();
-    lguSleep(2);
-    teensy_ask_mode();
-    lguSleep(2);
-    teensy_ask_mode();
-    lguSleep(2);
-    teensy_ask_mode();
-    lguSleep(2);
-    teensy_ask_mode();
+    sleep(2);
+    teensy.ask_mode();
+    sleep(2);
+    teensy.ask_mode();
+    sleep(2);
+    teensy.ask_mode();
+    sleep(2);
+    teensy.ask_mode();
+    sleep(2);
+    teensy.ask_mode();
+    sleep(2);
+    teensy.ask_mode();
+    sleep(2);
+    teensy.ask_mode();
+    sleep(2);
+    teensy.ask_mode();
+    sleep(2);
+    teensy.ask_mode();
 
     
 
@@ -229,14 +207,14 @@ void *homologation(void* v) {
         double theta_end = -M_PI/2.0;
         double vref = 0.2;
         double dist_goal_reached = 0.1;
-        //teensy_set_position(xr[0], yr[0], theta_start);
-        lguSleep(0.1);
-        teensy_path_following(xr, yr, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
-        /*while (((controlmode_t) teensy_ask_mode()) == ModePathFollowing) {
+        //teensy.set_position(xr[0], yr[0], theta_start);
+        usleep(100000);
+        teensy.path_following(xr, yr, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
+        /*while (((controlmode_t) teensy.ask_mode()) == ModePathFollowing) {
             printf("Moving \n");
             if (ADVERSARY_FLAG) {
                 printf("Adversary found \n");
-                teensy_idle();
+                teensy.idle();
                 break;
                 exit(1); 
             }
@@ -265,7 +243,7 @@ void *topLidar(void* v) {
         double limit_stop = 0.5; 
         if ((adv_dist > 0.1) && (adv_dist < limit_stop) && ((adv_angle < 0.79) || (adv_angle > (6.28-0.79)))) {
             ADVERSARY_FLAG = true; 
-            teensy_idle();
+            teensy.idle();
             printf("Adversary detected\n");
         }
     }

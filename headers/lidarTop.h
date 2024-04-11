@@ -1,5 +1,5 @@
-#ifndef BOTLIGHTYEAR_LIDARTOP_H
-#define BOTLIGHTYEAR_LIDARTOP_H
+#ifndef BLY_LIDARTOP_H
+#define BLY_LIDARTOP_H
 
 #include "lidar.h"
 

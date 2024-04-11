@@ -1,5 +1,9 @@
-#include "../headers/SPI_Modules.h"
+#include "teensy.h"
+#include "odometry.h"
 #include <stdio.h>
+#include <unistd.h>
+#include <cmath>
+#include <lgpio.h>
 
 // #define POSITION_CONTROL
 #define PATH_FOLLOWING
@@ -16,19 +20,23 @@
     #define DC_RIGHT 60
 #endif
 
+SPIBus spiBus = SPIBus();
+GPIOPins pins = GPIOPins(); 
+Teensy teensy = Teensy(&spiBus, &pins);
+Odometry odo = Odometry(&spiBus);
+
 const double deg_to_rads = M_PI/180;
 
 int main(int argc, char const *argv[])
 {
-    init_spi(); 
-    lguSleep(0.5);
+    usleep(500000);
 
     #ifdef POSITION_CONTROL
     double kp = 1.0;
     double ka = 4.0;
     double kb = -1.5;
     double kw = 5.0;
-    teensy_set_position_controller_gains(kp, ka, kb, kw);
+    teensy.set_position_controller_gains(kp, ka, kb, kw);
 
     double x = 0; 
     double y = 0; 
@@ -38,15 +46,15 @@ int main(int argc, char const *argv[])
     double tr = 30*deg_to_rads;
     double xpos, ypos, thetapos;
 
-    teensy_set_position(x, y, t);
-    odo_set_pos(x, y, t);
+    teensy.set_position(x, y, t);
+    odo.set_pos(x, y, t);
     lguSleep(0.1);
-    teensy_pos_ctrl(xr, yr, tr);
+    teensy.pos_ctrl(xr, yr, tr);
 
     lguSleep(0.1);
     while (true) {
-        odo_get_pos(&xpos, &ypos, &thetapos);
-        teensy_set_position(xpos, ypos, thetapos);
+        odo.get_pos(&xpos, &ypos, &thetapos);
+        teensy.set_position(xpos, ypos, thetapos);
         lguSleep(0.1);
     }
     #endif
@@ -56,7 +64,7 @@ int main(int argc, char const *argv[])
     double ka = 2.5;
     double kb = -0.8;
     double kw = 4.0;
-    teensy_set_position_controller_gains(kp, ka, kb, kw);
+    teensy.set_position_controller_gains(kp, ka, kb, kw);
 
     double kt = 2.0;
     double kn = 0.3; // 0 < kn <= 1
@@ -66,7 +74,7 @@ int main(int argc, char const *argv[])
     double epsilon = M_PI/8; // epsilon is in radians
     double wn = 0.2; // Command filter discrete cutoff frequency
     double kv_en = 0.;
-    teensy_set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
+    teensy.set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
     lguSleep(0.1);
     int ncheckpoints = 5;
     double x[5] = {0.1,0.5,0.9,0.5,0.1};
@@ -79,19 +87,19 @@ int main(int argc, char const *argv[])
     double dist_goal_reached = 0.25;
 
     double xpos, ypos, thetapos;
-    odo_set_pos(x[0], y[0], 0);
+    odo.set_pos(x[0], y[0], 0);
     lguSleep(0.5);
-    teensy_set_position(x[0], y[0], 0);
+    teensy.set_position(x[0], y[0], 0);
     lguSleep(1);
 
-    teensy_pos_ctrl(x[0], y[0], atan2(y[1]-y[0], x[1]-x[0]));
+    teensy.pos_ctrl(x[0], y[0], atan2(y[1]-y[0], x[1]-x[0]));
     lguSleep(2);
 
-    teensy_path_following(x, y, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
+    teensy.path_following(x, y, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
     lguSleep(0.1);
     while (true) {
-        odo_get_pos(&xpos, &ypos, &thetapos);
-        teensy_set_position(xpos, ypos, thetapos);
+        odo.get_pos(&xpos, &ypos, &thetapos);
+        teensy.set_position(xpos, ypos, thetapos);
         lguSleep(0.3);
     }
     #endif
@@ -100,29 +108,29 @@ int main(int argc, char const *argv[])
     double x = 0;
     double y = 0;
     double theta = 0;
-    teensy_set_position(x, y, theta);
+    teensy.set_position(x, y, theta);
     #endif
 
     #ifdef IDLE
-    teensy_idle();
+    teensy.idle();
 
     double xpos, ypos, thetapos;
-    teensy_set_position(1.6, 3.651e-3, M_PI/2);
-    odo_set_pos(1.6, 3.651e-3, M_PI/2);
+    teensy.set_position(1.6, 3.651e-3, M_PI/2);
+    odo.set_pos(1.6, 3.651e-3, M_PI/2);
     while (true) {
-        odo_get_pos(&xpos, &ypos, &thetapos);
+        odo.get_pos(&xpos, &ypos, &thetapos);
         lguSleep(0.1);
-        teensy_set_position(xpos, ypos, thetapos);
+        teensy.set_position(xpos, ypos, thetapos);
     }
     #endif
 
     #ifdef SPEED_CONTROL
-    teensy_spd_ctrl(0.3, 0.3);
+    teensy.spd_ctrl(0.3, 0.3);
     #endif
 
     #ifdef DC_CONTROL
-    teensy_set_position(0, 0, 0);
-    teensy_constant_dc(DC_LEFT,DC_RIGHT);
+    teensy.set_position(0, 0, 0);
+    teensy.constant_dc(DC_LEFT,DC_RIGHT);
     #endif
 
     #ifdef SET_POS_CTRL_GAINS
@@ -130,7 +138,7 @@ int main(int argc, char const *argv[])
     double ka = 4.0;
     double kb = -0.5;
     double kw = 8.0;
-    teensy_set_position_controller_gains(kp, ka, kb, kw);
+    teensy.set_position_controller_gains(kp, ka, kb, kw);
     #endif
 
     #ifdef SET_PATH_FOLLOWER_GAINS
@@ -142,15 +150,14 @@ int main(int argc, char const *argv[])
     double epsilon = M_PI/8; // epsilon is in radians
     double wn = 0.25; // Command filter discrete cutoff frequency
     double kv_en = 12;
-    teensy_set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
-    teensy_idle();
+    teensy.set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
+    teensy.idle();
     #endif
 
     #ifdef ASK_STATE
-    lguSleep(0.1);
-    teensy_ask_mode();
+    usleep(100000);
+    teensy.ask_mode();
     #endif
 
-    close_spi();
     return 0;
 }

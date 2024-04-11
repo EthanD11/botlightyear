@@ -1,42 +1,44 @@
-#include "SPI_Modules.h"
+#include "SPI_bus.h"
+#include "servos.h"
+#include "steppers.h"
+#include <unistd.h>
+
+SPIBus spi_bus = SPIBus(); 
+GPIOPins pins = GPIOPins(); 
+Steppers steppers = Steppers(&spi_bus, &pins); 
+
+Flaps servo_flaps = Flaps(&spi_bus); 
+GripperDeployer servo_gripper_deployer = GripperDeployer(&spi_bus); 
+GripperHolder servo_gripper_holder = GripperHolder(&spi_bus);
+
 
 int main(int argc, char const *argv[])
 {
-    if (init_spi() != 0) return -1;
-    if (test_spi() != 0) exit(2);
 
-    /*stpr_reset_all();
-    lguSleep(1);
-    stpr_calibrate_all();*/
+    servo_flaps.deploy(); 
+    sleep(3);
+    servo_flaps.raise();
+    sleep(1);
 
-    /*plate_move(1);
-    lguSleep(3);
-    stpr_reset_all();*/
-
-    /*flaps_servo_cmd(FlapsDeploy);
-    lguSleep(3);
-    flaps_servo_cmd(FlapsRaise);
-    lguSleep(1);*/
-    flaps_servo_cmd(FlapsIdle);
+    servo_flaps.idle();
     
-    /*gripper_holder_cmd(HolderClosed);
-    lguSleep(3);
-    gripper_holder_cmd(HolderOpen);
-    lguSleep(3);
-    gripper_holder_cmd(HolderPlant);
-    lguSleep(3);
-    gripper_holder_cmd(HolderPot);
-    lguSleep(1);*/
-    gripper_holder_cmd(HolderIdle);
+    servo_gripper_holder.close(); 
+    sleep(3);
+    servo_gripper_holder.open(); 
+    sleep(3);
+    servo_gripper_holder.hold_plant(); 
+    sleep(3);
+    servo_gripper_holder.hold_pot(); 
+    sleep(1);
+    servo_gripper_holder.idle();
 
-    //gripper_deployer_cmd(DeployerDeploy);
-    //lguSleep(3);
-    //gripper_deployer_cmd(DeployerHalf);
-    //lguSleep(3);
-    //gripper_deployer_cmd(DeployerRaise);
-    //lguSleep(1);
-    gripper_deployer_cmd(DeployerIdle);
+    // servo_gripper_deployer.deploy();
+    // sleep(3);
+    // servo_gripper_deployer.half(); 
+    // sleep(3);
+    // servo_gripper_deployer.raise();
+    // sleep(1);
+    servo_gripper_deployer.idle(); 
 
-    close_spi();
     return 0;
 }

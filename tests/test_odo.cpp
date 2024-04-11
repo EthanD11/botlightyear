@@ -1,4 +1,4 @@
-#include "SPI_Modules.h"
+#include "odometry.h"
 #include <stdio.h>
 #include <unistd.h>
 #include <cmath>
@@ -6,20 +6,22 @@
 //#define TEST_TICKS
 #define TEST_POS_TRACK
 
+SPIBus spiBus = SPIBus();
+Odometry odo = Odometry(&spiBus);
+
 int main(int argc, char const *argv[])
 {
     
-    init_spi();
-    odo_reset();
+    odo.reset();
     #ifdef TEST_TICKS
     int left, right;
     printf("Place left and right odos between 10 000 and 100 000\n");
     while(1){
-        odo_get_tick(&left,&right);
+        odo.get_ticks(&left,&right);
         printf("left : %d right : %d\r\n", left, right);
-        lguSleep(5e-3);
+        usleep(5000);
         fflush(stdout);
-        lguSleep(5e-3);
+        usleep(5000);
         
         if (left > 10000 && left < 100000 && right > 10000 && right < 100000) break;
 
@@ -28,12 +30,12 @@ int main(int argc, char const *argv[])
 
     #ifdef TEST_POS_TRACK
     double x = 0, y = 0, theta = 0;
-    odo_set_pos(x, y, theta);
+    odo.set_pos(x, y, theta);
     while (1)
     {
-        odo_get_pos(&x,&y,&theta);
+        odo.get_pos(&x,&y,&theta);
         printf("%.3f,%.3f,%.3f\n", x, y, theta*180/3.1416);
-        lguSleep(0.05);
+        usleep(50000);
     }
     #endif
 

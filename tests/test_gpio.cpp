@@ -1,6 +1,9 @@
-#include "SPI_Modules.h"
+#include <lgpio.h>
 #include <termios.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <stdio.h>
+#include <stdlib.h>
 #define ESC_ASCII_VALUE                 0x1b
 
 int getch()
@@ -23,7 +26,7 @@ int getch()
 int main(int argc, char const *argv[])
 {
 
-    int pin = 5;
+    int pin = 25;
 
     int handle = lgGpiochipOpen(0);
     if (handle < 0) exit(1);
