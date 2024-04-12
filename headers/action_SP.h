@@ -1,3 +1,6 @@
+#ifndef BLY_ACTION_SP_H
+#define BLY_ACTION_SP_H
+
 #include "dynamixels.h"
 #include "cameraTag.h"
 #include "shared_variables.h"
@@ -6,4 +9,6 @@
 extern SharedVariables shared;
 
 void solar_panel_pc(); 
-void solar_panel(bool reserved);
+void turn_solar_panel(bool reserved, uint8_t sp_counter);
+
+#endif

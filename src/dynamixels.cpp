@@ -292,6 +292,5 @@ void solar_panel(team_t team, double angle) {
     dxl_deploy(Down); 
     dxl_turn(team, angle);
     dxl_deploy(Up); 
-    dxl_init_sp(); 
 }
 

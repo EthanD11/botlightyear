@@ -12,7 +12,7 @@ void solar_panel_pc() {
     double x, y, theta; 
     shared.get_robot_pos(&x, &y, &theta); 
 
-    // Set position control gains
+    // Set position control gains (see with Ethan?)
     double kp = 0.8;
     double ka = 2.5;
     double kb = -0.5;
@@ -43,23 +43,68 @@ void solar_panel_pc() {
         lguSleep(0.3);
     } while(abs(xpos-x[1]) > 0.01); 
 
+    return 0; 
 }
 
-void turn_solar_panel(bool reserved) { 
+/* TURN_SOLAR_PANEL: Action sequence to turn a solar panel 
+   bool reserved: if True, solar panels are private for the team, no need to read camera angle*/
+void turn_solar_panel(bool reserved, uint8_t sp_counter) { 
 
+    // Team management (rework to do)
     team_t team; 
     extern team_color_t color; 
     
-    switch(color): 
-        case TeamBlue: 
-            team = Blue; 
+    switch(color) {
+        case TeamBlue:
+            team = Blue;  
+            break; 
         case TeamYellow:
             team = Yellow; 
-
-    if (reserved) {
-        
+            break;
     }
-    solar_panel_pc();
 
+    // Case asking more than one solar panel
+    while (sp_counter > 1) {
+        // Action turn solar panel
+        dxl_deploy(Down);
+        if (reserved) {
+            dxl_turn(team, 0); 
+        }
+        else {
+            double angle = tagFromJpg(); 
+            dxl_turn(team, angle); 
+        }
+        dxl_deploy(Mid);
 
+        // Update dynamic score
+        extern score += 5;
+        sp_counter--; 
+
+        // Go to next
+        solar_panel_pc();
+        dxl_init_sp();
+    }
+
+    if (sp_counter == 1) {
+        //Action turn solar panel
+        dxl_deploy(Down);
+        if (reserved) {
+            dxl_turn(team, 0); 
+        }
+        else {
+            double angle = tagFromJpg(); 
+            dxl_turn(team, angle); 
+        }
+        dxl_deploy(Up);
+        dxl_init_sp();
+
+        // Update dynamic score
+        extern score += 5;
+        sp_counter--; 
+    }
+
+    /* TO DO: If sp_counter = 0: return state action finish
+              Return interrupt*/
+
+    return 0; 
 }
