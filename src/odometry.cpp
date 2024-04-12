@@ -24,8 +24,8 @@ void Odometry::get_pos(double *x, double *y, double *theta) {
     
     bus->lock();
     bus->DE0_xfer(sendx, receivex);
-    bus->DE0_xfer(sendx, receivey);
-    bus->DE0_xfer(sendx, receivet);
+    bus->DE0_xfer(sendy, receivey);
+    bus->DE0_xfer(sendt, receivet);
     bus->unlock();
 
     int32_t receive_int;

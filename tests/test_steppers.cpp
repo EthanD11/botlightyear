@@ -114,7 +114,16 @@ int main(int argc, char const *argv[])
     // steppers.plate_move(0, CALL_BLOCKING);
     // steppers.plate_move(3, CALL_BLOCKING);
     // steppers.plate_move(0, CALL_BLOCKING);
-    TakePotCHAIN(); 
+    // TakePotCHAIN(); 
+    steppers.setup_speed(StprFlaps,150,400); 
+    steppers.reset_all(); 
+
+    steppers.calibrate(StprFlaps, CALL_BLOCKING); 
+    steppers.flaps_move(FlapsPlant, CALL_BLOCKING); 
+    steppers.flaps_move(FlapsOpen, CALL_BLOCKING); 
+    steppers.flaps_move(FlapsPot, CALL_BLOCKING); 
+    steppers.flaps_move(FlapsOpen, CALL_BLOCKING); 
+
 
     
     // steppers.setup_speed(StprPlate,60,500); //60 max
@@ -180,7 +189,7 @@ int main(int argc, char const *argv[])
     sleep(1);
     holder.idle();
     deployer.idle();
-    steppers.reset_all(); 
+    //steppers.reset_all(); 
     
     return 0;
 }

@@ -1,5 +1,6 @@
 #include "teensy.h"
 #include "odometry.h"
+#include "dynamixels.h"
 #include <stdio.h>
 #include <unistd.h>
 #include <cmath>
@@ -12,8 +13,13 @@ Odometry odo = Odometry(&spiBus);
 
 const double deg_to_rads = M_PI/180;
 
-int main(int argc, char const *argv[])
-{
+int main(int argc, char const *argv[]) {
+    dxl_init_port();
+    dxl_ping(6, 1.0);
+    dxl_ping(8, 1.0);
+
+    solar_panel(Blue, 0);
+
     usleep(500000);
 
     // Set position control gains
@@ -38,7 +44,7 @@ int main(int argc, char const *argv[])
     int ncheckpoints = 2;
     double x[2] = {10e-2, 32.5e-2};
     double y[2] = {  1.5,     1.5};
-    double theta_start = 0.;
+    double theta_start = 0;
     double theta_end = 0;
 
 
@@ -52,11 +58,17 @@ int main(int argc, char const *argv[])
     lguSleep(0.1);
 
     // Reset teensy estimated position with odometry
-    while (true) {
+    do {
         odo.get_pos(&xpos, &ypos, &thetapos);
         teensy.set_position(xpos, ypos, thetapos);
+        printf("%.3f,%.3f,%.3f\n",xpos, ypos, thetapos);
         lguSleep(0.3);
-    }
+    } while(abs(xpos-x[1]) > 0.01); 
+
+    lguSleep(2.0);
+    solar_panel(Blue, 0);
+
+    dxl_close_port();
 
     return 0;
 }

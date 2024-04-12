@@ -249,7 +249,7 @@ void dxl_turn(team_t team, double angle) {
             else {
                 printf("Undefined angle, Yellow\n"); 
             }
-            break;
+        break;
     }
 
     // Write goal position
