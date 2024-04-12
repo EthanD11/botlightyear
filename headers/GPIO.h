@@ -5,6 +5,7 @@
 
 
 typedef enum {
+    StartingCordGPIO = 4,
     StprSliderGPIO = 25, 
     StprPlateGPIO = 1, 
     StprFlapsGPIO = 12, 

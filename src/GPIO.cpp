@@ -4,7 +4,7 @@
 #include <time.h>
 #include <stdio.h>
 
-//#define PI5
+#define PI5
 
 GPIOPins::GPIOPins() {
 
@@ -16,6 +16,7 @@ GPIOPins::GPIOPins() {
     if (handle < 0) exit(1);
     if (lgGpioSetUser(handle, "Bot Lightyear") < 0) exit(2);
 
+    if (this->claim_gpio(StartingCordGPIO) != 0) exit(3); 
     if (this->claim_gpio(StprSliderGPIO) != 0) exit(3); 
     if (this->claim_gpio(StprPlateGPIO) != 0) exit(3); 
     if (this->claim_gpio(StprFlapsGPIO) != 0) exit(3); 
@@ -27,6 +28,7 @@ GPIOPins::GPIOPins() {
 }
 
 GPIOPins::~GPIOPins() {
+    this->free_gpio(StartingCordGPIO); 
     this->free_gpio(StprSliderGPIO); 
     this->free_gpio(StprPlateGPIO); 
     this->free_gpio(StprFlapsGPIO); 

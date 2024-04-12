@@ -16,9 +16,6 @@ SharedVariables::SharedVariables()
 
 SharedVariables::~SharedVariables()
 {
-    teensy.idle();
-    steppers.reset_all();
-    servoFlaps.idle(); grpDeployer.idle(); grpHolder.idle();
 
     graph.~Graph();
     spiBus.~SPIBus();
@@ -36,7 +33,27 @@ SharedVariables::~SharedVariables()
 }
 
 void SharedVariables::start_timer() {
+    #ifdef VERBOSE
+    printf("Waiting for starting cord setup... \n");
+    #endif
+
+    pins.wait_for_gpio_value(StartingCordGPIO, 0, 2000000);
+
+    #ifdef VERBOSE
+    printf("Starting cord has been setup\n");
+    #endif
+    lguSleep(1);
+
+    #ifdef VERBOSE
+    printf("Waiting start of the game... \n");
+    #endif
+
+    pins.wait_for_gpio_value(StartingCordGPIO, 1, 2000000);
     time(&tStart);
+
+    #ifdef VERBOSE
+    printf("Game started! \n");
+    #endif
 }
 
 int8_t SharedVariables::update_and_get_timer() {

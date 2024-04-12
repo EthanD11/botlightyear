@@ -1,3 +1,6 @@
+#ifndef BLY_SHARED_H
+#define BLY_SHARED_H
+
 #include "SPI_bus.h"
 #include "GPIO.h"
 #include "steppers.h"
@@ -53,7 +56,7 @@ public:
     void get_adv_pos(double *xAdv, double *yAdv, double *thetaAdv);
     void set_adv_pos(double xAdv, double yAdv, double thetaAdv);
 
-    // Starts game timer
+    // Starts game timer on starting cord pull detection
     void start_timer();
     // Updates and returns the remaining game time
     int8_t update_and_get_timer();
@@ -74,3 +77,4 @@ public:
     Graph graph = Graph();
 };
 
+#endif

@@ -15,7 +15,7 @@ typedef enum {
     StprFlaps
 } steppers_t;
 
-/*The poisition of a flaps*/
+/*The position of a flaps*/
 typedef enum {
     FlapsOpen, 
     FlapsPlant, 

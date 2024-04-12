@@ -1,5 +1,7 @@
 #include "shared_variables.h"
 #include "dynamixels.h"
+#include "lidarTop.h"
+#include "decision.h"
 #include <unistd.h>
 #include <iostream>
 #include <stdio.h>
@@ -8,7 +10,6 @@
 #include <pthread.h> 
 #include <termios.h>
 #include <fcntl.h>
-#include <lgpio.h>
 
 #define VERBOSE
 
@@ -17,8 +18,10 @@
 #define ASCII_y 121
 #define ASCII_Y 89
 
-pthread_t topLidarID;
-uint8_t lidarEnd = 0;
+decision_t decision;
+
+pthread_t localizerID;
+uint8_t localizerEnd = 0; // Set to one to finish localizer thread
 
 SharedVariables shared = SharedVariables();
 
@@ -50,80 +53,49 @@ void ask_user_input_params() {
     } while (1);
 }
 
-void init_main() {
+void init_and_wait_for_start() {
 
     dxl_init_port();
-
+    dxl_ping(6,1.0);
+    dxl_ping(8,1.0);
 
     if (shared.graph.init_from_file("./graphs/BL_V2.txt", shared.color) != 0) exit(3);
     shared.graph.node_level_update(shared.graph.adversaryBases[0], 3, DISABLE_PROPAGATION);
 
-    if (pthread_create(&topLidarID, NULL, topLidar, NULL) != 0) exit(4);
+    if (pthread_create(&localizerID, NULL, localizer, NULL) != 0) exit(4);
 
     shared.steppers.reset_all();
     shared.steppers.calibrate_all();
     
-    int GPIOhandle = lgGpiochipOpen(4);
-    if (GPIOhandle < 0) exit(5);
-    if (lgGpioSetUser(GPIOhandle, "Bot Lightyear") < 0) exit(5);
-    if (lgGpioClaimInput(GPIOhandle, LG_SET_PULL_NONE, 4) != 0) exit(5);
+    shared.start_timer();
 
-    
-    
-    time_t tStart;
-    {
-        #ifdef VERBOSE
-        printf("Waiting for starting cord setup... \n");
-        #endif
-        int start;
-        do {
-            start = lgGpioRead(GPIOhandle,4);
-            if (start < 0) exit(5);
-        } while (start);
-        #ifdef VERBOSE
-        printf("Starting cord has been setup\n");
-        #endif
-        lguSleep(1);
-
-        #ifdef VERBOSE
-        printf("Waiting start of the game... \n");
-        #endif
-        do {
-            start = lgGpioRead(GPIOhandle,4);
-            if (start < 0) exit(5);
-        } while (!start);
-    }
-    tStart = time(NULL);
-
-    lgGpioFree(GPIOhandle, 4);
-    lgGpiochipClose(GPIOhandle);
-
-    #ifdef VERBOSE
-    printf("Game started! \n");
-    #endif
-    return tStart;
 }
 
 void finish_main() {
 
-    teensy_idle();
+    localizerEnd = 1;
+    pthread_join(localizerID, NULL);
 
-    lidarEnd = 1;
-    pthread_join(topLidarID, NULL); 
+    shared.~SharedVariables();
 
-    if (currentPath != NULL) free(currentPath);
+    free(decision.path);
 
     dxl_close();
 
 }
 
-void *topLidar(void* arg) {
+void *localizer(void* arg) {
     StartLidar();
-    while (!lidarEnd) {
-
+    double x, y, theta, xAdv, yAdv, thetaAdv;
+    while (!localizerEnd) {
+        
+        shared.teensy.set_position(x,y,theta);
+        shared.set_robot_pos(x,y,theta);
+        shared.set_adv_pos(xAdv,yAdv,thetaAdv);
+        usleep(300000);
     }
-    return NULL;
     StopLidar();
+    return NULL;
 }
 
 int main(int argc, char const *argv[])
@@ -132,20 +104,27 @@ int main(int argc, char const *argv[])
     ask_user_input_params();
 
     // ------ INIT -----
-    time_t tOld = 0;
-    time_t tStart = init_main();
+    
+    init_and_wait_for_start();
+
     // ----- GAME -----
 
+    decision.path = malloc(sizeof(graph_path_t));
     do {
-        // Update time values
-        t = time(NULL) - tStart;
-        dt = t - tOld;
-
-        // ...
-    } while (t < 120);
-
+        make_decision(&decision);
+    } while (decision.actionType != GameFinished);
 
     // ----- FINISH -----
+
+    teensy.idle();
+    steppers.reset_all();
+    servoFlaps.idle(); grpDeployer.idle(); grpHolder.idle();
+    dxl_idle(6, 1.0);
+    dxl_idle(8, 1.0);
+
+    printf("Game finished\n");
+    // TODO : show score
+    getch();
 
     finish_main();
 
