@@ -182,14 +182,11 @@ int main(int argc, char const *argv[])
     
     sleep(5);
     servo_flaps.idle();
-    steppers.reset_all(); 
-    steppers.calibrate_all();
     #endif
 
     sleep(1);
     holder.idle();
     deployer.idle();
-    //steppers.reset_all(); 
     
     return 0;
 }

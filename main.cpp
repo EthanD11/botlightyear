@@ -4,6 +4,7 @@
 #include "lidarTop.h"
 #include "dynamixels.h"
 #include "graph.h"
+#include "action_variables.h"
 #include <unistd.h>
 #include <iostream>
 #include <stdio.h>
@@ -11,7 +12,6 @@
 #include <unistd.h>  
 #include <pthread.h> 
 #include <termios.h>
-#include <time.h>
 
 #define VERBOSE
 
