@@ -178,7 +178,6 @@ int Graph::init_from_file(const char *filename, team_color_t color) {
         // Set id & level
         nodes[i].id = i;
         nodes[i].level = 0;
-        nodes[i].score = 0;
 
         // Scan x and y coordinates
         if (fscanf(input_file, "%hhd:%f,%f\n", &trash, &(nodes[i].x), &(nodes[i].y)) != 3) return -1;

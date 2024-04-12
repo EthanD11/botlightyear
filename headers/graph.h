@@ -15,7 +15,6 @@ typedef struct graph_node
     uint8_t id; // Index of the node in the 'graphNodes' array & identifier for the visual graph
     float x, y; // X & Y Coordinates (refer to the visual graph)
     int8_t level; // Level of availability of this node (see 'graphLevel')
-    int8_t score; // Potential interest to go to this node for game points
     uint8_t nNeighbors; // Number of neighbors
     struct graph_node* neighbors[7]; // List of neighbors
 } graph_node_t;

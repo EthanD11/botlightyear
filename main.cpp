@@ -1,4 +1,5 @@
 #include "shared_variables.h"
+#include "dynamixels.h"
 #include <unistd.h>
 #include <iostream>
 #include <stdio.h>
@@ -6,6 +7,8 @@
 #include <unistd.h>  
 #include <pthread.h> 
 #include <termios.h>
+#include <fcntl.h>
+#include <lgpio.h>
 
 #define VERBOSE
 
@@ -14,48 +17,51 @@
 #define ASCII_y 121
 #define ASCII_Y 89
 
-team_color_t color = NoTeam;
-
-time_t t; // Time elapsed since the start of the game
-time_t dt; // Time elapsed since the last control loop
-
 pthread_t topLidarID;
 uint8_t lidarEnd = 0;
-pthread_rwlock_t graph_lock;
 
-graph_path_t *currentPath = NULL;
-uint8_t bases[3];
+SharedVariables shared = SharedVariables();
 
-SPIBus spiBus = SPIBus();
-GPIOPins pins = GPIOPins();
-Steppers steppers = Steppers(&spiBus, &pins);
-Graph graph = Graph();
+
+int getch()
+{
+#if defined(__linux__) || defined(__APPLE__)
+  struct termios oldt, newt;
+  int ch;
+  tcgetattr(STDIN_FILENO, &oldt);
+  newt = oldt;
+  newt.c_lflag &= ~(ICANON | ECHO);
+  tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+  ch = getchar();
+  tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+  return ch;
+#elif defined(_WIN32) || defined(_WIN64)
+  return _getch();
+#endif
+}
 
 void ask_user_input_params() {
     printf("Which team do I play for ? Press 'b' for team blue, 'y' for team yellow\n");
     do {
-        string input;
-        std::cin >> input;
-        char keyboard_input = input.at(0);
-        if (keyboard_input == ASCII_b || keyboard_input == ASCII_B) { color = TeamBlue; break; }
-        else if (keyboard_input == ASCII_y || keyboard_input == ASCII_Y ) { color = TeamYellow; break; }
+        int keyboard_input = getch();
+        if (keyboard_input == ASCII_b || keyboard_input == ASCII_B) { shared.color = TeamBlue; break; }
+        else if (keyboard_input == ASCII_y || keyboard_input == ASCII_Y ) { shared.color = TeamYellow; break; }
         printf("Invalid input color : %c\n", keyboard_input);
     } while (1);
 }
 
-time_t init_main() {
-    dxl_init();
+void init_main() {
 
-    // if (init_spi() != 0) exit(2);
-    // if (test_spi() != 0) exit(2);
-    
-    if (graph.init_from_file("./graphs/BL_V2.txt", color) != 0) exit(3);
-    graph.node_level_update(graph.adversaryBases[0], 3, DISABLE_PROPAGATION);
+    dxl_init_port();
+
+
+    if (shared.graph.init_from_file("./graphs/BL_V2.txt", shared.color) != 0) exit(3);
+    shared.graph.node_level_update(shared.graph.adversaryBases[0], 3, DISABLE_PROPAGATION);
 
     if (pthread_create(&topLidarID, NULL, topLidar, NULL) != 0) exit(4);
 
-    steppers.reset_all();
-    steppers.calibrate_all();
+    shared.steppers.reset_all();
+    shared.steppers.calibrate_all();
     
     int GPIOhandle = lgGpiochipOpen(4);
     if (GPIOhandle < 0) exit(5);
@@ -106,8 +112,6 @@ void finish_main() {
     pthread_join(topLidarID, NULL); 
 
     if (currentPath != NULL) free(currentPath);
-
-    // spi_close();
 
     dxl_close();
 

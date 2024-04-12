@@ -1,11 +1,12 @@
 #include "action_planter.h"
 #include <cmath>
 
-Flaps servoFlaps = shared.servoFlaps;
-Steppers steppers = shared.steppers;
-Teensy teensy = shared.teensy;
 
 void planter_place_objects(uint8_t nObjects) {
+
+    Flaps servoFlaps = shared.servoFlaps;
+    Steppers steppers = shared.steppers;
+    Teensy teensy = shared.teensy;
 
     servoFlaps.raise();
     steppers.flaps_move(FlapsOpen);

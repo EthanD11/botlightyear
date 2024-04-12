@@ -40,17 +40,25 @@ class SharedVariables
 private:
     double x, y, theta; // Current robot position
     double xAdv, yAdv, thetaAdv; // Current adversary position
+    time_t tStart; // Game start time
 public:
     SharedVariables();
     ~SharedVariables();
 
+    // Usage : `double x, y, theta; get_robot_pos(&x,&y,&theta);`
     void get_robot_pos(double *x, double *y, double *theta);
     void set_robot_pos(double x, double y, double theta);    
+    // Usage : `double xAdv, yAdv, thetaAdv; get_adv_pos(&xAdv,&yAdv,&thetaAdv);`
     void get_adv_pos(double *xAdv, double *yAdv, double *thetaAdv);
     void set_adv_pos(double xAdv, double yAdv, double thetaAdv);
 
-    team_color_t color;
-    uint8_t score;    
+    // Starts game timer
+    void start_timer();
+    // Updates and returns the remaining game time
+    int8_t update_and_get_timer();
+
+    team_color_t color; // Team color (blue vs yellow)
+    uint8_t score; // Current score
     storage_content_t storage[8]; // Storage of the robot, indices respect the order defined by storage_slot_t
     uint8_t nFreeSlots; // Number of free storage slots
 
