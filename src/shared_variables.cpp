@@ -16,8 +16,23 @@ SharedVariables::SharedVariables()
 
 SharedVariables::~SharedVariables()
 {
+    teensy.idle();
+    steppers.reset_all();
+    servoFlaps.idle(); grpDeployer.idle(); grpHolder.idle();
+
+    graph.~Graph();
+    spiBus.~SPIBus();
+    pins.~GPIOPins();
+
+    steppers.bus = NULL; steppers.pins = NULL; steppers.~Steppers();
+    teensy.bus = NULL; teensy.pins = NULL; teensy.~Teensy();
+    servoFlaps.bus = NULL; servoFlaps.~Flaps();
+    grpDeployer.bus = NULL; grpDeployer.~GripperDeployer();
+    grpHolder.bus = NULL; grpHolder.~GripperHolder();
+
     pthread_rwlock_destroy(&robotPosLock);
     pthread_rwlock_destroy(&advPosLock);
+
 }
 
 void SharedVariables::get_robot_pos(double *x, double *y, double *theta) {

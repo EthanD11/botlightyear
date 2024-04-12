@@ -4,7 +4,7 @@
 #include "SPI_bus.h"
 #include <stdint.h>
 
-class Flaps : private SPIUser
+class Flaps : public SPIUser
 {
 private:
 void send_flaps_dutyCycle(uint16_t servo_flaps1_duty_cycle, uint16_t servo_flaps2_duty_cycle); 
@@ -15,7 +15,7 @@ public:
     void idle();
 };
 
-class GripperDeployer : private SPIUser
+class GripperDeployer : public SPIUser
 {
 private:
 void send_dutyCycle(uint16_t duty_cycle); 
@@ -28,7 +28,7 @@ public:
     void raise();
 };
 
-class GripperHolder : private SPIUser
+class GripperHolder : public SPIUser
 {
 private:
 void send_dutyCycle(uint16_t duty_cycle); 

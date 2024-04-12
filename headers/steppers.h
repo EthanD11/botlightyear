@@ -32,7 +32,7 @@ typedef enum {
     SliderIntermediateLow
 } slider_pos_t;
 
-class Steppers : private SPIUser, private GPIOUser
+class Steppers : public SPIUser, public GPIOUser
 {
 public:
 
