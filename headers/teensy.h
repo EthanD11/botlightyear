@@ -15,7 +15,7 @@ enum __teensy_mode_t : int8_t {
 };
 typedef __teensy_mode_t teensy_mode_t;
 
-class Teensy : SPIUser, GPIOUser
+class Teensy : public SPIUser, public GPIOUser
 {
 public:
     /**
