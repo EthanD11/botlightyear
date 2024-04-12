@@ -52,8 +52,8 @@ public:
     uint8_t adversaryBases[3]; // Array of adversary bases ids, first one is reserved
     uint8_t friendlyPlanters[3]; // Array of friendly planter ids, first one is reserved
     uint8_t adversaryPlanters[3]; // Array of adversary planter ids, first one is reserved
-    uint8_t friendlySPs[6]; // Array of friendly reserved solar panel ids
-    uint8_t adversarySPs[6]; // Array of adversary reserved solar panel ids
+    uint8_t friendlySPs[3]; // Array of friendly reserved solar panel ids
+    uint8_t adversarySPs[3]; // Array of adversary reserved solar panel ids
     uint8_t commonSPs[3]; // Array of unreserved solar panels ids
     uint8_t plants[6]; // Array of plant spots ids
     uint8_t pots[6]; // Array of pot spots ids

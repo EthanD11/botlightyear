@@ -3,6 +3,7 @@
 #include "steppers.h"
 #include "servos.h"
 #include "graph.h"
+#include "odometry.h"
 #include "teensy.h"
 #include <time.h>
 #include <stdint.h>
@@ -65,6 +66,7 @@ public:
     SPIBus spiBus = SPIBus();
     GPIOPins pins = GPIOPins();
     Steppers steppers = Steppers(&spiBus, &pins);
+    Odometry odo = Odometry(&spiBus);
     Teensy teensy = Teensy(&spiBus, &pins);
     Flaps servoFlaps = Flaps(&spiBus);
     GripperDeployer grpDeployer = GripperDeployer(&spiBus);
