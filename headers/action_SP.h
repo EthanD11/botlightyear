@@ -6,7 +6,6 @@
 #include "shared_variables.h"
 
 
-extern SharedVariables shared;
 
 void solar_panel_pc(); 
 void turn_solar_panel(bool reserved, uint8_t sp_counter);

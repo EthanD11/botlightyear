@@ -1,4 +1,7 @@
 #include "action_SP.h"
+#include <lgpio.h>
+
+extern SharedVariables shared;
 
 SPIBus spiBus = shared.spiBus;
 GPIOPins pins = shared.pins;
@@ -21,18 +24,18 @@ void solar_panel_pc() {
 
     // Define trajectory to next SP
     int ncheckpoints = 2;
-    double x[2] = {x, x+22.5e-2};
-    double y[2] = {y,         y};
+    double xc[2] = {x, x+22.5e-2};
+    double yc[2] = {y,         y};
     double theta_start = theta;
     double theta_end = theta;
 
     // Set teensy and odometry starting positions
     double xpos, ypos, thetapos;
-    odo.set_pos(x[0], y[0], theta_start);
-    teensy.set_position(x[0], y[0], theta_start);
+    odo.set_pos(xc[0], yc[0], theta_start);
+    teensy.set_position(xc[0], yc[0], theta_start);
     
     // Orientation with position control
-    teensy.pos_ctrl(x[1], y[1], theta_end);
+    teensy.pos_ctrl(xc[1], yc[1], theta_end);
     lguSleep(0.1);
 
     // Reset teensy estimated position with odometry
@@ -41,9 +44,8 @@ void solar_panel_pc() {
         teensy.set_position(xpos, ypos, thetapos);
         printf("%.3f,%.3f,%.3f\n",xpos, ypos, thetapos);
         lguSleep(0.3);
-    } while(abs(xpos-x[1]) > 0.01); 
+    } while(abs(xpos-xc[1]) > 0.01); 
 
-    return 0; 
 }
 
 /* TURN_SOLAR_PANEL: Action sequence to turn a solar panel 
@@ -51,10 +53,9 @@ void solar_panel_pc() {
 void turn_solar_panel(bool reserved, uint8_t sp_counter) { 
 
     // Team management (rework to do)
-    team_t team; 
-    extern team_color_t color; 
+    team_t team;
     
-    switch(color) {
+    switch(shared.color) {
         case TeamBlue:
             team = Blue;  
             break; 
@@ -71,13 +72,13 @@ void turn_solar_panel(bool reserved, uint8_t sp_counter) {
             dxl_turn(team, 0); 
         }
         else {
-            double angle = tagFromJpg(); 
+            double angle = tagSolar(); 
             dxl_turn(team, angle); 
         }
         dxl_deploy(Mid);
 
         // Update dynamic score
-        extern score += 5;
+        shared.score += 5;
         sp_counter--; 
 
         // Go to next
@@ -92,19 +93,18 @@ void turn_solar_panel(bool reserved, uint8_t sp_counter) {
             dxl_turn(team, 0); 
         }
         else {
-            double angle = tagFromJpg(); 
+            double angle = tagSolar(); 
             dxl_turn(team, angle); 
         }
         dxl_deploy(Up);
         dxl_init_sp();
 
         // Update dynamic score
-        extern score += 5;
+        shared.score += 5; 
         sp_counter--; 
     }
 
     /* TO DO: If sp_counter = 0: return state action finish
               Return interrupt*/
 
-    return 0; 
 }

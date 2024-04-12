@@ -1,5 +1,6 @@
 #include "shared_variables.h"
 #include <pthread.h>
+#include <lgpio.h>
 
 pthread_rwlock_t robotPosLock, advPosLock;
 

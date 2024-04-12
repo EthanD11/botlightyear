@@ -124,6 +124,7 @@ void FinalScoreDisplay(void) {
 }
 
 void PowerOnDisplay(void) {
+	std::cout<<"PowerOnDisplay" << std::endl;
 	myOLED.setTextSize(2);
 	myOLED.setTextColor(WHITE);
 	myOLED.setCursor(50,10); 
