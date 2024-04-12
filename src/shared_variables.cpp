@@ -1,27 +1,45 @@
-#include "action_variables.h"
+#include "shared_variables.h"
 #include <pthread.h>
 
-pthread_rwlock_t var_mutex;
+pthread_rwlock_t robotPosLock, advPosLock;
 
-ActionVariables::ActionVariables()
+SharedVariables::SharedVariables()
 {
-    pthread_rwlock_init(&var_mutex, NULL);
-    nextFreeSlot = SlotM3;
+    pthread_rwlock_init(&robotPosLock, NULL);
+    pthread_rwlock_init(&advPosLock, NULL);
+
+    color = NoTeam;
+    score = 0;
+    for (uint8_t i = 0; i < 8; i++) storage[i] = ContainsNothing;
+    nFreeSlots = 8;
 }
 
-ActionVariables::~ActionVariables()
+SharedVariables::~SharedVariables()
 {
-    pthread_rwlock_destroy(&var_mutex);
+    pthread_rwlock_destroy(&robotPosLock);
+    pthread_rwlock_destroy(&advPosLock);
 }
 
-void ActionVariables::pos_rd_lock() {
-    pthread_rwlock_rdlock(&var_mutex);
+void SharedVariables::get_robot_pos(double *x, double *y, double *theta) {
+    pthread_rwlock_rdlock(&robotPosLock);
+    *x = this->x; *y = this->y; *theta = this->theta;
+    pthread_rwlock_unlock(&robotPosLock);
 }
 
-void ActionVariables::pos_wr_lock() {
-    pthread_rwlock_wrlock(&var_mutex);
+void SharedVariables::set_robot_pos(double x, double y, double theta) {
+    pthread_rwlock_wrlock(&robotPosLock);
+    this->x = x; this->y = y; this->theta = theta;
+    pthread_rwlock_unlock(&robotPosLock);
 }
 
-void ActionVariables::pos_unlock() {
-    pthread_rwlock_unlock(&var_mutex);
+void SharedVariables::get_adv_pos(double *xAdv, double *yAdv, double *thetaAdv) {
+    pthread_rwlock_rdlock(&advPosLock);
+    *xAdv = this->xAdv; *yAdv = this->yAdv; *thetaAdv = this->thetaAdv;
+    pthread_rwlock_unlock(&advPosLock);
+}
+
+void SharedVariables::set_adv_pos(double xAdv, double yAdv, double thetaAdv) {
+    pthread_rwlock_wrlock(&advPosLock);
+    this->xAdv = xAdv; this->yAdv = yAdv; this->thetaAdv = thetaAdv;
+    pthread_rwlock_unlock(&advPosLock);
 }

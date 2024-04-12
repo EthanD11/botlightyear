@@ -7,7 +7,7 @@
 SPIBus spiBus = SPIBus();
 GPIOPins pins = GPIOPins(); 
 Steppers steppers = Steppers(&spiBus, &pins); 
-Flaps servo_flaps = Flaps(&spiBus) 
+Flaps servoFlaps = Flaps(&spiBus) 
 
 int main(int argc, char const *argv[])
 {
@@ -18,7 +18,7 @@ int main(int argc, char const *argv[])
     if (ax_ping(6) != 0) return -1;
     if (ax_ping(8) != 0) return -1;
 
-    servo_flaps.raise(); 
+    servoFlaps.raise(); 
 
     steppers.reset_all(); 
     steppers.setup_speed(StprFlaps,5,10); 
@@ -28,12 +28,12 @@ int main(int argc, char const *argv[])
     sleep(10);
 
     
-    servo_flaps.deploy();
+    servoFlaps.deploy();
     steppers.flaps_move(FlapsPot);
     sleep(3);
     steppers.flaps_move(FlapsOpen);
     sleep(1);
-    servo_flaps.raise();
+    servoFlaps.raise();
     open_gripper();
     deploy_gripper();
     steppers.slider_move(SliderLow);
@@ -52,12 +52,12 @@ int main(int argc, char const *argv[])
 
     open_gripper();
     deploy_gripper(); 
-    servo_flaps.deploy();
+    servoFlaps.deploy();
     steppers.flaps_move(FlapsPot); 
     sleep(3); 
     steppers.flaps_move(FlapsOpen); 
     sleep(1); 
-    servo_flaps.raise();
+    servoFlaps.raise();
     steppers.slider_move(SliderLow); 
     sleep(6); 
     close_gripper_pot(); 
@@ -73,12 +73,12 @@ int main(int argc, char const *argv[])
 
     open_gripper();
     deploy_gripper();
-    servo_flaps.deploy();
+    servoFlaps.deploy();
     steppers.flaps_move(FlapsPlant); 
     sleep(3); 
     steppers.flaps_move(FlapsOpen);
     sleep(1);
-    servo_flaps.raise();
+    servoFlaps.raise();
     steppers.slider_move(SliderLow); 
     sleep(6); 
     close_gripper_plant(); 
@@ -97,12 +97,12 @@ int main(int argc, char const *argv[])
 
     open_gripper();
     deploy_gripper();
-    servo_flaps.deploy();
+    servoFlaps.deploy();
     steppers.flaps_move(FlapsPlant); 
     sleep(3); 
     steppers.flaps_move(FlapsOpen);
     sleep(1);
-    servo_flaps.raise();
+    servoFlaps.raise();
     steppers.slider_move(SliderLow); 
     sleep(6); 
     close_gripper_plant(); 

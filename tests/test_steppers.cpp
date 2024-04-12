@@ -18,7 +18,7 @@ Steppers steppers = Steppers(&spi_bus, &pins);
 GripperHolder holder = GripperHolder(&spi_bus); 
 GripperDeployer deployer = GripperDeployer(&spi_bus); 
 
-Flaps servo_flaps = Flaps(&spi_bus); 
+Flaps servoFlaps = Flaps(&spi_bus); 
 void TakePotCHAIN() {
     holder.idle();
     deployer.idle();
@@ -162,13 +162,13 @@ int main(int argc, char const *argv[])
     #endif
 
     #ifdef DEMO_S6
-    servo_flaps.deploy(); 
+    servoFlaps.deploy(); 
     steppers.flaps_move(FlapsPlant);
     sleep(4);
     steppers.flaps_move(FlapsOpen);
     steppers.slider_move(SliderLow);
     sleep(2);
-    servo_flaps.raise(); 
+    servoFlaps.raise(); 
     sleep(3);
     steppers.slider_move(SliderHigh);
     sleep(5);
@@ -178,10 +178,10 @@ int main(int argc, char const *argv[])
     steppers.move(StprFlaps, 600,0);
     sleep(5);
     steppers.plate_move(1);
-    servo_flaps.deploy(); 
+    servoFlaps.deploy(); 
     
     sleep(5);
-    servo_flaps.idle();
+    servoFlaps.idle();
     #endif
 
     sleep(1);

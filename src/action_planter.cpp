@@ -1,9 +1,13 @@
 #include "action_planter.h"
 #include <cmath>
 
+Flaps servoFlaps = shared.servoFlaps;
+Steppers steppers = shared.steppers;
+Teensy teensy = shared.teensy;
+
 void planter_place_objects(uint8_t nObjects) {
 
-    servo_flaps.raise();
+    servoFlaps.raise();
     steppers.flaps_move(FlapsOpen);
     steppers.plate_move(0, CALL_BLOCKING);
 
@@ -11,12 +15,10 @@ void planter_place_objects(uint8_t nObjects) {
 
     // Retrieve current position
     double x, y, theta;
-    actVar.pos_rd_lock();
-    x = actVar.x; y = actVar.y; theta = actVar.theta;
-    actVar.pos_unlock();
+    shared.get_robot_pos(&x, &y, &theta);
 
     // Empty gripper first
-    if (actVar.storage[SlotGripper] != ContainsNothing) {
+    if (shared.storage[SlotGripper] != ContainsNothing) {
 
         teensy.pos_ctrl(x+0.2*cos(theta)+0.32/rint(nObjects/2), y+0.2*sin(theta), theta);
         nDropped++;
@@ -26,7 +28,7 @@ void planter_place_objects(uint8_t nObjects) {
     steppers.slider_move(SliderHigh, CALL_BLOCKING);
     for (uint8_t i = Slot1; i <= SlotM3; i--)
     {
-        if (actVar.storage[i] == ContainsNothing) continue;
+        if (shared.storage[i] == ContainsNothing) continue;
         uint8_t plateSlotID;
         switch (i)
         {

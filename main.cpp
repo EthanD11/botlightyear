@@ -1,10 +1,4 @@
-#include "SPI_bus.h"
-#include "steppers.h"
-#include "servos.h"
-#include "lidarTop.h"
-#include "dynamixels.h"
-#include "graph.h"
-#include "action_variables.h"
+#include "shared_variables.h"
 #include <unistd.h>
 #include <iostream>
 #include <stdio.h>
@@ -32,8 +26,9 @@ pthread_rwlock_t graph_lock;
 graph_path_t *currentPath = NULL;
 uint8_t bases[3];
 
-SPIBus spi_bus = SPIBus();
-Steppers steppers = Steppers(&spi_bus);
+SPIBus spiBus = SPIBus();
+GPIOPins pins = GPIOPins();
+Steppers steppers = Steppers(&spiBus, &pins);
 Graph graph = Graph();
 
 void ask_user_input_params() {

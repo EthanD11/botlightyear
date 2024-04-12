@@ -2,7 +2,7 @@
 #include "servos.h"
 
 extern Steppers steppers;
-extern Flaps servo_flaps;
+extern Flaps servoFlaps;
 extern GripperDeployer deployer;
 extern GripperHolder holder;
 

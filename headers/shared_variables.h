@@ -1,3 +1,9 @@
+#include "SPI_bus.h"
+#include "GPIO.h"
+#include "steppers.h"
+#include "servos.h"
+#include "graph.h"
+#include "teensy.h"
 #include <time.h>
 #include <stdint.h>
 
@@ -11,7 +17,7 @@ typedef enum _storage_slot : uint8_t
     Slot1,
     SlotGripper,
     SlotFlaps
-}storage_slot_t;
+} storage_slot_t;
 
 /**
  * A storage_content_t is a three bit binary word 0bCBA
@@ -27,19 +33,34 @@ typedef enum _storage_content : uint8_t
     ContainsWeakPlant = 0b110,
     ContainsStrongPlantInPot = 0b011,
     ConstainsWeakPlantInPot = 0b111
-}storage_content_t;
+} storage_content_t;
 
-class ActionVariables
+class SharedVariables
 {
-public:
-    ActionVariables();
-    ~ActionVariables();
-    void pos_rd_lock(); // Lock from other threads, low priority
-    void pos_wr_lock(); // Lock from other threads, high priority
-    void pos_unlock(); // Unlock for other treads
+private:
     double x, y, theta; // Current robot position
-    double xadv, yadv, thetaadv; // Current adversary position
-    storage_content_t storage[7]; // Storage of the robot, indices respect the order defined by storage_slot_t
-    storage_slot_t nFreeSlots; // Number of free storage slots
+    double xAdv, yAdv, thetaAdv; // Current adversary position
+public:
+    SharedVariables();
+    ~SharedVariables();
+
+    void get_robot_pos(double *x, double *y, double *theta);
+    void set_robot_pos(double x, double y, double theta);    
+    void get_adv_pos(double *xAdv, double *yAdv, double *thetaAdv);
+    void set_adv_pos(double xAdv, double yAdv, double thetaAdv);
+
+    team_color_t color;
+    uint8_t score;    
+    storage_content_t storage[8]; // Storage of the robot, indices respect the order defined by storage_slot_t
+    uint8_t nFreeSlots; // Number of free storage slots
+
+    SPIBus spiBus = SPIBus();
+    GPIOPins pins = GPIOPins();
+    Steppers steppers = Steppers(&spiBus, &pins);
+    Teensy teensy = Teensy(&spiBus, &pins);
+    Flaps servoFlaps = Flaps(&spiBus);
+    GripperDeployer grpDeployer = GripperDeployer(&spiBus);
+    GripperHolder grpHolder = GripperHolder(&spiBus);
+    Graph graph = Graph();
 };
 

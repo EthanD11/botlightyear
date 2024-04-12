@@ -9,7 +9,7 @@ SPIBus spiBus = SPIBus();
 GPIOPins pins = GPIOPins(); 
 Steppers steppers = Steppers(&spiBus, &pins); 
 
-Flaps servo_flaps = Flaps(&spiBus); 
+Flaps servoFlaps = Flaps(&spiBus); 
 
 int main(int argc, char const *argv[])
 {
@@ -21,7 +21,7 @@ int main(int argc, char const *argv[])
     dxl_ping(6, 1.0);
     dxl_ping(8, 1.0);
 
-    servo_flaps.raise();
+    servoFlaps.raise();
     steppers.setup_speed(StprFlaps,100,600); 
     steppers.setup_speed(StprPlate,60,500); 
     steppers.setup_speed(StprSlider,300,400);
@@ -31,7 +31,7 @@ int main(int argc, char const *argv[])
     sleep(5); 
 
 
-    servo_flaps.deploy();
+    servoFlaps.deploy();
     steppers.flaps_move(FlapsPlant);
     lguSleep(3);
     steppers.flaps_move(FlapsOpen);

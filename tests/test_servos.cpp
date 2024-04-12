@@ -7,38 +7,38 @@ SPIBus spi_bus = SPIBus();
 GPIOPins pins = GPIOPins(); 
 Steppers steppers = Steppers(&spi_bus, &pins); 
 
-Flaps servo_flaps = Flaps(&spi_bus); 
-GripperDeployer servo_gripper_deployer = GripperDeployer(&spi_bus); 
-GripperHolder servo_gripper_holder = GripperHolder(&spi_bus);
+Flaps servoFlaps = Flaps(&spi_bus); 
+GripperDeployer servoGripperDeployer = GripperDeployer(&spi_bus); 
+GripperHolder servoGripperHolder = GripperHolder(&spi_bus);
 
 
 int main(int argc, char const *argv[])
 {
 
-    servo_flaps.deploy(); 
+    servoFlaps.deploy(); 
     sleep(3);
-    servo_flaps.raise();
+    servoFlaps.raise();
     sleep(1);
 
-    servo_flaps.idle();
+    servoFlaps.idle();
     
-    servo_gripper_holder.close(); 
+    servoGripperHolder.close(); 
     sleep(3);
-    servo_gripper_holder.open(); 
+    servoGripperHolder.open(); 
     sleep(3);
-    servo_gripper_holder.hold_plant(); 
+    servoGripperHolder.hold_plant(); 
     sleep(3);
-    servo_gripper_holder.hold_pot(); 
+    servoGripperHolder.hold_pot(); 
     sleep(1);
-    servo_gripper_holder.idle();
+    servoGripperHolder.idle();
 
-    // servo_gripper_deployer.deploy();
+    // servoGripperDeployer.deploy();
     // sleep(3);
-    // servo_gripper_deployer.half(); 
+    // servoGripperDeployer.half(); 
     // sleep(3);
-    // servo_gripper_deployer.raise();
+    // servoGripperDeployer.raise();
     // sleep(1);
-    servo_gripper_deployer.idle(); 
+    servoGripperDeployer.idle(); 
 
     return 0;
 }
