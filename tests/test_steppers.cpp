@@ -66,79 +66,44 @@ void demoPlate(){
 
 int main(int argc, char const *argv[])
 {
-    printf("PANCAKES GOOOOOO\n");
     #ifdef TESTS
-    // steppers.setup_speed(StprFlaps,500,800); 
-    // steppers.setup_speed(StprPlate,60,500); 
-    // steppers.setup_speed(StprSlider,300,600);
-    // steppers.setup_speed(StprFlaps,100,400);
-    // steppers.setup_calib_speed(400,500,StprFlaps);
 
     // holder.idle();
     // deployer.idle();
     // steppers.reset_all();
-
-    // steppers.calibrate(StprPlate, CALL_BLOCKING); 
-    // steppers.calibrate(StprSlider, CALL_BLOCKING); 
-
-    // sleep(5);
-    // steppers.slider_move(SliderPlate, CALL_BLOCKING);
-    // steppers.slider_move(SliderTake, CALL_BLOCKING);
-    // steppers.slider_move(SliderDeposit, CALL_BLOCKING);
-    // steppers.slider_move(SliderPlate, CALL_BLOCKING);
-    //1800 : TAKE-PLANT, TAKE-POT, DEPOSIT-PLANT-not in pot, 
-    //1000 : DEPOSIT_POT
-    //5300 : butée : slider_low : take plant or pot
-
-    // steppers.move(StprSlider, 5300, 0); 
-    // steppers.plate_move(1, CALL_BLOCKING);
-    // steppers.calibrate(StprSlider); 
-    // steppers.slider_move(SliderDepositPot);
-    // holder.hold_pot();
-    // holder.open();
-    // deployer.pot_deposit();
-    // deployer.deploy();
     
-    // steppers.reset(StprPlate); 
-    // steppers.calibrate(StprPlate, CALL_BLOCKING); 
-    // steppers.plate_move(0, CALL_BLOCKING); 
-
-
-    // deployer.deploy();
-    // steppers.slider_move(SliderIntermediateLow);
-
-    // holder.open();
-    
-
-    // steppers.plate_move(3, CALL_BLOCKING);
-    // steppers.plate_move(0, CALL_BLOCKING);
-    // steppers.plate_move(3, CALL_BLOCKING);
-    // steppers.plate_move(0, CALL_BLOCKING);
     // TakePotCHAIN(); 
-    steppers.setup_speed(StprFlaps,150,400); 
-    steppers.reset_all(); 
-
-    steppers.calibrate(StprFlaps, CALL_BLOCKING); 
-    steppers.flaps_move(FlapsPlant, CALL_BLOCKING); 
-    steppers.flaps_move(FlapsOpen, CALL_BLOCKING); 
-    steppers.flaps_move(FlapsPot, CALL_BLOCKING); 
-    steppers.flaps_move(FlapsOpen, CALL_BLOCKING); 
 
 
+
+    // steppers.setup_all_speeds(); 
+    // steppers.reset_all(); 
+    steppers.calibrate(StprPlate, CALL_BLOCKING); 
+    steppers.calibrate(StprSlider, CALL_BLOCKING); 
+
+    //steppers.calibrate(StprFlaps, CALL_BLOCKING); 
+    deployer.half();
+    holder.hold_plant(); 
+
+    steppers.plate_move(-3, CALL_BLOCKING); 
+    steppers.plate_move(0, CALL_BLOCKING); 
+    steppers.plate_move(3, CALL_BLOCKING); 
+    steppers.plate_move(0, CALL_BLOCKING); 
+    // sleep(2);
+    deployer.deploy(); 
+
+    // steppers.slider_move(SliderStorage, CALL_BLOCKING); 
+    // steppers.slider_move(SliderLow, CALL_BLOCKING); 
+    // steppers.slider_move(SliderDepositPot, CALL_BLOCKING);
+    // steppers.slider_move(SliderHigh, CALL_BLOCKING); 
     
-    // steppers.setup_speed(StprPlate,60,500); //60 max
-    // demoPlate();
-    // steppers.plate_move(-3);
-    // steppers.plate_move(3);
 
-    
+    // steppers.flaps_move(FlapsPlant, CALL_BLOCKING); 
+    // steppers.flaps_move(FlapsOpen, CALL_BLOCKING); 
+    // steppers.flaps_move(FlapsPot, CALL_BLOCKING); 
+    // steppers.flaps_move(FlapsOpen, CALL_BLOCKING); 
 
-    
-    // steppers.setup_speed(StprFlaps,100,400);
-    // steppers.flaps_move(FlapsPlant);
-    // steppers.flaps_move(FlapsOpen);
-    // steppers.flaps_move(FlapsPot);
-    // steppers.flaps_move(FlapsOpen);
+
 
     #endif
 

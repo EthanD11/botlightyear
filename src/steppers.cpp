@@ -59,7 +59,7 @@ void Steppers::move(steppers_t stepperName, uint32_t steps, uint8_t neg, uint8_t
                 printf("Error : not a stepper %d \n", stepperName); 
                 return; 
         }
-        pins->wait_for_gpio_value(stepper_gpio, 1); 
+        pins->wait_for_gpio_value(stepper_gpio, 1, 10000); 
     }
 }
 
@@ -166,7 +166,7 @@ void Steppers::plate_move(int8_t pot, uint8_t blocking){
     int direction = 0;
     int offset = 70;
     if (pot == 0){
-        move(StprPlate, 0, 0);   
+        move(StprPlate, 0, 0,blocking);   
     } else {
         if (pot < 0) {
             pot = -pot;
@@ -302,6 +302,12 @@ void Steppers::setup_acc(steppers_t stepperName, uint8_t accSteps) {
     bus->DE0_write(send);
     bus->unlock();
 
+}
+
+void Steppers::setup_all_speeds() {
+    setup_speed(StprPlate,80,400); 
+    setup_speed(StprSlider,300,450);
+    setup_speed(StprFlaps,150,400); 
 }
 
 void Steppers::calibrate_all(uint8_t blocking) {

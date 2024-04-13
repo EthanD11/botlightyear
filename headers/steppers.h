@@ -36,7 +36,11 @@ class Steppers : public SPIUser, public GPIOUser
 {
 public:
 
-    Steppers(SPIBus *bus, GPIOPins *pins) : SPIUser(bus), GPIOUser(pins) {}
+    Steppers(SPIBus *bus, GPIOPins *pins) : SPIUser(bus), GPIOUser(pins) {
+        reset_all(); 
+        setup_all_speeds(); 
+        //calibrate_all(); 
+    }
 
     /**
      * @brief Move the stepper 'stepperName' of 'steps' steps in the 'neg' direction (0 for positive, 1 for negative)
@@ -89,6 +93,11 @@ public:
      * @param initialSpeed is the initial speed that the stepper begins with at each movement
      */
     void setup_speed(steppers_t stepperName, int nominalSpeed, int initialSpeed); 
+
+    /**
+     * @brief Sets the nominal and initial speed of all the steppers (tested pre-defined optimal value)
+     */
+    void setup_all_speeds();
 
     /**
      * @brief Sets the calibration speed and the small calibration speed of the stepper
