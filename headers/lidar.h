@@ -9,6 +9,7 @@
 //pour plot
 #include <iostream>
 #include <vector>
+
 using std::string;
 
 //For sleep
@@ -25,6 +26,7 @@ void StartLidarBottom();
  * close Lidar
  */
 void StopLidarTop();
+
 void StopLidarBottom();
 
 
@@ -35,8 +37,9 @@ void StopLidarBottom();
  * @param quality
  * @param arraySize : maximum array size
  */
-void updateDataTop(double* angles, double* distances, double* quality,  size_t * arraySize);
-void updateDataBottom(double* angles, double* distances, double* quality,  size_t * arraySize);
+void updateDataTop(double *angles, double *distances, double *quality, size_t *arraySize);
+
+void updateDataBottom(double *angles, double *distances, double *quality, size_t *arraySize);
 
 
 /**
@@ -47,17 +50,15 @@ void updateDataBottom(double* angles, double* distances, double* quality,  size_
  * @param filename input : name of the file containing all the lidar data to be analysed
  * @param arraySize output : updates the number of elements
  */
-void updateDataFile(double* angles, double* distances, double* quality, string filename,  size_t * arraySize);
+void updateDataFile(double *angles, double *distances, double *quality, string filename, size_t *arraySize);
 
 /**
  * Saves lidar data for local testing afterwards
  * @param filename : name of the file in which the data will be saved
  */
 void DataToFileTop(string filename);
+
 void DataToFileBottom(string filename);
-
-
-
 
 
 #endif //MECATROMINIBOT_LIDAR_H
