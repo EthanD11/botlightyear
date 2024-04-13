@@ -54,8 +54,8 @@ public:
     void get_robot_pos(double *x, double *y, double *theta);
     void set_robot_pos(double x, double y, double theta);    
     // Usage : `double xAdv, yAdv, thetaAdv; get_adv_pos(&xAdv,&yAdv,&thetaAdv);`
-    void get_adv_pos(double *xAdv, double *yAdv, double *thetaAdv);
-    void set_adv_pos(double xAdv, double yAdv, double thetaAdv);
+    void get_adv_pos(double *xAdv, double *yAdv);
+    void set_adv_pos(double xAdv, double yAdv);
 
     // Starts game timer on starting cord pull detection
     void start_timer();
@@ -64,6 +64,7 @@ public:
 
     team_color_t color; // Team color (blue vs yellow)
     uint8_t score; // Current score
+    uint8_t startingBaseID; // Graph node ID of the base where the robot started
     storage_content_t storage[8]; // Storage of the robot, indices respect the order defined by storage_slot_t
     uint8_t nFreeSlots; // Number of free storage slots
 

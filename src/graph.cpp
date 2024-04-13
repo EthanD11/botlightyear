@@ -256,19 +256,19 @@ int Graph::init_from_file(const char *filename, team_color_t color) {
     printf("\n");
     #endif
     if (color == TeamBlue) {
-        friendlyBasesTheta[0] = -M_PI/2;
-        friendlyBasesTheta[1] = -M_PI/2;
-        friendlyBasesTheta[2] = M_PI/2;
+        friendlyBasesTheta[0] = -M_PI_2;
+        friendlyBasesTheta[1] = -M_PI_2;
+        friendlyBasesTheta[2] = M_PI_2;
         friendlyPlantersTheta[0] = -M_PI;
-        friendlyPlantersTheta[1] = -M_PI/2;
-        friendlyPlantersTheta[2] = M_PI/2;
+        friendlyPlantersTheta[1] = -M_PI_2;
+        friendlyPlantersTheta[2] = M_PI_2;
     } else {
-        friendlyBasesTheta[0] = M_PI/2;
-        friendlyBasesTheta[1] = M_PI/2;
-        friendlyBasesTheta[2] = -M_PI/2;
+        friendlyBasesTheta[0] = M_PI_2;
+        friendlyBasesTheta[1] = M_PI_2;
+        friendlyBasesTheta[2] = -M_PI_2;
         friendlyPlantersTheta[0] = -M_PI;
-        friendlyPlantersTheta[1] = M_PI/2;
-        friendlyPlantersTheta[2] = -M_PI/2;
+        friendlyPlantersTheta[1] = M_PI_2;
+        friendlyPlantersTheta[2] = -M_PI_2;
     }
 
     // Scan yellow bases nodes, assign level

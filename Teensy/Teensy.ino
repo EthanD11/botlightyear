@@ -236,6 +236,9 @@ void loop() {
 
       case ModePositionControlOver:
         control_speed(speed_regulator, robot_position, 0, 0);
+        set_motors_duty_cycle(outputs,  
+          get_duty_cycle_refl(speed_regulator), 
+          get_duty_cycle_refr(speed_regulator));
         break;
 
 
@@ -329,6 +332,9 @@ void loop() {
         } else {
           nextmode = ModePositionControl;
         }
+        break;
+      case ModePositionControlOver:
+        nextmode = ModePositionControlOver;
         break;
       case ModePathFollowingInit:
         nextmode = ModePathFollowing;
