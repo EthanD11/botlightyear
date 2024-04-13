@@ -1,6 +1,12 @@
 #include "lidarTop.h"
 #include <chrono>
 
+//facteur si mouvent brusque
+int facteurLost =1;
+
+bool fullScanPcqLost = false;
+
+
 ///global variable to find out the size of the file
 size_t arraySize = 8000;
 
@@ -410,8 +416,8 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
         ///calculating the limits where we will look
         for (int i = 0; i < 4; ++i) {
             deltaDemiAlpha = 5 * std::tan(0.05 / lidarData->beaconAdv[2 * i + 1]);
-            angleStart = lidarData->beaconAdv[2 * i] - deltaDemiAlpha;
-            angleEnd = lidarData->beaconAdv[2 * i] + deltaDemiAlpha;
+            angleStart = lidarData->beaconAdv[2 * i] - deltaDemiAlpha*facteurLost;
+            angleEnd = lidarData->beaconAdv[2 * i] + deltaDemiAlpha*facteurLost;
             origine[i] = arraySize * angleStart / (2 * M_PI);
             fin[i] = arraySize * angleEnd / (2 * M_PI);
             while (fin[i] - origine[i] < 70) {
@@ -745,7 +751,7 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
                                 precision *= 10;
                             }
                             if (lidarData->x_robot > 0 && lidarData->x_robot < 2 && lidarData->y_robot > 0 &&
-                                lidarData->y_robot < 3 && (fullScan || (
+                                lidarData->y_robot < 3 && ((fullScan&&!fullScanPcqLost) || (
                                     std::abs(lidarData->x_robot - oldXRobot) < precision &&
                                     std::abs(lidarData->y_robot - oldYRobot) < precision))) {
 
@@ -816,9 +822,19 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
     if (analyseDetail) {
         printf("size : %ld\n", as[0]);
     }
+    if(i==0){
+        fullScan=true;
+    }
 
     checkBeacon(angles, distances, quality, lidarData, fullScan);
-    
+    if (lidarData->readLidar_lost){
+        facteurLost=5;
+        fullScan=true;
+        fullScanPcqLost = true;
+        checkBeacon(angles, distances, quality, lidarData, fullScan);
+        fullScanPcqLost = false;
+        facteurLost=1;
+    }
 
     delete (angles);
     delete (distances);

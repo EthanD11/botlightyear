@@ -1,6 +1,7 @@
 #include "odometry.h"
 #include "teensy.h"
 #include "lidarTop.h"
+#include "GPIO.h"
 #include "dynamixels.h"
 #include <unistd.h>
 #include <cstdio>
@@ -20,18 +21,12 @@ const double deg_to_rads = M_PI/180;
 int32_t old_ticks_l = 0, old_ticks_r = 0;
 double x = 0.0, y = 0.0, theta = 0.0;
 
-typedef enum {
-  ModeIdle, // No input from RPi, default is to remain still
-  ModePositionControl,
-  ModePathFollowingInit,
-  ModePathFollowing,
-  ModeSpeedControl,
-  ModeConstantDC
-} controlmode_t; 
+
 
 SPIBus spiBus = SPIBus();
+GPIOPins pins = GPIOPins();
 Odometry odo = Odometry(&spiBus);
-Teensy teensy = Teensy(&spiBus);
+Teensy teensy = Teensy(&spiBus, &pins);
 
 void *homologation(void* v) {
     printf("Entering homologation thread \n");
@@ -87,19 +82,19 @@ void *homologation(void* v) {
 
     //Grab the plant:
     sleep(2);
-    teensy.ask_mode();
+    printf("%d\n",teensy.ask_mode());
     sleep(2);
-    teensy.ask_mode();
+    printf("%d\n",teensy.ask_mode());
     sleep(2);
-    teensy.ask_mode();
+    printf("%d\n",teensy.ask_mode());
     sleep(2);
-    teensy.ask_mode();
+    printf("%d\n",teensy.ask_mode());
     /*sleep(2);
-    teensy.ask_mode();
+    printf("%d\n",teensy.ask_mode());
     sleep(2);
-    teensy.ask_mode();
+    printf("%d\n",teensy.ask_mode());
     sleep(2);
-    teensy.ask_mode();*/
+    printf("%d\n",teensy.ask_mode());*/
     sleep(2);
     
 
@@ -133,23 +128,23 @@ void *homologation(void* v) {
 
     //Path following: Go to solar panels
     sleep(2);
-    teensy.ask_mode();
+    printf("%d\n",teensy.ask_mode());
     sleep(2);
-    /*teensy.ask_mode();
+    /*printf("%d\n",teensy.ask_mode());
     sleep(2);
-    teensy.ask_mode();
+    printf("%d\n",teensy.ask_mode());
     sleep(2);
-    teensy.ask_mode();
+    printf("%d\n",teensy.ask_mode());
     sleep(2);
-    teensy.ask_mode();
+    printf("%d\n",teensy.ask_mode());
     sleep(2);
-    teensy.ask_mode();
+    printf("%d\n",teensy.ask_mode());
     sleep(2);
-    teensy.ask_mode();
+    printf("%d\n",teensy.ask_mode());
     sleep(2);
-    teensy.ask_mode();
+    printf("%d\n",teensy.ask_mode());
     sleep(2);
-    teensy.ask_mode();*/
+    printf("%d\n",teensy.ask_mode());*/
 
     if ((!ADVERSARY_FLAG)) {
         printf("No adversary, taking path following \n");
@@ -177,23 +172,23 @@ void *homologation(void* v) {
     }
     //Turn solar panel
     sleep(2);
-    teensy.ask_mode();
+    printf("%d\n",teensy.ask_mode());
     sleep(2);
-    teensy.ask_mode();
+    printf("%d\n",teensy.ask_mode());
     sleep(2);
-    teensy.ask_mode();
+    printf("%d\n",teensy.ask_mode());
     sleep(2);
-    teensy.ask_mode();
+    printf("%d\n",teensy.ask_mode());
     sleep(2);
-    teensy.ask_mode();
+    printf("%d\n",teensy.ask_mode());
     sleep(2);
-    teensy.ask_mode();
+    printf("%d\n",teensy.ask_mode());
     sleep(2);
-    teensy.ask_mode();
+    printf("%d\n",teensy.ask_mode());
     sleep(2);
-    teensy.ask_mode();
+    printf("%d\n",teensy.ask_mode());
     sleep(2);
-    teensy.ask_mode();
+    printf("%d\n",teensy.ask_mode());
 
     
 
@@ -230,6 +225,7 @@ void *topLidar(void* v) {
     LidarData *lidarData = new LidarData[sizeof(LidarData)];
     init_lidar(lidarData);
     int i = 0;
+    double previousX;
     while (!ENDGAME) {
         //DataToFile("testLidarMobile/"+std::to_string(i));
         lidarGetRobotPosition(lidarData, i);
@@ -237,7 +233,11 @@ void *topLidar(void* v) {
             printf(" robot at x=%f; y=%f; orientation=%f", lidarData->readLidar_x_robot, lidarData->readLidar_y_robot, lidarData->readLidar_theta_robot*180.0/M_PI);
             printf(" Adversary at d=%f; a=%f\n", lidarData->readLidar_d_opponent, lidarData->readLidar_a_opponent);
         i++;
+        if (previousX == lidarData->readLidar_x_robot){
+            printf("lostttttttttttttttttttttttttttttttttttttttttttttttt\n");
+        }
         //printf("%f %f %f %f %f %f %f %f \n", lidarData->beaconAdv[0]*180.0/M_PI,lidarData->beaconAdv[1],lidarData->beaconAdv[2]*180.0/M_PI,lidarData->beaconAdv[3],lidarData->beaconAdv[4]*180.0/M_PI,lidarData->beaconAdv[5],lidarData->beaconAdv[6]*180.0/M_PI,lidarData->beaconAdv[7]);
+        previousX = lidarData->readLidar_x_robot;
         double adv_dist = lidarData->readLidar_d_opponent; 
         double adv_angle = lidarData->readLidar_a_opponent;
         double limit_stop = 0.5; 
