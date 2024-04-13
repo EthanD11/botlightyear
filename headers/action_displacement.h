@@ -3,7 +3,8 @@
 
 #include "shared_variables.h"
 
-/* PATH_FOLLOWING: */
-void path_following(); 
+void displacement_action(); 
+
+uint8_t path_following_to_action(); 
 
 #endif

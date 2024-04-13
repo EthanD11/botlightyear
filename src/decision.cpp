@@ -45,6 +45,7 @@ void make_decision(decision_t *decision) {
     // Some code here to do the path planning for the test action
 
     decision->actionType = TestAction; 
+    return;
     #endif
 
     // First check if time is over : 

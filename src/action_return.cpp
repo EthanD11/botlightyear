@@ -30,4 +30,7 @@ void path_following_to_base() {
     // Idle
     teensy.idle(); 
 
+    // Score update
+    shared.score += 10;
+
 }

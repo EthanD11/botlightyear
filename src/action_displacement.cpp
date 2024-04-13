@@ -9,8 +9,11 @@ Graph graph     = shared.graph;
 #define vref = 0.25                 // [m/s] Speed reference for path following
 #define dist_goal_reached = 0.25    // [m] Distance tolerance to goal for path following
 
+void displacement_action() {
+    path_following_to_action();
+}
 
-void path_following() {
+uint8_t path_following_to_action() {
 
     // Set path following from path planning (decision)
     int ncheckpoints = (int) decision.path->nNodes; 
@@ -29,5 +32,7 @@ void path_following() {
 
     // Idle
     teensy.idle(); 
+
+    return 0; 
 
 }

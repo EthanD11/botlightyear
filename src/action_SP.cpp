@@ -1,12 +1,8 @@
 #include "action_SP.h"
+#include "action_displacement.h"
 #include <lgpio.h>
 
 extern SharedVariables shared;
-
-SPIBus spiBus = shared.spiBus;
-GPIOPins pins = shared.pins;
-Odometry odo = shared.odo; 
-Teensy teensy = shared.teensy;
 
 /* SOLAR_PANEL_PC: Position Control for Solar Panels 
    x, y, theta: robot position at the start of the displacement action
@@ -15,8 +11,6 @@ Teensy teensy = shared.teensy;
    While displacement, reset dxl 8 (wheel) to init position for left-right turn
 */
 void solar_panel_pc() {
-
-    //TO DO : Ask Ethan, define position control after idle
 
     // Retrieve robot current position
     double x, y, theta; 
@@ -43,12 +37,11 @@ void solar_panel_pc() {
     // Reset solar panel wheel (dxl 8)
     dxl_init_sp(); 
 
-    // Read position with odometry : waiting end to start function turn_solar_panel
-    do {
-        double xa, ya, ta; 
-        shared.get_robot_pos(&xa, &ya, &ta);
-        lguSleep(0.3);
-    } while(abs(xa-xc[1]) > 0.01); 
+    // Waiting end to start function turn_solar_panel
+    // Check Teensy mode
+    while ((teensy.ask_mode()) != ModePositionControlOver) { 
+            uSleep(1000);
+    } 
     
 }
 
@@ -67,6 +60,11 @@ void turn_solar_panel(bool reserved, uint8_t sp_counter) {
             team = Yellow; 
             break;
     }
+
+    // Path following to action : check interrupt
+    if (path_following_to_action() != 0) {
+        return;
+    } 
 
     // Case asking more than one solar panel
     while (sp_counter > 1) {
@@ -89,6 +87,8 @@ void turn_solar_panel(bool reserved, uint8_t sp_counter) {
         solar_panel_pc();
     }
 
+
+    // Last solar panel
     if (sp_counter == 1) {
         //Action turn solar panel
         dxl_deploy(Down);
