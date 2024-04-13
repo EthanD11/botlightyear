@@ -46,10 +46,10 @@ compile: $(SOURCES_OBJ)
 
 
 #Do an individual test, without shared variables
-test_%: $(SOURCES_OBJ_NO_SHARED)
-	@$(TESTS_DIR)/test_%.o
-	@./$<
-	@rm $<
+test_%: $(TESTS_DIR)/test_%.cpp $(SOURCES_OBJ_NO_SHARED)
+	@$(CXX) -I$(HEADERS_DIR) $(FLAGS) $^ -o $@ $(LIBS)
+	@./$@
+	@rm $@
 
 #Do an individual test with shared variables
 test_action_%: $(TESTS_DIR)/test_action_%.o $(SOURCES_OBJ)
