@@ -4,7 +4,7 @@
 CXX = g++
 FLAGS:=-Wall -O3
 LIBS:=-llgpio -lm -lpthread -ldxl_sbc_c -lsl_lidar_sdk -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_videoio -lopencv_imgcodecs -lopencv_aruco -lSSD1306_OLED_RPI -lbcm2835
-#-lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_videoio -lopencv_imgcodecs -lopencv_aruco
+
 # Directories 
 HEADERS_DIR:=headers 
 SOURCES_DIR:=src
@@ -17,6 +17,9 @@ TESTS = $(wildcard $(TESTS_DIR)/*.cpp)
 
 # List of .o files
 SOURCES_OBJ = $(addprefix $(OBJ_DIR)/,$(notdir $(SOURCES:.cpp=.o)))
+SOURCES_OBJ_NO_SHARED = $(SOURCES_OBJ:$(OBJ_DIR)/action_%=)
+SOURCES_OBJ_NO_SHARED := $(SOURCES_OBJ_NO_SHARED:$(OBJ_DIR)/shared_variables.o=)
+SOURCES_OBJ_NO_SHARED := $(SOURCES_OBJ_NO_SHARED:$(OBJ_DIR)/decision.o=)
 
 # -----------------------------------------------------------------------------------
 # Rules
@@ -42,8 +45,14 @@ compile: $(SOURCES_OBJ)
 	@$(CXX) -I$(HEADERS_DIR) $(FLAGS) $^ -o $@ $(LIBS)
 
 
-#Do an individual test
-test_%: $(TESTS_DIR)/test_%.o $(SOURCES_OBJ)
+#Do an individual test, without shared variables
+test_%: $(SOURCES_OBJ_NO_SHARED)
+	@$(TESTS_DIR)/test_%.o
+	@./$<
+	@rm $<
+
+#Do an individual test with shared variables
+test_action_%: $(TESTS_DIR)/test_action_%.o $(SOURCES_OBJ)
 	@./$<
 	@rm $<
 
