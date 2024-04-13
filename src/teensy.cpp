@@ -209,6 +209,8 @@ teensy_mode_t Teensy::ask_mode() {
             return ModeSpeedControl;
         case ModeConstantDC:
             return ModeConstantDC;
+        case ModePositionControlOver:
+            return ModePositionControlOver;
         }
     }
     printf("Unkown teensy mode\n");

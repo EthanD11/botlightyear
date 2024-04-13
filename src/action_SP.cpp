@@ -8,8 +8,15 @@ GPIOPins pins = shared.pins;
 Odometry odo = shared.odo; 
 Teensy teensy = shared.teensy;
 
-/* SOLAR_PANEL_PC: Position Control for Solar Panels */
+/* SOLAR_PANEL_PC: Position Control for Solar Panels 
+   x, y, theta: robot position at the start of the displacement action
+   xa, ya, ta : robot position actuated by thread TopLidar (odometry)
+   Position Control from one solar panel to another, while checking current position from desired one
+   While displacement, reset dxl 8 (wheel) to init position for left-right turn
+*/
 void solar_panel_pc() {
+
+    //TO DO : Ask Ethan, define position control after idle
 
     // Retrieve robot current position
     double x, y, theta; 
@@ -28,24 +35,21 @@ void solar_panel_pc() {
     double yc[2] = {y,         y};
     double theta_start = theta;
     double theta_end = theta;
-
-    // Set teensy and odometry starting positions
-    double xpos, ypos, thetapos;
-    odo.set_pos(xc[0], yc[0], theta_start);
-    teensy.set_position(xc[0], yc[0], theta_start);
     
     // Orientation with position control
     teensy.pos_ctrl(xc[1], yc[1], theta_end);
     lguSleep(0.1);
 
-    // Reset teensy estimated position with odometry
-    do {
-        odo.get_pos(&xpos, &ypos, &thetapos);
-        teensy.set_position(xpos, ypos, thetapos);
-        printf("%.3f,%.3f,%.3f\n",xpos, ypos, thetapos);
-        lguSleep(0.3);
-    } while(abs(xpos-xc[1]) > 0.01); 
+    // Reset solar panel wheel (dxl 8)
+    dxl_init_sp(); 
 
+    // Read position with odometry : waiting end to start function turn_solar_panel
+    do {
+        double xa, ya, ta; 
+        shared.get_robot_pos(&xa, &ya, &ta);
+        lguSleep(0.3);
+    } while(abs(xa-xc[1]) > 0.01); 
+    
 }
 
 /* TURN_SOLAR_PANEL: Action sequence to turn a solar panel 
@@ -83,7 +87,6 @@ void turn_solar_panel(bool reserved, uint8_t sp_counter) {
 
         // Go to next
         solar_panel_pc();
-        dxl_init_sp();
     }
 
     if (sp_counter == 1) {
@@ -97,12 +100,14 @@ void turn_solar_panel(bool reserved, uint8_t sp_counter) {
             dxl_turn(team, angle); 
         }
         dxl_deploy(Up);
-        dxl_init_sp();
 
         // Update dynamic score
         shared.score += 5; 
         sp_counter--; 
     }
+
+    // Reset solar panel wheel 
+    dxl_init_sp();
 
     /* TO DO: If sp_counter = 0: return state action finish
               Return interrupt*/

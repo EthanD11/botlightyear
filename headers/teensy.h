@@ -11,6 +11,7 @@ enum __teensy_mode_t : int8_t {
     ModePathFollowing,
     ModeSpeedControl,
     ModeConstantDC,
+    ModePositionControlOver,
     ModeUnknown = -1
 };
 typedef __teensy_mode_t teensy_mode_t;
