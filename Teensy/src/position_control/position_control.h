@@ -23,6 +23,7 @@ typedef struct PositionController {
     double angular_tol;     // Acceptable static error on orientation
 
     int flag_position_reached;
+    int flag_angular_position_reached;
 
     double omega_ref, vref;
 } PositionController; 

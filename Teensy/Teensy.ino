@@ -18,7 +18,8 @@ typedef enum {
   ModePathFollowingInit,
   ModePathFollowing,
   ModeSpeedControl,
-  ModeConstantDC
+  ModeConstantDC,
+  ModePositionControlOver
 } controlmode_t; // Control modes type
 // Note : Left = 1, Right = 2
 
@@ -233,6 +234,10 @@ void loop() {
         }
         break;
 
+      case ModePositionControlOver:
+        control_speed(speed_regulator, robot_position, 0, 0);
+        break;
+
 
       default: // ModeIdle
         #ifdef VERBOSE
@@ -319,7 +324,11 @@ void loop() {
         nextmode = ModeIdle;
         break;
       case ModePositionControl:
-        nextmode = ModePositionControl;
+        if (position_controller->flag_angular_position_reached) {
+          nextmode = ModePositionControlOver;
+        } else {
+          nextmode = ModePositionControl;
+        }
         break;
       case ModePathFollowingInit:
         nextmode = ModePathFollowing;

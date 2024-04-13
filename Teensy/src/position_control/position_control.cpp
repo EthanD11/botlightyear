@@ -17,6 +17,7 @@ PositionController *init_position_controller() {
     pc->omega_ref = 0;
     pc->vref = 0;
     pc->flag_position_reached = FALSE;
+    pc->flag_angular_position_reached = FALSE;
 
     return pc;
 }
@@ -96,6 +97,7 @@ void control_position(
             vref = kp*p; //*SMOOTH_WINDOW(a, 0.8*M_PI/2, 5);
             omega_ref = ka*a + kb*b;
             pc->position_tol = POSITION_TOL_IN;
+            pc->flag_angular_position_reached = FALSE;
             break;
         }
 
@@ -107,6 +109,11 @@ void control_position(
             printf("Goal reached\n");
             #endif
             pc->position_tol = POSITION_TOL_OUT;
+            if (fabs(theta_ref - theta) < 4*M_PI/180 && (fabs(rp->omega) < 5e-2)) {
+                pc->flag_angular_position_reached = TRUE;
+            } else {
+                pc->flag_angular_position_reached = FALSE;
+            }
             break;
         }
 
