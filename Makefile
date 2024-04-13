@@ -3,7 +3,7 @@
 # Arguments for the compilation
 CXX = g++
 FLAGS:=-Wall -O3
-LIBS:=-llgpio -lm -lpthread -ldxl_sbc_c -lsl_lidar_sdk -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_videoio -lopencv_imgcodecs -lopencv_aruco -lSSD1306_OLED_RPI -lbcm2835
+LIBS:=-llgpio -lm -lpthread -ldxl_sbc_c -lsl_lidar_sdk -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_videoio -lopencv_imgcodecs -lopencv_aruco
 
 # Directories 
 HEADERS_DIR:=headers 
@@ -64,15 +64,6 @@ valtest_%: $(TESTS_DIR)/test_%.o $(SOURCES_OBJ)
 #Run all the tests
 tests: $(TESTS:.cpp=.o)
 	@$(foreach test, $^, ./$(test);)
-
-#Test oled
-oled : oled_program
-	@sudo setcap cap_sys_rawio+ep ./bin/oled
-	@sudo ./bin/oled
-	@rm ./bin/oled
-
-oled_program:
-	@g++ ./tests/test_oled.cpp -o ./bin/oled -I$(HEADERS_DIR) $(FLAGS) $(LIBS)
 
 # Run Camera program
 camera: camera_program
