@@ -13,7 +13,8 @@ typedef enum _action : uint8_t
     TakePots,
     TurnSP,
     DepositZone,
-    DepositPlanter
+    DepositPlanter, 
+    TestAction
 } action_t;
 
 typedef struct _decision

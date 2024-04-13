@@ -100,10 +100,15 @@ int main(int argc, char const *argv[])
         make_decision(&decision);
         switch (decision.actionType)
         {
-        case /* constant-expression */:
-            /* code */
+        case ReturnToBase :
+            path_following_to_base(); 
             break;
-        
+        case Displacement :
+            path_following(); 
+            break;
+        case TestAction :
+            // Do test action here (looping forever if TESTS enable in decision.cpp)
+            break; 
         default:
             break;
         }
