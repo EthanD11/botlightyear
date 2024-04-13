@@ -10,7 +10,7 @@ int main(int argc, char *argv[]) {
 
     double x, y, theta;
 
-    distanceWall(&x,&y,&theta);
+    positionBottomLidarLeftFront(&x,&y,&theta);
     printf("%f %f %f\n", x, y, theta);
 
     //StopLidarBottom();

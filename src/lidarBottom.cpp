@@ -103,7 +103,7 @@ void lidarGetPlantPosition(Point *robot, double *angles, double *distances, doub
     double size, a1, a2, d1, d2;
     for (int zp = 0; zp < 6; ++zp) {
         if (plantZone[zp]->isAccessible) {
-            //TODO améliorer le start stop car parfois imprecision °
+            //TODO améliorer le start stop, car parfois imprecision °
             start = (int) (plantZone[zp]->startAngle / (2 * M_PI) *
                            arraysize);//(int) plantZone[zp].startAngle/(2*M_PI)*arraysize;
             stop = (int) (plantZone[zp]->endAngle / (2 * M_PI) *
@@ -255,8 +255,7 @@ void initBottomLidar(PlantZone **polarCoord) {
         polarCoord[i]->aPlant = new double[6];
         polarCoord[i]->dPlant = new double[6];
     }
-
-
+    return;
 }
 
 
@@ -271,7 +270,7 @@ void deleteBottomLidar(PlantZone **polarCoord) {
     }
     delete (polarCoord);
     delete (zoneP);
-
+    return;
 }
 
 /**
@@ -336,7 +335,7 @@ void lidarGetDistanceWall(double* angles, double* distances,size_t arraySize, do
  * @param return_y
  * @param return_theta
  */
-void distanceWall(double* return_x,double* return_y,double* return_theta) {
+void positionBottomLidarLeftFront(double* return_x,double* return_y,double* return_theta) {
 
     double *angles = new double[8000];
     double *distances = new double[8000];
@@ -357,3 +356,49 @@ void distanceWall(double* return_x,double* return_y,double* return_theta) {
     delete (asize);
     return;
 }
+
+void calibrationLidarBottomLeftFront(double* angles, double* distances,size_t arraySize, double* return_x,double* return_y,double* return_theta) {
+
+        //trouver les deux angles,
+        //calcule la distance
+        //trouver la position du robot et son orientation
+        double dLidarCentre = 0.055; //TODO mesure
+        int pos1 = (int) (60.0 / (360.0) * arraySize);
+        int pos2 = (int) (80.0 / (360.0) * arraySize);
+        int face = 0;
+        double d1, d2, dface, a1,a2, aface;
+        while (distances[face]==0){
+            face++;
+        }
+        dface=distances[face];
+        aface=angles[face];
+
+        while (distances[pos1]==0){
+            pos1++;
+        }
+        d1=distances[pos1];
+        a1=angles[pos1];
+
+
+        while (distances[pos2]==0){
+            pos2++;
+        }
+        d2=distances[pos2];
+        a2=angles[pos2];
+
+
+        double mur = sqrt(d1*d1+d2*d2-2*d1*d2* cos((a2-a1)));
+        double betha = acos((d2*d2-d1*d1-mur*mur)/(-2*d1*mur));
+        double xp = d1*sin(betha);
+        printf("%f %f\n", betha*180/M_PI,a1*180/M_PI);
+        double orientation = M_PI-( a1-betha);
+        double x = xp-sin(orientation)*dLidarCentre;
+        double y = dface-cos(orientation)*dLidarCentre;
+
+        *return_x = 2.0-x;
+        *return_y = y;
+        *return_theta = orientation;
+        return;
+
+}
+//TODO faire idem pour les 4 coins et check orientations voulues
