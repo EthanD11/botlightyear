@@ -8,9 +8,9 @@
 #include "src/regulator/regulator.h"
 #include "utils.h"
 
-#define VERBOSE
-#define SWITCH_VERBOSE
-#define SPI_VERBOSE
+// #define VERBOSE
+// #define SWITCH_VERBOSE
+// #define SPI_VERBOSE
 
 typedef enum {
   ModeIdle, // No input from RPi, default is to remain still
@@ -61,6 +61,8 @@ void setup() {
   if (mode == ModePathFollowingInit) {
     printf("In setup: ModePathFollowingInit\n");
   }
+
+  set_apins(outputs, (int8_t) mode);
 }
 
 void loop() {
@@ -245,41 +247,70 @@ void loop() {
     printf("xpos = %.5e\n", robot_position->x);
     printf("ypos = %.5e\n", robot_position->y);
     printf("thetapos = %.5e\n", robot_position->theta);
-    printf("et = %.5e\n", path_follower->et);
-    printf("en = %.5e\n", path_follower->en);
     // printf("kif = %.5e\n", path_follower->kif);
     // printf("vfwd = %.5e\n", robot_position->vfwd);
     // printf("omega = %.5e\n", robot_position->omega);
-    // printf("speed_left = %.5e\n", robot_position->speed_left);
-    // printf("speed_right = %.5e\n", robot_position->speed_right);
-    // printf("dc left = %d\n", outputs->duty_cycle_l);
-    // printf("dc right = %d\n", outputs->duty_cycle_r);
+    printf("speed_left = %.5e\n", robot_position->speed_left);
+    printf("speed_right = %.5e\n", robot_position->speed_right);
+    printf("dc left = %d\n", outputs->duty_cycle_l);
+    printf("dc right = %d\n", outputs->duty_cycle_r);
     // printf("el_filtered = %.5e\n", speed_regulator->el_filtered);
     // printf("er_filtered = %.5e\n", speed_regulator->er_filtered);
     // printf("isl = %.5e\n", speed_regulator->isl);
     // printf("isr = %.5e\n", speed_regulator->isr);
 
-    // switch (mode) {
-    //   case ModeSpeedControl:
-    //     printf("ref_speedl = %.6e\n", spi_get_speed_refl());
-    //     printf("ref_speedr = %.6e\n", spi_get_speed_refr());
-    //     break;
+    switch (mode) {
+      case ModePathFollowing:
+        printf("et = %.5e\n", path_follower->et);
+        printf("en = %.5e\n", path_follower->en);
+        printf("z = %.5e\n", path_follower->z);
+        break;
 
-    //   case ModePositionControl:
-    //     printf("ref_speedl = %.6e\n", get_speed_refl(position_controller));
-    //     printf("ref_speedr = %.6e\n", get_speed_refr(position_controller));
-    //     break;
+      default:
+        printf("et = NaN\n");
+        printf("en = NaN\n");
+        printf("z = NaN\n");
+        break;
+    }
 
-    //   case ModePathFollowing:
-    //     printf("ref_speedl = %.6e\n", get_speed_refl(path_follower));
-    //     printf("ref_speedr = %.6e\n", get_speed_refr(path_follower));
-    //     break;
+    switch (mode) {
+      case ModePathFollowing:
+        printf("vref = %.6e\n", path_follower->vref);
+        printf("omega_ref = %.6e\n", path_follower->omega_ref);
+        break;
 
-    //   default:
-    //     printf("ref_speedl = NaN\n");
-    //     printf("ref_speedr = NaN\n");
-    //     break;
-    // }
+      case ModePositionControl:
+        printf("vref = %.6e\n", position_controller->vref);
+        printf("omega_ref = %.6e\n", position_controller->omega_ref);
+        break;
+
+      default:
+        printf("ref_speedl = NaN\n");
+        printf("ref_speedr = NaN\n");
+        break;
+    }
+    
+    switch (mode) {
+      case ModeSpeedControl:
+        printf("ref_speedl = %.6e\n", spi_get_speed_refl());
+        printf("ref_speedr = %.6e\n", spi_get_speed_refr());
+        break;
+
+      case ModePositionControl:
+        printf("ref_speedl = %.6e\n", get_speed_refl(position_controller));
+        printf("ref_speedr = %.6e\n", get_speed_refr(position_controller));
+        break;
+
+      case ModePathFollowing:
+        printf("ref_speedl = %.6e\n", get_speed_refl(path_follower));
+        printf("ref_speedr = %.6e\n", get_speed_refr(path_follower));
+        break;
+
+      default:
+        printf("ref_speedl = NaN\n");
+        printf("ref_speedr = NaN\n");
+        break;
+    }
     #endif
 
     // Next state logic

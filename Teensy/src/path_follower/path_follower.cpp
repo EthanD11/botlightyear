@@ -23,6 +23,10 @@ PathFollower* init_path_follower() {
 
     path_follower->et = 0; // for print in main loop
     path_follower->en = 0;// for print in main loop
+    path_follower->z = 0;
+
+    // path_follower->vref = 0;
+    path_follower->omega_ref = 0;
     return path_follower;
 }
 
@@ -246,6 +250,7 @@ int update_path_follower_ref_speed(
 
     // Angular error
     z = PIPERIODIC(rp->theta - kif);
+    pf->z = z;
 
     // Extended cross-track error
     epsilon_n = en - xsi_n;
@@ -254,7 +259,7 @@ int update_path_follower_ref_speed(
     kitilde = PIPERIODIC(rp->theta - kir);
 
     // Reference speed correction
-    vref = MAX(vref - fabs(pf->kv_en*en), 15e-2);
+    vref = MAX(vref - fabs(pf->kv_en*en), 10e-2);
 
     // Filters
     pf->curvature_f += pf->curvature_fdot;
@@ -274,6 +279,8 @@ int update_path_follower_ref_speed(
     // Compute arc-length evolution of serret-frenet frame along the path
     delta_s = (kt*(et) + vctrl*cos(kir - rp->theta))*dt;// ;/(1 - pf->curvature_f*xsi_n);
     omega_ref = -kz*z + kifdot - vctrl*sinckitilde*epsilon_n -sigma*tanh(z/pf->epsilon);
+    pf->vref = vref;
+    pf->omega_ref = omega_ref;
 
     pf->s += delta_s;
 

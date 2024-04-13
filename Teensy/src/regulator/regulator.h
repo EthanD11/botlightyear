@@ -10,7 +10,7 @@
 
 #define ADZ_ENABLE
 #ifdef ADZ_ENABLE
-const int adz = 60;
+const int adz = 50;
 #endif
 
 typedef struct Regulator {

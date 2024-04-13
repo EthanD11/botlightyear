@@ -4,3 +4,7 @@ bin
 Teensy/data/*
 **/*.o
 exe_botlightyear
+Teensy/CL_test/*
+Teensy/OL_test/*
+Teensy/PF_test/*
+Teensy/PC_test/*

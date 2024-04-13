@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define POSITION_TOL_IN 5e-3 // Tolerance to enter the goal reached state
+#define POSITION_TOL_IN 10e-3 // Tolerance to enter the goal reached state
 #define POSITION_TOL_OUT 10e-3 // Tolerance to leave the goal reached state
 
 typedef struct PositionController {
@@ -23,6 +23,8 @@ typedef struct PositionController {
     double angular_tol;     // Acceptable static error on orientation
 
     int flag_position_reached;
+
+    double omega_ref, vref;
 } PositionController; 
 
 PositionController *init_position_controller();

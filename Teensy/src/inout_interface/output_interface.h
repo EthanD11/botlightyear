@@ -63,6 +63,10 @@ inline void set_apins(OutputInterface *outputs, int8_t value) {
     outputs->digital_write_a1pin = (value & 0x01);
     outputs->digital_write_a2pin = (value & 0x02) >> 1;
     outputs->digital_write_a3pin = (value & 0x04) >> 2;
+    // printf("value = %d\n", value);
+    // printf("a1 = %d\n", outputs->digital_write_a1pin);
+    // printf("a2 = %d\n", outputs->digital_write_a2pin);
+    // printf("a3 = %d\n", outputs->digital_write_a3pin);
 }
 
 inline void duty_cycle_update(OutputInterface *outputs)
@@ -107,9 +111,9 @@ inline void duty_cycle_update(OutputInterface *outputs)
 }
 
 inline void write_outputs(OutputInterface *outputs) {
-    digitalWrite(A1, outputs->digital_write_a1pin);
-    digitalWrite(A2, outputs->digital_write_a2pin);
-    digitalWrite(A3, outputs->digital_write_a3pin);
+    analogWrite(A1, outputs->digital_write_a1pin*256);
+    analogWrite(A2, outputs->digital_write_a2pin*256);
+    analogWrite(A3, outputs->digital_write_a3pin*256);
     duty_cycle_update(outputs);
 }
 

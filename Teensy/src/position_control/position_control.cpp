@@ -1,18 +1,22 @@
 #include "position_control.h"
-#define VERBOSE
+// #define VERBOSE
 PositionController *init_position_controller() {
     PositionController* pc = (PositionController *) malloc(sizeof(PositionController));
     
     pc->speed_refl = 0.0;
     pc->speed_refr = 0.0;
 
-    pc->kp =  0.5; // Proportional coefficient for distance error
+    pc->kp =  0.4; // Proportional coefficient for distance error
     pc->ka =  3.0; // Proportional coefficient for direction error
-    pc->kb = -0.5; // Proportional coefficient for orientation error
+    pc->kb = -0.3; // Proportional coefficient for orientation error
     pc->kw =  3.0; // Propoortional coefficient for orientation error when position is reached
     pc->position_tol = POSITION_TOL_IN;      // Acceptable static error on position (m)
     pc->drift_tol    = 2e-1;      // Acceptable drift from reference position when reorienting (m)
     pc->angular_tol  = 1*M_PI/180; // Acceptable static error on orientation (rad, eq to 5 degrees)
+
+    pc->omega_ref = 0;
+    pc->vref = 0;
+    pc->flag_position_reached = FALSE;
 
     return pc;
 }
@@ -56,7 +60,7 @@ void control_position(
     dx = x_ref - x;
     dy = y_ref - y;
     p = hypot(dx, dy);
-    int flag_goal_reached = (abs(p) < pc->position_tol);
+    pc->flag_position_reached = (abs(p) < pc->position_tol);
     //int flag_too_far_away = (p > 1.0); // Stop if further than 50cm away from the target
     #ifdef VERBOSE
     // printf("xref = %f\n", x_ref);
@@ -70,7 +74,7 @@ void control_position(
     // printf("dy = %f\n", dy);
     #endif
     
-    switch (flag_goal_reached)
+    switch (pc->flag_position_reached)
     {
         case FALSE:
         {   
@@ -87,9 +91,6 @@ void control_position(
                 b += (b > 0) ? -PI : PI;
             }
             #ifdef VERBOSE
-            printf("p = %f\n", p);
-            printf("a = %f\n", a);
-            printf("b = %f\n", a);
             printf("Goal not reached\n");
             #endif
             vref = kp*p; //*SMOOTH_WINDOW(a, 0.8*M_PI/2, 5);
@@ -118,10 +119,15 @@ void control_position(
     }
 
     #ifdef VERBOSE
+        printf("p = %f\n", p);
+        // printf("a = %f\n", a);
+        // printf("b = %f\n", b);
         printf("omega_ref = %f\n", omega_ref);
         printf("vref = %f\n", vref);
     #endif
-
+    // omega_ref = SAT(omega_ref, )
+    pc->omega_ref = omega_ref;
+    pc->vref = vref;
     pc->speed_refr = (vref + WHEEL_L*omega_ref);
     pc->speed_refl = (vref - WHEEL_L*omega_ref);
 

@@ -77,8 +77,8 @@ void control_speed(
     // update duty cycle, assuming duty cycle changes average voltage linearly
     #ifdef ADZ_ENABLE
     // add an anti-deadzone term to compensate the deadzone around 0
-    int adz_l = adz * (fabs(speed_refl) > 0.02) * (fabs(speed_l) < 0.01) * (1-2*(vl < 0));
-    int adz_r = adz * (fabs(speed_refr) > 0.02) * (fabs(speed_r) < 0.01) * (1-2*(vr < 0));
+    int adz_l = adz * (fabs(speed_refl) > 0.01) * (fabs(speed_l) < 0.01) * (1-2*(vl < 0));
+    int adz_r = adz * (fabs(speed_refr) > 0.01) * (fabs(speed_r) < 0.01) * (1-2*(vr < 0));
     reg->duty_cycle_refl = SAT(((int)(vl * MOTOR_DUTY_RANGE)) + adz_l, MOTOR_DUTY_RANGE);
     reg->duty_cycle_refr = SAT(((int)(vr * MOTOR_DUTY_RANGE)) + adz_r, MOTOR_DUTY_RANGE);
     #else
