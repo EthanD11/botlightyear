@@ -1,6 +1,6 @@
 #include "shared_variables.h"
 #include <pthread.h>
-#include <lgpio.h>
+#include <unistd.h>
 
 pthread_rwlock_t robotPosLock, advPosLock;
 
@@ -43,7 +43,7 @@ void SharedVariables::start_timer() {
     #ifdef VERBOSE
     printf("Starting cord has been setup\n");
     #endif
-    lguSleep(1);
+    usleep(1000000);
 
     #ifdef VERBOSE
     printf("Waiting start of the game... \n");

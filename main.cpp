@@ -1,4 +1,5 @@
 #include "shared_variables.h"
+#include "actions.h"
 #include "dynamixels.h"
 #include "lidarTop.h"
 #include "decision.h"
@@ -26,27 +27,12 @@ uint8_t localizerEnd = 0; // Set to one to finish localizer thread
 SharedVariables shared = SharedVariables();
 
 
-int getch()
-{
-#if defined(__linux__) || defined(__APPLE__)
-  struct termios oldt, newt;
-  int ch;
-  tcgetattr(STDIN_FILENO, &oldt);
-  newt = oldt;
-  newt.c_lflag &= ~(ICANON | ECHO);
-  tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-  ch = getchar();
-  tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-  return ch;
-#elif defined(_WIN32) || defined(_WIN64)
-  return _getch();
-#endif
-}
-
 void ask_user_input_params() {
-    printf("Which team do I play for ? Press 'b' for team blue, 'y' for team yellow\n");
+    printf("Which team do I play for ? Enter 'b' for team blue, 'y' for team yellow\n");
+    string s; 
     do {
-        int keyboard_input = getch();
+        std::cin >> s;
+        char keyboard_input = s.at(0);
         if (keyboard_input == ASCII_b || keyboard_input == ASCII_B) { shared.color = TeamBlue; break; }
         else if (keyboard_input == ASCII_y || keyboard_input == ASCII_Y ) { shared.color = TeamYellow; break; }
         printf("Invalid input color : %c\n", keyboard_input);
@@ -112,6 +98,15 @@ int main(int argc, char const *argv[])
     decision.path = malloc(sizeof(graph_path_t));
     do {
         make_decision(&decision);
+        switch (decision.actionType)
+        {
+        case /* constant-expression */:
+            /* code */
+            break;
+        
+        default:
+            break;
+        }
     } while (decision.actionType != GameFinished);
 
     // ----- FINISH -----
