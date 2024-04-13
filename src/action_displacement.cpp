@@ -3,8 +3,6 @@
 extern SharedVariables shared; 
 extern decision_t decision; 
 
-SPIBus spiBus   = shared.spiBus;
-GPIOPins pins = shared.pins; 
 Teensy teensy   = shared.teensy;
 Graph graph     = shared.graph; 
 
@@ -19,14 +17,14 @@ void path_following() {
     double x[ncheckpoints] = decision.path->x; 
     double y[ncheckpoints] = decision.path->y; 
 
-    double theta_start = ; 
-    double theta_end = ; 
+    double theta_start = decision.path->theta_start; 
+    double theta_end = decision.path->theta_end; 
 
     teensy.path_following(x, y, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
 
     // Check Teensy mode
-    while ((teensy.ask_mode()) == ModePathFollowing) { 
-            
+    while ((teensy.ask_mode()) != ModePositionControlOver) { 
+            uSleep(1000);
     } 
 
     // Idle
