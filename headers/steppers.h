@@ -35,6 +35,9 @@ typedef enum {
 class Steppers : public SPIUser, public GPIOUser
 {
 public:
+    flaps_pos_t flaps_pos; 
+    slider_pos_t slider_pos; 
+    uint8_t plate_pos; 
 
     Steppers(SPIBus *bus, GPIOPins *pins) : SPIUser(bus), GPIOUser(pins) {
         reset_all(); 

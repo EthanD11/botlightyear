@@ -70,14 +70,17 @@ void Steppers::calibrate(steppers_t stepperName, uint8_t blocking) {
         case StprPlate :
             request = 0x82; 
             calibDir = 0x80; 
+            plate_pos = 0; 
             break;
         case StprSlider :
             request = 0x86; 
             calibDir = 0xA0;
+            slider_pos = SliderHigh; 
             break;
         case StprFlaps :
             request = 0x8A; 
             calibDir = 0xA0;
+            flaps_pos = FlapsOpen; 
             break;
         default : 
             request = 0; 
@@ -108,7 +111,7 @@ void Steppers::calibrate(steppers_t stepperName, uint8_t blocking) {
                 return; 
         }
         pins->wait_for_gpio_value(stepper_gpio, 1, 10000); 
-    }
+    }   
 }
 
 void Steppers::flaps_move(flaps_pos_t pos, uint8_t blocking) {
@@ -130,6 +133,7 @@ void Steppers::flaps_move(flaps_pos_t pos, uint8_t blocking) {
         return;
     }
     move(StprFlaps, steps, 0, blocking); 
+    flaps_pos = pos; 
 }
 
 void Steppers::slider_move(slider_pos_t pos, uint8_t blocking){
@@ -158,6 +162,7 @@ void Steppers::slider_move(slider_pos_t pos, uint8_t blocking){
         return;
     }
     move(StprSlider,steps,0, blocking);
+    slider_pos = pos; 
 }
 
 
@@ -179,7 +184,7 @@ void Steppers::plate_move(int8_t pot, uint8_t blocking){
         double ticStepper = angleStepper/360 * PLATEAU_TIC_STEPPER -offset;
         move(StprPlate,(int)ticStepper,direction, blocking);
     }   
-
+    plate_pos = pot; 
 }
 
 

@@ -22,6 +22,15 @@ bool in_array(uint8_t * arr, uint8_t len, uint8_t val) {
     return false; 
 }
 
+double getThetaEnd(uint8_t * arrNodes, double * arrThetas , uint8_t len, uint8_t val) {
+    for (uint8_t i = 0; i<len; i++) {
+        if (arrNodes[i] == val) {
+            return arrThetas[i]; 
+        }
+    }
+    return 0; 
+}
+
 void make_decision(decision_t *decision) {
     
 
@@ -48,7 +57,8 @@ void make_decision(decision_t *decision) {
     if (current_time > time_gotobase) {
         // Get the closest base from the robot pov
         path = shared.graph.compute_path(currentNode, shared.graph.friendlyBases, 3,0);
-        //path->theta_start = theta_pos; 
+        path->thetaStart = theta_pos; 
+        path->thetaEnd = getThetaEnd(shared.graph.friendlyBases, shared.graph.friendlyBasesTheta, 3, path->target); 
         decision->actionType = ReturnToBase; 
         return; 
     }
@@ -58,12 +68,15 @@ void make_decision(decision_t *decision) {
     if (in_array(shared.graph.plants, 6, currentNode)) {
         // If it's in a plant node, go back to a base 
         path = shared.graph.compute_path(currentNode, shared.graph.friendlyBases, 3,0);
-        //path->theta_start = theta_pos; 
+        path->thetaStart = theta_pos; 
+        path->thetaEnd = getThetaEnd(shared.graph.friendlyBases, shared.graph.friendlyBasesTheta, 3, path->target); 
 
     } else {
         // Else, go to a random plant node 
         uint8_t target = shared.graph.plants[rand()%6]; // get random plant node
         path = shared.graph.compute_path(currentNode, &target, 1, 0);
+        path->thetaStart = theta_pos; 
+        path->thetaEnd = 0; 
     }
     decision->actionType = Displacement; 
     return; 
