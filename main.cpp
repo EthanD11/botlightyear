@@ -37,6 +37,22 @@ void ask_user_input_params() {
         else if (keyboard_input == ASCII_y || keyboard_input == ASCII_Y ) { shared.color = TeamYellow; break; }
         printf("Invalid input color : %c\n", keyboard_input);
     } while (1);
+    printf("");
+    printf("Please enter a starting base from the following : \n");
+    if (shared.color == TeamBlue) {
+
+        printf("");
+        do {
+            std::cin >> s;
+            char keyboard_input = s.at(0);
+            if (keyboard_input == ASCII_b || keyboard_input == ASCII_B) { shared.color = TeamBlue; break; }
+            else if (keyboard_input == ASCII_y || keyboard_input == ASCII_Y ) { shared.color = TeamYellow; break; }
+            printf("Invalid input color : %c\n", keyboard_input);
+        } while (1);
+
+    } else {
+        printf("");
+    }
 }
 
 void init_and_wait_for_start() {
@@ -45,7 +61,7 @@ void init_and_wait_for_start() {
     dxl_ping(6,1.0);
     dxl_ping(8,1.0);
 
-    if (shared.graph.init_from_file("./graphs/BL_V2.txt", shared.color) != 0) exit(3);
+    if (shared.graph.init_from_file("./graphs/BL_V3.txt", shared.color) != 0) exit(3);
     shared.graph.node_level_update(shared.graph.adversaryBases[0], 3, DISABLE_PROPAGATION);
 
     if (pthread_create(&localizerID, NULL, localizer, NULL) != 0) exit(4);
@@ -66,21 +82,22 @@ void finish_main() {
 
     free(decision.path);
 
-    dxl_close();
+    dxl_close_port();
 
 }
 
 void *localizer(void* arg) {
-    StartLidar();
-    double x, y, theta, xAdv, yAdv, thetaAdv;
+    StartLidarTop();
+    LidarData lidarData;
+    init_lidar(&lidarData);
     while (!localizerEnd) {
-        
+        lidarGetRobotPosition(&lidarData, 0, false, true);
         shared.teensy.set_position(x,y,theta);
         shared.set_robot_pos(x,y,theta);
         shared.set_adv_pos(xAdv,yAdv,thetaAdv);
         usleep(300000);
     }
-    StopLidar();
+    StopLidarTop();
     return NULL;
 }
 
@@ -116,9 +133,9 @@ int main(int argc, char const *argv[])
 
     // ----- FINISH -----
 
-    teensy.idle();
-    steppers.reset_all();
-    servoFlaps.idle(); grpDeployer.idle(); grpHolder.idle();
+    shared.teensy.idle();
+    shared.steppers.reset_all();
+    shared.servoFlaps.idle(); shared.grpDeployer.idle(); shared.grpHolder.idle();
     dxl_idle(6, 1.0);
     dxl_idle(8, 1.0);
 

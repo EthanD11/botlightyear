@@ -34,7 +34,7 @@ int main(int argc, char const *argv[])
     printf("%d} with graph level %d\n",tos[len_tos-1], graph.level);
 
     clock_t start = clock();
-    graph_path_t* result = graph.compute_path(from, tos, len_tos, 0);
+    graph_path_t* result = graph.compute_path(from, tos, len_tos, 1, 0);
     clock_t stop = clock();
 
     if (result == NULL) {

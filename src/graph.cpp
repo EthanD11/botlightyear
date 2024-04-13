@@ -1,6 +1,6 @@
 #include "graph.h"
 #include "AStar.h"
-#include <math.h>
+#include <cmath>
 #include <stdio.h>
 #include <string.h>
 
@@ -65,7 +65,7 @@ int early_exit(size_t visitedCount, void *visitingNode, void *goalNode, void *co
     return 0;
 }
 
-graph_path_t *Graph::compute_path(uint8_t from, uint8_t *targets, uint8_t len_targets, uint8_t oversampling) {
+graph_path_t *Graph::compute_path(uint8_t from, uint8_t *targets, uint8_t len_targets, uint8_t oversampling, uint8_t ignoreFirst) {
     if (len_targets == 0) return NULL;
 
     // Initiate search arguments
@@ -89,7 +89,8 @@ graph_path_t *Graph::compute_path(uint8_t from, uint8_t *targets, uint8_t len_ta
     }
 
     // Success, create arrays of coordinates for path following and cost
-    uint8_t nKeyPoints = ASPathGetCount(path);
+    ignoreFirst = (ignoreFirst != 0);
+    uint8_t nKeyPoints = ASPathGetCount(path) - ignoreFirst;
     uint8_t nOvsKeyPts = nKeyPoints + oversampling * (nKeyPoints-1);
 
     void *temp = malloc(sizeof(graph_path_t) + 2*nOvsKeyPts*sizeof(double));
@@ -100,12 +101,12 @@ graph_path_t *Graph::compute_path(uint8_t from, uint8_t *targets, uint8_t len_ta
     result->nNodes = nOvsKeyPts;
     result->totalCost = ASPathGetCost(path);
 
-    graph_node_t *curNode = (graph_node_t *) ASPathGetNode(path, 0);
+    graph_node_t *curNode = (graph_node_t *) ASPathGetNode(path, ignoreFirst);
     graph_node_t *nextNode;
     uint8_t nPoints = oversampling + 1; // Number of points between current node (included) and next node (excluded)
     for (uint8_t i = 0; i < nKeyPoints-1; i++)
     {
-        nextNode = (graph_node_t *) ASPathGetNode(path, i+1);
+        nextNode = (graph_node_t *) ASPathGetNode(path, i+1+ignoreFirst);
         for (uint8_t j = 0; j < nPoints; j++)
         {
             result->x[i*nPoints+j] = (j*nextNode->x + (nPoints-j) * curNode->x) / nPoints;
@@ -254,6 +255,21 @@ int Graph::init_from_file(const char *filename, team_color_t color) {
     #ifdef VERBOSE
     printf("\n");
     #endif
+    if (color == TeamBlue) {
+        friendlyBasesTheta[0] = -M_PI/2;
+        friendlyBasesTheta[1] = -M_PI/2;
+        friendlyBasesTheta[2] = M_PI/2;
+        friendlyPlantersTheta[0] = -M_PI;
+        friendlyPlantersTheta[1] = -M_PI/2;
+        friendlyPlantersTheta[2] = M_PI/2;
+    } else {
+        friendlyBasesTheta[0] = M_PI/2;
+        friendlyBasesTheta[1] = M_PI/2;
+        friendlyBasesTheta[2] = -M_PI/2;
+        friendlyPlantersTheta[0] = -M_PI;
+        friendlyPlantersTheta[1] = M_PI/2;
+        friendlyPlantersTheta[2] = -M_PI/2;
+    }
 
     // Scan yellow bases nodes, assign level
     for (size_t i = 0; i < 64; i++){ list[i] = 0; }

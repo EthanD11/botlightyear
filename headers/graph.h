@@ -26,6 +26,7 @@ typedef struct graph_path
     double *x; // Array of x coordinates
     double *y; // Array of y coordinates
     double totalCost; // Total distance of travel for this path
+    double thetaStart, thetaEnd; // Orientation at start and end of trajectory
 } graph_path_t;
 
 typedef enum {
@@ -49,8 +50,10 @@ public:
     */
     int8_t level;
     uint8_t friendlyBases[3]; // Array of friendly bases ids, first one is reserved
+    double friendlyBasesTheta[3]; // Array of friendly bases ids, first one is reserved
     uint8_t adversaryBases[3]; // Array of adversary bases ids, first one is reserved
     uint8_t friendlyPlanters[3]; // Array of friendly planter ids, first one is reserved
+    double friendlyPlantersTheta[3]; // Array of friendly planter ids, first one is reserved
     uint8_t adversaryPlanters[3]; // Array of adversary planter ids, first one is reserved
     uint8_t friendlySPs[3]; // Array of friendly reserved solar panel ids
     uint8_t adversarySPs[3]; // Array of adversary reserved solar panel ids
@@ -71,11 +74,12 @@ public:
     * Computes a path sequence from node 'from' to the closest node in the 'targets' array (refer to the visual graph)
     * The level of the 'targets' and/or the graphLevel must be set accordingly before the call
     * 'oversampling' intermediate points are added between each key point for better path following (recommended values : 0, 1 or 2)
+    * The first node and its oversampled points are not included in the path if `ignoreFirst` != 0
     * Returns NULL if no path is found
     * Note that the arrays of x and y coordinates are directly next to the structure in the memory
     * Only the pointer returned must be passed to free() after the call, not the x and y arrays of the structure
     */
-    graph_path_t *compute_path(uint8_t from, uint8_t *targets, uint8_t len_targets, uint8_t oversampling);
+    graph_path_t *compute_path(uint8_t from, uint8_t *targets, uint8_t len_targets, uint8_t oversampling = 0, uint8_t ignoreFirst = 1);
 
     /**
     * Updates the level of 'node' to 'level'
