@@ -6,7 +6,7 @@ Graph graph = Graph();
 
 int main(int argc, char const *argv[])
 {
-    char filename[] = "./graphs/BL_V2.txt";
+    char filename[] = "./graphs/BL_V3.txt";
     if (graph.init_from_file(filename, TeamBlue)) return -1;
     printf("Graph initialised from file %s\n", filename);
     /*for (size_t i = 0; i < graphNbNodes; i++)
@@ -44,8 +44,8 @@ int main(int argc, char const *argv[])
     Graph::print_path(result);
     printf("\nTime taken : %ld clock cycles\n", stop-start);
 
-    double x = 0.0;
-    double y = -1.0;
+    double x = 1.0;
+    double y = 1.0;
     double dist;
     uint8_t id = graph.identify_pos(x,y,&dist);
     printf("Position (%.3f,%.3f) identifies with node %d with an error of %.3f\n", x, y, id, dist);

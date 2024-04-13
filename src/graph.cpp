@@ -90,14 +90,14 @@ graph_path_t *Graph::compute_path(uint8_t from, uint8_t *targets, uint8_t len_ta
 
     // Success, create arrays of coordinates for path following and cost
     uint8_t nKeyPoints = ASPathGetCount(path);
-    nNodes = nKeyPoints + oversampling * (nKeyPoints-1);
+    uint8_t nOvsKeyPts = nKeyPoints + oversampling * (nKeyPoints-1);
 
-    void *temp = malloc(sizeof(graph_path_t) + 2*nNodes*sizeof(double));
+    void *temp = malloc(sizeof(graph_path_t) + 2*nOvsKeyPts*sizeof(double));
     graph_path_t *result = (graph_path_t*) temp;
     result->x = (double *) (((uint8_t*)temp) + sizeof(graph_path_t));
-    result->y = (double *) (((uint8_t*)temp) + sizeof(graph_path_t) + nNodes*sizeof(double));
+    result->y = (double *) (((uint8_t*)temp) + sizeof(graph_path_t) + nOvsKeyPts*sizeof(double));
     
-    result->nNodes = nNodes;
+    result->nNodes = nOvsKeyPts;
     result->totalCost = ASPathGetCost(path);
 
     graph_node_t *curNode = (graph_node_t *) ASPathGetNode(path, 0);
@@ -113,8 +113,8 @@ graph_path_t *Graph::compute_path(uint8_t from, uint8_t *targets, uint8_t len_ta
         }
         curNode = nextNode;
     }
-    result->x[nNodes-1] = curNode->x;
-    result->y[nNodes-1] = curNode->y;
+    result->x[nOvsKeyPts-1] = curNode->x;
+    result->y[nOvsKeyPts-1] = curNode->y;
     result->target = curNode->id;
 
     ASPathDestroy(path);
@@ -186,6 +186,8 @@ int Graph::init_from_file(const char *filename, team_color_t color) {
         printf("%d:%.3f,%.3f\n", i, nodes[i].x, nodes[i].y);
         // Rotation for recentering based on robot modelling's convention
         //printf("%.3f,%.3f\n", (nodes[i].y-1), -(nodes[i].x-1.5));
+        // Translation because frame has changed
+        //printf("%d:%.3f,%.3f\n", i, nodes[i].x+1.0, nodes[i].y+1.5);
         #endif
     }
 
@@ -285,7 +287,7 @@ int Graph::init_from_file(const char *filename, team_color_t color) {
     for (size_t i = 0; i < 64; i++){ list[i] = 0; }
     if (fscanf(input_file, "Blue planters, reserved first : %s\n", list) != 1) return -1;
     #ifdef VERBOSE
-    printf("Blue planter, reserved first : ");
+    printf("Blue planters, reserved first : ");
     #endif
     token = strtok(list, ",");
     for (uint8_t i = 0; i < 3; i++) {
