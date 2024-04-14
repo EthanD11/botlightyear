@@ -1,5 +1,32 @@
 #include "actions.h"
 
+uint8_t closer_in_path(graph_path_t *path, double xr, double yr) {
+    double distance, min_distance = 3.6; 
+    uint8_t found_node_id; 
+
+
+    for (uint8_t i = 0; i < path->nNodes; i++) {
+        double x_node = shared.graph->nodes[path->idNodes[i]].x;
+        double y_node = shared.graph->nodes[path->idNodes[i]].y;
+
+        distance = sqrt((x_node - xr)*(x_node - xr) + (y_node - yr)*(y_node - yr)); 
+        if (distance < min_distance) { 
+            found_node_id = i; 
+            min_distance = distance;
+        }
+    }
+    return found_node_id; 
+}
+
+uint8_t adversary_in_path(graph_path_t *path, uint8_t closer_node_id) {
+    
+    for (uint8_t i = closer_node_id; i < min(closer_node_id + 2, path->nNodes); i++)
+    {
+        if ((shared.graph->nodes[path->idNodes[i]].level& NODE_ADV_PRESENT) !=0) return -1;
+    }
+
+    return 0; 
+}
 
 int8_t path_following_to_action(graph_path_t *path) {
 
@@ -30,18 +57,33 @@ int8_t path_following_to_action(graph_path_t *path) {
     double wn = 0.2; // Command filter discrete cutoff frequency
     double kv_en = 0.;
     teensy->set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
-
+    
     teensy->path_following(x, y, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
 
     // Check Teensy mode
     //usleep(100000);
     while ((teensy->ask_mode()) != ModePositionControlOver) {
-        usleep(1000);
+
+        // Get update on robot and adversary position
+        double xr, yr, tr = shared.get_robot_pos(&xr, &yr, &tr); 
+
+        // Get closer in path
+        uint8_t closer_node_id = closer_in_path(path, xr, yr); 
+
+        // Check advsersary in path
+        if (adversary_in_path(path, closer_node_id) == -1) {
+            free(path); 
+            return -1;
+        }
+
+        usleep(1000); 
     } 
-    return 0; 
+
+    free(path); 
+    return 0; // Adversary not found and successfull path following
 }
 
-int8_t action_position_control(double x_end, double y_end, double theta_end) {
+int8_t action_position_control(double x_end, double y_end, double theta_end) 
 
     Teensy *teensy = shared.teensy;
     Odometry *odo = shared.odo; 

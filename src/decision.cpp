@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#define TESTS
+//#define TESTS
 
 
 int8_t time_gotobase = 20; 
