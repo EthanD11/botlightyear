@@ -180,3 +180,7 @@ void positionCtrlIterative() {
     }
         
 }
+
+void ActionSP::do_action() {
+    turn_solar_panel(reserved, sp_counter); 
+}

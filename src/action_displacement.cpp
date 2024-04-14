@@ -4,10 +4,13 @@
 #include <stdio.h>
 
 
-Teensy *teensy  = shared.teensy;
+// Teensy *teensy  = shared.teensy;
 
-
-
-void displacement_action() {
-    path_following_to_action(decision.path);
+void ActionDisplacement::do_action() {
+    path_following_to_action(path);
 }
+
+
+// void displacement_action() {
+//     path_following_to_action(decision.path);
+// }

@@ -205,31 +205,15 @@ int main(int argc, char const *argv[])
     // ----- GAME -----
 
     do {
-        make_decision(&decision);
-        printf("Action type : %d\n", decision.actionType);
+        Action* decided_action = make_decision();
+        printf("Action type : %d\n", decided_action->action_type);
         double x, y, theta;
         shared.get_robot_pos(&x,&y,&theta);
         printf("Current pos : (%.3f,%.3f,%.3f)\n",x,y,theta);
 
-
-        
-        
-        switch (decision.actionType)
-        {
-        case ReturnToBase :
-            path_following_to_base(); 
-            break;
-        case Displacement :
-            displacement_action(); 
-            break;
-        case TestAction :
-            turn_solar_panel(true, 3);
-            //positionCtrlIterative(); 
-            break; 
-        default:
-            break;
-        }
-    } while (decision.actionType != GameFinished);
+        decided_action->do_action();
+        delete decided_action;
+    } while (decided_action.actionType != GameFinished);
 
     // ----- FINISH -----
 

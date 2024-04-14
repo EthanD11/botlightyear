@@ -2,7 +2,15 @@
 #define BLY_ACT_DISPLACEMENT_H
 
 #include "shared_variables.h"
+#include "actions.h"
 
-void displacement_action(); 
+// void displacement_action(); 
+
+class ActionDisplacement : public Action {
+    public: 
+        void do_action (); 
+        ActionDisplacement (graph_path_t* graph_path) : Action(Displacement, true, graph_path) {
+        }
+};
 
 #endif

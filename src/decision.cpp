@@ -6,9 +6,13 @@
 
 #define TESTS
 
+Action* possible_actions[10]; 
+uint8_t n_possible_actions;
 
 int8_t time_gotobase = 20; 
 
+
+// ------------ UTILS --------------
 
 bool in_array(uint8_t * arr, uint8_t len, uint8_t val) {
     for (uint8_t i = 0; i<len; i++) {
@@ -27,9 +31,11 @@ double getThetaEnd(uint8_t * arrNodes, double * arrThetas , uint8_t len, uint8_t
     }
     return 0; 
 }
+// void make_decision(decision_t *decision) {
 
-void make_decision(decision_t *decision) {
-    
+
+// Create the different actions that can be taken (in order !) with respect to the strategy
+void decide_possible_actions() {
 
     int8_t current_time = shared.update_and_get_timer();
     double x_pos, y_pos, theta_pos, dist_from_currentNode; 
@@ -38,23 +44,14 @@ void make_decision(decision_t *decision) {
     uint8_t currentNode = shared.graph->identify_pos(x_pos, y_pos, &dist_from_currentNode);  // Get the closest node from the robot 
 
     #ifdef TESTS
-
-    // Some code here to do the path planning for the test action
-    do {
-        uint8_t target = shared.graph->plants[rand()%6]; // get random plant node
-        shared.graph->node_level_update(target, 0, DISABLE_PROPAGATION);
-        path = shared.graph->compute_path(currentNode, &target, 1, 0);       
-    } while (path == NULL);
-    path->thetaStart = theta_pos; 
-    path->thetaEnd = 0; 
-    decision->actionType = TestAction; 
-    decision->path = path;
+    possible_actions[0] = new ActionTest(); 
+    n_possible_actions = 1; 
     return;
     #endif
 
-    // First check if time is over : 
     if (current_time < 0) {
-        decision->actionType = GameFinished; 
+        possible_actions[0] = new ActionGameFinished(); 
+        n_possible_actions = 1; 
         return; 
     }
 
@@ -65,31 +62,60 @@ void make_decision(decision_t *decision) {
         if (path != NULL) {
             path->thetaStart = theta_pos; 
             path->thetaEnd = getThetaEnd(shared.graph->friendlyBases, shared.graph->friendlyBasesTheta, 3, path->target); 
-            decision->actionType = ReturnToBase; 
         }
-        
+        possible_actions[0] = new ActionBackToBase(path); 
+        n_possible_actions = 1; 
         return; 
     }
-
     // Strategy : for now, only cycling between random plant nodes and going back to closest base
 
     if (in_array(shared.graph->plants, 6, currentNode)) {
         // If it's in a plant node, go back to a base 
         path = shared.graph->compute_path(currentNode, shared.graph->friendlyBases, 3,0);
-        path->thetaStart = theta_pos; 
-        path->thetaEnd = getThetaEnd(shared.graph->friendlyBases, shared.graph->friendlyBasesTheta, 3, path->target); 
+        if (path != NULL) {
+            path->thetaStart = theta_pos; 
+            path->thetaEnd = getThetaEnd(shared.graph->friendlyBases, shared.graph->friendlyBasesTheta, 3, path->target); 
+        }
+        possible_actions[0] = new ActionBackToBase(path); 
+        n_possible_actions = 1; 
 
     } else {
         // Else, go to a random plant node 
-        do {
-            uint8_t target = shared.graph->plants[rand()%6]; // get random plant node
-            shared.graph->node_level_update(target, 0, DISABLE_PROPAGATION);
-            path = shared.graph->compute_path(currentNode, &target, 1, 0);       
-        } while (path == NULL);
-        path->thetaStart = theta_pos; 
-        path->thetaEnd = 0; 
+        uint8_t target = shared.graph->plants[rand()%6]; // get random plant node
+        shared.graph->node_level_update(target, 0, DISABLE_PROPAGATION);
+        path = shared.graph->compute_path(currentNode, &target, 1, 0);       
+        if (path != NULL) {
+            path->thetaStart = theta_pos; 
+            path->thetaEnd = 0; 
+        }
+        
+        possible_actions[0] = new ActionDisplacement(path); 
+        n_possible_actions = 1; 
     }
-    decision->actionType = Displacement; 
-    decision->path = path;
-    return; 
+
 }
+    
+Action* make_decision() {
+    decide_possible_actions(); 
+    Action* selected_action; 
+
+    for (uint8_t i=0; i<n_possible_actions; i++) {
+        if (selected_action != NULL) {
+            if (possible_actions[i]->needs_path && possible_actions[i]->path == NULL) {
+                delete possible_actions[i]; 
+            } else {
+                selected_action = possible_actions[i];
+            }
+        } else {
+            delete possible_actions[i]; 
+        }
+    }
+    if (selected_action != NULL) {
+        return selected_action;
+    } else {
+        return new ActionWait(); 
+    }
+    
+}
+
+
