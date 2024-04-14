@@ -4,6 +4,11 @@
 #include "SPI_bus.h"
 #include "GPIO.h"
 
+//#define VERBOSE
+#ifdef VERBOSE
+#include <stdio.h>
+#endif
+
 enum __teensy_mode_t : int8_t {
     ModeIdle,
     ModePositionControl,
@@ -24,7 +29,11 @@ public:
      * @param bus a pointer to the SPIBus object
      * @param pins a pointer to the GPIOPins object
      */
-    Teensy(SPIBus *bus, GPIOPins *pins) : SPIUser(bus), GPIOUser(pins) {}
+    Teensy(SPIBus *bus, GPIOPins *pins) : SPIUser(bus), GPIOUser(pins) {
+        #ifdef VERBOSE
+        printf("Constructor Teensy\n");
+        #endif
+    }
     void path_following(double *x, double *y, int ncheckpoints,
                         double theta_start, double theta_end,
                         double vref, double dist_goal_reached);

@@ -8,6 +8,10 @@
 
 void solar_panel_pc(); 
 
+//void positionCtrlIterative(); 
+
+void turn_solar_panel(bool reserved, uint8_t sp_counter);
+
 /* TURN_SOLAR_PANEL_RESERVED: Action sequence to turn one or more solar panels, reserved (no angle estimation)
    uint8_t sp_counter: number of solar panels to turn */
 void turn_solar_panel_reserved(uint8_t sp_counter);

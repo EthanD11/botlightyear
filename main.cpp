@@ -64,24 +64,24 @@ void ask_user_input_params() {
         do {
             std::cin >> s;
             if (!s.compare("bottomright")) {
-                shared.startingBaseID = shared.graph.friendlyBases[0];
-                shared.odo.set_pos(0.225,0.035,M_PI_2);
+                shared.startingBaseID = shared.graph->friendlyBases[0];
+                shared.odo->set_pos(0.225,0.035,M_PI_2);
                 shared.set_robot_pos(0.225,0.035,M_PI_2);
-                shared.teensy.set_position(0.225,0.035,M_PI_2);
+                shared.teensy->set_position(0.225,0.035,M_PI_2);
                 break;
             }
             if (!s.compare("topright")) {
-                shared.startingBaseID = shared.graph.friendlyBases[1];
-                shared.odo.set_pos(1.775,0.035,M_PI_2);
+                shared.startingBaseID = shared.graph->friendlyBases[1];
+                shared.odo->set_pos(1.775,0.035,M_PI_2);
                 shared.set_robot_pos(1.775,0.035,M_PI_2);
-                shared.teensy.set_position(1.775,0.035,M_PI_2);
+                shared.teensy->set_position(1.775,0.035,M_PI_2);
                 break;
             }
             if (!s.compare("middleleft")) {
-                shared.startingBaseID = shared.graph.friendlyBases[2];
-                shared.odo.set_pos(1.0,2.965,-M_PI_2);
+                shared.startingBaseID = shared.graph->friendlyBases[2];
+                shared.odo->set_pos(1.0,2.965,-M_PI_2);
                 shared.set_robot_pos(1.0,2.965,-M_PI_2);
-                shared.teensy.set_position(1.0,2.965,-M_PI_2);
+                shared.teensy->set_position(1.0,2.965,-M_PI_2);
                 break;
             }
             std::cout << "Invalid input base : " << s << "\n";
@@ -92,24 +92,24 @@ void ask_user_input_params() {
         do {
             std::cin >> s;
             if (!s.compare("bottomleft")) {
-                shared.startingBaseID = shared.graph.friendlyBases[0];
-                shared.odo.set_pos(0.225,2.965,-M_PI_2);
+                shared.startingBaseID = shared.graph->friendlyBases[0];
+                shared.odo->set_pos(0.225,2.965,-M_PI_2);
                 shared.set_robot_pos(0.225,2.965,-M_PI_2);
-                shared.teensy.set_position(0.225,2.965,-M_PI_2);
+                shared.teensy->set_position(0.225,2.965,-M_PI_2);
                 break;
             }
             if (!s.compare("topleft")) {
-                shared.startingBaseID = shared.graph.friendlyBases[1];
-                shared.odo.set_pos(1.775,2.965,-M_PI_2);
+                shared.startingBaseID = shared.graph->friendlyBases[1];
+                shared.odo->set_pos(1.775,2.965,-M_PI_2);
                 shared.set_robot_pos(1.775,2.965,-M_PI_2);
-                shared.teensy.set_position(1.775,2.965,-M_PI_2);
+                shared.teensy->set_position(1.775,2.965,-M_PI_2);
                 break;
             }
             if (!s.compare("middleright")) {
-                shared.startingBaseID = shared.graph.friendlyBases[2];
-                shared.odo.set_pos(1.0,0.035,M_PI_2);
+                shared.startingBaseID = shared.graph->friendlyBases[2];
+                shared.odo->set_pos(1.0,0.035,M_PI_2);
                 shared.set_robot_pos(1.0,0.035,M_PI_2);
-                shared.teensy.set_position(1.0,0.035,M_PI_2);
+                shared.teensy->set_position(1.0,0.035,M_PI_2);
                 break;
             }
             std::cout << "Invalid input base : " << s << "\n";
@@ -123,13 +123,13 @@ void init_and_wait_for_start() {
     dxl_ping(6,1.0);
     dxl_ping(8,1.0);
 
-    if (shared.graph.init_from_file("./graphs/BL_V3.txt", shared.color) != 0) exit(3);
-    shared.graph.node_level_update(shared.graph.adversaryBases[0], 3, DISABLE_PROPAGATION);
+    if (shared.graph->init_from_file("./graphs/BL_V3.txt", shared.color) != 0) exit(3);
+    shared.graph->node_level_update(shared.graph->adversaryBases[0], 3, DISABLE_PROPAGATION);
 
     if (pthread_create(&localizerID, NULL, localizer, NULL) != 0) exit(4);
 
-    shared.steppers.reset_all();
-    shared.steppers.calibrate_all();
+    shared.steppers->reset_all();
+    shared.steppers->calibrate_all();
     
     shared.start_timer();
 
@@ -167,7 +167,7 @@ void *localizer(void* arg) {
         clock_t lidarClock = clock();
         #endif
 
-        shared.odo.get_pos(&xOdo, &yOdo, &thetaOdo);
+        shared.odo->get_pos(&xOdo, &yOdo, &thetaOdo);
 
         #ifdef TIME_MEAS
         clock_t odoClock = clock();
@@ -177,7 +177,7 @@ void *localizer(void* arg) {
         //y = (yOdo + lidarData.readLidar_y_robot)*0.5;
         //theta = (thetaOdo + lidarData.readLidar_theta_robot)*0.5;
 
-        shared.teensy.set_position(xOdo,yOdo,thetaOdo);
+        shared.teensy->set_position(xOdo,yOdo,thetaOdo);
 
         #ifdef TIME_MEAS
         clock_t teensyClock = clock();
@@ -225,6 +225,7 @@ int main(int argc, char const *argv[])
             break;
         case TestAction :
             turn_solar_panel(true, 3);
+            //positionCtrlIterative(); 
             break; 
         default:
             break;
@@ -233,9 +234,9 @@ int main(int argc, char const *argv[])
 
     // ----- FINISH -----
 
-    shared.teensy.idle();
-    shared.steppers.reset_all();
-    shared.servoFlaps.idle(); shared.grpDeployer.idle(); shared.grpHolder.idle();
+    shared.teensy->idle();
+    shared.steppers->reset_all();
+    shared.servoFlaps->idle(); shared.grpDeployer->idle(); shared.grpHolder->idle();
     dxl_idle(6, 1.0);
     dxl_idle(8, 1.0);
 

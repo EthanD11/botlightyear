@@ -16,20 +16,30 @@ SharedVariables::SharedVariables()
     score = 0;
     for (uint8_t i = 0; i < 8; i++) storage[i] = ContainsNothing;
     nFreeSlots = 8;
+
+    spiBus = new SPIBus();
+    pins = new GPIOPins();
+    teensy = new Teensy(spiBus, pins);
+    odo = new Odometry(spiBus);
+    servoFlaps = new Flaps(spiBus);
+    grpDeployer = new GripperDeployer(spiBus);
+    grpHolder = new GripperHolder(spiBus);
+    steppers = new Steppers(spiBus, pins);
+    graph = new Graph();
 }
 
 SharedVariables::~SharedVariables()
 {
 
-    graph.~Graph();
-    spiBus.~SPIBus();
-    pins.~GPIOPins();
+    delete graph;
+    delete spiBus;
+    delete pins;
 
-    steppers.bus = NULL; steppers.pins = NULL; steppers.~Steppers();
-    teensy.bus = NULL; teensy.pins = NULL; teensy.~Teensy();
-    servoFlaps.bus = NULL; servoFlaps.~Flaps();
-    grpDeployer.bus = NULL; grpDeployer.~GripperDeployer();
-    grpHolder.bus = NULL; grpHolder.~GripperHolder();
+    steppers->bus = NULL; steppers->pins = NULL; delete steppers;
+    teensy->bus = NULL; teensy->pins = NULL; delete teensy;
+    servoFlaps->bus = NULL; delete servoFlaps;
+    grpDeployer->bus = NULL; delete grpDeployer;
+    grpHolder->bus = NULL; delete grpHolder;
 
     pthread_rwlock_destroy(&robotPosLock);
     pthread_rwlock_destroy(&advPosLock);
@@ -41,7 +51,7 @@ void SharedVariables::start_timer() {
     printf("Waiting for starting cord setup... \n");
     #endif
 
-    pins.wait_for_gpio_value(StartingCordGPIO, 0, 2000000);
+    pins->wait_for_gpio_value(StartingCordGPIO, 0, 2000000);
 
     #ifdef VERBOSE
     printf("Starting cord has been setup\n");
@@ -52,7 +62,7 @@ void SharedVariables::start_timer() {
     printf("Waiting start of the game... \n");
     #endif
 
-    pins.wait_for_gpio_value(StartingCordGPIO, 1, 2000000);
+    pins->wait_for_gpio_value(StartingCordGPIO, 1, 2000000);
     time(&tStart);
 
     #ifdef VERBOSE

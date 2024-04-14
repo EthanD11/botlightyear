@@ -4,12 +4,17 @@
 #include <pthread.h>
 #include <stdio.h>
 
+//#define VERBOSE
+
 #define SPI_CLK_FREQ 5000000
 #define SPI_MODE_DEFAULT 0
 
 pthread_mutex_t mutex;
 
 SPIBus::SPIBus() {
+    #ifdef VERBOSE
+    printf("Constructor SPI Bus\n");
+    #endif
     DE0_handle = lgSpiOpen(0, 1, SPI_CLK_FREQ, SPI_MODE_DEFAULT);
     Teensy_handle = lgSpiOpen(0, 0, SPI_CLK_FREQ, SPI_MODE_DEFAULT);
     if (pthread_mutex_init(&mutex,NULL) < 0 || DE0_handle < 0 || Teensy_handle < 0) exit(-1);
@@ -18,6 +23,9 @@ SPIBus::SPIBus() {
 }
 
 SPIBus::~SPIBus() {
+    #ifdef VERBOSE
+    printf("Destructor SPI Bus\n");
+    #endif
     lgSpiClose(DE0_handle);
     lgSpiClose(Teensy_handle);
     pthread_mutex_destroy(&mutex);
@@ -60,26 +68,32 @@ void SPIBus::unlock() {
 }
 
 void SPIBus::DE0_write(char *send) {
-    lgSpiWrite(DE0_handle, send, 5);
+    if (lgSpiWrite(DE0_handle, send, 5) < 0) printf("SPI DE0 Write failed\n");
 }
 
 void SPIBus::DE0_xfer(char *send, char *receive) {
-    lgSpiXfer(DE0_handle, send, receive, 5);
+     if (lgSpiXfer(DE0_handle, send, receive, 5) < 0) printf("SPI DE0 Xfer failed\n");
 }
 
 void SPIBus::Teensy_write(char *send, int msgSize) {
-    lgSpiWrite(Teensy_handle, send, msgSize);
+     if (lgSpiWrite(Teensy_handle, send, msgSize) < 0) printf("SPI Teensy Write failed\n");
 }
 
 void SPIBus::Teensy_xfer(char *send, char *receive, int msgSize) {
-    lgSpiXfer(Teensy_handle, send, receive, msgSize);
+     if (lgSpiXfer(Teensy_handle, send, receive, msgSize) < 0) printf("SPI Teensy Xfer failed\n");
 }
 
 SPIUser::SPIUser(SPIBus *bus) {
+    #ifdef VERBOSE
+    printf("Constructor SPI user\n");
+    #endif
     this->bus = bus;
 }
 
 SPIUser::~SPIUser() {
+    #ifdef VERBOSE
+    printf("Destructor SPI user\n");
+    #endif
     if (bus == NULL) return;
     bus->~SPIBus();
     bus = NULL;

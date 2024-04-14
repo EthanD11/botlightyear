@@ -6,7 +6,12 @@
 
 #define PI5
 
+//#define VERBOSE
+
 GPIOPins::GPIOPins() {
+    #ifdef VERBOSE
+    printf("Constructor GPIO pins\n");
+    #endif
 
     #ifdef PI5
     handle = lgGpiochipOpen(4);
@@ -28,6 +33,9 @@ GPIOPins::GPIOPins() {
 }
 
 GPIOPins::~GPIOPins() {
+    #ifdef VERBOSE
+    printf("Destructor GPIO pins\n");
+    #endif
     this->free_gpio(StartingCordGPIO); 
     this->free_gpio(StprSliderGPIO); 
     this->free_gpio(StprPlateGPIO); 
@@ -67,7 +75,6 @@ void GPIOPins::wait_for_gpio_value(GPIO_t gpio, uint8_t val, uint32_t msMaxWait)
 
 int8_t GPIOPins::read(GPIO_t gpio) {
     for (int8_t i = 0; i < 5; i++) {
-        //printf("Handle %d \n", handle); 
         int res = lgGpioRead(handle, gpio);
         if (res >= 0) return (int8_t) res;
         printf("Error : gpio %d not readable \n", gpio);
@@ -78,11 +85,17 @@ int8_t GPIOPins::read(GPIO_t gpio) {
 
 GPIOUser::GPIOUser(GPIOPins *pins)
 {
+    #ifdef VERBOSE
+    printf("Constructor GPIO user\n");
+    #endif
     this->pins = pins;
 }
 
 GPIOUser::~GPIOUser()
 {
+    #ifdef VERBOSE
+    printf("Destructor GPIO user\n");
+    #endif
     if (pins == NULL) return;
     pins->~GPIOPins();
     pins = NULL;

@@ -4,13 +4,13 @@
 
 void planter_place_objects(uint8_t nObjects) {
 
-    Flaps servoFlaps = shared.servoFlaps;
-    Steppers steppers = shared.steppers;
-    Teensy teensy = shared.teensy;
+    Flaps *servoFlaps = shared.servoFlaps;
+    Steppers *steppers = shared.steppers;
+    Teensy *teensy = shared.teensy;
 
-    servoFlaps.raise();
-    steppers.flaps_move(FlapsOpen);
-    steppers.plate_move(0, CALL_BLOCKING);
+    servoFlaps->raise();
+    steppers->flaps_move(FlapsOpen);
+    steppers->plate_move(0, CALL_BLOCKING);
 
     uint8_t nDropped = 0;
 
@@ -21,12 +21,12 @@ void planter_place_objects(uint8_t nObjects) {
     // Empty gripper first
     if (shared.storage[SlotGripper] != ContainsNothing) {
 
-        teensy.pos_ctrl(x+0.2*cos(theta)+0.32/rint(nObjects/2), y+0.2*sin(theta), theta);
+        teensy->pos_ctrl(x+0.2*cos(theta)+0.32/rint(nObjects/2), y+0.2*sin(theta), theta);
         nDropped++;
     }
 
     // Empty storage
-    steppers.slider_move(SliderHigh, CALL_BLOCKING);
+    steppers->slider_move(SliderHigh, CALL_BLOCKING);
     for (uint8_t i = Slot1; i <= SlotM3; i--)
     {
         if (shared.storage[i] == ContainsNothing) continue;

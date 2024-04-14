@@ -7,9 +7,8 @@ double xinit, yinit, tinit = 0;
 int main(int argc, char const *argv[]) {
 
     shared.set_robot_pos(xinit, yinit, tinit); 
-    Odometry odo = shared.odo; 
-    odo.set_pos(xinit, yinit, tinit); 
-    printf("Shared address %d \n", &shared); 
+    Odometry *odo = shared.odo; 
+    odo->set_pos(xinit, yinit, tinit); 
 
     //dxl_init_port();
     

@@ -101,7 +101,6 @@ int main(int argc, char const *argv[])
         odo.get_pos(&xpos, &ypos, &thetapos);
         teensy.set_position(xpos, ypos, thetapos);
         lguSleep(0.3);
-        printf("%d\n", teensy.ask_mode());
     }
     #endif
 

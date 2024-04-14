@@ -157,7 +157,6 @@ void Steppers::slider_move(slider_pos_t pos, uint8_t blocking){
         break; 
     default :
         printf("Error : not a position : %d \n", pos);
-        printf("%d\n", pos);
         steps = 0; 
         return;
     }
@@ -194,7 +193,6 @@ void Steppers::setup_speed(steppers_t stepperName, int nominalSpeed, int initial
     char nominalSpeed1= (nominalSpeed & 0xFF00) >> 8;
     char nominalSpeed2 = nominalSpeed & 0xFF;
     char request; 
-    //printf("Init speed 1 : %d, Init speed 2 : %d", initialSpeed1, initialSpeed2);
     switch (stepperName) {
         case StprPlate :
             request = 0x83; 

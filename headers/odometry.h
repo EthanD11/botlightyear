@@ -4,12 +4,21 @@
 #include "SPI_bus.h"
 #include <stdint.h>
 
+//#define VERBOSE
+#ifdef VERBOSE
+#include <stdio.h>
+#endif
+
 #define ODO_TICKS_TO_M 1.7257283863713464e-05 // Conversion factor ticks to meters. (theoretical : pi*45e-3/8192; practical : 610e-3/(2**3+2**4+2**6+4*2**11))
 
 class Odometry : private SPIUser
 {
 public:
-    Odometry(SPIBus *bus) : SPIUser(bus) {}
+    Odometry(SPIBus *bus) : SPIUser(bus) {
+        #ifdef VERBOSE
+        printf("Constructor Odometry\n");
+        #endif
+    }
     void reset();
     void get_pos(double *x, double *y, double *theta);
     void set_pos(double x, double y, double theta);

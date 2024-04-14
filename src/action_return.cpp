@@ -9,8 +9,8 @@
 
 void path_following_to_base() {
 
-    Teensy teensy   = shared.teensy;
-    Graph graph     = shared.graph; 
+    Teensy *teensy   = shared.teensy;
+    Graph *graph     = shared.graph; 
 
     // Set path following from path planning (decision)
     int ncheckpoints = (int) decision.path->nNodes; 
@@ -20,15 +20,15 @@ void path_following_to_base() {
     double theta_start = decision.path->thetaStart; 
     double theta_end = decision.path->thetaEnd; 
 
-    teensy.path_following(x, y, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
+    teensy->path_following(x, y, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
 
     // Check Teensy mode
-    while ((teensy.ask_mode()) != ModePositionControlOver) { 
+    while ((teensy->ask_mode()) != ModePositionControlOver) { 
             usleep(1000);
     } 
 
     // Idle
-    teensy.idle(); 
+    teensy->idle(); 
 
     // Score update
     shared.score += 10;

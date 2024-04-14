@@ -71,15 +71,15 @@ public:
     storage_content_t storage[8]; // Storage of the robot, indices respect the order defined by storage_slot_t
     uint8_t nFreeSlots; // Number of free storage slots
 
-    SPIBus spiBus = SPIBus();
-    GPIOPins pins = GPIOPins();
-    Steppers steppers = Steppers(&spiBus, &pins);
-    Odometry odo = Odometry(&spiBus);
-    Teensy teensy = Teensy(&spiBus, &pins);
-    Flaps servoFlaps = Flaps(&spiBus);
-    GripperDeployer grpDeployer = GripperDeployer(&spiBus);
-    GripperHolder grpHolder = GripperHolder(&spiBus);
-    Graph graph = Graph();
+    SPIBus *spiBus;
+    GPIOPins *pins;
+    Steppers *steppers;
+    Odometry *odo;
+    Teensy *teensy;
+    Flaps *servoFlaps;
+    GripperDeployer *grpDeployer;
+    GripperHolder *grpHolder;
+    Graph *graph;
 };
 
 extern SharedVariables shared;  
