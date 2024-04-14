@@ -808,7 +808,6 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
 }
 
 void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool fromOdo) {
-    //StartLidar();
     double *angles = new double[8000];
     double *distances = new double[8000];
     double *quality = new double[8000];
@@ -840,7 +839,6 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
     delete (distances);
     delete (quality);
     delete (as);
-    //StopLidar();
 
     if(!lidarData->readLidar_lost){
     //2 des positions pour etre centré au niveau des roues sauf la distance et l'angle de l'adversaire
@@ -885,7 +883,6 @@ void init_lidar(LidarData *lidarData) {
     lidarData->y_odo = 0.0;
     lidarData->theta_odo = 0.0;
 
-    bool found;
     return;
 }
 
@@ -893,37 +890,3 @@ void clear_lidar(LidarData *lidarData) {
     delete (lidarData->beaconAdv);
     delete(lidarData);
 }
-
-/*
-int main(int argc, char *argv[]) {
-    auto started = std::chrono::high_resolution_clock::now();
-    LidarData *lidarData = new LidarData[sizeof(LidarData)];
-    init_lidar(lidarData);
-
-    for (int i = 0; i < 156; ++i) {
-
-        lidarGetRobotPosition(lidarData, i);
-        if (analyseDetail) {
-            printf("\nboucle %d\n", i);
-            printf(" robot at x=%f; y=%f; orientation=%f\n", lidarData->x_robot, lidarData->y_robot,
-                   lidarData->orientation_robot);
-
-            //printf("Adversary at x=%f; y=%f\n", adv[0], adv[1]);
-            // printf("adv at %f m; %f degree\n", adv[2], adv[3] *180 / M_PI);
-            for (int i = 0; i < 8; ++i) {
-                printf("%f, ", lidarData->beaconAdv[i]);
-            }
-            printf("\n");
-        } else {
-            printf("%f %f\n", lidarData->x_robot, lidarData->y_robot);
-        }
-    }
-    clear_lidar(lidarData);
-    delete (lidarData);
-
-
-    auto done = std::chrono::high_resolution_clock::now();
-    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(done-started).count()<< "\n";
-    return 0;
-}
-*/

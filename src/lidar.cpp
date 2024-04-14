@@ -48,7 +48,6 @@ void StartLidarTop(){
         sl_lidar_response_device_info_t deviceInfo;
         res = lidarTop->getDeviceInfo(deviceInfo);
         if(SL_IS_OK(res)){
-            //TODO recup noms lidar ici pour faire la diff entre les 2
             printf("Model: %d, Firmware Version: %d.%d, Hardware Version: %d\n",
                    deviceInfo.model,
                    deviceInfo.firmware_version >> 8, deviceInfo.firmware_version & 0xffu,
@@ -92,7 +91,6 @@ void StartLidarBottom(){
         sl_lidar_response_device_info_t deviceInfo;
         res = lidarBottom->getDeviceInfo(deviceInfo);
         if(SL_IS_OK(res)){
-            //TODO recup noms lidar ici pour faire la diff entre les 2
             printf("Model: %d, Firmware Version: %d.%d, Hardware Version: %d\n",
                    deviceInfo.model,
                    deviceInfo.firmware_version >> 8, deviceInfo.firmware_version & 0xffu,
