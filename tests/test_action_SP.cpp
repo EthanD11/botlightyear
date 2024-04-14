@@ -14,8 +14,9 @@ int main(int argc, char const *argv[]) {
     dxl_ping(8, 1.0);
 
     bool reserved = true; 
-    turn_solar_panel(reserved, 3); 
+    turn_solar_panel(reserved, 2); 
 
+    printf("End of action, score: %d\n", shared.score); 
     dxl_close_port();
 
     return 0;
