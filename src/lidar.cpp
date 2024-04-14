@@ -23,7 +23,7 @@ ILidarDriver *lidarTop;
 IChannel* channelBottom;
 ILidarDriver *lidarBottom;
 
-//SLeep
+//Sleep
 #include <unistd.h>
 
 
@@ -183,7 +183,7 @@ void updateDataFile(double* angles, double* distances, double* quality, string f
 }
 
 void DataToFileTop(string filename){
-    sl_lidar_response_measurement_node_hq_t nodes[8192];//default on rplidar
+    sl_lidar_response_measurement_node_hq_t nodes[8192];//default on RPLidar
     size_t nodeCount = sizeof(nodes)/sizeof(sl_lidar_response_measurement_node_hq_t);
     sl_result res = lidarTop->grabScanDataHq(nodes, nodeCount);
 
@@ -212,7 +212,7 @@ void DataToFileTop(string filename){
 }
 
 void DataToFileBottom(string filename){
-    sl_lidar_response_measurement_node_hq_t nodes[8192];//default on rplidar
+    sl_lidar_response_measurement_node_hq_t nodes[8192];//default on RPLidar
     size_t nodeCount = sizeof(nodes)/sizeof(sl_lidar_response_measurement_node_hq_t);
     sl_result res = lidarBottom->grabScanDataHq(nodes, nodeCount);
 
