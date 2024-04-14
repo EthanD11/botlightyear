@@ -28,7 +28,7 @@ int main(int argc, char const *argv[])
 
     int pin = 25;
 
-    int handle = lgGpiochipOpen(0);
+    int handle = lgGpiochipOpen(4);
     if (handle < 0) exit(1);
     lgChipInfo_t chipinfo;
     if (lgGpioGetChipInfo(handle,&chipinfo) < 0) exit(1);
@@ -38,9 +38,13 @@ int main(int argc, char const *argv[])
 
     if (lgGpioClaimInput(handle, LG_SET_PULL_NONE, pin) != 0) exit(3);
 
-    lgLineInfo_t lInfo;
-    if (lgGpioGetLineInfo(handle, pin, &lInfo) < 0) exit(4);
-    printf("lFlags=%d name=%s user=%s offset=%d\n", lInfo.lFlags, lInfo.name, lInfo.user, lInfo.offset);
+    for (uint32_t i=0; i<chipinfo.lines; i++) {
+      lgLineInfo_t lInfo;
+      if (lgGpioGetLineInfo(handle, i, &lInfo) < 0) exit(4);
+
+      printf("lFlags=%d name=%s user=%s offset=%d\n", lInfo.lFlags, lInfo.name, lInfo.user, lInfo.offset);
+    }
+    return 0; 
 
     int start;
     do {

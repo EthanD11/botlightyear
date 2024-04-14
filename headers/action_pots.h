@@ -3,6 +3,6 @@
 
 #include "shared_variables.h"
 
-extern SharedVariables shared;
+
 
 #endif

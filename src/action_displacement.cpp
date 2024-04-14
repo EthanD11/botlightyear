@@ -3,10 +3,8 @@
 #include <stdio.h>
 #include <cmath>
 
-extern SharedVariables shared; 
-extern decision_t decision; 
 
-Teensy teensy   = shared.teensy;
+Teensy teensy  = shared.teensy;
 
 #define vref 0.25                 // [m/s] Speed reference for path following
 #define dist_goal_reached 0.40    // [m] Distance tolerance to goal for path following
@@ -46,6 +44,7 @@ uint8_t path_following_to_action() {
     // Check Teensy mode
     usleep(100000);
     while ((teensy.ask_mode()) != ModePositionControlOver) {
+        printf("Shared address %d \n", &shared); 
         usleep(1000);
     } 
 

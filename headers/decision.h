@@ -25,4 +25,6 @@ typedef struct _decision
 
 void make_decision(decision_t *decision);
 
+extern decision_t decision; 
+
 #endif

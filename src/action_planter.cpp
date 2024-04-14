@@ -1,7 +1,6 @@
 #include "action_planter.h"
 #include <cmath>
 
-extern SharedVariables shared;
 
 void planter_place_objects(uint8_t nObjects) {
 

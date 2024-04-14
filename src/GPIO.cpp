@@ -67,9 +67,11 @@ void GPIOPins::wait_for_gpio_value(GPIO_t gpio, uint8_t val, uint32_t msMaxWait)
 
 int8_t GPIOPins::read(GPIO_t gpio) {
     for (int8_t i = 0; i < 5; i++) {
+        //printf("Handle %d \n", handle); 
         int res = lgGpioRead(handle, gpio);
         if (res >= 0) return (int8_t) res;
         printf("Error : gpio %d not readable \n", gpio);
+        lguSleep(0.001);
     }
     return -1;
 }

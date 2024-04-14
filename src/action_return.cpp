@@ -1,8 +1,6 @@
 #include "action_return.h"
 #include "decision.h"
 
-extern SharedVariables shared; 
-extern decision_t decision; 
 
 
 #define vref 0.25                 // [m/s] Speed reference for path following
