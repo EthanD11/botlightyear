@@ -1,4 +1,5 @@
 #include "actions.h"
+#include <cmath> 
 
 uint8_t closer_in_path(graph_path_t *path, double xr, double yr) {
     double distance, min_distance = 3.6; 
@@ -66,12 +67,22 @@ int8_t path_following_to_action(graph_path_t *path) {
 
         // Get update on robot and adversary position
         double xr, yr, tr = shared.get_robot_pos(&xr, &yr, &tr); 
+        double xa, ya, da, ta = shared.get_adv_pos(&xa, &ya, &da, &ta);
 
         // Get closer in path
         uint8_t closer_node_id = closer_in_path(path, xr, yr); 
 
         // Check advsersary in path
         if (adversary_in_path(path, closer_node_id) == -1) {
+            teensy.idle(); 
+            free(path); 
+            return -1;
+        }
+
+        // Security check: adversary too close
+        double tolerance = 0.4; 
+        if ((da < tolerance) && (abs(ta) < M_PI/2)) {
+            teensy.idle(); 
             free(path); 
             return -1;
         }
@@ -101,11 +112,7 @@ int8_t action_position_control(double x_end, double y_end, double theta_end)
     #ifdef VERBOSE
     printf("Adversary position from shared: %.3f, %.3f, %.3f \n", x_adv, y_adv, theta_adv); 
     #endif
-
-    // Check adversary
     
-
-
     // Set position control gains (see with Ethan?)
     double kp = 0.8;
     double ka = 2.5;
