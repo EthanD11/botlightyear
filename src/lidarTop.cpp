@@ -120,7 +120,7 @@ void rotationPosition(double *db, double *x, double *y, LidarData *lidarData, do
 
     ///to determine the orientation of the robot on the table
     //TODO check si ok angle
-    lidarData->orientation_robot = M_PI - orientation + atan2(lidarData->x_robot, lidarData->y_robot);
+    lidarData->orientation_robot = M_PI - orientation + atan2(lidarData->x_robot, lidarData->y_robot)-M_PI/2;
 
     while (lidarData->orientation_robot>M_PI){
         lidarData->orientation_robot-=2*M_PI;
@@ -537,7 +537,7 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
             }
         }
         if (analyseDetail) {
-            printf("count : %d %d %d\n", countObj, countObj_adv);
+            printf("count : %d %d\n", countObj, countObj_adv);
         }
     }
 
