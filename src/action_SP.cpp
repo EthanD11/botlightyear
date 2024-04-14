@@ -4,7 +4,6 @@
 
 extern SharedVariables shared;
 
-Teensy teensy = shared.teensy;
 
 /* SOLAR_PANEL_PC: Position Control for Solar Panels 
    x, y, theta: robot position at the start of the displacement action
@@ -14,9 +13,13 @@ Teensy teensy = shared.teensy;
 */
 void solar_panel_pc() {
 
+    Teensy teensy = shared.teensy;
+    Odometry odo = shared.odo; 
+
     // Retrieve robot current position
     double x, y, theta; 
     shared.get_robot_pos(&x, &y, &theta); 
+    printf("Robot position from shared: %.3f, %.3f, %.3f \n", x, y, theta); 
 
     // Set position control gains (see with Ethan?)
     double kp = 0.8;
@@ -31,6 +34,10 @@ void solar_panel_pc() {
     double yc[2] = {y,         y};
     double theta_start = theta;
     double theta_end = theta;
+
+    double xpos, ypos, thetapos;
+    odo.set_pos(xc[0], yc[0], theta_start);
+    teensy.set_position(xc[0], yc[0], theta_start);
     
     // Orientation with position control
     teensy.pos_ctrl(xc[1], yc[1], theta_end);
@@ -39,10 +46,19 @@ void solar_panel_pc() {
     // Reset solar panel wheel (dxl 8)
     dxl_init_sp(); 
 
+    do {
+        odo.get_pos(&xpos, &ypos, &thetapos);
+        teensy.set_position(xpos, ypos, thetapos);
+        printf("Odo position in while asb: %.3f,%.3f,%.3f\n",xpos, ypos, thetapos);
+        lguSleep(0.3);
+    } while(abs(xpos-xc[1]) > 0.01); 
+
+    shared.set_robot_pos(xpos, ypos, thetapos); 
+
     // Waiting end to start function turn_solar_panel
     // Check Teensy mode
     while ((teensy.ask_mode()) != ModePositionControlOver) { 
-            uSleep(1000);
+            usleep(1000);
     } 
     
 }
@@ -63,13 +79,16 @@ void turn_solar_panel(bool reserved, uint8_t sp_counter) {
             break;
     }
 
-    // Path following to action : check interrupt
+    /*// Path following to action : check interrupt
     if (path_following_to_action() != 0) {
         return;
-    } 
+    } */
+
+    uint8_t counter = sp_counter; 
 
     // Case asking more than one solar panel
-    while (sp_counter > 1) {
+    while (counter > 1) {
+        printf("Counter: %d\n", counter); 
         // Action turn solar panel
         dxl_deploy(Down);
         if (reserved) {
@@ -83,15 +102,17 @@ void turn_solar_panel(bool reserved, uint8_t sp_counter) {
 
         // Update dynamic score
         shared.score += 5;
-        sp_counter--; 
+        counter--; 
 
         // Go to next
         solar_panel_pc();
     }
 
 
+    printf("Check last sp counter: %d\n", counter); 
     // Last solar panel
-    if (sp_counter == 1) {
+    if (counter == 1) {
+        printf("Last solar panel in sequence \n"); 
         //Action turn solar panel
         dxl_deploy(Down);
         if (reserved) {
@@ -105,7 +126,7 @@ void turn_solar_panel(bool reserved, uint8_t sp_counter) {
 
         // Update dynamic score
         shared.score += 5; 
-        sp_counter--; 
+        counter--; 
     }
 
     // Reset solar panel wheel 
@@ -113,5 +134,7 @@ void turn_solar_panel(bool reserved, uint8_t sp_counter) {
 
     /* TO DO: If sp_counter = 0: return state action finish
               Return interrupt*/
+
+     return;         
 
 }
