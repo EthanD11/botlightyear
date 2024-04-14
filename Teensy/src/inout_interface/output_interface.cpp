@@ -37,8 +37,9 @@ OutputInterface *init_outputs() {
     pinMode(A2, OUTPUT);
     pinMode(A3, OUTPUT);
 
-    analogWriteFrequency(PWM_L, 20e3);
-    analogWriteFrequency(PWM_R, 20e3);
+    analogWriteFrequency(A1, 20e3);
+    analogWriteFrequency(A2, 20e3);
+    analogWriteFrequency(A3, 20e3);
         
     analogWrite(A1, 0);
     analogWrite(A2, 0);
