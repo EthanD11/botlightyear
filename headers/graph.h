@@ -2,11 +2,11 @@
 #define BLY_GRAPH_H_
 #include <stdint.h>
 #include <stdlib.h>
-#include "shared_variables.h"
+#include "colors.h"
 
-#define NODE_FREE 0
-#define NODE_DANGER 1
-#define NODE_BLOCKED 2
+#define NODE_OBSTACLES_PRESENT 0b1
+#define NODE_ADV_PRESENT 0b10
+#define NODE_ADV_BASE 0b100
 
 #define DISABLE_PROPAGATION 0
 #define ENABLE_PROPAGATION 1
@@ -15,7 +15,7 @@ typedef struct graph_node
 {
     uint8_t id; // Index of the node in the 'graphNodes' array & identifier for the visual graph
     float x, y; // X & Y Coordinates (refer to the visual graph)
-    int8_t level; // Level of availability of this node (see 'graphLevel')
+    int8_t level; // Level of availability of this node (see 'graph.level')
     uint8_t nNeighbors; // Number of neighbors
     struct graph_node* neighbors[7]; // List of neighbors
 } graph_node_t;
@@ -23,7 +23,9 @@ typedef struct graph_node
 typedef struct graph_path
 {
     uint8_t target; // Target of the path
-    uint8_t nNodes; // Number of nodes in the path
+    uint8_t nNodes; // Size of the idNodes array (number of graph nodes of the path, excluding oversampling)
+    uint8_t *idNodes; // Array of node IDs
+    uint8_t nPoints; // Size of the x and y arrays (number of points of the path, including oversampling)
     double *x; // Array of x coordinates
     double *y; // Array of y coordinates
     double totalCost; // Total distance of travel for this path
@@ -38,12 +40,13 @@ public:
     int8_t nNodes; // Number of nodes in the graph
     graph_node_t *nodes; // Array of graph nodes
     /**
-     * Any node such that node.level > graphLevel will be ignored by the graph search
+     * Any node such that node.level > graph.level will be ignored by the graph search
      * A higher graphLevel therefore means a higher tolerance of obstacles near the path (more risky but faster)
      *  General idea :
-     * 0 = Free, the node is not obstructed
-     * 1 = Danger, the node is obstructed by game items or close to a large object (typically another robot)
-     * 2 = Blocked, the node is obstructed by a large object (typically another robot) and/or cannot be reached at this time
+     * 0 = the node is not obstructed
+     * NODE_OBSTACLES_PRESENT = the node is obstructed by few obstacles (typically plants)
+     * NODE_ADV_PRESENT = the adversary is close to this node
+     * NODE_ADV_BASE = the node is the adversary base, it is forbidden to enter
     */
     int8_t level;
     uint8_t friendlyBases[3]; // Array of friendly bases ids, first one is reserved
@@ -56,6 +59,7 @@ public:
     uint8_t adversarySPs[3]; // Array of adversary reserved solar panel ids
     uint8_t commonSPs[3]; // Array of unreserved solar panels ids
     uint8_t plants[6]; // Array of plant spots ids
+    uint8_t nbPlants[6]; // Array of number of plants per plant spot
     uint8_t pots[6]; // Array of pot spots ids
     Graph();
     ~Graph();
@@ -79,11 +83,9 @@ public:
     graph_path_t *compute_path(uint8_t from, uint8_t *targets, uint8_t len_targets, uint8_t oversampling = 0, uint8_t ignoreFirst = 1);
 
     /**
-    * Updates the level of 'node' to 'level'
-    * Propagates 'level'-1 to the neighbors of 'node' if 'propagation' != 0
-    * Plants and bases are not affected by propagation
+    * Updates the obstacle flag of the 'node' to 'blocked' (0 for free 1 for obstructed)
     */
-    void node_level_update(int node, int level, int propagation);
+    void update_obstacle(uint8_t node, uint8_t blocked);
 
     /**
     * @brief Prints cost, number of nodes, and coordinates in this path
@@ -93,9 +95,14 @@ public:
     /**
     * Identify the given (x,y) coordinates to a node of the graph.
     * Returns identified node id.
-    * Stores the distance to this node into 'dist'
+    * Stores the distance to this node into 'dist' if 'dist' is not null 
     */
     uint8_t identify_pos(double x, double y, double *dist);
+
+    /**
+     * Updates adversary position on the graph within a radius of 25cm
+     */
+    void update_adversary_pos(double xAdv, double yAdv);
 
 };
 

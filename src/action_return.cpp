@@ -13,7 +13,7 @@ void path_following_to_base() {
     Graph *graph     = shared.graph; 
 
     // Set path following from path planning (decision)
-    int ncheckpoints = (int) decision.path->nNodes; 
+    int ncheckpoints = (int) decision.path->nPoints; 
     double *x = decision.path->x; 
     double *y = decision.path->y; 
 

@@ -86,14 +86,14 @@ void SharedVariables::set_robot_pos(double x, double y, double theta) {
     pthread_rwlock_unlock(&robotPosLock);
 }
 
-void SharedVariables::get_adv_pos(double *xAdv, double *yAdv) {
+void SharedVariables::get_adv_pos(double *xAdv, double *yAdv, double *dAdv, double *aAdv) {
     pthread_rwlock_rdlock(&advPosLock);
-    *xAdv = this->xAdv; *yAdv = this->yAdv;
+    *xAdv = this->xAdv; *yAdv = this->yAdv; *dAdv = this->dAdv; *aAdv = this->aAdv;
     pthread_rwlock_unlock(&advPosLock);
 }
 
-void SharedVariables::set_adv_pos(double xAdv, double yAdv) {
+void SharedVariables::set_adv_pos(double xAdv, double yAdv, double dAdv, double aAdv) {
     pthread_rwlock_wrlock(&advPosLock);
-    this->xAdv = xAdv; this->yAdv = yAdv;
+    this->xAdv = xAdv; this->yAdv = yAdv; this->dAdv = dAdv; this->aAdv = aAdv;
     pthread_rwlock_unlock(&advPosLock);
 }

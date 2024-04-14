@@ -1,6 +1,7 @@
 #ifndef BLY_SHARED_H
 #define BLY_SHARED_H
 
+#include "colors.h"
 #include "SPI_bus.h"
 #include "GPIO.h"
 #include "steppers.h"
@@ -13,12 +14,6 @@
 #include <stdint.h>
 
 #include "decision.h"
-
-typedef enum {
-    TeamBlue,
-    TeamYellow,
-    NoTeam
-} team_color_t; // Team colors
 
 typedef enum _storage_slot : uint8_t
 {
@@ -52,7 +47,7 @@ class SharedVariables
 {
 private:
     double x, y, theta; // Current robot position
-    double xAdv, yAdv, thetaAdv; // Current adversary position
+    double xAdv, yAdv, dAdv, aAdv; // Current adversary position
     time_t tStart; // Game start time
 public:
     SharedVariables();
@@ -62,8 +57,8 @@ public:
     void get_robot_pos(double *x, double *y, double *theta);
     void set_robot_pos(double x, double y, double theta);    
     // Usage : `double xAdv, yAdv, thetaAdv; get_adv_pos(&xAdv,&yAdv,&thetaAdv);`
-    void get_adv_pos(double *xAdv, double *yAdv);
-    void set_adv_pos(double xAdv, double yAdv);
+    void get_adv_pos(double *xAdv, double *yAdv, double *dAdv, double *aAdv);
+    void set_adv_pos(double xAdv, double yAdv, double dAdv, double aAdv);
 
     // Starts game timer on starting cord pull detection
     void start_timer();

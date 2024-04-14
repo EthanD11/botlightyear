@@ -2,17 +2,12 @@
 
 int8_t path_following_to_action(graph_path_t *path) {
 
-    printf("Going to node %d\n", path->target);
-    for (size_t i = 0; i < path->nNodes; i++)
-    {
-        printf("(%.3f,%.3f) ", path->x[i], path->y[i]);
-    }
-    printf("\n");
+    Graph::print_path(path);
 
     Teensy *teensy = shared.teensy; 
 
     // Set path following from path planning (decision)
-    int ncheckpoints = (int) path->nNodes; 
+    int ncheckpoints = (int) path->nPoints; 
     double *x = path->x; 
     double *y = path->y; 
 

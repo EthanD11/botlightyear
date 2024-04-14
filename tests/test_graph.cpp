@@ -27,7 +27,7 @@ int main(int argc, char const *argv[])
     uint8_t tos[] = {41,45};
     uint8_t len_tos = 2;
     graph.level = 0;
-    graph.node_level_update(10,3,ENABLE_PROPAGATION);
+    graph.update_obstacle(10,1);
 
     printf("Searching for a path between %d and {", from);
     for (uint8_t i = 0; i < len_tos-1; i++) { printf("%d,", tos[i]); }
