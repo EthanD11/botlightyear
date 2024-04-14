@@ -1,7 +1,7 @@
 #include "lidarBottom.h"
 #include "lidar.h"
 #include <cmath>
-
+//TODO ADAPT POUR YELLOW
 static double sizePlant = 0.05;
 int arraysize = 8000;
 bool printplotpy = false;
