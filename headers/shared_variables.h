@@ -14,6 +14,11 @@
 
 #include "decision.h"
 
+typedef enum {
+    TeamBlue,
+    TeamYellow,
+    NoTeam
+} team_color_t; // Team colors
 
 typedef enum _storage_slot : uint8_t
 {

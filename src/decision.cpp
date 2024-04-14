@@ -40,10 +40,12 @@ void make_decision(decision_t *decision) {
     #ifdef TESTS
 
     // Some code here to do the path planning for the test action
-    uint8_t target = shared.graph->plants[rand()%6]; // get random plant node
-    shared.graph->node_level_update(target, 0, DISABLE_PROPAGATION);
-    path = shared.graph->compute_path(currentNode, &target, 1, 0);
-    path->thetaStart = 0; 
+    do {
+        uint8_t target = shared.graph->plants[rand()%6]; // get random plant node
+        shared.graph->node_level_update(target, 0, DISABLE_PROPAGATION);
+        path = shared.graph->compute_path(currentNode, &target, 1, 0);       
+    } while (path == NULL);
+    path->thetaStart = theta_pos; 
     path->thetaEnd = 0; 
     decision->actionType = TestAction; 
     decision->path = path;
@@ -76,9 +78,11 @@ void make_decision(decision_t *decision) {
 
     } else {
         // Else, go to a random plant node 
-        uint8_t target = shared.graph->plants[rand()%6]; // get random plant node
-        shared.graph->node_level_update(target, 0, DISABLE_PROPAGATION);
-        path = shared.graph->compute_path(currentNode, &target, 1, 0);
+        do {
+            uint8_t target = shared.graph->plants[rand()%6]; // get random plant node
+            shared.graph->node_level_update(target, 0, DISABLE_PROPAGATION);
+            path = shared.graph->compute_path(currentNode, &target, 1, 0);       
+        } while (path == NULL);
         path->thetaStart = theta_pos; 
         path->thetaEnd = 0; 
     }

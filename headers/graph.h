@@ -2,6 +2,7 @@
 #define BLY_GRAPH_H_
 #include <stdint.h>
 #include <stdlib.h>
+#include "shared_variables.h"
 
 #define NODE_FREE 0
 #define NODE_DANGER 1
@@ -29,11 +30,7 @@ typedef struct graph_path
     double thetaStart, thetaEnd; // Orientation at start and end of trajectory
 } graph_path_t;
 
-typedef enum {
-    TeamBlue,
-    TeamYellow,
-    NoTeam
-} team_color_t; // Team colors
+
 
 class Graph
 {

@@ -7,6 +7,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h> 
+#include <time.h>
 #include <unistd.h>  
 #include <pthread.h> 
 #include <termios.h>
@@ -132,7 +133,8 @@ void init_and_wait_for_start() {
     shared.steppers->calibrate_all();
     
     shared.start_timer();
-
+    // Generate random seed
+    srand(time(NULL));
 }
 
 void finish_main() {
