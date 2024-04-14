@@ -1,7 +1,12 @@
 #include "action_SP.h"
 
+SharedVariables shared = SharedVariables();
+
 double xinit, yinit, tinit = 0; 
 shared.set_robot_pos(&xinit, &yinit, &tinit); 
+
+shared.color = TeamBlue; 
+shared.score = 0; 
 
 int main(int argc, char const *argv[]) {
     dxl_init_port();
@@ -10,8 +15,9 @@ int main(int argc, char const *argv[]) {
     dxl_ping(8, 1.0);
 
     bool reserved = true; 
-    turn_solar_panel(reserved, 3); 
+    turn_solar_panel(reserved, 2); 
 
+    printf("End of action, score: %d\n", shared.score); 
     dxl_close_port();
 
     return 0;

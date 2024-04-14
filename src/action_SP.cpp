@@ -4,14 +4,7 @@
 
 extern SharedVariables shared;
 
-Teensy teensy = shared.teensy;
 
-/* SOLAR_PANEL_PC: Position Control for Solar Panels 
-   x, y, theta: robot position at the start of the displacement action
-   xa, ya, ta : robot position actuated by thread TopLidar (odometry)
-   Position Control from one solar panel to another, while checking current position from desired one
-   While displacement, reset dxl 8 (wheel) to init position for left-right turn
-*/
 void solar_panel_pc() {
 
     // Retrieve robot current position
@@ -27,7 +20,12 @@ void solar_panel_pc() {
 
     // Define trajectory to next SP
     int ncheckpoints = 2;
-    double xc[2] = {x, x+22.5e-2};
+    if (shared.color == TeamBlue) {
+        double xc[2] = {x, x+22.5e-2};
+    }
+    else if (shared.color == TeamYellow) { //Backtracking
+        double xc[2] = {x, x-22.5e-2};
+    }
     double yc[2] = {y,         y};
     double theta_start = theta;
     double theta_end = theta;
@@ -44,12 +42,15 @@ void solar_panel_pc() {
     while ((teensy.ask_mode()) != ModePositionControlOver) { 
             uSleep(1000);
     } 
-    
+
+    return;   
 }
 
-/* TURN_SOLAR_PANEL: Action sequence to turn a solar panel 
-   bool reserved: if True, solar panels are private for the team, no need to read camera angle*/
-void turn_solar_panel(bool reserved, uint8_t sp_counter) { 
+
+void turn_solar_panel_reserved(uint8_t sp_counter) { 
+
+    // TO DO: If sp_counter > 3: raise exception 
+
 
     // Team management (rework to do)
     team_t team;
@@ -72,13 +73,7 @@ void turn_solar_panel(bool reserved, uint8_t sp_counter) {
     while (sp_counter > 1) {
         // Action turn solar panel
         dxl_deploy(Down);
-        if (reserved) {
-            dxl_turn(team, 0); 
-        }
-        else {
-            double angle = tagSolar(); 
-            dxl_turn(team, angle); 
-        }
+        dxl_turn(team, 0); 
         dxl_deploy(Mid);
 
         // Update dynamic score
@@ -94,13 +89,7 @@ void turn_solar_panel(bool reserved, uint8_t sp_counter) {
     if (sp_counter == 1) {
         //Action turn solar panel
         dxl_deploy(Down);
-        if (reserved) {
-            dxl_turn(team, 0); 
-        }
-        else {
-            double angle = tagSolar(); 
-            dxl_turn(team, angle); 
-        }
+        dxl_turn(team, 0); 
         dxl_deploy(Up);
 
         // Update dynamic score
@@ -113,5 +102,7 @@ void turn_solar_panel(bool reserved, uint8_t sp_counter) {
 
     /* TO DO: If sp_counter = 0: return state action finish
               Return interrupt*/
-
+    
+    return; 
 }
+
