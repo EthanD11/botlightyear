@@ -1,6 +1,13 @@
 #include "actions.h"
 
-void path_following_to_action(path_t *path) {
+int8_t path_following_to_action(graph_path_t *path) {
+
+    printf("Going to node %d\n", path->target);
+    for (size_t i = 0; i < path->nNodes; i++)
+    {
+        printf("(%.3f,%.3f) ", path->x[i], path->y[i]);
+    }
+    printf("\n");
 
     Teensy *teensy = shared.teensy; 
 
@@ -35,10 +42,10 @@ void path_following_to_action(path_t *path) {
     while ((teensy->ask_mode()) != ModePositionControlOver) {
         usleep(1000);
     } 
-
+    return 0; 
 }
 
-void action_position_control(double x_end, double y_end, double theta_end) {
+int8_t action_position_control(double x_end, double y_end, double theta_end) {
 
     Teensy *teensy = shared.teensy;
     Odometry *odo = shared.odo; 
@@ -51,8 +58,8 @@ void action_position_control(double x_end, double y_end, double theta_end) {
     #endif
 
     // Retrieve adversary current position
-    double x_adv, y_adv, theta_adv; 
-    shared.get_adversary_pos(&x_adv , &y_adv, &theta_adv); 
+    double x_adv, y_adv; 
+    shared.get_adv_pos(&x_adv , &y_adv); 
     #ifdef VERBOSE
     printf("Adversary position from shared: %.3f, %.3f, %.3f \n", x_adv, y_adv, theta_adv); 
     #endif
@@ -82,12 +89,13 @@ void action_position_control(double x_end, double y_end, double theta_end) {
     
     // Orientation with position control
     teensy->pos_ctrl(xc[1], yc[1], theta_end);
-    lguSleep(0.1);
+    usleep(1);
 
     // Waiting end to start function turn_solar_panel
     // Check Teensy mode
     while ((teensy->ask_mode()) != ModePositionControlOver) { 
         usleep(10000);
     } 
+    return 0; 
 
 }

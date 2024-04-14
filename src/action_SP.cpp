@@ -1,6 +1,5 @@
 #include "action_SP.h"
 #include "action_displacement.h"
-#include <lgpio.h>
 
 #define VERBOSE
 #ifdef VERBOSE
@@ -49,7 +48,7 @@ void solar_panel_pc() {
     
     // Orientation with position control
     teensy->pos_ctrl(xc[1], yc[1], theta_end);
-    lguSleep(0.1);
+    usleep(10000);
 
     // Reset solar panel wheel (dxl 8)
     dxl_init_sp(); 

@@ -5,6 +5,4 @@
 
 void displacement_action(); 
 
-uint8_t path_following_to_action(); 
-
 #endif

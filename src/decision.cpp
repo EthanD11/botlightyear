@@ -62,9 +62,12 @@ void make_decision(decision_t *decision) {
     if (current_time < time_gotobase) {
         // Get the closest base from the robot pov
         path = shared.graph->compute_path(currentNode, shared.graph->friendlyBases, 3,0);
-        path->thetaStart = theta_pos; 
-        path->thetaEnd = getThetaEnd(shared.graph->friendlyBases, shared.graph->friendlyBasesTheta, 3, path->target); 
-        decision->actionType = ReturnToBase; 
+        if (path != NULL) {
+            path->thetaStart = theta_pos; 
+            path->thetaEnd = getThetaEnd(shared.graph->friendlyBases, shared.graph->friendlyBasesTheta, 3, path->target); 
+            decision->actionType = ReturnToBase; 
+        }
+        
         return; 
     }
 

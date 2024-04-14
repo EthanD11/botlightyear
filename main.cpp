@@ -207,15 +207,12 @@ int main(int argc, char const *argv[])
     do {
         make_decision(&decision);
         printf("Action type : %d\n", decision.actionType);
-        printf("Going to node %d\n", decision.path->target);
         double x, y, theta;
         shared.get_robot_pos(&x,&y,&theta);
         printf("Current pos : (%.3f,%.3f,%.3f)\n",x,y,theta);
-        for (size_t i = 0; i < decision.path->nNodes; i++)
-        {
-            printf("(%.3f,%.3f) ", decision.path->x[i], decision.path->y[i]);
-        }
-        printf("\n");
+
+
+        
         
         switch (decision.actionType)
         {
