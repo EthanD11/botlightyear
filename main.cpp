@@ -25,6 +25,7 @@ decision_t decision;
 
 pthread_t localizerID;
 uint8_t localizerEnd = 0; // Set to one to finish localizer thread
+void *localizer(void* arg);
 
 SharedVariables shared = SharedVariables();
 
@@ -59,59 +60,59 @@ void ask_user_input_params() {
     printf("Please enter a starting base from the following : \n");
     if (shared.color == TeamBlue) {
 
-        printf("'bottom right' (reserved), 'top right', 'middle left'\n");
+        printf("'bottomright' (reserved), 'topright', 'middleleft'\n");
         do {
             std::cin >> s;
-            if (!s.compare("bottom right")) {
+            if (!s.compare("bottomright")) {
                 shared.startingBaseID = shared.graph.friendlyBases[0];
                 shared.odo.set_pos(0.225,0.035,M_PI_2);
                 shared.set_robot_pos(0.225,0.035,M_PI_2);
                 shared.teensy.set_position(0.225,0.035,M_PI_2);
                 break;
             }
-            if (!s.compare("top right")) {
+            if (!s.compare("topright")) {
                 shared.startingBaseID = shared.graph.friendlyBases[1];
                 shared.odo.set_pos(1.775,0.035,M_PI_2);
                 shared.set_robot_pos(1.775,0.035,M_PI_2);
                 shared.teensy.set_position(1.775,0.035,M_PI_2);
                 break;
             }
-            if (!s.compare("middle left")) {
+            if (!s.compare("middleleft")) {
                 shared.startingBaseID = shared.graph.friendlyBases[2];
                 shared.odo.set_pos(1.0,2.965,-M_PI_2);
                 shared.set_robot_pos(1.0,2.965,-M_PI_2);
                 shared.teensy.set_position(1.0,2.965,-M_PI_2);
                 break;
             }
-            printf("Invalid input base : %s\n", s);
+            std::cout << "Invalid input base : " << s << "\n";
         } while (1);
 
     } else {
-        printf("'bottom left' (reserved), 'top left', 'middle right'\n");
+        printf("'bottomleft' (reserved), 'topleft', 'middleright'\n");
         do {
             std::cin >> s;
-            if (!s.compare("bottom left")) {
+            if (!s.compare("bottomleft")) {
                 shared.startingBaseID = shared.graph.friendlyBases[0];
                 shared.odo.set_pos(0.225,2.965,-M_PI_2);
                 shared.set_robot_pos(0.225,2.965,-M_PI_2);
                 shared.teensy.set_position(0.225,2.965,-M_PI_2);
                 break;
             }
-            if (!s.compare("top left")) {
+            if (!s.compare("topleft")) {
                 shared.startingBaseID = shared.graph.friendlyBases[1];
                 shared.odo.set_pos(1.775,2.965,-M_PI_2);
                 shared.set_robot_pos(1.775,2.965,-M_PI_2);
                 shared.teensy.set_position(1.775,2.965,-M_PI_2);
                 break;
             }
-            if (!s.compare("middle right")) {
+            if (!s.compare("middleright")) {
                 shared.startingBaseID = shared.graph.friendlyBases[2];
-                shared.odo.set_pos(1.0,0.035,-M_PI_2);
-                shared.set_robot_pos(1.0,0.035,-M_PI_2);
-                shared.teensy.set_position(1.0,0.035,-M_PI_2);
+                shared.odo.set_pos(1.0,0.035,M_PI_2);
+                shared.set_robot_pos(1.0,0.035,M_PI_2);
+                shared.teensy.set_position(1.0,0.035,M_PI_2);
                 break;
             }
-            printf("Invalid input base : %s\n", s);
+            std::cout << "Invalid input base : " << s << "\n";
         } while (1);
     }
 }
@@ -152,7 +153,7 @@ void *localizer(void* arg) {
     //LidarData lidarData;
     //init_lidar(&lidarData);
     double xOdo, yOdo, thetaOdo;
-    double x, y, theta;
+    //double x, y, theta;
     //shared.get_robot_pos(&lidarData.x_odo, &lidarData.y_odo, &lidarData.theta_odo);
     while (!localizerEnd) {
 
@@ -176,13 +177,13 @@ void *localizer(void* arg) {
         //y = (yOdo + lidarData.readLidar_y_robot)*0.5;
         //theta = (thetaOdo + lidarData.readLidar_theta_robot)*0.5;
 
-        shared.teensy.set_position(x,y,theta);
+        shared.teensy.set_position(xOdo,yOdo,thetaOdo);
 
         #ifdef TIME_MEAS
         clock_t teensyClock = clock();
         #endif
 
-        shared.set_robot_pos(x,y,theta);
+        shared.set_robot_pos(xOdo,yOdo,thetaOdo);
         //shared.set_adv_pos(lidarData.readLidar_x_opponent,lidarData.readLidar_y_opponent);
         usleep(300000);
     }
@@ -201,9 +202,19 @@ int main(int argc, char const *argv[])
 
     // ----- GAME -----
 
-    decision.path = (graph_path_t *) malloc(sizeof(graph_path_t));
     do {
         make_decision(&decision);
+        printf("Action type : %d\n", decision.actionType);
+        printf("Going to node %d\n", decision.path->target);
+        double x, y, theta;
+        shared.get_robot_pos(&x,&y,&theta);
+        printf("Current pos : (%.3f,%.3f,%.3f)\n",x,y,theta);
+        for (size_t i = 0; i < decision.path->nNodes; i++)
+        {
+            printf("(%.3f,%.3f) ", decision.path->x[i], decision.path->y[i]);
+        }
+        printf("\n");
+        
         switch (decision.actionType)
         {
         case ReturnToBase :

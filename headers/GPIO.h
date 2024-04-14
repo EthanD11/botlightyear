@@ -11,9 +11,9 @@ typedef enum {
     StprFlapsGPIO = 12, 
     BpSwitchFlapsLeftGPIO = 16, 
     BpSwitchFlapsRightGPIO = 20,
-    TeensyA1 = 26, // A1 = J13
+    TeensyA1 = 13, // A1 = J13
     TeensyA2 = 19, // A2 = J14
-    TeensyA3 = 13  // A3 = J15
+    TeensyA3 = 26  // A3 = J15
 } GPIO_t;
 
 class GPIOPins

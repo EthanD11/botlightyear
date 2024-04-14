@@ -84,7 +84,7 @@ int main(int argc, char const *argv[])
     double theta_start = 0.;
     double theta_end = M_PI;
     double vref = 0.25;
-    double dist_goal_reached = 0.25;
+    double dist_goal_reached = 0.40;
 
     double xpos, ypos, thetapos;
     odo.set_pos(x[0], y[0], 0);
@@ -97,7 +97,7 @@ int main(int argc, char const *argv[])
 
     teensy.path_following(x, y, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
     lguSleep(0.1);
-    while (true) {
+    while (teensy.ask_mode() != ModePositionControlOver) {
         odo.get_pos(&xpos, &ypos, &thetapos);
         teensy.set_position(xpos, ypos, thetapos);
         lguSleep(0.3);
@@ -156,7 +156,6 @@ int main(int argc, char const *argv[])
     #endif
 
     #ifdef ASK_STATE
-    usleep(100000);
     teensy.ask_mode();
     #endif
 

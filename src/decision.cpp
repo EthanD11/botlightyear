@@ -2,6 +2,7 @@
 
 #include <stdlib.h> // For random numbers
 #include <stdbool.h>
+#include <stdio.h>
 
 //#define TESTS
 
@@ -9,8 +10,7 @@
 
 extern SharedVariables shared;
 
-int8_t time_gotobase = 80; 
-int8_t time_finish = 100; 
+int8_t time_gotobase = 20; 
 
 
 bool in_array(uint8_t * arr, uint8_t len, uint8_t val) {
@@ -34,7 +34,7 @@ double getThetaEnd(uint8_t * arrNodes, double * arrThetas , uint8_t len, uint8_t
 void make_decision(decision_t *decision) {
     
 
-    int8_t current_time = shared.update_and_get_timer(); 
+    int8_t current_time = shared.update_and_get_timer();
     double x_pos, y_pos, theta_pos, dist_from_currentNode; 
     shared.get_robot_pos(&x_pos, &y_pos, &theta_pos); 
     graph_path_t* path;
@@ -49,13 +49,13 @@ void make_decision(decision_t *decision) {
     #endif
 
     // First check if time is over : 
-    if (current_time > time_finish) {
+    if (current_time < 0) {
         decision->actionType = GameFinished; 
         return; 
     }
 
     // Second check if time is running out : 
-    if (current_time > time_gotobase) {
+    if (current_time < time_gotobase) {
         // Get the closest base from the robot pov
         path = shared.graph.compute_path(currentNode, shared.graph.friendlyBases, 3,0);
         path->thetaStart = theta_pos; 
@@ -75,10 +75,12 @@ void make_decision(decision_t *decision) {
     } else {
         // Else, go to a random plant node 
         uint8_t target = shared.graph.plants[rand()%6]; // get random plant node
+        shared.graph.node_level_update(target, 0, DISABLE_PROPAGATION);
         path = shared.graph.compute_path(currentNode, &target, 1, 0);
         path->thetaStart = theta_pos; 
         path->thetaEnd = 0; 
     }
     decision->actionType = Displacement; 
+    decision->path = path;
     return; 
 }

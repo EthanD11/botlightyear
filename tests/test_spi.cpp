@@ -25,6 +25,17 @@ int main(int argc, char const *argv[])
     printf("%d\n", receive[0]);
     lgSpiClose(Teensy_Handle);*/
 
-    return spiBus.test();
+    char send[] = {0x7E,0,0,0,0};
+    for (int i = 0; i < 1000; i++) {
+        //char receive[5];
+        spiBus.DE0_write(send);
+        //send[0] = 0x1F;
+        //spiBus.DE0_xfer(send, receive);
+        //printf("%x,%x,%x,%x,%x\n", receive[0], receive[1], receive[2], receive[3], receive[4]);
+        spiBus.test();
+        //if (spiBus.test() != 0) return 1;
+    }
+
+    return 0;
 
 }

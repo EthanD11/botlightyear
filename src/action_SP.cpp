@@ -4,6 +4,8 @@
 
 extern SharedVariables shared;
 
+Teensy teensy = shared.teensy;
+
 /* SOLAR_PANEL_PC: Position Control for Solar Panels 
    x, y, theta: robot position at the start of the displacement action
    xa, ya, ta : robot position actuated by thread TopLidar (odometry)

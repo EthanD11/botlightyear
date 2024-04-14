@@ -4,7 +4,7 @@
 #include <pthread.h>
 #include <stdio.h>
 
-#define SPI_CLK_FREQ 100000
+#define SPI_CLK_FREQ 5000000
 #define SPI_MODE_DEFAULT 0
 
 pthread_mutex_t mutex;
