@@ -30,12 +30,7 @@ void solar_panel_pc() {
 
     // Define trajectory to next SP
     int ncheckpoints = 2;
-    if (shared.color == TeamBlue) {
-        double xc[2] = {x, x+22.5e-2};
-    }
-    else if (shared.color == TeamYellow) { //Backtracking
-        double xc[2] = {x, x-22.5e-2};
-    }
+    double xc[2] = {x, x+22.5e-2};
     double yc[2] = {y,         y};
     double theta_start = theta;
     double theta_end = theta;
@@ -65,15 +60,12 @@ void solar_panel_pc() {
     while ((teensy.ask_mode()) != ModePositionControlOver) { 
             usleep(1000);
     } 
-
-    return;   
+    
 }
 
-
-void turn_solar_panel_reserved(uint8_t sp_counter) { 
-
-    // TO DO: If sp_counter > 3: raise exception 
-
+/* TURN_SOLAR_PANEL: Action sequence to turn a solar panel 
+   bool reserved: if True, solar panels are private for the team, no need to read camera angle*/
+void turn_solar_panel(bool reserved, uint8_t sp_counter) { 
 
     // Team management (rework to do)
     team_t team;
@@ -99,7 +91,13 @@ void turn_solar_panel_reserved(uint8_t sp_counter) {
         printf("Counter: %d\n", counter); 
         // Action turn solar panel
         dxl_deploy(Down);
-        dxl_turn(team, 0); 
+        if (reserved) {
+            dxl_turn(team, 0); 
+        }
+        else {
+            double angle = tagSolar(); 
+            dxl_turn(team, angle); 
+        }
         dxl_deploy(Mid);
 
         // Update dynamic score
@@ -117,7 +115,13 @@ void turn_solar_panel_reserved(uint8_t sp_counter) {
         printf("Last solar panel in sequence \n"); 
         //Action turn solar panel
         dxl_deploy(Down);
-        dxl_turn(team, 0); 
+        if (reserved) {
+            dxl_turn(team, 0); 
+        }
+        else {
+            double angle = tagSolar(); 
+            dxl_turn(team, angle); 
+        }
         dxl_deploy(Up);
 
         // Update dynamic score
@@ -134,4 +138,3 @@ void turn_solar_panel_reserved(uint8_t sp_counter) {
      return;         
 
 }
-
