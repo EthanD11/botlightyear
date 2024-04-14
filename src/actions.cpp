@@ -1,5 +1,6 @@
 #include "actions.h"
 
+
 int8_t path_following_to_action(graph_path_t *path) {
 
     Graph::print_path(path);

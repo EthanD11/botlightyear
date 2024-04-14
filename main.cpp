@@ -236,6 +236,9 @@ int main(int argc, char const *argv[])
             turn_solar_panel(true, 3);
             //positionCtrlIterative(); 
             break; 
+        case Wait:
+            usleep(5000);
+            break;
         default:
             break;
         }

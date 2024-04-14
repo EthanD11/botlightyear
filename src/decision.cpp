@@ -42,7 +42,8 @@ void make_decision(decision_t *decision) {
     // Some code here to do the path planning for the test action
     do {
         uint8_t target = shared.graph->plants[rand()%6]; // get random plant node
-        shared.graph->node_level_update(target, 0, DISABLE_PROPAGATION);
+        // shared.graph->node_level_update(target, 0, DISABLE_PROPAGATION);
+        shared.graph->update_obstacle(target,0);
         path = shared.graph->compute_path(currentNode, &target, 1, 0);       
     } while (path == NULL);
     path->thetaStart = theta_pos; 
@@ -54,7 +55,8 @@ void make_decision(decision_t *decision) {
 
     // First check if time is over : 
     if (current_time < 0) {
-        decision->actionType = GameFinished; 
+        decision->actionType = GameFinished;
+        decision->path = NULL;  
         return; 
     }
 
@@ -66,8 +68,11 @@ void make_decision(decision_t *decision) {
             path->thetaStart = theta_pos; 
             path->thetaEnd = getThetaEnd(shared.graph->friendlyBases, shared.graph->friendlyBasesTheta, 3, path->target); 
             decision->actionType = ReturnToBase; 
+            decision->path = path; 
+        } else {
+            decision->actionType = Wait; 
+            decision->path = NULL; 
         }
-        
         return; 
     }
 
@@ -76,20 +81,29 @@ void make_decision(decision_t *decision) {
     if (in_array(shared.graph->plants, 6, currentNode)) {
         // If it's in a plant node, go back to a base 
         path = shared.graph->compute_path(currentNode, shared.graph->friendlyBases, 3,0);
+        if (path != NULL) {
         path->thetaStart = theta_pos; 
         path->thetaEnd = getThetaEnd(shared.graph->friendlyBases, shared.graph->friendlyBasesTheta, 3, path->target); 
+        decision->actionType = Displacement; 
+        decision->path = path;
+        } else {
+            decision->actionType = Wait; 
+            decision->path = NULL;
+        }
+        return;
 
     } else {
         // Else, go to a random plant node 
         do {
             uint8_t target = shared.graph->plants[rand()%6]; // get random plant node
-            shared.graph->node_level_update(target, 0, DISABLE_PROPAGATION);
+            // shared.graph->node_level_update(target, 0, DISABLE_PROPAGATION);
+            shared.graph->update_obstacle(target,0);
             path = shared.graph->compute_path(currentNode, &target, 1, 0);       
         } while (path == NULL);
         path->thetaStart = theta_pos; 
         path->thetaEnd = 0; 
+        decision->actionType = Displacement; 
+        decision->path = path;
+        return;
     }
-    decision->actionType = Displacement; 
-    decision->path = path;
-    return; 
 }

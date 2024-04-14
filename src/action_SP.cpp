@@ -78,7 +78,6 @@ void solar_panel_pc() {
 /* TURN_SOLAR_PANEL: Action sequence to turn a solar panel 
    bool reserved: if True, solar panels are private for the team, no need to read camera angle*/
 void turn_solar_panel(bool reserved, uint8_t sp_counter) { 
-
     // Team management (rework to do)
     team_t team;
     
