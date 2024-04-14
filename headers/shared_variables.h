@@ -12,6 +12,9 @@
 #include <time.h>
 #include <stdint.h>
 
+#include "decision.h"
+
+
 typedef enum _storage_slot : uint8_t
 {
     SlotM3,
@@ -78,5 +81,7 @@ public:
     GripperHolder grpHolder = GripperHolder(&spiBus);
     Graph graph = Graph();
 };
+
+extern SharedVariables shared;  
 
 #endif

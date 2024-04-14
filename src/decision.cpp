@@ -4,11 +4,8 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-//#define TESTS
+#define TESTS
 
-
-
-extern SharedVariables shared;
 
 int8_t time_gotobase = 20; 
 
@@ -43,8 +40,13 @@ void make_decision(decision_t *decision) {
     #ifdef TESTS
 
     // Some code here to do the path planning for the test action
-
+    uint8_t target = shared.graph.plants[rand()%6]; // get random plant node
+    shared.graph.node_level_update(target, 0, DISABLE_PROPAGATION);
+    path = shared.graph.compute_path(currentNode, &target, 1, 0);
+    path->thetaStart = 0; 
+    path->thetaEnd = 0; 
     decision->actionType = TestAction; 
+    decision->path = path;
     return;
     #endif
 

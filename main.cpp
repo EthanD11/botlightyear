@@ -224,7 +224,7 @@ int main(int argc, char const *argv[])
             displacement_action(); 
             break;
         case TestAction :
-            // Do test action here (looping forever if TESTS enable in decision.cpp)
+            turn_solar_panel(true, 3);
             break; 
         default:
             break;

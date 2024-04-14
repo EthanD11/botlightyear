@@ -2,9 +2,6 @@
 #include "action_displacement.h"
 #include <lgpio.h>
 
-extern SharedVariables shared;
-
-
 /* SOLAR_PANEL_PC: Position Control for Solar Panels 
    x, y, theta: robot position at the start of the displacement action
    xa, ya, ta : robot position actuated by thread TopLidar (odometry)
@@ -30,13 +27,14 @@ void solar_panel_pc() {
 
     // Define trajectory to next SP
     int ncheckpoints = 2;
-    double xc[2] = {x, x+22.5e-2};
-    double yc[2] = {y,         y};
+    double xc[2] = {x, x};
+    double yc[2] = {y,         y+22.5e-2};
     double theta_start = theta;
     double theta_end = theta;
 
+    printf("Checkpoints relay: %.3f, %.3f\n", xc[0], yc[0]); 
+
     double xpos, ypos, thetapos;
-    odo.set_pos(xc[0], yc[0], theta_start);
     teensy.set_position(xc[0], yc[0], theta_start);
     
     // Orientation with position control
@@ -46,20 +44,26 @@ void solar_panel_pc() {
     // Reset solar panel wheel (dxl 8)
     dxl_init_sp(); 
 
+   /* 
     do {
         odo.get_pos(&xpos, &ypos, &thetapos);
         teensy.set_position(xpos, ypos, thetapos);
-        printf("Odo position in while asb: %.3f,%.3f,%.3f\n",xpos, ypos, thetapos);
+        printf("Odo position in while: %.3f,%.3f,%.3f\n",xpos, ypos, thetapos);
         lguSleep(0.3);
-    } while(abs(xpos-xc[1]) > 0.01); 
+    } while(abs(xpos-xc[1]) > 0.01); */
 
     shared.set_robot_pos(xpos, ypos, thetapos); 
 
     // Waiting end to start function turn_solar_panel
     // Check Teensy mode
+    /*
     while ((teensy.ask_mode()) != ModePositionControlOver) { 
-            usleep(1000);
-    } 
+        printf("Shared address %d \n", &shared); 
+
+        usleep(10000);
+    } */
+
+    sleep(5); 
     
 }
 
@@ -105,6 +109,8 @@ void turn_solar_panel(bool reserved, uint8_t sp_counter) {
         counter--; 
 
         // Go to next
+        printf("Shared address %d \n", &shared); 
+
         solar_panel_pc();
     }
 
