@@ -323,6 +323,12 @@ void lidarGetDistanceWall(double* angles, double* distances,size_t arraySize, do
     
     *return_x = 2.0-x;
     *return_y = y;
+    while (orientation>M_PI){
+        orientation-=2*M_PI;
+    }  
+    while (orientation<-M_PI){
+        orientation+=2*M_PI;
+    }
     *return_theta = orientation;
     return;
 }
@@ -343,8 +349,8 @@ void positionBottomLidarLeftFront(double* return_x,double* return_y,double* retu
 
     size_t *asize = new size_t[2]{8000, 8000};
     auto started = std::chrono::high_resolution_clock::now();
-
-    updateDataFile(angles, distances, quality, "DataTest/solar240410/panneausolaire.txt", asize);
+    updateDataBottom(angles, distances, quality, asize);
+    //updateDataFile(angles, distances, quality, "DataTest/solar240410/panneausolaire.txt", asize);
     arraysize = asize[0];
     lidarGetDistanceWall(angles, distances, asize[0], return_x, return_y, return_theta);
     auto done = std::chrono::high_resolution_clock::now();
