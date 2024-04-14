@@ -1,5 +1,6 @@
 #include "actions.h"
 #include <cmath> 
+#include <algorithm>
 
 uint8_t closer_in_path(graph_path_t *path, double xr, double yr) {
     double distance, min_distance = 3.6; 
@@ -21,7 +22,7 @@ uint8_t closer_in_path(graph_path_t *path, double xr, double yr) {
 
 uint8_t adversary_in_path(graph_path_t *path, uint8_t closer_node_id) {
     
-    for (uint8_t i = closer_node_id; i < min(closer_node_id + 2, path->nNodes); i++)
+    for (uint8_t i = closer_node_id; i < std::min(closer_node_id + 2, (int) path->nNodes); i++)
     {
         if ((shared.graph->nodes[path->idNodes[i]].level& NODE_ADV_PRESENT) !=0) return -1;
     }
@@ -66,15 +67,16 @@ int8_t path_following_to_action(graph_path_t *path) {
     while ((teensy->ask_mode()) != ModePositionControlOver) {
 
         // Get update on robot and adversary position
-        double xr, yr, tr = shared.get_robot_pos(&xr, &yr, &tr); 
-        double xa, ya, da, ta = shared.get_adv_pos(&xa, &ya, &da, &ta);
+        double xr, yr, tr; shared.get_robot_pos(&xr, &yr, &tr); 
+        double xa, ya, da, ta; shared.get_adv_pos(&xa, &ya, &da, &ta);
 
         // Get closer in path
         uint8_t closer_node_id = closer_in_path(path, xr, yr); 
 
         // Check advsersary in path
         if (adversary_in_path(path, closer_node_id) == -1) {
-            teensy.idle(); 
+            teensy->idle(); 
+            printf("Adversary in path !!\n");
             free(path); 
             return -1;
         }
@@ -82,7 +84,8 @@ int8_t path_following_to_action(graph_path_t *path) {
         // Security check: adversary too close
         double tolerance = 0.4; 
         if ((da < tolerance) && (abs(ta) < M_PI/2)) {
-            teensy.idle(); 
+            printf("Adversary too close !!\n");
+            teensy->idle(); 
             free(path); 
             return -1;
         }
@@ -94,7 +97,7 @@ int8_t path_following_to_action(graph_path_t *path) {
     return 0; // Adversary not found and successfull path following
 }
 
-int8_t action_position_control(double x_end, double y_end, double theta_end) 
+int8_t action_position_control(double x_end, double y_end, double theta_end) {
 
     Teensy *teensy = shared.teensy;
     Odometry *odo = shared.odo; 
@@ -108,9 +111,9 @@ int8_t action_position_control(double x_end, double y_end, double theta_end)
 
     // Retrieve adversary current position
     double x_adv, y_adv; 
-    shared.get_adv_pos(&x_adv , &y_adv); 
+    shared.get_adv_pos(&x_adv , &y_adv, NULL, NULL); 
     #ifdef VERBOSE
-    printf("Adversary position from shared: %.3f, %.3f, %.3f \n", x_adv, y_adv, theta_adv); 
+    printf("Adversary position from shared: %.3f, %.3f\n", x_adv, y_adv); 
     #endif
     
     // Set position control gains (see with Ethan?)
@@ -125,7 +128,6 @@ int8_t action_position_control(double x_end, double y_end, double theta_end)
     double xc[2] = {x, x_end};
     double yc[2] = {y, y_end};
     double theta_start = theta;
-    double theta_end = theta_end;
     
     #ifdef VERBOSE
     printf("Checkpoints relay: %.3f, %.3f\n", xc[0], yc[0]); 

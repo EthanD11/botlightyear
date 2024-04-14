@@ -18,25 +18,6 @@ double calculateAngle(Point *a, Point *b) {
     return std::atan2(b->y - a->y, b->x - a->x);
 }
 
-double moduloLidarZero2PI(double angle){
-    while (angle < 0) {
-        angle += 2 * M_PI;
-    }
-    while (angle > 2 * M_PI) {
-        angle -= 2 * M_PI;
-    }
-    return angle;
-}
-double moduloLidarMPIPI(double angle){
-    while (angle < -M_PI) {
-        angle += 2 * M_PI;
-    }
-    while (angle > 2 * M_PI) {
-        angle -= 2 * M_PI;
-    }
-    return angle;
-}
-
 
 void zoneInPolar(Point *robot, PlantZone **polarCoord) {
     for (int i = 0; i < 6; ++i) {

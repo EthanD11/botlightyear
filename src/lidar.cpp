@@ -27,9 +27,36 @@ ILidarDriver *lidarBottom;
 #include <unistd.h>
 
 
+
+/**
+ * utile pour avoir un angle entre 2 angles predef
+ * @param angle
+ * @return
+ */
+double moduloLidarZero2PI(double angle) {
+    while (angle < 0) {
+        angle += 2 * M_PI;
+    }
+    while (angle > 2 * M_PI) {
+        angle -= 2 * M_PI;
+    }
+    return angle;
+}
+
+double moduloLidarMPIPI(double angle) {
+    while (angle < -M_PI) {
+        angle += 2 * M_PI;
+    }
+    while (angle > 2 * M_PI) {
+        angle -= 2 * M_PI;
+    }
+    return angle;
+}
+
+
 void StartLidarTop(){
     ///  Create a communication channel instance
-    Result<IChannel*> _channel = createSerialPortChannel("/dev/ttyUSB0", 115200); //port série spécifié est "/dev/ttyUSB0" avec un débit de 115200 bps.
+    Result<IChannel*> _channel = createSerialPortChannel("/dev/ttyUSB1", 115200); //port série spécifié est "/dev/ttyUSB0" avec un débit de 115200 bps.
 
     if (_channel.err) {
         fprintf(stderr, "Failed to create communication channel\r\n");

@@ -15,7 +15,7 @@
 #include <cmath>
 
 //#define VERBOSE
-#define TIME_MEAS
+//#define TIME_MEAS
 
 #define ASCII_b 98
 #define ASCII_B 66
@@ -130,6 +130,7 @@ void init_and_wait_for_start() {
 
     shared.steppers->reset_all();
     shared.steppers->calibrate_all();
+    shared.servoFlaps->raise();
     
     shared.start_timer();
     // Generate random seed
@@ -155,15 +156,16 @@ void *localizer(void* arg) {
     init_lidar(&lidarData);
     double xOdo, yOdo, thetaOdo;
     double x, y, theta;
+    double odoWeight = 0.8;
     shared.get_robot_pos(&lidarData.x_odo, &lidarData.y_odo, &lidarData.theta_odo);
-
     while (!localizerEnd) {
 
         #ifdef TIME_MEAS
         clock_t start = clock();
         #endif
 
-        lidarGetRobotPosition(&lidarData, 0, false, lidarData.readLidar_lost);
+        lidarGetRobotPosition(&lidarData, 10, false, lidarData.readLidar_lost);
+        printf("    %.3f %.3f %.3f %.3f\n", lidarData.readLidar_x_robot, lidarData.readLidar_y_robot,lidarData.readLidar_d_opponent,lidarData.readLidar_a_opponent*180.0/M_PI  );
 
         #ifdef TIME_MEAS
         clock_t lidarClock = clock();
@@ -175,26 +177,34 @@ void *localizer(void* arg) {
         clock_t odoClock = clock();
         #endif
 
-        x = (xOdo + lidarData.readLidar_x_robot)*0.5;
-        y = (yOdo + lidarData.readLidar_y_robot)*0.5;
-        theta = (thetaOdo + lidarData.readLidar_theta_robot)*0.5;
-
-        shared.teensy->set_position(x,y,theta);
+        shared.teensy->set_position(xOdo,yOdo,thetaOdo);
 
         #ifdef TIME_MEAS
         clock_t teensyClock = clock();
         #endif
 
+        if (lidarData.readLidar_lost) {
+            x = xOdo; y = yOdo; theta = thetaOdo;
+        } else {
+            x = xOdo*odoWeight + lidarData.readLidar_x_robot*(1-odoWeight);
+            y = yOdo*odoWeight + lidarData.readLidar_y_robot*(1-odoWeight);
+            theta = thetaOdo*odoWeight + lidarData.readLidar_theta_robot*(1-odoWeight);
+        }
+
         shared.set_robot_pos(x,y,theta);
-        shared.set_adv_pos(lidarData.readLidar_x_opponent,lidarData.readLidar_y_opponent);
+        shared.set_adv_pos(
+            lidarData.readLidar_x_opponent,
+            lidarData.readLidar_y_opponent,
+            lidarData.readLidar_d_opponent,
+            lidarData.a_adv);
         shared.graph->update_adversary_pos(lidarData.readLidar_x_opponent, lidarData.readLidar_y_opponent);
         lidarData.x_odo = x; lidarData.y_odo = y; lidarData.theta_odo = theta;
 
         #ifdef TIME_MEAS
         printf("Timing results : \n");
-        printf("Lidar took %d clock cycles to update.\n\tCumulated time since iteration start : %d\n", lidarClock - start, lidarClock - start);
-        printf("Odometry took %d clock cycles to update.\n\tCumulated time since iteration start : \n", odoClock - lidarClock, odoClock - start);
-        printf("Teensy took %d clock cycles to update.\n\tCumulated time since iteration start : \n", teensyClock - odoClock, teensyClock - start);
+        printf("Lidar took %ld clock cycles to update.\n\tCumulated time since iteration start : %ld\n", lidarClock - start, lidarClock - start);
+        printf("Odometry took %ld clock cycles to update.\n\tCumulated time since iteration start : %ld\n", odoClock - lidarClock, odoClock - start);
+        printf("Teensy took %ld clock cycles to update.\n\tCumulated time since iteration start : %ld\n", teensyClock - odoClock, teensyClock - start);
         #endif
         usleep(300000);
     }
@@ -237,7 +247,8 @@ int main(int argc, char const *argv[])
             //positionCtrlIterative(); 
             break; 
         case Wait:
-            usleep(5000);
+            sleep(1);
+            //usleep(500000);
             break;
         default:
             break;

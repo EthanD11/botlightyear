@@ -54,9 +54,11 @@ public:
     ~SharedVariables();
 
     // Usage : `double x, y, theta; get_robot_pos(&x,&y,&theta);`
+    // If any of the three pointer is NULL, it will not be filled
     void get_robot_pos(double *x, double *y, double *theta);
     void set_robot_pos(double x, double y, double theta);    
     // Usage : `double xAdv, yAdv, thetaAdv; get_adv_pos(&xAdv,&yAdv,&thetaAdv);`
+    // If any of the three pointer is NULL, it will not be filled
     void get_adv_pos(double *xAdv, double *yAdv, double *dAdv, double *aAdv);
     void set_adv_pos(double xAdv, double yAdv, double dAdv, double aAdv);
 

@@ -31,12 +31,18 @@ void Odometry::get_pos(double *x, double *y, double *theta) {
     int32_t receive_int;
     float *receive_float = (float*) &receive_int;
 
+    if (x != NULL) {
     receive_int = Reverse32(*(int32_t *)(&(receivex[1])));
     *x = (double) *receive_float;
+    }
+    if (y != NULL) {
     receive_int = Reverse32(*(int32_t *)(&(receivey[1])));
     *y = (double) *receive_float;
+    }
+    if (theta != NULL) {
     receive_int = Reverse32(*(int32_t *)(&(receivet[1])));
     *theta = (double) *receive_float;
+    }
 }
 
 void Odometry::set_pos(double x, double y, double theta) {

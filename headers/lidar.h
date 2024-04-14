@@ -15,6 +15,10 @@ using std::string;
 //For sleep
 #include <unistd.h>
 
+
+double moduloLidarZero2PI(double angle);
+double moduloLidarMPIPI(double angle);
+
 /**
  *  start lidar to retrieve data for other functions
  */

@@ -17,9 +17,10 @@ TESTS = $(wildcard $(TESTS_DIR)/*.cpp)
 
 # List of .o files
 SOURCES_OBJ = $(addprefix $(OBJ_DIR)/,$(notdir $(SOURCES:.cpp=.o)))
-SOURCES_OBJ_NO_SHARED = $(SOURCES_OBJ:$(OBJ_DIR)/action_%=)
+SOURCES_OBJ_NO_SHARED = $(SOURCES_OBJ:$(OBJ_DIR)/action%=)
 SOURCES_OBJ_NO_SHARED := $(SOURCES_OBJ_NO_SHARED:$(OBJ_DIR)/shared_variables.o=)
 SOURCES_OBJ_NO_SHARED := $(SOURCES_OBJ_NO_SHARED:$(OBJ_DIR)/decision.o=)
+SOURCES_OBJ_NO_SHARED := $(SOURCES_OBJ_NO_SHARED:$(OBJ_DIR)/lidarTop.o=)
 
 # -----------------------------------------------------------------------------------
 # Rules

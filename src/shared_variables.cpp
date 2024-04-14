@@ -76,7 +76,9 @@ int8_t SharedVariables::update_and_get_timer() {
 
 void SharedVariables::get_robot_pos(double *x, double *y, double *theta) {
     pthread_rwlock_rdlock(&robotPosLock);
-    *x = this->x; *y = this->y; *theta = this->theta;
+    if (x != NULL) *x = this->x;
+    if (y != NULL) *y = this->y;
+    if (theta != NULL) *theta = this->theta;
     pthread_rwlock_unlock(&robotPosLock);
 }
 
@@ -88,7 +90,10 @@ void SharedVariables::set_robot_pos(double x, double y, double theta) {
 
 void SharedVariables::get_adv_pos(double *xAdv, double *yAdv, double *dAdv, double *aAdv) {
     pthread_rwlock_rdlock(&advPosLock);
-    *xAdv = this->xAdv; *yAdv = this->yAdv; *dAdv = this->dAdv; *aAdv = this->aAdv;
+    if (xAdv != NULL) *xAdv = this->xAdv;
+    if (yAdv != NULL) *yAdv = this->yAdv;
+    if (dAdv != NULL) *dAdv = this->dAdv;
+    if (aAdv != NULL) *aAdv = this->aAdv;
     pthread_rwlock_unlock(&advPosLock);
 }
 

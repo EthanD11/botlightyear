@@ -1,6 +1,6 @@
 #include "lidarTop.h"
 #include <chrono>
-#include "shared_variable.h"
+#include "shared_variables.h"
 
 //facteur si mouvent brusque
 int facteurLost = 1;
@@ -16,6 +16,8 @@ double dref1 = 2 * 0.950;
 /// distance between 2 beacons not on the same side
 double dref2 = sqrt((0.95) * (0.95) + (1.594 * 2) * (2 * 1.594));
 
+double dref3 = sqrt(dref2*dref2-dref1*dref1/4);
+
 /// angle isocele pour transfo inverse
 double angleIsocele = acos(dref1 / (2 * dref2));
 
@@ -24,7 +26,7 @@ bool analyseDetail_objet = false;
 bool analyseRotationBalise = false;
 
 ///précision pour le déplacement effectué-> permet d'etre augmenté si on est perdu
-double precisionPredef = 0.07;
+double precisionPredef = 0.2;
 
 
 ///décalage balise et coin de la table (x_reel = x_B3 + delta)
@@ -32,32 +34,8 @@ double deltaXB3 = 0.05;
 double deltaYB3 = -0.09;
 
 
-/**
- * utile pour avoir un angle entre 2 angles predef
- * @param angle
- * @return
- */
-double moduloLidarZero2PI(double angle) {
-    while (angle < 0) {
-        angle += 2 * M_PI;
-    }
-    while (angle > 2 * M_PI) {
-        angle -= 2 * M_PI;
-    }
-    return angle;
-}
-
-double moduloLidarMPIPI(double angle) {
-    while (angle < -M_PI) {
-        angle += 2 * M_PI;
-    }
-    while (angle > 2 * M_PI) {
-        angle -= 2 * M_PI;
-    }
-    return angle;
-}
-
-
+double tablex = 2.2;
+double tabley = 3.2;
 /**
  * We calculate the position of the robot in beacon reference
  * from the polar coordinates of the 3 beacons and knowing that the robot is at the origin of the reference frame,
@@ -177,8 +155,8 @@ int Adversary(double *anglesAdv, double *distancesAdv, LidarData *lidarData) {
     int size = lidarData->countObj_adv;
 
     ///maximum table dimensions
-    double xmax = 2.0;
-    double ymax = 3.0;
+    double xmax = tablex;
+    double ymax = tabley;
 
     ///coordinates in xy after one and two transformations (translations then rotation)
     double xtemp;
@@ -310,7 +288,7 @@ void lidarPerduAdv(double *angles, double *distances, LidarData *lidarData) {
 
 void xyToBeacon(LidarData *lidarData) {
     double x, y, theta;
-    if (shared.color == blue) {
+    if (shared.color == TeamBlue) {
     //if (false){
         x = lidarData->x_odo-deltaXB3;
         y = lidarData->y_odo-deltaYB3;
@@ -323,14 +301,20 @@ void xyToBeacon(LidarData *lidarData) {
 
 
     double a1, a2, a3, d1, d2, d3, alpha;
-    alpha = atan2(x, y);
-    a3 = M_PI/2 - theta + alpha;
+    alpha = atan2(y, x);
+    printf("test : %f %f %f %f \n", x,y,theta*180/M_PI, alpha*180/M_PI);
+
+    //TODO CHECK PQ a3 = M_PI/2 - theta + alpha;
+    a3 =  M_PI - theta + alpha;
     d3 = std::sqrt(x * x + y * y);
     d2 = std::sqrt(d3 * d3 + dref1 * dref1 - 2 * d3 * dref1 * cos(alpha));
     d1 = std::sqrt(d3 * d3 + dref2 * dref2 - 2 * d3 * dref2 * cos(angleIsocele - alpha));
-    a2 = a3 - M_PI / 2 + alpha - atan2(dref1 - x, y);
-    a1 = a3 + acos((d3 * d3 + d1 * d1 - dref2 * dref2) / (2 * d1 * d3));
+    //a2 = a3 - M_PI / 2 + alpha - atan2(dref1 - x, y);
+    //a2 = a3 + alpha + atan2(dref1 - x, y);
+    a2 = - theta - atan2(y, (dref1-x));
 
+    //a1 = a3 + acos((d3 * d3 + d1 * d1 - dref2 * dref2) / (2 * d1 * d3));
+    a1 = -theta+atan2((dref3-y),(dref1/2-x));
 
     a1 = moduloLidarZero2PI(a1);
     a2 = moduloLidarZero2PI(a2);
@@ -765,17 +749,16 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
                                     printf("rob %f %f\n", lidarData->x_robot, lidarData->y_robot);
                                 }
                             }
-
                             //TODO check ces conditions
                             double precision = precisionPredef;
                             if (B1 && B2 && B3 && (i == 0)) {
-                                precision *= 10;
+                                precision *= 2;
                             }
                             if(lidarData->readLidar_lost){
-                                precision*=5;
+                                precision*=2;
                             }
-                            if (lidarData->x_robot > 0 && lidarData->x_robot < 2 && lidarData->y_robot > 0 &&
-                                lidarData->y_robot < 3 && ((fullScan && !fullScanPcqLost) || (
+                            if (lidarData->x_robot > -0.05 && lidarData->x_robot < tablex && lidarData->y_robot > -0.05 &&
+                                lidarData->y_robot < tabley && ((fullScan && !fullScanPcqLost) || (
                                     std::abs(lidarData->x_robot - oldXRobot) < precision &&
                                     std::abs(lidarData->y_robot - oldYRobot) < precision))) {
 
@@ -807,6 +790,10 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
                                 lidarData->readLidar_lost = false;
                                 return;
                             }
+                            else{
+                                lidarData->x_robot = oldXRobot;
+                                lidarData->y_robot = oldYRobot;
+                            }
                         }
                     }
                 }
@@ -833,6 +820,7 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
 
 void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool fromOdo) {
     facteurLost = 1;
+    precisionPredef = 0.2;
     double *angles = new double[8000];
     double *distances = new double[8000];
     double *quality = new double[8000];
@@ -894,11 +882,11 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
             lidarData->readLidar_a_opponent = lidarData->a_adv;
         }
     }
-    printf("beacon : ");
+    /*printf("beacon : ");
     for (int j = 0; j < 8; j+=2) {
         printf("%f %f ", lidarData->beaconAdv[j]*180.0/M_PI, lidarData->beaconAdv[j+1]);
     }
-    printf("\n");
+    printf("\n");*/
 }
 
 void init_lidar(LidarData *lidarData) {

@@ -20,6 +20,7 @@ public:
         #endif
     }
     void reset();
+    // If one of the pointers is NULL, it will not be filled
     void get_pos(double *x, double *y, double *theta);
     void set_pos(double x, double y, double theta);
     void get_ticks(int32_t *ticksLeft, int32_t *ticksRight);

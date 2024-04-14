@@ -9,5 +9,5 @@ Teensy *teensy  = shared.teensy;
 
 
 void displacement_action() {
-    if (path_following_to_action(decision->path) == -1) return;
+    if (path_following_to_action(decision.path) == -1) return;
 }
