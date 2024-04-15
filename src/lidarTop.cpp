@@ -1,6 +1,6 @@
 #include "lidarTop.h"
 #include <chrono>
-#include "shared_variables.h"
+//#include "shared_variables.h"//TODO REMOVE COMM
 
 ///facteur si mouvent brusque
 int facteurLost = 1;
@@ -127,7 +127,7 @@ void rotationPosition(double *db, double *x, double *y, LidarData *lidarData, do
     ///to determine the orientation of the robot on the table
     lidarData->orientation_robot = M_PI - orientation + atan2(lidarData->x_robot, lidarData->y_robot);
 
-    lidarData->orientation_robot = moduloLidarMPIPI(lidarData->orientation_robot )
+    lidarData->orientation_robot = moduloLidarMPIPI(lidarData->orientation_robot);
 
     delete (beacon1);
     delete (beacon2);
@@ -361,7 +361,7 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
 
                     ///size of object previously detected
                     size = std::sqrt(d2 * d2 + d1 * d1 - 2 * d2 * d1 * std::cos(a2 - a1));
-                    if (size < largeurMatBalise){} && (fullScan || (((std::abs(d1 - olddistB1) < 0.2)) ||
+                    if (size < largeurMatBalise && (fullScan || (((std::abs(d1 - olddistB1) < 0.2)) ||
                                                       ((std::abs(d1 - olddistB2) < 0.2)) ||
                                                       ((std::abs(d1 - olddistB3) < 0.2))))) {
                         ///it may be a beacon, its data is saved
@@ -653,8 +653,6 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
                                 delete (aObj);
                                 delete (dObj_adv);
                                 delete (aObj_adv);
-                                delete (origine);
-                                delete (fin);
                                 if (analyseDetail) {
                                     printf("found :)\n");
                                 }
@@ -683,8 +681,6 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
     delete (aObj);
     delete (dObj_adv);
     delete (aObj_adv);
-    delete (origine);
-    delete (fin);
     if (analyseDetail) {
         printf("not found :( %f %f\n", lidarData->x_robot, lidarData->y_robot);
     }
@@ -706,8 +702,8 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
     //TODO TEEEEEEEEEEEEEEEEEEEEEEEST AAAAAAAAAAAAAAH   
     fullScan = true;
     fullScanPcqLost = true;
-    if (shared.color == TeamBlue) {
-
+    //if (shared.color == TeamBlue) {
+    if (false){
     lidarData->x_robot=lidarData->x_odo;
     lidarData->y_robot=lidarData->y_odo;}
     else{
@@ -754,7 +750,8 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
 
     if (!lidarData->readLidar_lost) {
         //2 des positions pour être centré au niveau des roues sauf la distance et l'angle de l'adversaire
-        if (shared.color == TeamBlue) {
+        //if (shared.color == TeamBlue) {
+        if (false){
             //if (false){
             lidarData->readLidar_x_robot = lidarData->x_robot - 0.1 * sin(lidarData->orientation_robot) + deltaXB3;
             lidarData->readLidar_y_robot = lidarData->y_robot - 0.1 * cos(lidarData->orientation_robot) + deltaYB3;
@@ -768,7 +765,7 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
                     2 - (lidarData->x_robot - 0.1 * sin(lidarData->orientation_robot) + deltaXB3);
             lidarData->readLidar_y_robot =
                     3 - (lidarData->y_robot - 0.1 * cos(lidarData->orientation_robot) + deltaYB3);
-            lidarData->readLidar_theta_robot = moduloLidarMPIPI(M_PI/2-moduloLidarMPIPI(lidarData->orientation_robot)+M_PI-3/2*M_PI);
+            lidarData->readLidar_theta_robot = moduloLidarMPIPI(M_PI/2-moduloLidarMPIPI(lidarData->orientation_robot)-3/2*M_PI);
             lidarData->readLidar_x_opponent = 2 - (lidarData->x_adv + deltaXB3);
             lidarData->readLidar_y_opponent = 3 - (lidarData->y_adv + deltaYB3);
             lidarData->readLidar_d_opponent = lidarData->d_adv;

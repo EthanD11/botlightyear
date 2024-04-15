@@ -11,14 +11,14 @@ int main(int argc, char *argv[]) {
 
 
     //test from xy robot
-    lidarData->x_odo = 2.85;
+    lidarData->x_odo = 0.22;
     lidarData->y_odo = 1.85;
-    lidarData->theta_odo = M_PI-0.1;
+    lidarData->theta_odo = -M_PI-0.1;
 
-    lidarGetRobotPosition(lidarData, 2, false, true);
+    lidarGetRobotPosition(lidarData, 2, false, false);
 
     printf(" robot at x=%f; y=%f; orientation=%f\n", lidarData->readLidar_x_robot, lidarData->readLidar_y_robot,
-           lidarData->readLidar_theta_robot);
+           lidarData->readLidar_theta_robot*180/M_PI);
     printf("Adversary at d=%f; a=%f\n", lidarData->readLidar_d_opponent, lidarData->readLidar_a_opponent);
 
     for (int i = 0; i < 0; ++i) {
