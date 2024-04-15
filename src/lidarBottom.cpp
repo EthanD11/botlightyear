@@ -6,6 +6,8 @@ static double sizePlant = 0.05;
 int arraysize = 8000;
 bool printplotpy = false;
 
+/// distance between the ref and the bottomLidar
+double dLidarCentre = 0.055;
 
 ///coordonnées en x,y selon le repère balise b3=(0,0)
 Point **zoneP;
@@ -267,7 +269,6 @@ void lidarGetDistanceWall(double* angles, double* distances,size_t arraySize, do
     //trouver les deux angles,
     //calcule la distance
     //trouver la position du robot et son orientation
-    double dLidarCentre = 0.055;
     int pos1 = (int) (60.0 / (360.0) * arraySize);
     int pos2 = (int) (80.0 / (360.0) * arraySize);
     int face = 0;
@@ -387,3 +388,72 @@ void calibrationLidarBottomLeftFront(double* angles, double* distances,size_t ar
 
 }
 //TODO faire idem pour les 4 coins et check orientations voulues
+
+
+void calibrationYellowR1(double* angles, double* distances,size_t arraySize, double* return_x,double* return_y,double* return_theta){
+        //trouver les deux angles,
+        //calcule la distance
+        //trouver la position du robot et son orientation
+        double dLidarCentre = 0.055;
+        int pos2 = (int) (300.0 / (360.0) * arraySize);
+        int pos1 = (int) (280.0 / (360.0) * arraySize);
+        int back = (int) (1.0/2.0*arraySize);
+        double d1, d2, dback, a1, a2, aback;
+        while (distances[back]==0){
+            back++;
+        }
+        dback=distances[back];
+        aback=angles[back];
+
+        while (distances[pos1]==0){
+            pos1++;
+        }
+        d1=distances[pos1];
+        a1=angles[pos1];
+
+
+        while (distances[pos2]==0){
+            pos2++;
+        }
+        d2=distances[pos2];
+        a2=angles[pos2];
+
+
+        double mur = sqrt(d1*d1+d2*d2-2*d1*d2* cos((a2-a1)));
+        double betha = acos((d2*d2-d1*d1-mur*mur)/(-2*d1*mur));
+        double xp = d1*sin(betha);
+        printf("%f xp \n",xp);
+        double orientation = moduloLidarMPIPI(a1-M_PI/2-betha);
+        double x = xp-sin(orientation)*dLidarCentre;
+        double y = dback-cos(orientation)*dLidarCentre;
+
+        *return_x = x;
+        *return_y = 3.0-y;
+        *return_theta = orientation;
+        return;
+}
+
+
+void calibrationBottom(double* return_x,double* return_y,double* return_theta){
+
+    double *angles = new double[8000];
+    double *distances = new double[8000];
+    double *quality = new double[8000];
+
+    size_t *asize = new size_t[2]{8000, 8000};
+    auto started = std::chrono::high_resolution_clock::now();
+    updateDataBottom(angles, distances, quality, asize);
+    //updateDataFile(angles, distances, quality, "DataTest/solar240410/panneausolaire.txt", asize);
+    arraysize = asize[0];
+    //TODO faire case pour savoir quelle fonction appeler
+    calibrationYellowR1(angles, distances, asize[0], return_x, return_y, return_theta);
+    auto done = std::chrono::high_resolution_clock::now();
+    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(done - started).count() << "\n";
+
+    delete (angles);
+    delete (distances);
+    delete (quality);
+    delete (asize);
+    return;
+
+}
