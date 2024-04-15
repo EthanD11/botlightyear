@@ -2,9 +2,10 @@
 #include <chrono>
 #include "shared_variables.h"
 
-//facteur si mouvent brusque
+///facteur si mouvent brusque
 int facteurLost = 1;
 
+///pour dif un full scan d'un scan full en connaisant sa precendete position
 bool fullScanPcqLost = false;
 
 ///global variable to find out the size of the file
@@ -125,7 +126,8 @@ void rotationPosition(double *db, double *x, double *y, LidarData *lidarData, do
 
     ///to determine the orientation of the robot on the table
     //TODO check si ok angle
-    lidarData->orientation_robot = M_PI - orientation + atan2(lidarData->x_robot, lidarData->y_robot) - M_PI / 2;
+
+    lidarData->orientation_robot = M_PI - orientation + atan2(lidarData->x_robot, lidarData->y_robot);
 
     while (lidarData->orientation_robot > M_PI) {
         lidarData->orientation_robot -= 2 * M_PI;
@@ -294,8 +296,8 @@ void xyToBeacon(LidarData *lidarData) {
         y = lidarData->y_odo-deltaYB3;
         theta = moduloLidarMPIPI(lidarData->theta_odo);
     } else {
-        x = 2 - (lidarData->x_odo-deltaXB3);
-        y = 3 - (lidarData->y_odo-deltaYB3);
+        x = 2 - (lidarData->x_odo - deltaXB3);
+        y = 3 - (lidarData->y_odo - deltaYB3);
         theta = moduloLidarMPIPI(M_PI - (lidarData->theta_odo));
     }
 
@@ -831,11 +833,13 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
     if (fromOdo) {
         facteurLost = 10;
         xyToBeacon(lidarData);
-        printf("beacon : ");
-        for (int j = 0; j < 8; j+=2) {
-            printf("%f %f ", lidarData->beaconAdv[j]*180.0/M_PI, lidarData->beaconAdv[j+1]);
+        fullScanPcqLost=true;
+        fullScan=true;
+        /*printf("beacon : ");
+        for (int j = 0; j < 8; j += 2) {
+            printf("%f %f ", lidarData->beaconAdv[j] * 180.0 / M_PI, lidarData->beaconAdv[j + 1]);
         }
-        printf("\n");
+        printf("\n");*/
     }
     if (analyseDetail) {
         printf("size : %ld\n", as[0]);
@@ -862,7 +866,7 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
     if (!lidarData->readLidar_lost) {
         //2 des positions pour être centré au niveau des roues sauf la distance et l'angle de l'adversaire
         if (shared.color == TeamBlue) {
-        //if (false){
+            //if (false){
             lidarData->readLidar_x_robot = lidarData->x_robot - 0.1 * sin(lidarData->orientation_robot) + deltaXB3;
             lidarData->readLidar_y_robot = lidarData->y_robot - 0.1 * cos(lidarData->orientation_robot) + deltaYB3;
             lidarData->readLidar_theta_robot = moduloLidarMPIPI(lidarData->orientation_robot);
@@ -887,6 +891,7 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
         printf("%f %f ", lidarData->beaconAdv[j]*180.0/M_PI, lidarData->beaconAdv[j+1]);
     }
     printf("\n");*/
+    fullScanPcqLost = false;
 }
 
 void init_lidar(LidarData *lidarData) {
