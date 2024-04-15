@@ -206,12 +206,14 @@ void *localizer(void* arg) {
         #endif
 
         shared.set_robot_pos(x,y,theta);
-        shared.set_adv_pos(
+        if (!lidarData->readLidar_lost) { 
+            shared.set_adv_pos(
             lidarData->readLidar_x_opponent,
             lidarData->readLidar_y_opponent,
             lidarData->readLidar_d_opponent,
             lidarData->a_adv);
-        shared.graph->update_adversary_pos(lidarData->readLidar_x_opponent, lidarData->readLidar_y_opponent);
+            shared.graph->update_adversary_pos(lidarData->readLidar_x_opponent, lidarData->readLidar_y_opponent);
+        }
         lidarData->x_odo = x; lidarData->y_odo = y; lidarData->theta_odo = theta;
 
         #ifdef VERBOSE

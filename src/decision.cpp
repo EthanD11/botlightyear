@@ -85,7 +85,6 @@ void decide_possible_actions() {
     } else {
         // Else, go to a random plant node 
         uint8_t target = shared.graph->plants[rand()%6]; // get random plant node
-        shared.graph->node_level_update(target, 0, DISABLE_PROPAGATION);
         path = shared.graph->compute_path(x_pos, y_pos, &target, 1, 0);       
         if (path != NULL) {
             path->thetaStart = theta_pos; 
@@ -100,7 +99,7 @@ void decide_possible_actions() {
     
 Action* make_decision() {
     decide_possible_actions(); 
-    Action* selected_action; 
+    Action* selected_action = NULL; 
 
     for (uint8_t i=0; i<n_possible_actions; i++) {
         if (selected_action == NULL) {
