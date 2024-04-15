@@ -304,7 +304,7 @@ void xyToBeacon(LidarData *lidarData) {
 
     double a1, a2, a3, d1, d2, d3, alpha;
     alpha = atan2(y, x);
-    printf("test : %f %f %f %f \n", x,y,theta*180/M_PI, alpha*180/M_PI);
+    //printf("test : %f %f %f %f \n", x,y,theta*180/M_PI, alpha*180/M_PI);
 
     //TODO CHECK PQ a3 = M_PI/2 - theta + alpha;
     a3 =  M_PI - theta + alpha;
@@ -822,7 +822,7 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
 
 void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool fromOdo) {
     facteurLost = 1;
-    precisionPredef = 0.2;
+    precisionPredef = 0.1;
     double *angles = new double[8000];
     double *distances = new double[8000];
     double *quality = new double[8000];

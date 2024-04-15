@@ -60,11 +60,20 @@ int8_t path_following_to_action(graph_path_t *path) {
     double kv_en = 0.;
     teensy->set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
     
+    double first_node_theta = atan2(y[1]-y[0],x[1]-x[0]); 
+    if (abs(first_node_theta - theta_start) > M_PI_4 && abs(first_node_theta - theta_start) < 3*M_PI_4) {
+        teensy->pos_ctrl(x[0], y[0], first_node_theta);
+        while ((teensy->ask_mode()) != ModePositionControlOver) {
+            usleep(10000);
+        }
+    }
+
     teensy->path_following(x, y, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
 
     // Check Teensy mode
-    //usleep(100000);
+    usleep(100000);
     while ((teensy->ask_mode()) != ModePositionControlOver) {
+
 
         // Get update on robot and adversary position
         double xr, yr, tr; shared.get_robot_pos(&xr, &yr, &tr); 
