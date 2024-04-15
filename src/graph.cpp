@@ -31,6 +31,14 @@ Graph::~Graph() {
     pthread_rwlock_destroy(&lock);
 }
 
+void Graph::level_rdlock() {
+    pthread_rwlock_rdlock(&lock);
+}
+
+void Graph::level_unlock() {
+    pthread_rwlock_unlock(&lock);
+}
+
 void node_neighbors(ASNeighborList neighbors, void* node, void* context) {
     graph_node_t* curNode = (graph_node_t*) node;
     Graph *graph = ((context_t *) context)->graph;
@@ -77,9 +85,6 @@ graph_path_t *Graph::compute_path(double xFrom, double yFrom, uint8_t *targets, 
 
     double distFrom;
     uint8_t from = this->identify_pos(xFrom, yFrom, &distFrom);
-
-    if (nodes[from].level & NODE_ADV_PRESENT) return NULL;
-
     uint8_t includeFirst = (distFrom > 0.15);
 
     // Initiate search arguments
@@ -88,8 +93,9 @@ graph_path_t *Graph::compute_path(double xFrom, double yFrom, uint8_t *targets, 
     context.targets = targets;
     context.graph = this;
 
-    // Start the search
     pthread_rwlock_rdlock(&lock);
+    if (nodes[from].level & NODE_ADV_PRESENT) return NULL;
+    // Start the search
     ASPath path = ASPathCreate(&source, &context, this->nodes + from, this->nodes + targets[0]);
     pthread_rwlock_unlock(&lock);
     if (ASPathGetCount(path) == 0) {

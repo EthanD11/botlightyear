@@ -63,6 +63,9 @@ public:
     Graph();
     ~Graph();
 
+    void level_rdlock();
+    void level_unlock();
+
     /**
     * Initializes 'nodes' from file 'filename'.
     * Adapts Friendly/Adversary structures based on color.
