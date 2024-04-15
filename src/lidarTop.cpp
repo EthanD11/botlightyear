@@ -219,7 +219,7 @@ void lidarPerduAdv(double *angles, double *distances, LidarData *lidarData) {
     for (int i = 0; i < arraySize; ++i) {
 
         /// check if the object is potentially on the table
-        if (0.2 < distances[i] && distances[i] < distMax) {
+        if (0.2 < distances[i] && distances[i] < distMax-0.1) {
 
             /// no previous object: a new object to be initialized
             if (!objet) {
@@ -672,6 +672,13 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
     }
 
     //We haven't found our position, by default the coordinates remain in 0
+    //we check the adv with localisation of precedent 
+    lidarData->transfo_a = lidarData->old_transfo_a;
+    lidarData->transfo_x = lidarData->old_transfo_x;
+    lidarData->transfo_y = lidarData->old_transfo_y;
+    //lidarPerduAdv(angles,distances,lidarData);
+
+
     delete (dObj);
     delete (aObj);
     delete (dObj_adv);
@@ -697,8 +704,16 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
     size_t *as = new size_t[2]{8000, 8000};
 
     //TODO TEEEEEEEEEEEEEEEEEEEEEEEST AAAAAAAAAAAAAAH   
-    lidarData->x_robot = lidarData->x_odo;
-    lidarData->y_robot = lidarData->y_odo;
+    fullScan = true;
+    fullScanPcqLost = true;
+    if (shared.color == TeamBlue) {
+
+    lidarData->x_robot=lidarData->x_odo;
+    lidarData->y_robot=lidarData->y_odo;}
+    else{
+            lidarData->x_robot=2-lidarData->x_odo;
+    lidarData->y_robot=3-lidarData->y_odo;
+    }
     //TODO TEEEEEEEEEEEEEEEEEEEEEEEST AAAAAAAAAAAAAAH   
 
     updateDataTop(angles, distances, quality, as);
@@ -753,12 +768,16 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
                     2 - (lidarData->x_robot - 0.1 * sin(lidarData->orientation_robot) + deltaXB3);
             lidarData->readLidar_y_robot =
                     3 - (lidarData->y_robot - 0.1 * cos(lidarData->orientation_robot) + deltaYB3);
-            lidarData->readLidar_theta_robot = moduloLidarMPIPI(M_PI - (lidarData->orientation_robot));
+            lidarData->readLidar_theta_robot = moduloLidarMPIPI(M_PI/2-moduloLidarMPIPI(lidarData->orientation_robot)+M_PI-3/2*M_PI);
             lidarData->readLidar_x_opponent = 2 - (lidarData->x_adv + deltaXB3);
             lidarData->readLidar_y_opponent = 3 - (lidarData->y_adv + deltaYB3);
             lidarData->readLidar_d_opponent = lidarData->d_adv;
             lidarData->readLidar_a_opponent = lidarData->a_adv;
         }
+        lidarData->old_transfo_x = lidarData->transfo_x;
+        lidarData->old_transfo_y = lidarData->transfo_y;
+        lidarData->old_transfo_a = lidarData->transfo_a;
+
     }
     /*printf("beacon : ");
     for (int j = 0; j < 8; j+=2) {
@@ -774,7 +793,7 @@ void init_lidar(LidarData *lidarData) {
     lidarData->readLidar_theta_robot = 0.0;
     lidarData->readLidar_x_opponent = 0.0;
     lidarData->readLidar_y_opponent = 0.0;
-    lidarData->readLidar_d_opponent = 0.0;
+    lidarData->readLidar_d_opponent = 400.0;
     lidarData->readLidar_a_opponent = 0.0;
     lidarData->readLidar_lost = true;
 
