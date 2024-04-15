@@ -42,7 +42,7 @@ int8_t path_following_to_action(graph_path_t *path)
     Teensy *teensy = shared.teensy;
 
     // Set path following from path planning (decision)
-    int ncheckpoints = (int)path->nPoints;
+    int ncheckpoints = (int)path->nNodes;
     double *x = path->x;
     double *y = path->y;
     // for (int i=0; i<ncheckpoints; i++) {
@@ -68,27 +68,26 @@ int8_t path_following_to_action(graph_path_t *path)
     teensy->set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
 
     double xCurrent, yCurrent;
-    double new_x[path->nPoints + 1]; double new_y[path->nPoints + 1];
     shared.get_robot_pos(&xCurrent, &yCurrent, NULL);
-    double dist_tol = 0.15;
-    if (hypot(xCurrent - x[0], yCurrent - y[0]) < dist_tol)
-    {
-        x[0] = xCurrent;
-        y[0] = yCurrent;
-    }
-    else
-    {
-        new_x[0] = xCurrent;
-        new_y[0] = yCurrent;
-        for (uint8_t i = 0; i < path->nPoints; i++)
-        {
-            new_x[i + 1] = x[i];
-            new_y[i + 1] = y[i];
-        }
-        x = new_x;
-        y = new_y;
-        ncheckpoints++;
-    }
+    // double dist_tol = 0.15;
+    // if (hypot(xCurrent - x[0], yCurrent - y[0]) < dist_tol)
+    // {
+    //     x[0] = xCurrent;
+    //     y[0] = yCurrent;
+    // }
+    // else
+    // {
+    //     new_x[0] = xCurrent;
+    //     new_y[0] = yCurrent;
+    //     for (uint8_t i = 0; i < path->nPoints; i++)
+    //     {
+    //         new_x[i + 1] = x[i];
+    //         new_y[i + 1] = y[i];
+    //     }
+    //     x = new_x;
+    //     y = new_y;
+    //     ncheckpoints++;
+    // }
 
     double first_node_theta = atan2(y[1] - yCurrent, x[1] - xCurrent);
     printf("First node theta : %.3f and current theta : %.3f \n", first_node_theta, theta_start);

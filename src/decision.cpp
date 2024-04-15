@@ -36,8 +36,8 @@ void make_decision(decision_t *decision) {
     double x_pos, y_pos, theta_pos, dist_from_currentNode; 
     shared.get_robot_pos(&x_pos, &y_pos, &theta_pos); 
     graph_path_t* path;
-    uint8_t currentNode = shared.graph->identify_pos(x_pos, y_pos, &dist_from_currentNode);  // Get the closest node from the robot 
-
+    x_pos += 0.15*cos(theta_pos);
+    y_pos += 0.15*sin(theta_pos);
     #ifdef TESTS
 
     // Some code here to do the path planning for the test action
@@ -45,7 +45,7 @@ void make_decision(decision_t *decision) {
         uint8_t target = shared.graph->plants[rand()%6]; // get random plant node
         // shared.graph->node_level_update(target, 0, DISABLE_PROPAGATION);
         shared.graph->update_obstacle(target,0);
-        path = shared.graph->compute_path(currentNode, &target, 1, 0);       
+        path = shared.graph->compute_path(x_pos, y_pos, &target, 1);       
     } while (path == NULL);
     path->thetaStart = theta_pos; 
     path->thetaEnd = 0; 
@@ -64,7 +64,7 @@ void make_decision(decision_t *decision) {
     // Second check if time is running out : 
     if (current_time < time_gotobase) {
         // Get the closest base from the robot pov
-        path = shared.graph->compute_path(currentNode, shared.graph->friendlyBases, 3,0);
+        path = shared.graph->compute_path(x_pos, y_pos, shared.graph->friendlyBases, 3);
         if (path != NULL) {
             path->thetaStart = theta_pos; 
             path->thetaEnd = getThetaEnd(shared.graph->friendlyBases, shared.graph->friendlyBasesTheta, 3, path->target); 
@@ -79,7 +79,7 @@ void make_decision(decision_t *decision) {
 
     // Strategy : for now, only cycling between random plant nodes and going back to closest base
     uint8_t targetNode[1] = {29}; 
-    path = shared.graph->compute_path(currentNode, targetNode, 1,0);
+    path = shared.graph->compute_path(x_pos, y_pos, targetNode, 1);
     if (path != NULL) {
         path->thetaStart = theta_pos; 
         path->thetaEnd = -M_PI_2; //(shared.graph->friendlyBases, shared.graph->friendlyBasesTheta, 1, path->target); 
@@ -92,7 +92,7 @@ void make_decision(decision_t *decision) {
     return; 
     // if (in_array(shared.graph->plants, 6, currentNode)) {
     //     // If it's in a plant node, go back to a base 
-    //     path = shared.graph->compute_path(currentNode, shared.graph->friendlyBases, 3,0);
+    //     path = shared.graph->compute_path(x_pos, y_pos, shared.graph->friendlyBases, 3);
     //     if (path != NULL) {
     //         path->thetaStart = theta_pos; 
     //         path->thetaEnd = getThetaEnd(shared.graph->friendlyBases, shared.graph->friendlyBasesTheta, 3, path->target); 
@@ -110,7 +110,7 @@ void make_decision(decision_t *decision) {
     //         uint8_t target = shared.graph->plants[rand()%6]; // get random plant node
     //         // shared.graph->node_level_update(target, 0, DISABLE_PROPAGATION);
     //         shared.graph->update_obstacle(target,0);
-    //         path = shared.graph->compute_path(currentNode, &target, 1, 0);       
+    //         path = shared.graph->compute_path(x_pos, y_pos, &target, 1);       
     //     } while (path == NULL);
     //     path->thetaStart = theta_pos; 
     //     path->thetaEnd = atan2(shared.graph->nodes[path->target].y - y_pos, shared.graph->nodes[path->target].x - x_pos); 

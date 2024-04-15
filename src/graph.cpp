@@ -72,14 +72,15 @@ int early_exit(size_t visitedCount, void *visitingNode, void *goalNode, void *co
     return 0;
 }
 
-graph_path_t *Graph::compute_path(uint8_t from, uint8_t *targets, uint8_t len_targets, uint8_t oversampling, uint8_t ignoreFirst) {
+graph_path_t *Graph::compute_path(double xFrom, double yFrom, uint8_t *targets, uint8_t len_targets) {
     if (len_targets == 0) return NULL;
 
-    source.nodeSize = sizeof(graph_node_t);
-    source.nodeNeighbors = node_neighbors;
-    source.pathCostHeuristic = path_cost_heuristic;
-    source.earlyExit = early_exit;
-    source.nodeComparator = node_comparator;
+    double distFrom;
+    uint8_t from = this->identify_pos(xFrom, yFrom, &distFrom);
+
+    if (nodes[from].level & NODE_ADV_PRESENT) return NULL;
+
+    uint8_t includeFirst = (distFrom > 0.15);
 
     // Initiate search arguments
     context_t context;
@@ -98,23 +99,18 @@ graph_path_t *Graph::compute_path(uint8_t from, uint8_t *targets, uint8_t len_ta
     }
 
     // Success, create arrays of coordinates for path following and cost
-    ignoreFirst = (ignoreFirst != 0);
-    uint8_t nKeyPoints = ASPathGetCount(path) - ignoreFirst;
-    uint8_t nOvsKeyPts = nKeyPoints + oversampling * (nKeyPoints-1);
+    uint8_t nNodes = ASPathGetCount(path) + includeFirst;
 
-    void *temp = malloc(sizeof(graph_path_t) + nKeyPoints*sizeof(uint8_t) + 2*nOvsKeyPts*sizeof(double));
+    void *temp = malloc(sizeof(graph_path_t) + nNodes*(sizeof(uint8_t) + 2*sizeof(double)));
     graph_path_t *result = (graph_path_t*) temp;
     result->idNodes = ((uint8_t *) temp) + sizeof(graph_path_t);
-    result->x = (double *) (((uint8_t*)temp) + sizeof(graph_path_t) + nKeyPoints);
-    result->y = (double *) (((uint8_t*)temp) + sizeof(graph_path_t) + nKeyPoints + nOvsKeyPts*sizeof(double));
+    result->x = (double *) (((uint8_t*)temp) + sizeof(graph_path_t) + nNodes*sizeof(uint8_t));
+    result->y = (double *) (((uint8_t*)temp) + sizeof(graph_path_t) + nNodes*(sizeof(uint8_t) + sizeof(double)));
     
-    result->nNodes = nKeyPoints;
-    result->nPoints = nOvsKeyPts;
+    result->nNodes = nNodes;
     result->totalCost = ASPathGetCost(path);
 
-    graph_node_t *curNode = (graph_node_t *) ASPathGetNode(path, ignoreFirst);
-    graph_node_t *nextNode;
-    uint8_t nPointsPerSeg = oversampling + 1; // Number of points between current node (included) and next node (excluded)
+    /*uint8_t nPointsPerSeg = oversampling + 1; // Number of points between current node (included) and next node (excluded)
     for (uint8_t i = 0; i < nKeyPoints-1; i++)
     {
         nextNode = (graph_node_t *) ASPathGetNode(path, i+1+ignoreFirst);
@@ -128,8 +124,22 @@ graph_path_t *Graph::compute_path(uint8_t from, uint8_t *targets, uint8_t len_ta
         curNode = nextNode;
     }
     result->x[nOvsKeyPts-1] = curNode->x;
-    result->y[nOvsKeyPts-1] = curNode->y;
-    result->target = curNode->id;
+    result->y[nOvsKeyPts-1] = curNode->y;*/
+
+    result->idNodes[0] = from;
+    result->x[0] = xFrom;
+    result->y[0] = yFrom;
+
+    graph_node_t *currentNode;
+    for (size_t i = 1; i < nNodes; i++)
+    {
+        currentNode = (graph_node_t *) ASPathGetNode(path, i - includeFirst);
+        result->idNodes[i] = currentNode->id;
+        result->x[i] = currentNode->x;
+        result->y[i] = currentNode->y;
+    }
+
+    result->target = currentNode->id;
 
     ASPathDestroy(path);
     return result;    
@@ -147,22 +157,23 @@ void Graph::update_adversary_pos(double xAdv, double yAdv) {
     for (uint8_t i = 0; i < nNodes; i++)
     {
         double dist = hypot(nodes[i].x - xAdv, nodes[i].y - yAdv);
-        nodes[i].level = (nodes[i].level & (~NODE_ADV_PRESENT)) | ((dist <= 0.4)*NODE_ADV_PRESENT);
+        nodes[i].level = (nodes[i].level & (~NODE_ADV_PRESENT)) | ((dist <= 0.3)*NODE_ADV_PRESENT);
     }
     pthread_rwlock_unlock(&lock);
 }
 
 uint8_t Graph::identify_pos(double x, double y, double *dist) {
     uint8_t id = 0;
-    *dist = hypot(nodes[0].x - x, nodes[0].y - y);
+    double dErr = hypot(nodes[0].x - x, nodes[0].y - y);
     for (uint8_t i = 1; i < nNodes; i++)
     {
         double temp = hypot(nodes[i].x - x, nodes[i].y - y);
-        if (*dist > temp) {
-            *dist = temp;
+        if (dErr > temp) {
+            dErr = temp;
             id = i;
         }
     }
+    if (dist != NULL) *dist = dErr;
     return id;
 }
 
@@ -305,7 +316,6 @@ int Graph::init_from_file(const char *filename, team_color_t color) {
     #ifdef VERBOSE
     printf("\n");
     #endif
-    printf("First base 1 :%d \n", friendlyBases[0]);
 
     // Scan blue planters nodes
     for (size_t i = 0; i < 64; i++){ list[i] = 0; }
@@ -487,13 +497,18 @@ int Graph::init_from_file(const char *filename, team_color_t color) {
     #endif
 
     level = 0;
+    source.nodeSize = sizeof(graph_node_t);
+    source.nodeNeighbors = node_neighbors;
+    source.pathCostHeuristic = path_cost_heuristic;
+    source.earlyExit = early_exit;
+    source.nodeComparator = node_comparator;
     return 0;
 
 }
 
 void Graph::print_path(graph_path_t* path) {
-    printf("Path towards %d of length %.3fm in %d points\n", path->target, path->totalCost, path->nPoints);
-    for (uint8_t i = 0; i < path->nPoints; i++)
+    printf("Path towards %d of length %.3fm in %d points\n", path->target, path->totalCost, path->nNodes);
+    for (uint8_t i = 0; i < path->nNodes; i++)
     {
         printf("(%.3f,%.3f) ", path->x[i], path->y[i]);
     }
