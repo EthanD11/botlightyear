@@ -138,7 +138,7 @@ graph_path_t *Graph::compute_path(uint8_t from, uint8_t *targets, uint8_t len_ta
 void Graph::update_obstacle(uint8_t node, uint8_t blocked) {
     blocked = (blocked != 0);
     pthread_rwlock_wrlock(&lock);
-    nodes[node].level = (nodes[node].level & (~NODE_OBSTACLES_PRESENT)) | blocked;
+    nodes[node].level = (nodes[node].level & (~NODE_OBSTACLES_PRESENT)) | (blocked*NODE_OBSTACLES_PRESENT);
     pthread_rwlock_unlock(&lock);
 }
 
@@ -147,7 +147,7 @@ void Graph::update_adversary_pos(double xAdv, double yAdv) {
     for (uint8_t i = 0; i < nNodes; i++)
     {
         double dist = hypot(nodes[i].x - xAdv, nodes[i].y - yAdv);
-        nodes[i].level = (nodes[i].level & (~NODE_ADV_PRESENT)) | (dist <= 0.25);
+        nodes[i].level = (nodes[i].level & (~NODE_ADV_PRESENT)) | ((dist <= 0.4)*NODE_ADV_PRESENT);
     }
     pthread_rwlock_unlock(&lock);
 }
@@ -495,4 +495,5 @@ void Graph::print_path(graph_path_t* path) {
     {
         printf("(%.3f,%.3f) ", path->x[i], path->y[i]);
     }
+    printf("\n");
 }

@@ -165,7 +165,6 @@ void *localizer(void* arg) {
         #endif
 
         lidarGetRobotPosition(&lidarData, 10, false, lidarData.readLidar_lost);
-        printf("    %.3f %.3f %.3f %.3f\n", lidarData.readLidar_x_robot, lidarData.readLidar_y_robot,lidarData.readLidar_d_opponent,lidarData.readLidar_a_opponent*180.0/M_PI  );
 
         #ifdef TIME_MEAS
         clock_t lidarClock = clock();
@@ -199,6 +198,9 @@ void *localizer(void* arg) {
             lidarData.a_adv);
         shared.graph->update_adversary_pos(lidarData.readLidar_x_opponent, lidarData.readLidar_y_opponent);
         lidarData.x_odo = x; lidarData.y_odo = y; lidarData.theta_odo = theta;
+
+        printf("    %.3f %.3f %.3f   %.3f %.3f\n", lidarData.readLidar_x_robot, lidarData.readLidar_y_robot, lidarData.readLidar_theta_robot*180/M_PI, lidarData.readLidar_d_opponent,lidarData.readLidar_a_opponent*180.0/M_PI);
+        printf("odometry : %.3f %.3f %.3f\n", xOdo, yOdo, thetaOdo*180/M_PI);
 
         #ifdef TIME_MEAS
         printf("Timing results : \n");

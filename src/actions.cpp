@@ -62,7 +62,9 @@ int8_t path_following_to_action(graph_path_t *path) {
     
     double first_node_theta = atan2(y[1]-y[0],x[1]-x[0]); 
     if (abs(first_node_theta - theta_start) > M_PI_4 && abs(first_node_theta - theta_start) < 3*M_PI_4) {
-        teensy->pos_ctrl(x[0], y[0], first_node_theta);
+        double xCurrent, yCurrent;
+        shared.get_robot_pos(&xCurrent,&yCurrent,NULL);
+        teensy->pos_ctrl(xCurrent, yCurrent, first_node_theta);
         while ((teensy->ask_mode()) != ModePositionControlOver) {
             usleep(10000);
         }
@@ -87,15 +89,17 @@ int8_t path_following_to_action(graph_path_t *path) {
             teensy->idle(); 
             printf("Adversary in path !!\n");
             free(path); 
+            sleep(1);
             return -1;
         }
 
         // Security check: adversary too close
-        double tolerance = 0.4; 
+        double tolerance = 0.6; 
         if ((da < tolerance) && (abs(ta) < M_PI/2)) {
             printf("Adversary too close !!\n");
             teensy->idle(); 
             free(path); 
+            sleep(1);
             return -1;
         }
 
@@ -103,6 +107,7 @@ int8_t path_following_to_action(graph_path_t *path) {
     } 
 
     free(path); 
+    usleep(3000000);
     return 0; // Adversary not found and successfull path following
 }
 

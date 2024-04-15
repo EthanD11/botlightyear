@@ -80,7 +80,7 @@ public:
     * Note that the arrays of x and y coordinates are directly next to the structure in the memory
     * Only the pointer returned must be passed to free() after the call, not the x and y arrays of the structure
     */
-    graph_path_t *compute_path(uint8_t from, uint8_t *targets, uint8_t len_targets, uint8_t oversampling = 0, uint8_t ignoreFirst = 1);
+    graph_path_t *compute_path(uint8_t from, uint8_t *targets, uint8_t len_targets, uint8_t oversampling = 0, uint8_t ignoreFirst = 0);
 
     /**
     * Updates the obstacle flag of the 'node' to 'blocked' (0 for free 1 for obstructed)

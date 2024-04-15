@@ -3,6 +3,7 @@
 #include <stdlib.h> // For random numbers
 #include <stdbool.h>
 #include <stdio.h>
+#include <cmath>
 
 //#define TESTS
 
@@ -82,10 +83,10 @@ void make_decision(decision_t *decision) {
         // If it's in a plant node, go back to a base 
         path = shared.graph->compute_path(currentNode, shared.graph->friendlyBases, 3,0);
         if (path != NULL) {
-        path->thetaStart = theta_pos; 
-        path->thetaEnd = getThetaEnd(shared.graph->friendlyBases, shared.graph->friendlyBasesTheta, 3, path->target); 
-        decision->actionType = Displacement; 
-        decision->path = path;
+            path->thetaStart = theta_pos; 
+            path->thetaEnd = getThetaEnd(shared.graph->friendlyBases, shared.graph->friendlyBasesTheta, 3, path->target); 
+            decision->actionType = Displacement; 
+            decision->path = path;
         } else {
             decision->actionType = Wait; 
             decision->path = NULL;
@@ -101,7 +102,7 @@ void make_decision(decision_t *decision) {
             path = shared.graph->compute_path(currentNode, &target, 1, 0);       
         } while (path == NULL);
         path->thetaStart = theta_pos; 
-        path->thetaEnd = 0; 
+        path->thetaEnd = atan2(shared.graph->nodes[path->target].y - y_pos, shared.graph->nodes[path->target].x - x_pos); 
         decision->actionType = Displacement; 
         decision->path = path;
         return;

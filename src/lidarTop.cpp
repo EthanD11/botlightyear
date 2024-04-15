@@ -827,12 +827,20 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
     double *distances = new double[8000];
     double *quality = new double[8000];
     size_t *as = new size_t[2]{8000, 8000};
+
+    //TODO TEEEEEEEEEEEEEEEEEEEEEEEST AAAAAAAAAAAAAAH   
+    fullScan = true;
+    fullScanPcqLost = true;
+    lidarData->x_robot=lidarData->x_odo;
+    lidarData->y_robot=lidarData->y_odo;
+    //TODO TEEEEEEEEEEEEEEEEEEEEEEEST AAAAAAAAAAAAAAH   
+
     updateDataTop(angles, distances, quality, as);
     //updateDataFile(angles, distances, quality, "DataTest/DataP/testLidarMobile/" + std::to_string(i), as);
     arraySize = as[0];
     if (fromOdo) {
         facteurLost = 10;
-        xyToBeacon(lidarData);
+        //xyToBeacon(lidarData);
         fullScanPcqLost=true;
         fullScan=true;
         /*printf("beacon : ");
@@ -869,11 +877,11 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
             //if (false){
             lidarData->readLidar_x_robot = lidarData->x_robot - 0.1 * sin(lidarData->orientation_robot) + deltaXB3;
             lidarData->readLidar_y_robot = lidarData->y_robot - 0.1 * cos(lidarData->orientation_robot) + deltaYB3;
-            lidarData->readLidar_theta_robot = moduloLidarMPIPI(lidarData->orientation_robot);
+            lidarData->readLidar_theta_robot = M_PI/2-moduloLidarMPIPI(lidarData->orientation_robot);
             lidarData->readLidar_x_opponent = lidarData->x_adv + deltaXB3;
             lidarData->readLidar_y_opponent = lidarData->y_adv + deltaYB3;;
             lidarData->readLidar_d_opponent = lidarData->d_adv;
-            lidarData->readLidar_a_opponent = lidarData->a_adv;
+            lidarData->readLidar_a_opponent = moduloLidarMPIPI(-lidarData->a_adv);
         } else {
             lidarData->readLidar_x_robot =
                     2 - (lidarData->x_robot - 0.1 * sin(lidarData->orientation_robot) + deltaXB3);
