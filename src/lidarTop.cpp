@@ -35,8 +35,8 @@ double deltaXB3 = 0.05;
 double deltaYB3 = -0.09;
 
 
-double tablex = 2.2;
-double tabley = 3.2;
+double tablex = 2.1;
+double tabley = 3.1;
 /**
  * We calculate the position of the robot in beacon reference
  * from the polar coordinates of the 3 beacons and knowing that the robot is at the origin of the reference frame,
@@ -759,7 +759,7 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
                             if(lidarData->readLidar_lost){
                                 precision*=2;
                             }
-                            if (lidarData->x_robot > -0.05 && lidarData->x_robot < tablex && lidarData->y_robot > -0.05 &&
+                            if (lidarData->x_robot > 0.0 && lidarData->x_robot < tablex && lidarData->y_robot > 0.0 &&
                                 lidarData->y_robot < tabley && ((fullScan && !fullScanPcqLost) || (
                                     std::abs(lidarData->x_robot - oldXRobot) < precision &&
                                     std::abs(lidarData->y_robot - oldYRobot) < precision))) {
