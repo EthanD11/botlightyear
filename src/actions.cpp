@@ -34,11 +34,6 @@ uint8_t adversary_in_path(graph_path_t *path, uint8_t closer_node_id)
     return 0;
 }
 
-double dist(double dx, double dy)
-{
-    return sqrt(dx * dx + dy * dy);
-}
-
 int8_t path_following_to_action(graph_path_t *path)
 {
 
@@ -50,7 +45,9 @@ int8_t path_following_to_action(graph_path_t *path)
     int ncheckpoints = (int)path->nPoints;
     double *x = path->x;
     double *y = path->y;
-
+    // for (int i=0; i<ncheckpoints; i++) {
+    //     printf("Node %d : x :%.3f and y: %.3f \n", i, x[i], y[i]);
+    // }
     double theta_start = path->thetaStart;
     double theta_end = path->thetaEnd;
 
@@ -71,20 +68,19 @@ int8_t path_following_to_action(graph_path_t *path)
     teensy->set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
 
     double xCurrent, yCurrent;
+    double new_x[path->nPoints + 1]; double new_y[path->nPoints + 1];
     shared.get_robot_pos(&xCurrent, &yCurrent, NULL);
     double dist_tol = 0.15;
-    if (dist(xCurrent - x[0], yCurrent - y[0]) < dist_tol)
+    if (hypot(xCurrent - x[0], yCurrent - y[0]) < dist_tol)
     {
         x[0] = xCurrent;
         y[0] = yCurrent;
     }
     else
     {
-        double new_x[path->ncheckpoints + 1];
-        double new_y[path->ncheckpoints + 1];
         new_x[0] = xCurrent;
         new_y[0] = yCurrent;
-        for (uint8_t i = 0; i < ncheckpoints; i++)
+        for (uint8_t i = 0; i < path->nPoints; i++)
         {
             new_x[i + 1] = x[i];
             new_y[i + 1] = y[i];
@@ -95,14 +91,21 @@ int8_t path_following_to_action(graph_path_t *path)
     }
 
     double first_node_theta = atan2(y[1] - yCurrent, x[1] - xCurrent);
+    printf("First node theta : %.3f and current theta : %.3f \n", first_node_theta, theta_start);
+
     if (abs(first_node_theta - theta_start) > M_PI_4)
     { //&& abs(first_node_theta - theta_start) < 3*M_PI_4
         teensy->pos_ctrl(xCurrent, yCurrent, first_node_theta);
+        printf("Position control before PF to %.3f, %.3f, %.3f\n", xCurrent, yCurrent, first_node_theta);
         while ((teensy->ask_mode()) != ModePositionControlOver)
         {
             usleep(10000);
         }
     }
+    printf("PF\n");
+    // for (int i=0; i<ncheckpoints; i++) {
+    //     printf("Node %d : x :%.3f and y: %.3f \n", i, x[i], y[i]);
+    // }
 
     teensy->path_following(x, y, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
 

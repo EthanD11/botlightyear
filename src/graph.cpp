@@ -305,6 +305,7 @@ int Graph::init_from_file(const char *filename, team_color_t color) {
     #ifdef VERBOSE
     printf("\n");
     #endif
+    printf("First base 1 :%d \n", friendlyBases[0]);
 
     // Scan blue planters nodes
     for (size_t i = 0; i < 64; i++){ list[i] = 0; }
@@ -343,8 +344,8 @@ int Graph::init_from_file(const char *filename, team_color_t color) {
         if (token == NULL) return -1;
         if (sscanf(token, "%hhd", &node_id) != 1) return -1;
 
-        if (color == TeamYellow) friendlyBases[i] = node_id;
-        else adversaryBases[i] = node_id;
+        if (color == TeamYellow) friendlyPlanters[i] = node_id;
+        else adversaryPlanters[i] = node_id;
 
         #ifdef VERBOSE
         printf("%d", node_id);
@@ -487,6 +488,7 @@ int Graph::init_from_file(const char *filename, team_color_t color) {
 
     level = 0;
     return 0;
+
 }
 
 void Graph::print_path(graph_path_t* path) {

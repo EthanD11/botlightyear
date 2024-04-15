@@ -120,12 +120,24 @@ void ask_user_input_params() {
 
 void init_and_wait_for_start() {
 
+    /*
     dxl_init_port();
     dxl_ping(6,1.0);
-    dxl_ping(8,1.0);
+    dxl_ping(8,1.0); */
 
     if (shared.graph->init_from_file("./graphs/BL_V3.txt", shared.color) != 0) exit(3);
+    /*for (int i=0; i<3; i++) {
+        printf("Friendly base %d \n", shared.graph->friendlyBases[i]);
+        printf("Adversary base %d \n", shared.graph->adversaryBases[i]);
+        printf("Friendly planter %d \n", shared.graph->friendlyPlanters[i]);
+        printf("Adversary planter %d \n", shared.graph->adversaryPlanters[i]);
+    }
+    for (int i=0; i<6; i++) {
+        printf("Plants at %d \n", shared.graph->plants[i]);
+    }*/
 
+
+    
     if (pthread_create(&localizerID, NULL, localizer, NULL) != 0) exit(4);
 
     shared.steppers->reset_all();
@@ -146,7 +158,7 @@ void finish_main() {
 
     free(decision.path);
 
-    dxl_close_port();
+    //dxl_close_port();
 
 }
 
@@ -203,8 +215,9 @@ void *localizer(void* arg) {
         lidarData->x_odo = x; lidarData->y_odo = y; lidarData->theta_odo = theta;
 
         #ifdef VERBOSE
-        printf("    %.3f %.3f %.3f   %.3f %.3f\n", lidarData->readLidar_x_robot, lidarData->readLidar_y_robot, lidarData->readLidar_theta_robot*180/M_PI, lidarData->readLidar_d_opponent,lidarData->readLidar_a_opponent*180.0/M_PI);
-        printf("odometry : %.3f %.3f %.3f\n", xOdo, yOdo, thetaOdo*180/M_PI);
+        //TODO TODO
+        printf("                    %.3f %.3f %.3f   %.3f %.3f\n", lidarData->readLidar_x_robot, lidarData->readLidar_y_robot, lidarData->readLidar_theta_robot*180/M_PI, lidarData->readLidar_d_opponent,lidarData->readLidar_a_opponent*180.0/M_PI);
+        //printf("odometry : %.3f %.3f %.3f\n", xOdo, yOdo, thetaOdo*180/M_PI);
         #endif
 
         #ifdef TIME_MEAS
@@ -226,19 +239,17 @@ int main(int argc, char const *argv[])
     ask_user_input_params();
 
     // ------ INIT -----
-    
+   
     init_and_wait_for_start();
 
     // ----- GAME -----
-
+    
     do {
         make_decision(&decision);
         printf("Action type : %d\n", decision.actionType);
         double x, y, theta;
         shared.get_robot_pos(&x,&y,&theta);
         printf("Current pos : (%.3f,%.3f,%.3f)\n",x,y,theta);
-
-
         
         
         switch (decision.actionType)
@@ -267,8 +278,8 @@ int main(int argc, char const *argv[])
     shared.teensy->idle();
     shared.steppers->reset_all();
     shared.servoFlaps->idle(); shared.grpDeployer->idle(); shared.grpHolder->idle();
-    dxl_idle(6, 1.0);
-    dxl_idle(8, 1.0);
+    //dxl_idle(6, 1.0);
+    //dxl_idle(8, 1.0);
 
     printf("Game finished\n");
     // TODO : show score
