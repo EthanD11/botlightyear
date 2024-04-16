@@ -309,7 +309,7 @@ void Steppers::setup_acc(steppers_t stepperName, uint8_t accSteps) {
 void Steppers::setup_all_speeds() {
     setup_speed(StprPlate,80,400); 
     setup_speed(StprSlider,300,450);
-    setup_speed(StprFlaps,150,400); 
+    setup_speed(StprFlaps,200,300); 
 }
 
 void Steppers::calibrate_all(uint8_t blocking) {
