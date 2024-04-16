@@ -234,8 +234,8 @@ int8_t get_plate_slot(storage_slot_t slotID) {
 storage_slot_t get_next_unloaded_slot_ID (storage_content_t content) {
     storage_slot_t unloaded_slot_order[6] = {Slot1, SlotM1, Slot2, SlotM2, Slot3, SlotM3}; 
     storage_content_t storage = shared.storage;
-    for (uint8_t i=0; i<6; i++) {
-        if (storage[unloaded_slot_order[i]]&content) {
+    for (uint8_t i = 0; i < 6; i++) {
+        if ((storage[unloaded_slot_order[i]] & content) == content) {
             return unloaded_slot_order[i]; 
         }
     }
@@ -246,8 +246,8 @@ storage_slot_t get_next_unloaded_slot_ID (storage_content_t content) {
 storage_slot_t get_next_free_slot_ID (storage_content_t content) {
     storage_slot_t loading_slot_order[6] = {SlotM3, Slot3, SlotM2, Slot2, SlotM1, Slot1}; 
     storage_content_t storage = shared.storage;
-    for (uint8_t i=0; i<6; i++) {
-        if (!(storage[loading_slot_order[i]]&content)) {
+    for (uint8_t i = 0; i < 6; i++) {
+        if (!(storage[loading_slot_order[i]] & content)) {
             return loading_slot_order[i]; 
         }
     }
