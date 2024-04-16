@@ -219,7 +219,7 @@ void lidarPerduAdv(double *angles, double *distances, LidarData *lidarData) {
     for (int i = 0; i < arraySize; ++i) {
 
         /// check if the object is potentially on the table
-        if (0.2 < distances[i] && distances[i] < distMax-0.1) {
+        if (0.2 < distances[i] && distances[i] < distMax - 0.1) {
 
             /// no previous object: a new object to be initialized
             if (!objet) {
@@ -316,7 +316,7 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
     double distMax = 3.55;
 
     ///objet==true : object detected at probable distance
-    bool objet= false;
+    bool objet = false;
 
     ///distance and angle of the first and last points of an object
     double d1 = 0;
@@ -700,15 +700,14 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
     size_t *as = new size_t[2]{8000, 8000};
 
     //TODO TEEEEEEEEEEEEEEEEEEEEEEEST AAAAAAAAAAAAAAH   
-    fullScan = true;
     fullScanPcqLost = true;
-    //if (shared.color == TeamBlue) {
-    if (false){
-    lidarData->x_robot=lidarData->x_odo;
-    lidarData->y_robot=lidarData->y_odo;}
-    else{
-            lidarData->x_robot=2-lidarData->x_odo;
-    lidarData->y_robot=3-lidarData->y_odo;
+    if (shared.color == TeamBlue) {
+
+        lidarData->x_robot = lidarData->x_odo;
+        lidarData->y_robot = lidarData->y_odo;
+    } else {
+        lidarData->x_robot = 2 - lidarData->x_odo;
+        lidarData->y_robot = 3 - lidarData->y_odo;
     }
     //TODO TEEEEEEEEEEEEEEEEEEEEEEEST AAAAAAAAAAAAAAH   
 
