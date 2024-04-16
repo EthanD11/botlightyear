@@ -201,7 +201,7 @@ int8_t action_position_control(double x_end, double y_end, double theta_end)
     return 0;
 }
 
-int8_t get_plate_slot_ID(storage_slot_t slotID) {
+int8_t get_plate_slot(storage_slot_t slotID) {
     int8_t plateSlotID; 
     switch (slotID)
     {
@@ -260,4 +260,16 @@ void update_plate_content(storage_slot_t slotID, storage_content_t content) {
     } else {
         shared.storage[slotID] |= content; 
     }
+}
+
+
+double periodic_angle(double angle) {
+    if (angle > M_PI) return angle-2*M_PI; 
+    if (angle < -M_PI) return angle+2*M_PI; 
+    return angle;
+}
+
+double trigo_diff(double theta_a, double theta_b) {
+    double diff = theta_a-theta_b
+    return periodic_angle(diff);
 }

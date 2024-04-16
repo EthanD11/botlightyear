@@ -3,4 +3,14 @@
 
 #include "actions.h"
 
+class ActionPlants : public Action
+{
+private: 
+    uint8_t plantCounter; 
+public:
+    ActionPlants(graph_path_t *path, uint8_t plantNumber) : Action(DepositPlanter, true, path) {
+        plantCounter = plantNumber;
+    }
+    void do_action();
+};
 #endif

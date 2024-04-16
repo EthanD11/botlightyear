@@ -48,7 +48,7 @@ int8_t action_position_control(double x_end, double y_end, double theta_end);
  * @param slot the slot ID
  * @return the plate slot number associated to the stepper position of the plate
 */
-int8_t get_plate_slot_ID(storage_slot_t slotID); 
+int8_t get_plate_slot(storage_slot_t slotID); 
 
 /**
  * @brief Get the next slot ID to unload from the plate
@@ -70,6 +70,17 @@ storage_slot_t get_next_free_slot_ID (storage_content_t content);
  * @param content the type of object to update (ContainsNothing to reset slot)
 */
 void update_plate_content(storage_slot_t slotID, storage_content_t content); 
+
+/**
+ * @brief Returns the angle in radians in between [-pi, pi]
+*/
+double periodic_angle(double angle); 
+
+/**
+ * @brief Returns the difference in radians theta_a - theta_b, while resolving discontinuity issues
+ * Angles need to be in the range [-pi, pi]
+*/
+double trigo_diff(double theta_a, double theta_b)
 /* UTILS: CLOSER_IN_PATH
 uint8_t closer_in_path(graph_path_t *path, double xr, double yr); 
 
