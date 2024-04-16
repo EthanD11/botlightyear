@@ -125,9 +125,11 @@ void rotationPosition(double *db, double *x, double *y, LidarData *lidarData, do
     lidarData->y_robot = sin(alpha) * xtemp + cos(alpha) * ytemp;
 
     ///to determine the orientation of the robot on the table
-    lidarData->orientation_robot = M_PI - orientation + atan2(lidarData->x_robot, lidarData->y_robot);
+    //lidarData->orientation_robot = M_PI - orientation + atan2(lidarData->x_robot, lidarData->y_robot);
 
-    lidarData->orientation_robot = moduloLidarMPIPI(lidarData->orientation_robot);
+    //lidarData->orientation_robot = moduloLidarMPIPI(M_PI/2-lidarData->orientation_robot);
+    lidarData->orientation_robot = moduloLidarMPIPI(-M_PI/2.0+orientation-atan2(lidarData->x_robot, lidarData->y_robot));
+
 
     delete (beacon1);
     delete (beacon2);
@@ -279,6 +281,46 @@ void lidarPerduAdv(double *angles, double *distances, LidarData *lidarData) {
     return;
 }
 
+void foundAdvWithOdo(double *angles, double *distances, LidarData *lidarData){
+    //recalcul des transfo pour trouver l'adversaire
+    double delta_x = d*cos(lidarData->robot_orientation+a);
+    double delta_y = d*sin(lidarData->robot_orientation+a);
+
+    ///transfo contains 4 elem : deltaX, deltaY, angle of rotation, the number of elements in possible opponents (number of elements in *anglesAdv)
+    int size = lidarData->countObj_adv;
+
+    ///maximum table dimensions
+    double xmax = tablex;
+    double ymax = tabley;
+
+    ///coordinates in xy after one and two transformations (translations then rotation)
+    double xobj;
+    double yobj;
+
+    for (int i = 0; i < size; ++i) {
+        /// transformation identical to that of beacons and robots
+        xobj = lidarData->robot_x + distancesAdv[i] * std::cos(anglesAdv[i]));
+        yobj = lidarData->robot_y + distancesAdv[i] * std::sin(anglesAdv[i]));
+
+        if (xobj > 0.03 && xobj < xmax-0.03) {
+            ///check whether the y coordinate is valid (on the table)
+            if (yobj > 0.03 && yobj < ymax-0.03) {
+                /// if the object is on the table, it's our opponent,
+                /// we save its coordinates in the new base (xy based on beacon3)
+                /// and the original coordinates (relative to the robot, distance and angle)
+                lidarData->x_adv = xobj;
+                lidarData->y_adv = yobj;
+                lidarData->d_adv = distancesAdv[i];
+                lidarData->a_adv = anglesAdv[i];
+                /// we assume that the lidar can only see one object on the table
+                /// and that it is therefore automatically the robot
+                return 0;
+            }
+        }
+    }
+    /// We haven't found the opponent, by default the coordinates remain in 0
+    return 1;
+}
 
 /**
  * From the raw lidar data, save in lidarData the coordinates of the robot according to the defined plane and the coordinates of the opponent
@@ -674,9 +716,8 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
     lidarData->transfo_a = lidarData->old_transfo_a;
     lidarData->transfo_x = lidarData->old_transfo_x;
     lidarData->transfo_y = lidarData->old_transfo_y;
-    //lidarPerduAdv(angles,distances,lidarData);
 
-
+    foundAdvWithOdo(angles,distances,lidarData);
     delete (dObj);
     delete (aObj);
     delete (dObj_adv);
@@ -691,6 +732,9 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
     return;
 }
 
+
+
+
 void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool fromOdo) {
     facteurLost = 1;
     precisionPredef = 0.1;
@@ -701,13 +745,14 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
 
     //TODO TEEEEEEEEEEEEEEEEEEEEEEEST AAAAAAAAAAAAAAH   
     fullScanPcqLost = true;
-    if (shared.color == TeamBlue) {
-
-        lidarData->x_robot = lidarData->x_odo;
-        lidarData->y_robot = lidarData->y_odo;
+    //if (shared.color == TeamBlue) {
+    if (false){
+        lidarData->x_robot = lidarData->x_odo + 0.1 * cos(lidarData->orientation_robot) - deltaXB3;
+        lidarData->y_robot = lidarData->y_odo + 0.1 * sin(lidarData->orientation_robot) - deltaYB3;
     } else {
-        lidarData->x_robot = 2 - lidarData->x_odo;
-        lidarData->y_robot = 3 - lidarData->y_odo;
+        lidarData->x_robot = 2 - (lidarData->x_odo + 0.1 * cos(lidarData->orientation_robot) - deltaXB3);
+        lidarData->y_robot = 3 - (lidarData->y_odo + 0.1 * sin(lidarData->orientation_robot) - deltaYB3);
+
     }
     //TODO TEEEEEEEEEEEEEEEEEEEEEEEST AAAAAAAAAAAAAAH   
 
@@ -752,19 +797,19 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
         //if (shared.color == TeamBlue) {
         if (false){
             //if (false){
-            lidarData->readLidar_x_robot = lidarData->x_robot - 0.1 * sin(lidarData->orientation_robot) + deltaXB3;
-            lidarData->readLidar_y_robot = lidarData->y_robot - 0.1 * cos(lidarData->orientation_robot) + deltaYB3;
-            lidarData->readLidar_theta_robot = M_PI / 2 - moduloLidarMPIPI(lidarData->orientation_robot);
+            lidarData->readLidar_x_robot = lidarData->x_robot - 0.1 * cos(lidarData->orientation_robot) + deltaXB3;
+            lidarData->readLidar_y_robot = lidarData->y_robot - 0.1 * sin(lidarData->orientation_robot) + deltaYB3;
+            lidarData->readLidar_theta_robot = moduloLidarMPIPI(lidarData->orientation_robot);
             lidarData->readLidar_x_opponent = lidarData->x_adv + deltaXB3;
             lidarData->readLidar_y_opponent = lidarData->y_adv + deltaYB3;;
             lidarData->readLidar_d_opponent = lidarData->d_adv;
             lidarData->readLidar_a_opponent = moduloLidarMPIPI(-lidarData->a_adv);
         } else {
             lidarData->readLidar_x_robot =
-                    2 - (lidarData->x_robot - 0.1 * sin(lidarData->orientation_robot) + deltaXB3);
+                    2 - (lidarData->x_robot - 0.1 * cos(lidarData->orientation_robot) + deltaXB3);
             lidarData->readLidar_y_robot =
-                    3 - (lidarData->y_robot - 0.1 * cos(lidarData->orientation_robot) + deltaYB3);
-            lidarData->readLidar_theta_robot = moduloLidarMPIPI(M_PI/2-moduloLidarMPIPI(lidarData->orientation_robot)-3/2*M_PI);
+                    3 - (lidarData->y_robot - 0.1 * sin(lidarData->orientation_robot) + deltaYB3);
+            lidarData->readLidar_theta_robot = moduloLidarMPIPI(lidarData->orientation_robot - M_PI);
             lidarData->readLidar_x_opponent = 2 - (lidarData->x_adv + deltaXB3);
             lidarData->readLidar_y_opponent = 3 - (lidarData->y_adv + deltaYB3);
             lidarData->readLidar_d_opponent = lidarData->d_adv;
