@@ -1,5 +1,7 @@
 #include "action_SP.h"
-#include "action_displacement.h"
+
+#include "dynamixels.h"
+#include "cameraTag.h"
 
 #define VERBOSE
 #ifdef VERBOSE

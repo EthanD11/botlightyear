@@ -1,6 +1,4 @@
 #include "action_displacement.h" 
-#include "actions.h"
-#include "decision.h"
 #include <stdio.h>
 
 

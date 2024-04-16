@@ -9,11 +9,8 @@
 #include "graph.h"
 #include "odometry.h"
 #include "teensy.h"
-#include <signal.h>
 #include <time.h>
 #include <stdint.h>
-
-#include "decision.h"
 
 typedef enum _storage_slot : uint8_t
 {

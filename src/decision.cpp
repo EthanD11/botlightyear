@@ -1,4 +1,11 @@
 #include "decision.h"
+#include "action_displacement.h"
+#include "action_planter.h"
+#include "action_plants.h"
+#include "action_pots.h"
+#include "action_return.h"
+#include "action_SP.h"
+#include "action_zone.h"
 
 #include <stdlib.h> // For random numbers
 #include <stdbool.h>
@@ -6,6 +13,26 @@
 #include <cmath>
 
 //#define TESTS
+
+class ActionGameFinished : public Action {
+    public :
+        ActionGameFinished() : Action(GameFinished, false, NULL) {}
+        void do_action () {} 
+};
+
+class ActionWait: public Action {
+    public :
+        ActionWait() : Action(Wait, false, NULL) {}
+        void do_action () {
+            usleep(5000);
+        } 
+};
+
+class ActionTest : public Action {
+    public :
+        ActionTest() : Action(TestAction, false, NULL) {}
+        void do_action () {} 
+};
 
 Action* possible_actions[10]; 
 uint8_t n_possible_actions;

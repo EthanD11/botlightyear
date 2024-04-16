@@ -1,9 +1,7 @@
 #ifndef BLY_ACTION_SP_H
 #define BLY_ACTION_SP_H
 
-#include "dynamixels.h"
-#include "cameraTag.h"
-#include "shared_variables.h"
+
 #include "actions.h"
 
 void solar_panel_pc(); 
@@ -34,6 +32,7 @@ class ActionSP : public Action {
             sp_counter = sp_number;
             reserved = is_reserved;
         }
+        void do_action();
 };
 
 #endif

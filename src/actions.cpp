@@ -2,6 +2,9 @@
 #include <cmath>
 #include <algorithm>
 
+//#define VERBOSE
+#include <stdio.h>
+
 uint8_t closer_in_path(graph_path_t *path, double xr, double yr)
 {
     double distance, min_distance = 3.6;
@@ -57,7 +60,7 @@ int8_t path_following_to_action(graph_path_t *path)
     double kw = 4.0;
     teensy->set_position_controller_gains(kp, ka, kb, kw);
 
-    double kt = 2.0;
+    /*double kt = 2.0;
     double kn = 0.3; // 0 < kn <= 1
     double kz = 25.0;
     double delta = 20e-3; // delta is in meters
@@ -65,24 +68,30 @@ int8_t path_following_to_action(graph_path_t *path)
     double epsilon = M_PI / 8; // epsilon is in radians
     double wn = 0.2;           // Command filter discrete cutoff frequency
     double kv_en = 0.;
-    teensy->set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
+    teensy->set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);*/
 
     double xCurrent, yCurrent;
     shared.get_robot_pos(&xCurrent, &yCurrent, NULL);
 
     double first_node_theta = atan2(y[1] - yCurrent, x[1] - xCurrent);
+    #ifdef VERBOSE
     printf("First node theta : %.3f and current theta : %.3f \n", first_node_theta, theta_start);
+    #endif
 
     if (abs(first_node_theta - theta_start) > M_PI_4)
     { //&& abs(first_node_theta - theta_start) < 3*M_PI_4
         teensy->pos_ctrl(xCurrent, yCurrent, first_node_theta);
+        #ifdef VERBOSE
         printf("Position control before PF to %.3f, %.3f, %.3f\n", xCurrent, yCurrent, first_node_theta);
+        #endif
         while ((teensy->ask_mode()) != ModePositionControlOver)
         {
             usleep(10000);
         }
     }
+    #ifdef VERBOSE
     printf("PF\n");
+    #endif
     // for (int i=0; i<ncheckpoints; i++) {
     //     printf("Node %d : x :%.3f and y: %.3f \n", i, x[i], y[i]);
     // }
@@ -107,7 +116,9 @@ int8_t path_following_to_action(graph_path_t *path)
         if (adversary_in_path(path, closer_node_id) == -1)
         {
             teensy->idle();
+            #ifdef VERBOSE
             printf("Adversary in path !!\n");
+            #endif
             free(path);
             sleep(1);
             return -1;
@@ -117,7 +128,9 @@ int8_t path_following_to_action(graph_path_t *path)
         double tolerance = 0.6;
         if ((da < tolerance) && (abs(ta) < M_PI / 2))
         {
+            #ifdef VERBOSE
             printf("Adversary too close !!\n");
+            #endif
             teensy->idle();
             free(path);
             sleep(1);
@@ -136,21 +149,6 @@ int8_t action_position_control(double x_end, double y_end, double theta_end)
 {
 
     Teensy *teensy = shared.teensy;
-    Odometry *odo = shared.odo;
-
-    // Retrieve robot current position
-    double x, y, theta;
-    shared.get_robot_pos(&x, &y, &theta);
-#ifdef VERBOSE
-    printf("Robot position from shared: %.3f, %.3f, %.3f \n", x, y, theta);
-#endif
-
-    // Retrieve adversary current position
-    double x_adv, y_adv;
-    shared.get_adv_pos(&x_adv, &y_adv, NULL, NULL);
-#ifdef VERBOSE
-    printf("Adversary position from shared: %.3f, %.3f\n", x_adv, y_adv);
-#endif
 
     // Set position control gains (see with Ethan?)
     double kp = 0.8;
@@ -159,25 +157,45 @@ int8_t action_position_control(double x_end, double y_end, double theta_end)
     double kw = 4.0;
     teensy->set_position_controller_gains(kp, ka, kb, kw);
 
-    // Define trajectory
-    int ncheckpoints = 2;
-    double xc[2] = {x, x_end};
-    double yc[2] = {y, y_end};
-    double theta_start = theta;
-
-#ifdef VERBOSE
-    printf("Checkpoints relay: %.3f, %.3f\n", xc[0], yc[0]);
-    printf("Checkpoints target: %.3f, %.3f\n", xc[1], yc[1]);
-#endif
+    // Retrieve robot current position
+    double x, y, theta;
+    shared.get_robot_pos(&x, &y, &theta);
+    #ifdef VERBOSE
+    printf("Robot position from shared: %.3f, %.3f, %.3f \n", x, y, theta);
+    #endif
+    double alpha = std::abs(atan2(y_end - y, x_end - x) - theta);
+    uint8_t reverse = (alpha > M_PI_2 && alpha < 3*M_PI_2);
+    uint8_t stopped = 0;
 
     // Orientation with position control
-    teensy->pos_ctrl(xc[1], yc[1], theta_end);
-    usleep(1);
+    teensy->pos_ctrl(x_end, y_end, theta_end);
+    usleep(1000);
 
     // Waiting end to start function turn_solar_panel
     // Check Teensy mode
     while ((teensy->ask_mode()) != ModePositionControlOver)
     {
+
+        // Retrieve adversary current position
+        double d_adv, a_adv;
+        shared.get_adv_pos(NULL, NULL, &d_adv, &a_adv);
+        #ifdef VERBOSE
+        printf("Adversary position from shared: %.3f, %.3f\n", x_adv, y_adv);
+        #endif
+
+        if ((!reverse && d_adv < 0.4 && std::abs(a_adv) < M_PI/3) || 
+            (reverse && d_adv < 0.2 && std::abs(a_adv) > 2*M_PI/3)) {
+            stopped++;
+            if (stopped == 1) {
+                teensy->idle();
+                printf("Adversary too close for position control !!\n");
+            }
+            if (stopped >= 300) return -1;
+        } else if (stopped) {
+            stopped = 0;
+            teensy->pos_ctrl(x_end, y_end, theta_end);
+        }
+
         usleep(10000);
     }
     return 0;

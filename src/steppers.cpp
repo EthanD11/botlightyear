@@ -1,6 +1,5 @@
 #include "steppers.h"
 #include <stdio.h>
-#include "GPIO.h"
 
 // Steppers
 #define FALSE 0
