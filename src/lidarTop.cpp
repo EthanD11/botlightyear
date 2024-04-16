@@ -342,7 +342,6 @@ int foundAdvWithOdo(double *anglesAdv, double *distancesAdv, LidarData *lidarDat
  * Beacon 3 at (0,0)
  */
 void checkBeacon(double *angles, double *distances, double *quality, LidarData *lidarData, bool fullScan) {
-        printf("ooooo %f %f %f\n",lidarData->x_robot,lidarData->y_robot,lidarData->orientation_robot*180.0/M_PI );
 
     double oldXRobot = lidarData->x_robot;
     double oldYRobot = lidarData->y_robot;
@@ -756,7 +755,6 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
         lidarData->orientation_robot = M_PI-lidarData->theta_odo;
         lidarData->x_robot = 2 - (lidarData->x_odo + 0.1 * cos(lidarData->orientation_robot) - deltaXB3);
         lidarData->y_robot = 3 - (lidarData->y_odo + 0.1 * sin(lidarData->orientation_robot) - deltaYB3);
-        printf("ooooo %f %f %f\n",lidarData->x_odo, lidarData->y_odo, lidarData->orientation_robot*180/M_PI);
 
     }
     //TODO TEEEEEEEEEEEEEEEEEEEEEEEST AAAAAAAAAAAAAAH   
@@ -826,6 +824,9 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
 
     }
     else{
+        //si le robot est perdu  2 possibilité :
+        //      -soit il sait pas du tout repéré l'adversaire (d_adv mis a 400m par defaut)
+        //      -soit il se repere grace aux odo et reconnait l'adversiare qd même-> dans ce cas la  on rentre dans le if di-dessous
         if (lidarData->d_adv<100){
             lidarData->readLidar_d_opponent = lidarData->d_adv;
             lidarData->readLidar_a_opponent = lidarData->a_adv;
@@ -840,11 +841,6 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
             }
         }
     }
-    /*printf("beacon : ");
-    for (int j = 0; j < 8; j+=2) {
-        printf("%f %f ", lidarData->beaconAdv[j]*180.0/M_PI, lidarData->beaconAdv[j+1]);
-    }
-    printf("\n");*/
     fullScanPcqLost = false;
 }
 
