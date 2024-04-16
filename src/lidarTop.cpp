@@ -18,7 +18,7 @@ double dref1 = 2 * 0.950;
 double dref2 = sqrt((0.95) * (0.95) + (1.594 * 2) * (2 * 1.594));
 
 ///taille balise
-double largeurMatBalise = 0.065;
+double largeurMatBalise = 0.11;//TODO modif remetre 0.065
 double largeurMatAdvers = 0.170;
 
 bool analyseDetail = false;
@@ -36,6 +36,7 @@ double deltaYB3 = -0.09;
 
 double tablex = 2.1;
 double tabley = 3.1;
+
 
 /**
  * We calculate the position of the robot in beacon reference
@@ -281,10 +282,8 @@ void lidarPerduAdv(double *angles, double *distances, LidarData *lidarData) {
     return;
 }
 
-void foundAdvWithOdo(double *angles, double *distances, LidarData *lidarData){
+int foundAdvWithOdo(double *anglesAdv, double *distancesAdv, LidarData *lidarData){
     //recalcul des transfo pour trouver l'adversaire
-    double delta_x = d*cos(lidarData->robot_orientation+a);
-    double delta_y = d*sin(lidarData->robot_orientation+a);
 
     ///transfo contains 4 elem : deltaX, deltaY, angle of rotation, the number of elements in possible opponents (number of elements in *anglesAdv)
     int size = lidarData->countObj_adv;
@@ -299,8 +298,8 @@ void foundAdvWithOdo(double *angles, double *distances, LidarData *lidarData){
 
     for (int i = 0; i < size; ++i) {
         /// transformation identical to that of beacons and robots
-        xobj = lidarData->robot_x + distancesAdv[i] * std::cos(anglesAdv[i]));
-        yobj = lidarData->robot_y + distancesAdv[i] * std::sin(anglesAdv[i]));
+        xobj = lidarData->x_robot + distancesAdv[i] * std::cos(anglesAdv[i]);
+        yobj = lidarData->y_robot + distancesAdv[i] * std::sin(anglesAdv[i]);
 
         if (xobj > 0.03 && xobj < xmax-0.03) {
             ///check whether the y coordinate is valid (on the table)
@@ -763,7 +762,7 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
         facteurLost = 10;
         //xyToBeacon(lidarData);
         fullScanPcqLost = true;
-        fullScan = true;
+        //fullScan = true;
         /*printf("beacon : ");
         for (int j = 0; j < 8; j += 2) {
             printf("%f %f ", lidarData->beaconAdv[j] * 180.0 / M_PI, lidarData->beaconAdv[j + 1]);
@@ -780,7 +779,7 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
     checkBeacon(angles, distances, quality, lidarData, fullScan);
     if (lidarData->readLidar_lost) {
         facteurLost = 5;
-        fullScan = true;
+        //fullScan = true;
         fullScanPcqLost = true;
         checkBeacon(angles, distances, quality, lidarData, fullScan);
         fullScanPcqLost = false;

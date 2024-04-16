@@ -11,11 +11,12 @@ int main(int argc, char *argv[]) {
 
 
     //test from xy robot
-    lidarData->x_odo = 0.22;
-    lidarData->y_odo = 1.85;
+    lidarData->x_odo = 1.0;
+    lidarData->y_odo = 1.8;
     lidarData->theta_odo = -M_PI-0.1;
 
     lidarGetRobotPosition(lidarData, 2, false, false);
+    DataToFileTop("jsp1.txt");
 
     printf(" robot at x=%f; y=%f; orientation=%f\n", lidarData->readLidar_x_robot, lidarData->readLidar_y_robot,
            lidarData->readLidar_theta_robot*180/M_PI);
