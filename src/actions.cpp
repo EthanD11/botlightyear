@@ -201,9 +201,9 @@ int8_t action_position_control(double x_end, double y_end, double theta_end)
     return 0;
 }
 
-int8_t get_plate_slot_ID(storage_slot_t slot) {
+int8_t get_plate_slot_ID(storage_slot_t slotID) {
     int8_t plateSlotID; 
-    switch (slot)
+    switch (slotID)
     {
     case Slot1:
         plateSlotID = 1;
@@ -231,25 +231,33 @@ int8_t get_plate_slot_ID(storage_slot_t slot) {
     return plateSlotID; 
 }
 
-int8_t get_next_unloaded_plate_slot (storage_content_t content) {
-    storage_slot_t unloaded_slot_order[8] = {Slot1, SlotM1, Slot2, SlotM2, Slot3, SlotM3}; 
+storage_slot_t get_next_unloaded_slot_ID (storage_content_t content) {
+    storage_slot_t unloaded_slot_order[6] = {Slot1, SlotM1, Slot2, SlotM2, Slot3, SlotM3}; 
     storage_content_t storage = shared.storage;
-    for (uint8_t i=0; i<8; i++) {
+    for (uint8_t i=0; i<6; i++) {
         if (storage[unloaded_slot_order[i]]&content) {
-            return get_plate_slot_ID(unloaded_slot_order[i]); 
+            return unloaded_slot_order[i]; 
         }
     }
-    return 0; 
+    return SlotInvalid; 
 }
 
 
-int8_t get_next_free_plate_slot (storage_content_t content) {
-    storage_slot_t loading_slot_order[8] = {SlotM3, Slot3, SlotM2, Slot2, SlotM1, Slot1}; 
+storage_slot_t get_next_free_slot_ID (storage_content_t content) {
+    storage_slot_t loading_slot_order[6] = {SlotM3, Slot3, SlotM2, Slot2, SlotM1, Slot1}; 
     storage_content_t storage = shared.storage;
-    for (uint8_t i=0; i<8; i++) {
+    for (uint8_t i=0; i<6; i++) {
         if (!(storage[loading_slot_order[i]]&content)) {
-            return get_plate_slot_ID(loading_slot_order[i]); 
+            return loading_slot_order[i]; 
         }
     }
-    return 0; 
+    return SlotInvalid; 
+}
+
+void update_plate_content(storage_slot_t slotID, storage_content_t content) {
+    if(content == ContainsNothing) {
+        shared.storage[slotID] = ContainsNothing; 
+    } else {
+        shared.storage[slotID] |= content; 
+    }
 }
