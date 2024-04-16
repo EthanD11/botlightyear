@@ -441,7 +441,7 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
                 dObj[countObj] = (d1 + d2) / 2;
                 countObj++;
             }
-            if (size < largeurMatAdvers && d1 > 0.001) {
+            if (size < largeurMatAdvers && d1 > 0) {
                 aObj_adv[countObj_adv] = (a1 + a2) / 2;
                 dObj_adv[countObj_adv] = (d1 + d2) / 2;
                 countObj_adv++;
@@ -710,8 +710,6 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
         }
     }
 
-    
-
     //We haven't found our position, by default the coordinates remain in 0
     //we check the adv with localisation of precedent 
     lidarData->transfo_a = lidarData->old_transfo_a;
@@ -732,9 +730,6 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
     lidarData->readLidar_lost = true;
     return;
 }
-
-
-
 
 void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool fromOdo) {
     facteurLost = 1;
@@ -765,7 +760,7 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
     if (fromOdo) {
         facteurLost = 10;
         //xyToBeacon(lidarData);
-        fullScanPcqLost = true;
+        fullScanPcqLost = false;
         //fullScan = true;
         /*printf("beacon : ");
         for (int j = 0; j < 8; j += 2) {
@@ -824,9 +819,9 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
 
     }
     else{
-        //si le robot est perdu  2 possibilité :
-        //      -soit il sait pas du tout repéré l'adversaire (d_adv mis a 400m par defaut)
-        //      -soit il se repere grace aux odo et reconnait l'adversiare qd même-> dans ce cas la  on rentre dans le if di-dessous
+        //si le robot est perdu : 2 possibilités :
+        //      -soit il ne sait pas du tout repérer l'adversaire (d_adv mis a 400m par défaut)
+        //      -soit il se repère grace aux odo et reconnait l'adversaire qd même -> dans ce cas-là on rentre dans la condition ci-dessous
         if (lidarData->d_adv<100){
             lidarData->readLidar_d_opponent = lidarData->d_adv;
             lidarData->readLidar_a_opponent = lidarData->a_adv;
