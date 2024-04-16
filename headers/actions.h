@@ -43,6 +43,12 @@ int8_t path_following_to_action(graph_path_t *path);
 /* UTILS: POSITION_CONTROL */
 int8_t action_position_control(double x_end, double y_end, double theta_end); 
 
+/* UTILS: GET PLATE SLOT*/
+int8_t get_plate_slot_ID(storage_slot_t slot); 
+
+int8_t get_next_unloaded_plate_slot (storage_content_t content);
+
+int8_t get_next_free_plate_slot (storage_content_t content); 
 /* UTILS: CLOSER_IN_PATH
 uint8_t closer_in_path(graph_path_t *path, double xr, double yr); 
 

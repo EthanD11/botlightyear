@@ -200,3 +200,56 @@ int8_t action_position_control(double x_end, double y_end, double theta_end)
     }
     return 0;
 }
+
+int8_t get_plate_slot_ID(storage_slot_t slot) {
+    int8_t plateSlotID; 
+    switch (slot)
+    {
+    case Slot1:
+        plateSlotID = 1;
+        break;
+    case Slot2:
+        plateSlotID = 2;
+        break;
+    case Slot3:
+        plateSlotID = 3;
+        break;
+    case SlotM1:
+        plateSlotID = -1;
+        break;
+    case SlotM2:
+        plateSlotID = -2;
+        break;
+    case SlotM3:
+        plateSlotID = -3;
+        break;
+    default: 
+        printf("Invalid plate slot ! {%d}\n", slot);
+        return 0;
+        break;
+    }
+    return plateSlotID; 
+}
+
+int8_t get_next_unloaded_plate_slot (storage_content_t content) {
+    storage_slot_t unloaded_slot_order[8] = {Slot1, SlotM1, Slot2, SlotM2, Slot3, SlotM3}; 
+    storage_content_t storage = shared.storage;
+    for (uint8_t i=0; i<8; i++) {
+        if (storage[unloaded_slot_order[i]]&content) {
+            return get_plate_slot_ID(unloaded_slot_order[i]); 
+        }
+    }
+    return 0; 
+}
+
+
+int8_t get_next_free_plate_slot (storage_content_t content) {
+    storage_slot_t loading_slot_order[8] = {SlotM3, Slot3, SlotM2, Slot2, SlotM1, Slot1}; 
+    storage_content_t storage = shared.storage;
+    for (uint8_t i=0; i<8; i++) {
+        if (!(storage[loading_slot_order[i]]&content)) {
+            return get_plate_slot_ID(loading_slot_order[i]); 
+        }
+    }
+    return 0; 
+}
