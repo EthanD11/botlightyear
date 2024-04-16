@@ -20,6 +20,11 @@ typedef struct PlantZone {
     int numberPlant;
     double *aPlant;
     double *dPlant;
+    double *xPlant;
+    double *yPlant;
+    double xClosestPlant;
+    double yClosestPlant;
+
 } PlantZone;
 
 
