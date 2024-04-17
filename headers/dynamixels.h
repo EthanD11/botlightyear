@@ -12,11 +12,6 @@ typedef enum {
     CW,
 } direction_t;
 
-typedef enum {
-    Blue, 
-    Yellow,
-} team_t; 
-
 void dxl_init_port(); 
 void dxl_close_port(); 
 

@@ -1,5 +1,6 @@
 #include "Dynamixels_sdk/dynamixel_sdk.h"
 #include "dynamixels.h"
+#include "colors.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -182,7 +183,7 @@ void dxl_position(double goal_pos) {
     }
 }
 
-void dxl_turn(team_t team, double angle) {
+void dxl_turn(team_color_t team, double angle) {
     uint16_t dxl_goal_position = 512;
     uint16_t dxl_present_position = dxl_present_position = read2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_AX_PRESENT_POSITION);
 
@@ -197,7 +198,7 @@ void dxl_turn(team_t team, double angle) {
     write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_MOVING_SPEED, 200);
 
     switch (team) {
-        case Blue: 
+        case TeamBlue: 
             if (angle == 0) {
                 dxl_goal_position = 750; 
             }
@@ -224,7 +225,7 @@ void dxl_turn(team_t team, double angle) {
             }
          break;
 
-        case Yellow:
+        case TeamYellow:
             if (angle == 0) {
                 dxl_goal_position = 170; 
             }
@@ -288,7 +289,7 @@ void dxl_init_sp() {
     }
 }
 
-void solar_panel(team_t team, double angle) {
+void solar_panel(team__color_t team, double angle) {
     dxl_deploy(Down); 
     dxl_turn(team, angle);
     dxl_deploy(Up); 
