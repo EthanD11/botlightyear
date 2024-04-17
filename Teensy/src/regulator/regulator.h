@@ -10,14 +10,15 @@
 
 #define ADZ_ENABLE
 #ifdef ADZ_ENABLE
-const int adz = 50;
+#define ADZ_L 50
+#define ADZ_R 35
 #endif
 
 typedef struct Regulator {
     int duty_cycle_refl, duty_cycle_refr;
     double isl, isr;
-    double kp, ki;
-    double el_filtered, er_filtered;
+    double kp_r, ki_r, kp_l, ki_l;
+    // double el_filtered, er_filtered;
     double wc;
     double imax;
 } Regulator;
