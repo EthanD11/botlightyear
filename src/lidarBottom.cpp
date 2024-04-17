@@ -130,8 +130,8 @@ void lidarGetPlantPosition(Point *robot, double *angles, double *distances, doub
                             //what we detect is a new object
                             plantZone[zp]->aPlant[plantZone[zp]->numberPlant] = (a1 + a2) / 2.0;
                             plantZone[zp]->dPlant[plantZone[zp]->numberPlant] = (d1 + d2) / 2.0;
-                            plantZone[zp]->xPlant[plantZone[zp]->numberPlant] = robot_x + plantZone[zp]->dPlant[plantZone[zp]->numberPlant]*std::cos(plantZone[zp]->aPlant[plantZone[zp]->numberPlant]);
-                            plantZone[zp]->xPlant[plantZone[zp]->numberPlant] = robot_y + plantZone[zp]->dPlant[plantZone[zp]->numberPlant]*std::sin(plantZone[zp]->aPlant[plantZone[zp]->numberPlant]);
+                            plantZone[zp]->xPlant[plantZone[zp]->numberPlant] = robot->x + plantZone[zp]->dPlant[plantZone[zp]->numberPlant]*std::cos(plantZone[zp]->aPlant[plantZone[zp]->numberPlant]);
+                            plantZone[zp]->xPlant[plantZone[zp]->numberPlant] = robot->y + plantZone[zp]->dPlant[plantZone[zp]->numberPlant]*std::sin(plantZone[zp]->aPlant[plantZone[zp]->numberPlant]);
                             plantZone[zp]->numberPlant++;
 
                             /// new object : initial values are stored
@@ -152,8 +152,8 @@ void lidarGetPlantPosition(Point *robot, double *angles, double *distances, doub
                         objet = false;
                         plantZone[zp]->aPlant[plantZone[zp]->numberPlant] = (a1 + a2) / 2.0;
                         plantZone[zp]->dPlant[plantZone[zp]->numberPlant] = (d1 + d2) / 2.0;
-                        plantZone[zp]->xPlant[plantZone[zp]->numberPlant] = robot_x + plantZone[zp]->dPlant[plantZone[zp]->numberPlant]*std::cos(plantZone[zp]->aPlant[plantZone[zp]->numberPlant]);
-                        plantZone[zp]->xPlant[plantZone[zp]->numberPlant] = robot_y + plantZone[zp]->dPlant[plantZone[zp]->numberPlant]*std::sin(plantZone[zp]->aPlant[plantZone[zp]->numberPlant]);
+                        plantZone[zp]->xPlant[plantZone[zp]->numberPlant] = robot->x + plantZone[zp]->dPlant[plantZone[zp]->numberPlant]*std::cos(plantZone[zp]->aPlant[plantZone[zp]->numberPlant]);
+                        plantZone[zp]->xPlant[plantZone[zp]->numberPlant] = robot->y + plantZone[zp]->dPlant[plantZone[zp]->numberPlant]*std::sin(plantZone[zp]->aPlant[plantZone[zp]->numberPlant]);
                         plantZone[zp]->numberPlant++;
                         countGap = 1;
                     }
@@ -162,8 +162,8 @@ void lidarGetPlantPosition(Point *robot, double *angles, double *distances, doub
             if (objet) {
                 plantZone[zp]->aPlant[plantZone[zp]->numberPlant] = (a1 + a2) / 2.0;
                 plantZone[zp]->dPlant[plantZone[zp]->numberPlant] = (d1 + d2) / 2.0;
-                plantZone[zp]->xPlant[plantZone[zp]->numberPlant] = robot_x + plantZone[zp]->dPlant[plantZone[zp]->numberPlant]*std::cos(plantZone[zp]->aPlant[plantZone[zp]->numberPlant]);
-                plantZone[zp]->xPlant[plantZone[zp]->numberPlant] = robot_y + plantZone[zp]->dPlant[plantZone[zp]->numberPlant]*std::sin(plantZone[zp]->aPlant[plantZone[zp]->numberPlant]);
+                plantZone[zp]->xPlant[plantZone[zp]->numberPlant] = robot->x + plantZone[zp]->dPlant[plantZone[zp]->numberPlant]*std::cos(plantZone[zp]->aPlant[plantZone[zp]->numberPlant]);
+                plantZone[zp]->xPlant[plantZone[zp]->numberPlant] = robot->y + plantZone[zp]->dPlant[plantZone[zp]->numberPlant]*std::sin(plantZone[zp]->aPlant[plantZone[zp]->numberPlant]);
 
                 plantZone[zp]->numberPlant++;
             }

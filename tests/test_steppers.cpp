@@ -109,6 +109,76 @@ void TakePlantCHAIN(int slotNumber) {
     teensy->set_position_controller_gains(0.8,2.5,-0.8,4.0);
 }
 
+
+void dropPlantCHAIN(int slotNumber) {
+    // GripperHolder* holder = shared.grpHolder; 
+    // GripperDeployer* deployer = shared.grpDeployer; 
+    // Steppers* steppers = shared.steppers; 
+
+    steppers->plate_move(0, CALL_BLOCKING); 
+    steppers->slider_move(SliderHigh, CALL_BLOCKING);
+    deployer->half(); 
+    steppers->plate_move(slotNumber, CALL_BLOCKING); 
+    holder->open_full();
+    deployer->deploy();
+    usleep(250000);
+
+    
+
+    steppers->slider_move(SliderStorage, CALL_BLOCKING);
+    holder->hold_plant();
+    usleep(250000);
+    steppers->slider_move(SliderHigh, CALL_BLOCKING);
+    deployer->half(); 
+
+    steppers->plate_move(0, CALL_BLOCKING); 
+    steppers->slider_move(SliderLow, CALL_BLOCKING);
+    deployer->deploy(); 
+    usleep(250000);
+    holder->open_full(); 
+    // Move teensy maybe ?
+    usleep(250000);
+    steppers->slider_move(SliderHigh, CALL_BLOCKING); 
+
+    holder->idle();
+    deployer->idle();
+}
+
+
+void dropPlanterCHAIN(int slotNumber) {
+    // GripperHolder* holder = shared.grpHolder; 
+    // GripperDeployer* deployer = shared.grpDeployer; 
+    // Steppers* steppers = shared.steppers; 
+
+    steppers->plate_move(0, CALL_BLOCKING); 
+    steppers->slider_move(SliderHigh, CALL_BLOCKING);
+    deployer->half(); 
+    steppers->plate_move(slotNumber, CALL_BLOCKING); 
+    holder->open_full();
+    deployer->deploy();
+    usleep(250000);
+
+    
+
+    steppers->slider_move(SliderStorage, CALL_BLOCKING);
+    holder->hold_plant();
+    usleep(250000);
+    steppers->slider_move(SliderHigh, CALL_BLOCKING);
+    deployer->half(); 
+
+    steppers->plate_move(0, CALL_BLOCKING); 
+    steppers->slider_move(SliderIntermediateLow, CALL_BLOCKING);
+    deployer->deploy(); 
+    usleep(250000);
+    holder->open_full(); 
+    // Move teensy maybe ?
+    usleep(250000);
+    steppers->slider_move(SliderHigh, CALL_BLOCKING); 
+
+    holder->idle();
+    deployer->idle();
+}
+
 void demoPlate(){
     steppers->plate_move(-3);
     sleep(3);
