@@ -5,7 +5,7 @@
 ///facteur si mouvent brusque
 int facteurLost = 1;
 
-///pour dif un full scan d'un scan full en connaisant sa precendete position
+///pour dif un full scan d'un scan full en connaissant sa precedence position
 bool fullScanPcqLost = false;
 
 ///global variable to find out the size of the file
@@ -18,7 +18,7 @@ double dref1 = 2 * 0.950;
 double dref2 = sqrt((0.95) * (0.95) + (1.594 * 2) * (2 * 1.594));
 
 ///taille balise
-double largeurMatBalise = 0.12;//TODO modif remetre 0.065
+double largeurMatBalise = 0.12;//TODO modif remettre 0.065
 double largeurMatAdvers = 0.170;
 
 bool analyseDetail = false;
@@ -34,8 +34,8 @@ double deltaXB3 = 0.05;
 double deltaYB3 = -0.09;
 
 
-double tablex = 2.1;
-double tabley = 3.1;
+double tableX = 2.1;
+double tableY = 3.1;
 
 
 /**
@@ -151,8 +151,8 @@ int Adversary(double *anglesAdv, double *distancesAdv, LidarData *lidarData) {
     int size = lidarData->countObj_adv;
 
     ///maximum table dimensions
-    double xmax = tablex;
-    double ymax = tabley;
+    double xmax = tableX;
+    double ymax = tableY;
 
     ///coordinates in xy after one and two transformations (translations then rotation)
     double xtemp;
@@ -283,12 +283,12 @@ void lidarPerduAdv(double *angles, double *distances, LidarData *lidarData) {
 }
 
 int foundAdvWithOdo(double *anglesAdv, double *distancesAdv, LidarData *lidarData){
-    //recalcul des transfo pour trouver l'adversaire
+    //recalcule des transformations pour trouver l'adversaire
     ///transfo contains 4 elem : deltaX, deltaY, angle of rotation, the number of elements in possible opponents (number of elements in *anglesAdv)
     int size = lidarData->countObj_adv;
     ///maximum table dimensions
-    double xmax = tablex;
-    double ymax = tabley;
+    double xmax = tableX;
+    double ymax = tableY;
 
     ///coordinates in xy after one and two transformations (translations then rotation)
     double xobj;
@@ -329,15 +329,16 @@ int foundAdvWithOdo(double *anglesAdv, double *distancesAdv, LidarData *lidarDat
  * @param lidarData : structure with useful data (previous data) and where we save the new data
  * @param fullScan : if true: performs a full scan with no position prediction,
  *                  if false: performs a more accurate scan, mimicked by an estimate of the position of the beacons and the opponent
+ *
  * if (fullScan) we need data in lidarData->beaconAdv : table of 8 with the angles and distances of the 3 beacons and the opponent (a1, d1, a2, d2, a3, d3, a, d)
- *   ________________1______________
- *  |                              |
- *  |                              |
- *  |                              |
- *  |                              |
- *  |                              |
- *  |______________________________|
- * 3                               2
+ *   __________1_________
+ *  |                   |
+ *  |                   |
+ *  |                   |
+ *  |                   |
+ *  |                   |
+ *  |___________________|
+ * 3                    2
  *
  * Beacon 3 at (0,0)
  */
@@ -672,8 +673,8 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
                             if (lidarData->readLidar_lost) {
                                 precision *= 2;
                             }
-                            if (lidarData->x_robot > 0.0 && lidarData->x_robot < tablex && lidarData->y_robot > 0.0 &&
-                                lidarData->y_robot < tabley && (fullScan || (
+                            if (lidarData->x_robot > 0.0 && lidarData->x_robot < tableX && lidarData->y_robot > 0.0 &&
+                                lidarData->y_robot < tableY && (fullScan || (
                                     std::abs(lidarData->x_robot - oldXRobot) < precision &&
                                     std::abs(lidarData->y_robot - oldYRobot) < precision))) {
 
@@ -821,7 +822,7 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
     else{
         //si le robot est perdu : 2 possibilités :
         //      -soit il ne sait pas du tout repérer l'adversaire (d_adv mis a 400m par défaut)
-        //      -soit il se repère grace aux odo et reconnait l'adversaire qd même -> dans ce cas-là on rentre dans la condition ci-dessous
+        //      -soit il se repère grace aux odo et reconnait l'adversaire qd même → dans ce cas-là on rentre dans la condition ci-dessous
         if (lidarData->d_adv<100){
             lidarData->readLidar_d_opponent = lidarData->d_adv;
             lidarData->readLidar_a_opponent = lidarData->a_adv;
