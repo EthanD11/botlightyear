@@ -493,7 +493,8 @@ int Graph::init_from_file(const char *filename, team_color_t color) {
         if (token == NULL) return -1;
         if (sscanf(token, "%hhd", &node_id) != 1) return -1;
 
-        commonSPs[i] = node_id;
+        if (color == TeamBlue) commonSPs[i] = node_id;
+        else commonSPs[2-i] = node_id;
         #ifdef VERBOSE
         printf("%d", node_id);
         #endif
