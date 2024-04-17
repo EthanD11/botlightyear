@@ -42,15 +42,17 @@ int8_t path_following_to_action(graph_path_t *path)
 
     Graph::print_path(path);
 
+    printf("Entering path following to action\n"); 
+
     Teensy *teensy = shared.teensy;
 
     // Set path following from path planning (decision)
     int ncheckpoints = (int)path->nNodes;
     double *x = path->x;
     double *y = path->y;
-    // for (int i=0; i<ncheckpoints; i++) {
-    //     printf("Node %d : x :%.3f and y: %.3f \n", i, x[i], y[i]);
-    // }
+    for (int i=0; i<ncheckpoints; i++) {
+         printf("Node %d : x :%.3f and y: %.3f \n", i, x[i], y[i]);
+    }
     double theta_start = path->thetaStart;
     double theta_end = path->thetaEnd;
 
@@ -60,7 +62,7 @@ int8_t path_following_to_action(graph_path_t *path)
     double kw = 4.0;
     teensy->set_position_controller_gains(kp, ka, kb, kw);
 
-    /*double kt = 2.0;
+    double kt = 2.0;
     double kn = 0.3; // 0 < kn <= 1
     double kz = 25.0;
     double delta = 20e-3; // delta is in meters
@@ -68,7 +70,7 @@ int8_t path_following_to_action(graph_path_t *path)
     double epsilon = M_PI / 8; // epsilon is in radians
     double wn = 0.2;           // Command filter discrete cutoff frequency
     double kv_en = 0.;
-    teensy->set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);*/
+    teensy->set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
 
     double xCurrent, yCurrent;
     shared.get_robot_pos(&xCurrent, &yCurrent, NULL);
@@ -92,9 +94,9 @@ int8_t path_following_to_action(graph_path_t *path)
     #ifdef VERBOSE
     printf("PF\n");
     #endif
-    // for (int i=0; i<ncheckpoints; i++) {
-    //     printf("Node %d : x :%.3f and y: %.3f \n", i, x[i], y[i]);
-    // }
+     for (int i=0; i<ncheckpoints; i++) {
+         printf("Node %d : x :%.3f and y: %.3f \n", i, x[i], y[i]);
+    }
 
     teensy->path_following(x, y, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
 
@@ -180,7 +182,7 @@ int8_t action_position_control(double x_end, double y_end, double theta_end)
         double d_adv, a_adv;
         shared.get_adv_pos(NULL, NULL, &d_adv, &a_adv);
         #ifdef VERBOSE
-        printf("Adversary position from shared: %.3f, %.3f\n", x_adv, y_adv);
+        printf("Adversary position from shared: %.3f, %.3f\n", d_adv, a_adv);
         #endif
 
         if ((!reverse && d_adv < 0.4 && std::abs(a_adv) < M_PI/3) || 

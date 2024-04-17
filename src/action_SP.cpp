@@ -89,7 +89,9 @@ static void *kinematic_chain(void* argv) {
     return NULL;
 }
 
-void ActionSP::do_action() {
+/*void ActionSP::do_action() {
+
+    printf("Entering ActionSP do_action\n"); 
 
     team_color_t team = shared.color; 
 
@@ -97,7 +99,7 @@ void ActionSP::do_action() {
     stateKC = Path_Following;
     pthread_create(&KCID, NULL, kinematic_chain, &sp_counter);
 
-    if (path_following_to_action(path)) return leave(); 
+    //if (path_following_to_action(path)) return leave(); 
 
     while (sp_counter > 0) {
         state = Solar_Panel; 
@@ -128,6 +130,43 @@ void ActionSP::do_action() {
     
     state = End;
     pthread_join(KCID, NULL);
+}*/
+
+void ActionSP::do_action() {
+
+    printf("Entering ActionSP do_action\n"); 
+
+    team_color_t team = shared.color; 
+
+    printf("Team color\n");
+
+    while (sp_counter > 0) {
+        printf("Entering ActionSP sp_counter\n"); 
+        dxl_deploy(Down);
+        dxl_turn(team, 0); 
+
+        if (sp_counter > 1) dxl_deploy(Mid);
+        else dxl_deploy(Up);
+
+        //shared.set_robot_pos(0,0,0); 
+        double x, y, theta; 
+        double yend; 
+        shared.get_robot_pos(&x, &y, &theta); 
+        printf("Robot position from shared: %d, %d, %d\n", x, y, theta); 
+
+        if (team == TeamBlue) yend = y+22.5e-2; 
+        else if (team == TeamYellow) yend = y-22.5e-2; 
+        printf("yend : %d\n", yend); 
+
+        if (sp_counter > 1) {
+            if (action_position_control(x, yend, theta)) return leave();
+        }
+
+        sp_counter --;
+
+        
+    }
+    
 }
 
 

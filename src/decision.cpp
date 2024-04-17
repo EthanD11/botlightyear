@@ -76,10 +76,11 @@ void decide_possible_actions() {
     #ifdef TESTS
     uint8_t target = 16;
     path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
-        if (path != NULL) {
-            path->thetaStart = theta_pos; 
-            path->thetaEnd = -M_PI/2;  
-        }
+    if (path != NULL) {
+        path->thetaStart = theta_pos; 
+        path->thetaEnd = -M_PI/2;  
+    }
+    
     possible_actions[0] = new ActionSP(path, 3, true); 
     n_possible_actions = 1; 
     return;

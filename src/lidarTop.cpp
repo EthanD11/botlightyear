@@ -490,7 +490,7 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
                         size = std::sqrt(d2 * d2 + d1 * d1 - 2 * d2 * d1 * std::cos(a2 - a1));
                         //TODO DELETE DELETE DELETE DELETE
                         //if (size < 0.065 && (fullScan || (((std::abs(d1-olddistB1)<0.1)&&(std::abs(a1-oldAngB1)<2.0))|| ((std::abs(d1-olddistB2)<0.1)&&(std::abs(a1-oldAngB2)<2.0))|| ((std::abs(d1-olddistB3)<0.1)&&(std::abs(a1-oldAngB3)<2.0))))){// && size > 0.015) {
-                        if (size < 0.065 && (fullScan || (((std::abs(d1 - olddistB1) < 0.2)) ||
+                        if (size < 0.17 && (fullScan || (((std::abs(d1 - olddistB1) < 0.2)) ||
                                                           ((std::abs(d1 - olddistB2) < 0.2)) ||
                                                           ((std::abs(d1 - olddistB3) < 0.2))))) {// && size > 0.015) {
                             //beacon width = 5cm (estimate smaller than 6.5cm)
@@ -523,7 +523,7 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
                 //      -> end of object (objet==true : same as above)
                 //      -> no previous object : nothing to do
                 size = std::sqrt(d2 * d2 + d1 * d1 - 2 * d2 * d1 * std::cos(a2 - a1));
-                if (size < 0.065 && d1 > 0) {
+                if (size < 0.17 && d1 > 0) {//0.065
                     aObj[countObj] = (a1 + a2) / 2;
                     dObj[countObj] = (d1 + d2) / 2;
                     countObj++;
@@ -917,6 +917,7 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
     }
     printf("\n");*/
     fullScanPcqLost = false;
+    lidarData->readLidar_lost=true;//TODO ooooooooooooooooooooooooooooooooooooooooooooooooooo
 }
 
 void init_lidar(LidarData *lidarData) {
