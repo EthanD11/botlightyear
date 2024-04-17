@@ -17,8 +17,9 @@ double dref1 = 2 * 0.950;
 /// distance between 2 beacons not on the same side
 double dref2 = sqrt((0.95) * (0.95) + (1.594 * 2) * (2 * 1.594));
 
+
 ///taille balise
-double largeurMatBalise = 0.12;//TODO modif remettre 0.065
+double largeurMatBalise = 0.09;//TODO modif remettre 0.065
 double largeurMatAdvers = 0.170;
 
 bool analyseDetail = false;
@@ -26,7 +27,7 @@ bool analyseDetail_objet = false;
 bool analyseRotationBalise = false;
 
 ///précision pour le déplacement effectué-> permet d'etre augmenté si on est perdu
-double precisionPredef = 0.2;
+double precisionPredef = 0.05;
 
 
 ///décalage balise et coin de la table (x_reel = x_B3 + delta)
@@ -34,7 +35,7 @@ double deltaXB3 = 0.05;
 double deltaYB3 = -0.09;
 
 
-double tableX = 2.1;
+double tableX = 2.0;
 double tableY = 3.1;
 
 
@@ -673,7 +674,8 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
                             if (lidarData->readLidar_lost) {
                                 precision *= 2;
                             }
-                            if (lidarData->x_robot > 0.0 && lidarData->x_robot < tableX && lidarData->y_robot > 0.0 &&
+                            //TODO CHECK tableX tableY
+                            if (lidarData->x_robot > 0.0 && lidarData->x_robot < tableX && lidarData->y_robot > 0.02 &&
                                 lidarData->y_robot < tableY && (fullScan || (
                                     std::abs(lidarData->x_robot - oldXRobot) < precision &&
                                     std::abs(lidarData->y_robot - oldYRobot) < precision))) {
@@ -700,10 +702,10 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
                                 }
                                 lidarData->readLidar_lost = false;
                                 return;
-                            } else {
-                                lidarData->x_robot = oldXRobot;
-                                lidarData->y_robot = oldYRobot;
                             }
+                            lidarData->x_robot = oldXRobot;
+                            lidarData->y_robot = oldYRobot;
+                            
                         }
                     }
                 }
@@ -814,6 +816,8 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
             lidarData->readLidar_d_opponent = lidarData->d_adv;
             lidarData->readLidar_a_opponent = lidarData->a_adv;
         }
+
+
         lidarData->old_transfo_x = lidarData->transfo_x;
         lidarData->old_transfo_y = lidarData->transfo_y;
         lidarData->old_transfo_a = lidarData->transfo_a;
@@ -824,6 +828,7 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
         //      -soit il ne sait pas du tout repérer l'adversaire (d_adv mis a 400m par défaut)
         //      -soit il se repère grace aux odo et reconnait l'adversaire qd même → dans ce cas-là on rentre dans la condition ci-dessous
         if (lidarData->d_adv<100){
+
             lidarData->readLidar_d_opponent = lidarData->d_adv;
             lidarData->readLidar_a_opponent = lidarData->a_adv;
             //if (shared.color == TeamBlue) {
@@ -837,8 +842,10 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
             }
         }
     }
+    if(lidarData->readLidar_x_robot<0.0||lidarData->readLidar_x_robot>2.08||lidarData->readLidar_y_robot<0.0||lidarData->readLidar_y_robot>3.1){
+        lidarData->readLidar_lost=true;
+    }
     fullScanPcqLost = false;
-    lidarData->readLidar_lost=true;//TODO ooooooooooooooooooooooooooooooooooooooooooooooooooo
 }
 
 void init_lidar(LidarData *lidarData) {
