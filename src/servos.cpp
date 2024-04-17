@@ -45,7 +45,7 @@ void GripperDeployer::idle() {
 }
 
 void GripperDeployer::deploy() {
-    this->send_dutyCycle(450); 
+    this->send_dutyCycle(440); 
 }
 
 void GripperDeployer::half() {
@@ -90,5 +90,5 @@ void GripperHolder::hold_pot() {
     this->send_dutyCycle(725);
 } 
 void GripperHolder::hold_plant() {
-    this->send_dutyCycle(680);
+    this->send_dutyCycle(650);
 }

@@ -140,7 +140,7 @@ void Steppers::slider_move(slider_pos_t pos, uint8_t blocking){
     switch(pos)
     {
     case SliderHigh :
-        steps = 0;
+        steps = 100;
         break;
     case SliderLow :
         steps = 5300;

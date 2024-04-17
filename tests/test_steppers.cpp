@@ -10,6 +10,7 @@
 //#define SETUP_CUSTOM_SPEED_OLD
 //#define SETUP_CUSTOM_SPEED_NEW
 //#define DEMO_S6
+#define PLANTER
 #define TESTS
 
 SPIBus spi_bus = SPIBus();
@@ -63,12 +64,13 @@ void TakePlantCHAIN(int slotNumber) {
     // GripperDeployer* deployer = shared.grpDeployer; 
     // Steppers* steppers = shared.steppers; 
 
-    teensy->set_position_controller_gains(3.0,2.5,-0.8,4.0);
+    teensy->set_position_controller_gains(4.0,5.0,-0.8,4.0);
 
     servoFlaps->deploy();
     steppers->flaps_move(FlapsPlant, CALL_BLOCKING); 
-    steppers->flaps_move(FlapsOpen, CALL_BLOCKING);
-    teensy->pos_ctrl(0.96,1.0,0); // Reverse 4 cm
+    steppers->flaps_move(FlapsOpen);
+    usleep(250000);
+    teensy->pos_ctrl(0.94,1.0,0); // Reverse 4 cm
     usleep(100000);
     servoFlaps->raise();
 
@@ -81,10 +83,10 @@ void TakePlantCHAIN(int slotNumber) {
     holder->open_full();
 
     steppers->slider_move(SliderLow, CALL_BLOCKING);
-    teensy->pos_ctrl(1.02,1.0,0);
-    usleep(500000);
+    teensy->pos_ctrl(1.0,1.0,0);
+    usleep(600000);
     holder->hold_plant();
-    usleep(200000);
+    usleep(250000);
 
     deployer->half(); 
     steppers->slider_move(SliderHigh, CALL_BLOCKING);
@@ -92,7 +94,7 @@ void TakePlantCHAIN(int slotNumber) {
 
     
     steppers->slider_move(SliderStorage);
-    usleep(500000);
+    usleep(450000);
     deployer->deploy(); 
     usleep(300000);
     holder->open_full();
@@ -150,7 +152,7 @@ int main(int argc, char const *argv[])
     // steppers->slider_move(SliderDepositPot, CALL_BLOCKING);
     // steppers->slider_move(SliderHigh, CALL_BLOCKING); 
     printf("Go ! \n");
-    teensy->set_position(1.0,1.0,0);
+    //teensy->set_position(1.0,1.0,0);
     steppers->setup_all_speeds(); 
     steppers->reset_all(); 
 
@@ -167,6 +169,25 @@ int main(int argc, char const *argv[])
 
     
     TakePlantCHAIN(2); 
+
+
+    #ifdef PLANTER
+    steppers->plate_move(2,CALL_BLOCKING);
+    deployer->deploy();
+
+    // Grab plant
+    holder->open_full();
+    steppers->slider_move(SliderStorage, CALL_BLOCKING);
+    if (0) holder->hold_pot();
+    else holder->hold_plant();
+
+    // Ready to drop
+    steppers->slider_move(SliderHigh, CALL_BLOCKING);
+    deployer->half();
+    steppers->plate_move(0, CALL_BLOCKING);
+    deployer->deploy();
+
+    
 
     #endif
 
