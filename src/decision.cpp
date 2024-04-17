@@ -1,11 +1,38 @@
 #include "decision.h"
+#include "action_displacement.h"
+#include "action_planter.h"
+#include "action_plants.h"
+#include "action_pots.h"
+#include "action_return.h"
+#include "action_SP.h"
+#include "action_zone.h"
 
 #include <stdlib.h> // For random numbers
 #include <stdbool.h>
 #include <stdio.h>
 #include <cmath>
 
-//#define TESTS
+#define TESTS
+
+class ActionGameFinished : public Action {
+    public :
+        ActionGameFinished() : Action(GameFinished, false, NULL) {}
+        void do_action () {} 
+};
+
+class ActionWait: public Action {
+    public :
+        ActionWait() : Action(Wait, false, NULL) {}
+        void do_action () {
+            usleep(5000);
+        } 
+};
+
+class ActionTest : public Action {
+    public :
+        ActionTest() : Action(TestAction, false, NULL) {}
+        void do_action () {} 
+};
 
 Action* possible_actions[10]; 
 uint8_t n_possible_actions;
@@ -47,7 +74,14 @@ void decide_possible_actions() {
     uint8_t currentNode = shared.graph->identify_pos(x_pos, y_pos, &dist_from_currentNode);
 
     #ifdef TESTS
-    possible_actions[0] = new ActionTest(); 
+    uint8_t target = 16;
+    path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+    if (path != NULL) {
+        path->thetaStart = theta_pos; 
+        path->thetaEnd = -M_PI/2;  
+    }
+    
+    possible_actions[0] = new ActionSP(path, 3, true); 
     n_possible_actions = 1; 
     return;
     #endif
@@ -74,7 +108,7 @@ void decide_possible_actions() {
 
     if (in_array(shared.graph->plants, 6, currentNode)) {
         // If it's in a plant node, go back to a base 
-        path = shared.graph->compute_path(x_pos, y_pos, shared.graph->friendlyBases, 3,0);
+        path = shared.graph->compute_path(x_pos, y_pos, shared.graph->friendlyBases, 3);
         if (path != NULL) {
             path->thetaStart = theta_pos; 
             path->thetaEnd = getThetaEnd(shared.graph->friendlyBases, shared.graph->friendlyBasesTheta, 3, path->target); 
@@ -85,7 +119,7 @@ void decide_possible_actions() {
     } else {
         // Else, go to a random plant node 
         uint8_t target = shared.graph->plants[rand()%6]; // get random plant node
-        path = shared.graph->compute_path(x_pos, y_pos, &target, 1, 0);       
+        path = shared.graph->compute_path(x_pos, y_pos, &target, 1);       
         if (path != NULL) {
             path->thetaStart = theta_pos; 
             path->thetaEnd = 0; 

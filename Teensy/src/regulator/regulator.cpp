@@ -3,22 +3,22 @@
 Regulator *init_regulator() {
     Regulator *reg = (Regulator *) malloc(sizeof(Regulator));
     
-    // reg->kp = 7.795856e-01; // Former t1_kp
-    // reg->ki = 8.398411e-01 * REG_DELAY * 1e-3; // Former t1_ki
-    
-    reg->kp = 13.9; // Former t1_kp
-    reg->ki = 33.1; // Former t1_ki
+    reg->kp_l = 10.204081632653060; // Former t1_kp
+    reg->ki_l = 24.295432458697764; // Former t1_ki
+
+    reg->kp_r = 6.666666666666665; // Former t1_kp
+    reg->ki_r = 23.809523809523803; // Former t1_ki
 
     reg->imax = 1; // Anti windup [V/V]
 
     reg->isl = 0.0; // left integral state
     reg->isr = 0.0; // right integral state
-    reg->el_filtered = 0.0; // left filtered error
-    reg->er_filtered = 0.0; // left filtered
+    // reg->el_filtered = 0.0; // left filtered error
+    // reg->er_filtered = 0.0; // left filtered
     reg->duty_cycle_refl = 0.0; // left duty cycle command
     reg->duty_cycle_refr = 0.0; // right duty cycle command
 
-    reg->wc = 1e6*2*M_PI; // [Hz]
+    // reg->wc = 1e6*2*M_PI; // [Hz]
 
     return reg;
 }
@@ -30,8 +30,8 @@ void free_regulator(Regulator *regulator) {
 void reset_regulator(Regulator *speed_regulator) {
     speed_regulator->isl = 0.0;
     speed_regulator->isr = 0.0;
-    speed_regulator->el_filtered = 0.0;
-    speed_regulator->er_filtered = 0.0;
+    // speed_regulator->el_filtered = 0.0;
+    // speed_regulator->er_filtered = 0.0;
 }
 
 void control_speed(
@@ -45,7 +45,7 @@ void control_speed(
     double vl, vr;          // Voltage output commands, left and right
     double speed_r, speed_l;
     double dt;
-    double alpha;
+    // double alpha;
 
     speed_l = rob_pos->speed_left;
     speed_r = rob_pos->speed_right;
@@ -57,13 +57,13 @@ void control_speed(
     esl = speed_refl - rob_pos->speed_left;
     esr = speed_refr - rob_pos->speed_right;
 
-    alpha = exp(-reg->wc*dt);
-    reg->el_filtered = alpha * reg->el_filtered + (1 - alpha) * esl;
-    reg->er_filtered = alpha * reg->er_filtered + (1 - alpha) * esr;
+    // alpha = exp(-reg->wc*dt);
+    // reg->el_filtered = alpha * reg->el_filtered + (1 - alpha) * esl;
+    // reg->er_filtered = alpha * reg->er_filtered + (1 - alpha) * esr;
 
     // Compute integral
-    reg->isl = SAT(reg->isl + reg->ki*reg->el_filtered*dt, reg->imax);
-    reg->isr = SAT(reg->isr + reg->ki*reg->er_filtered*dt, reg->imax);
+    reg->isl = SAT(reg->isl + reg->ki_l*esl*dt, reg->imax);
+    reg->isr = SAT(reg->isr + reg->ki_r*esr*dt, reg->imax);
 
     #ifdef VERBOSE
     printf("Left Integral  : %.4f\n", isl);
@@ -71,14 +71,14 @@ void control_speed(
     #endif
 
     // Compute voltages
-    vl = reg->kp * reg->el_filtered + reg->isl;
-    vr = reg->kp * reg->er_filtered + reg->isr;
+    vl = reg->kp_l * esl + reg->isl;
+    vr = reg->kp_r * esr + reg->isr;
 
     // update duty cycle, assuming duty cycle changes average voltage linearly
     #ifdef ADZ_ENABLE
     // add an anti-deadzone term to compensate the deadzone around 0
-    int adz_l = adz * (fabs(speed_refl) > 0.01) * (fabs(speed_l) < 0.01) * (1-2*(vl < 0));
-    int adz_r = adz * (fabs(speed_refr) > 0.01) * (fabs(speed_r) < 0.01) * (1-2*(vr < 0));
+    int adz_l = ADZ_L * (fabs(speed_refl) > 0.01) * (fabs(speed_l) < 0.01) * (1-2*(vl < 0));
+    int adz_r = ADZ_R * (fabs(speed_refr) > 0.01) * (fabs(speed_r) < 0.01) * (1-2*(vr < 0));
     reg->duty_cycle_refl = SAT(((int)(vl * MOTOR_DUTY_RANGE)) + adz_l, MOTOR_DUTY_RANGE);
     reg->duty_cycle_refr = SAT(((int)(vr * MOTOR_DUTY_RANGE)) + adz_r, MOTOR_DUTY_RANGE);
     #else

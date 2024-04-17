@@ -15,7 +15,7 @@ GripperHolder servoGripperHolder = GripperHolder(&spi_bus);
 int main(int argc, char const *argv[])
 {
 
-    servoFlaps.deploy(); 
+    /*servoFlaps.deploy(); 
     sleep(3);
     servoFlaps.raise();
     sleep(1);
@@ -26,19 +26,23 @@ int main(int argc, char const *argv[])
     sleep(3);
     servoGripperHolder.open(); 
     sleep(3);
+    servoGripperHolder.open_full(); 
+    sleep(3);
     servoGripperHolder.hold_plant(); 
     sleep(3);
     servoGripperHolder.hold_pot(); 
     sleep(1);
     servoGripperHolder.idle();
 
-    // servoGripperDeployer.deploy();
-    // sleep(3);
-    // servoGripperDeployer.half(); 
-    // sleep(3);
-    // servoGripperDeployer.raise();
-    // sleep(1);
-    servoGripperDeployer.idle(); 
+    servoGripperDeployer.deploy();
+    sleep(3);
+    servoGripperDeployer.half(); 
+    sleep(3);
+    servoGripperDeployer.raise();
+    sleep(1);
+    servoGripperDeployer.idle(); */
+
+    servoGripperHolder.hold_plant();
 
     return 0;
 }

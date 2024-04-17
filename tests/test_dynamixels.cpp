@@ -2,8 +2,8 @@
 #include <unistd.h>
 #include <cstdio>
 
-#define FINAL_SP
-//#define SOLAR_PANELS
+//#define FINAL_SP
+#define SOLAR_PANELS
 //#define EXTENDED_SOLAR_PANELS
 
 

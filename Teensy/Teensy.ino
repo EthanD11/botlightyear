@@ -54,6 +54,7 @@ void setup() {
   speed_regulator = init_regulator();
   // ----- POSITION CONTROLLER -----
   position_controller = init_position_controller();
+  set_ref(position_controller, 0.5, 0, 0);
   // ----- PATH FOLLOWER -----
   path_follower = init_path_follower();
   // ----- GENERAL -----
@@ -165,6 +166,8 @@ void loop() {
     double y[5] = {0.0,0.2,0.0,-0.2,0.0};
     // printf("mode = %d\n", (int) mode);
     spi_set_state((uint32_t) mode);
+
+    // Output logic
     switch (mode) {
 
       case ModeIdle:
@@ -183,6 +186,16 @@ void loop() {
           get_speed_refl(position_controller), 
           get_speed_refr(position_controller));
         set_motors_duty_cycle(outputs, 
+          get_duty_cycle_refl(speed_regulator), 
+          get_duty_cycle_refr(speed_regulator));
+        break;
+
+       case ModePositionControlOver:
+        #ifdef VERBOSE
+        printf("\nMode position control over\n");
+        #endif
+        control_speed(speed_regulator, robot_position, 0, 0);
+        set_motors_duty_cycle(outputs,  
           get_duty_cycle_refl(speed_regulator), 
           get_duty_cycle_refr(speed_regulator));
         break;
@@ -234,14 +247,6 @@ void loop() {
         }
         break;
 
-      case ModePositionControlOver:
-        control_speed(speed_regulator, robot_position, 0, 0);
-        set_motors_duty_cycle(outputs,  
-          get_duty_cycle_refl(speed_regulator), 
-          get_duty_cycle_refr(speed_regulator));
-        break;
-
-
       default: // ModeIdle
         #ifdef VERBOSE
         printf("Default in output logic\n");
@@ -250,8 +255,9 @@ void loop() {
         break;
     }
     
+    // Print logic ;-)
     #ifdef VERBOSE
-    printf("dt = %.5e\n", ((double) 1e-6*current_time));
+    // printf("dt = %.5e\n", ((double) 1e-6*current_time));
     printf("xpos = %.5e\n", robot_position->x);
     printf("ypos = %.5e\n", robot_position->y);
     printf("thetapos = %.5e\n", robot_position->theta);
@@ -267,19 +273,19 @@ void loop() {
     // printf("isl = %.5e\n", speed_regulator->isl);
     // printf("isr = %.5e\n", speed_regulator->isr);
 
-    switch (mode) {
-      case ModePathFollowing:
-        printf("et = %.5e\n", path_follower->et);
-        printf("en = %.5e\n", path_follower->en);
-        printf("z = %.5e\n", path_follower->z);
-        break;
+    // switch (mode) {
+    //   case ModePathFollowing:
+    //     printf("et = %.5e\n", path_follower->et);
+    //     printf("en = %.5e\n", path_follower->en);
+    //     printf("z = %.5e\n", path_follower->z);
+    //     break;
 
-      default:
-        printf("et = NaN\n");
-        printf("en = NaN\n");
-        printf("z = NaN\n");
-        break;
-    }
+    //   default:
+    //     printf("et = NaN\n");
+    //     printf("en = NaN\n");
+    //     printf("z = NaN\n");
+    //     break;
+    // }
 
     switch (mode) {
       case ModePathFollowing:
@@ -290,6 +296,11 @@ void loop() {
       case ModePositionControl:
         printf("vref = %.6e\n", position_controller->vref);
         printf("omega_ref = %.6e\n", position_controller->omega_ref);
+        break;
+
+      case ModePositionControlOver:
+        printf("vref = %.6e\n", 0.0);
+        printf("omega_ref = %.6e\n", 0.0);
         break;
 
       default:
@@ -327,7 +338,7 @@ void loop() {
         nextmode = ModeIdle;
         break;
       case ModePositionControl:
-        if (position_controller->flag_angular_position_reached) {
+        if (position_controller->flag_angular_position_reached && position_controller->flag_position_reached) {
           nextmode = ModePositionControlOver;
         } else {
           nextmode = ModePositionControl;
@@ -375,6 +386,11 @@ void loop() {
         close_path_following(path_follower);
         break;
 
+      case ModePositionControlOver:
+        position_controller->flag_angular_position_reached = FALSE;
+        position_controller->flag_position_reached = FALSE;
+        break;
+
       default:
         break;
     }
@@ -389,6 +405,9 @@ void loop() {
         printf("xpos = %.5e\n", robot_position->x);
         printf("ypos = %.5e\n", robot_position->y);
         printf("thetapos = %.5e\n", robot_position->theta);
+        break;
+      case ModePositionControlOver:
+        printf("Switch to mode position control over\n");
         break;
       case ModePathFollowingInit:
         printf("Switch to mode path following init\n");

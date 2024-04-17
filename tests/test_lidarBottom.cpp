@@ -28,7 +28,6 @@ int main(int argc, char *argv[]) {
 
     StopLidarBottom();
     printf("\n");
-    //PlantZone** polarCoord;
 
     auto done = std::chrono::high_resolution_clock::now();
     std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(done - started).count() << "\n";

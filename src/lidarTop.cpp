@@ -838,6 +838,7 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
         }
     }
     fullScanPcqLost = false;
+    lidarData->readLidar_lost=true;//TODO ooooooooooooooooooooooooooooooooooooooooooooooooooo
 }
 
 void init_lidar(LidarData *lidarData) {

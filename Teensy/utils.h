@@ -31,17 +31,23 @@
 
 
 // ------ Program parameters -------
-#define REF_SPEED_LIMIT 0.6 // Reference speed max value in m/s
-#define REG_DELAY 1000 // Delay between two updates (µs)
+#define REF_SPEED_LIMIT 1.0 // Reference speed max value in m/s
+#define REG_DELAY 500 // Delay between two updates (µs)
 #define SPD_TOL 1e-2 // Max speed at which motors can be turned off (rad_mot/s)
 // #define ODOMETERS_ENC
 
 #ifdef ODOMETERS_ENC
-#define WHEEL_L 12.7556514e-2 // Half the distance between the two wheels (m)
-#define TICKS_TO_M 1.7257283863713464e-05 // Multiply to get meters from tick count. pi*45e-3/8192
+  #define WHEEL_L 12.7556514e-2 // Half the distance between the two wheels (m)
+  #define TICKS_TO_M 1.7257283863713464e-05 // Multiply to get meters from tick count. pi*45e-3/8192
 #else
-#define WHEEL_L 0.0871333 // Half the distance between the two wheels (m)
-#define TICKS_TO_M 1.4753882780592384e-6 // Multiply to get meters from tick count. pi*72e-3/20/8192
+  #ifdef OLD_WHEELS
+    #define WHEEL_L 0.0871333 // Half the distance between the two wheels (m)
+    #define TICKS_TO_M 1.4753882780592384e-6 // Multiply to get meters from tick count. pi*72e-3/20/8192
+  #else
+    #define WHEEL_L 0.0871333
+    #define TICKS_TO_M 1.4753882780592384e-6
+    #define TICKS_TO_RAD 1.708076156438528e-05
+  #endif
 #endif
 
 // ------- Useful function -------

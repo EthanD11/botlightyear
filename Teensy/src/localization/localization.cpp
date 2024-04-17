@@ -44,7 +44,7 @@ void reset_encoders(RobotPosition *robot_position) {
 void update_localization(RobotPosition *robot_position) 
 {   
     double theta, dt;
-    int tick_left, tick_right;
+    int tick_left, tick_right, dtick_left, dtick_right;
     double delta_left, delta_right, delta_fwd, delta_rot;
     Encoder *enc_r, *enc_l;
 
@@ -56,9 +56,11 @@ void update_localization(RobotPosition *robot_position)
     // Updating values according to encoders
     tick_left  = enc_l->read(); 
     tick_right = enc_r->read();
+    dtick_left = tick_left - robot_position->old_tick_left;
+    dtick_right = tick_right - robot_position->old_tick_right;
 
-    delta_left  = ((double) (tick_left - robot_position->old_tick_left))*TICKS_TO_M;
-    delta_right = ((double) (tick_right - robot_position->old_tick_right))*TICKS_TO_M;
+    delta_left  = ((double) dtick_left)*TICKS_TO_M;
+    delta_right = ((double) dtick_right)*TICKS_TO_M;
     robot_position->old_tick_left = tick_left;
     robot_position->old_tick_right = tick_right;
     
@@ -68,8 +70,8 @@ void update_localization(RobotPosition *robot_position)
     #endif
 
     // Update position estimate from encoder data
-    delta_fwd = (delta_left+delta_right)/2;
-    delta_rot = (delta_right-delta_left)/(2*WHEEL_L); // Divided by two, divided by half the distance between the two wheels = 176.17mm
+    delta_fwd = TICKS_TO_M*((double) (dtick_right+dtick_left))/2;
+    delta_rot = TICKS_TO_RAD*((double) (dtick_right-dtick_left))/2; // Divided by two, divided by half the distance between the two wheels = 176.17mm
 
     robot_position->x           += delta_fwd*cos(theta+delta_rot/2);
     robot_position->y           += delta_fwd*sin(theta+delta_rot/2);

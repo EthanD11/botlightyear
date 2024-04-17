@@ -32,18 +32,18 @@ int main(int argc, char const *argv[])
     usleep(500000);
 
     #ifdef POSITION_CONTROL
-    double kp = 1.0;
-    double ka = 4.0;
-    double kb = -1.5;
+    double kp = 0.5;
+    double ka = 3.0;
+    double kb = -1.0;
     double kw = 5.0;
     teensy.set_position_controller_gains(kp, ka, kb, kw);
 
     double x = 0; 
     double y = 0; 
     double t = 0;
-    double xr = 0.5; 
-    double yr = 0.1; 
-    double tr = 30*deg_to_rads;
+    double xr = 0.4; 
+    double yr = 0.0; 
+    double tr = 0*deg_to_rads;
     double xpos, ypos, thetapos;
 
     teensy.set_position(x, y, t);
@@ -61,30 +61,30 @@ int main(int argc, char const *argv[])
 
     #ifdef PATH_FOLLOWING
     double kp = 0.8;
-    double ka = 2.5;
-    double kb = -0.8;
-    double kw = 4.0;
+    double ka = 8.0;
+    double kb = -3.0;
+    double kw = 8.0;
     teensy.set_position_controller_gains(kp, ka, kb, kw);
 
-    double kt = 2.0;
-    double kn = 0.3; // 0 < kn <= 1
-    double kz = 25.0;
-    double delta = 20e-3; // delta is in meters
-    double sigma = 10;
+    double kt = 0.001;
+    double kn = 0.6; // 0 < kn <= 1
+    double kz = 18.0;
+    double delta = 80e-3; // delta is in meters
+    double sigma = 1.;
     double epsilon = M_PI/8; // epsilon is in radians
     double wn = 0.2; // Command filter discrete cutoff frequency
     double kv_en = 0.;
     teensy.set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
     lguSleep(0.1);
     int ncheckpoints = 5;
-    double x[5] = {0.1,0.5,0.9,0.5,0.1};
-    double y[5] = {1.5,1.7,1.5,1.3,1.5};
+    double x[5] = {0.1,0.5,1.0,0.5,0.1};
+    double y[5] = {1.5,1.3,1.5,1.8,1.5};
     // double x[5] = {0.1,1.2};
     // double y[5] = {1.5,1.5};
     double theta_start = 0.;
     double theta_end = M_PI;
-    double vref = 0.25;
-    double dist_goal_reached = 0.40;
+    double vref = 0.3;
+    double dist_goal_reached = 0.5;
 
     double xpos, ypos, thetapos;
     odo.set_pos(x[0], y[0], 0);
@@ -96,11 +96,11 @@ int main(int argc, char const *argv[])
     lguSleep(2);
 
     teensy.path_following(x, y, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
-    lguSleep(0.1);
+    lguSleep(0.2);
     while (teensy.ask_mode() != ModePositionControlOver) {
         odo.get_pos(&xpos, &ypos, &thetapos);
         teensy.set_position(xpos, ypos, thetapos);
-        lguSleep(0.3);
+        lguSleep(0.5);
     }
     #endif
 

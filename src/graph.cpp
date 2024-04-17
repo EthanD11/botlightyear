@@ -94,10 +94,14 @@ graph_path_t *Graph::compute_path(double xFrom, double yFrom, uint8_t *targets, 
     context.graph = this;
 
     pthread_rwlock_rdlock(&lock);
-    if (nodes[from].level & NODE_ADV_PRESENT) return NULL;
+    if (nodes[from].level & NODE_ADV_PRESENT) {
+        pthread_rwlock_unlock(&lock);
+        return NULL;
+    }
     // Start the search
     ASPath path = ASPathCreate(&source, &context, this->nodes + from, this->nodes + targets[0]);
     pthread_rwlock_unlock(&lock);
+    
     if (ASPathGetCount(path) == 0) {
         // Failure, returning
         ASPathDestroy(path);

@@ -11,4 +11,4 @@ double tagSolar();
 
 
 
-#endif //MECATROMINIBOT_CAMERATAG_H
+#endif

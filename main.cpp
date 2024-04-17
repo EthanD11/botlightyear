@@ -14,15 +14,13 @@
 #include <fcntl.h>
 #include <cmath>
 
-//#define VERBOSE
+#define VERBOSE
 //#define TIME_MEAS
 
 #define ASCII_b 98
 #define ASCII_B 66
 #define ASCII_y 121
 #define ASCII_Y 89
-
-decision_t decision;
 
 pthread_t localizerID;
 uint8_t localizerEnd = 0; // Set to one to finish localizer thread
@@ -120,10 +118,10 @@ void ask_user_input_params() {
 
 void init_and_wait_for_start() {
 
-    /*
+    
     dxl_init_port();
     dxl_ping(6,1.0);
-    dxl_ping(8,1.0); */
+    dxl_ping(8,1.0);
 
     if (shared.graph->init_from_file("./graphs/BL_V3.txt", shared.color) != 0) exit(3);
     /*for (int i=0; i<3; i++) {
@@ -156,9 +154,7 @@ void finish_main() {
 
     shared.~SharedVariables();
 
-    free(decision.path);
-
-    //dxl_close_port();
+    dxl_close_port();
 
 }
 
@@ -175,6 +171,7 @@ void *localizer(void* arg) {
         teensy_mode_t teensyMode = shared.teensy->ask_mode();
 
         #ifdef TIME_MEAS
+        clock_t odoClock;
         clock_t start = clock();
         #endif
 
@@ -182,7 +179,6 @@ void *localizer(void* arg) {
 
         #ifdef TIME_MEAS
         clock_t lidarClock = clock();
-        clock_t odoClock;
         #endif
 
         if ((teensyMode == ModePositionControlOver || teensyMode == ModeIdle) && !lidarData->readLidar_lost) {
@@ -219,7 +215,7 @@ void *localizer(void* arg) {
         #ifdef VERBOSE
         //TODO TODO
         printf("                    %.3f %.3f %.3f   %.3f %.3f\n", lidarData->readLidar_x_robot, lidarData->readLidar_y_robot, lidarData->readLidar_theta_robot*180/M_PI, lidarData->readLidar_d_opponent,lidarData->readLidar_a_opponent*180.0/M_PI);
-        //printf("odometry : %.3f %.3f %.3f\n", xOdo, yOdo, thetaOdo*180/M_PI);
+        printf("odometry : %.3f %.3f %.3f\n", x, y, theta*180/M_PI);
         #endif
 
         #ifdef TIME_MEAS
@@ -263,8 +259,8 @@ int main(int argc, char const *argv[])
     shared.teensy->idle();
     shared.steppers->reset_all();
     shared.servoFlaps->idle(); shared.grpDeployer->idle(); shared.grpHolder->idle();
-    //dxl_idle(6, 1.0);
-    //dxl_idle(8, 1.0);
+    dxl_idle(6, 1.0);
+    dxl_idle(8, 1.0);
 
     printf("Game finished\n");
     // TODO : show score

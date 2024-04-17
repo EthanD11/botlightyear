@@ -8,9 +8,6 @@
 #define NODE_ADV_PRESENT 0b10
 #define NODE_ADV_BASE 0b100
 
-#define DISABLE_PROPAGATION 0
-#define ENABLE_PROPAGATION 1
-
 typedef struct graph_node
 {
     uint8_t id; // Index of the node in the 'graphNodes' array & identifier for the visual graph
