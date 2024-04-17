@@ -6,8 +6,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define POSITION_TOL_IN 10e-3 // Tolerance to enter the goal reached state
-#define POSITION_TOL_OUT 10e-3 // Tolerance to leave the goal reached state
+#define POSITION_TOL_IN 2e-3 // Tolerance to enter the goal reached state
+#define ANGULAR_TOL (4*M_PI/180)
+#define ANGULAR_SPEED_TOL 1e-2
 
 typedef struct PositionController {
     
@@ -18,8 +19,8 @@ typedef struct PositionController {
     double ka;  // Proportional coefficient for direction error
     double kb;  // Proportional coefficient for orientation error
     double kw; // Propoortional coefficient for orientation error when position is reached
-    double position_tol;     // Acceptable static error on position (m)
-    double drift_tol;   // Acceptable drift from reference position when reorienting (m)
+    // double position_tol;     // Acceptable static error on position (m)
+    // double drift_tol;   // Acceptable drift from reference position when reorienting (m)
     double angular_tol;     // Acceptable static error on orientation
 
     int flag_position_reached;

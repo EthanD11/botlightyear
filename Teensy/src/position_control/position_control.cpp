@@ -10,8 +10,8 @@ PositionController *init_position_controller() {
     pc->ka =  3.0; // Proportional coefficient for direction error
     pc->kb = -0.3; // Proportional coefficient for orientation error
     pc->kw =  3.0; // Propoortional coefficient for orientation error when position is reached
-    pc->position_tol = POSITION_TOL_IN;      // Acceptable static error on position (m)
-    pc->drift_tol    = 2e-1;      // Acceptable drift from reference position when reorienting (m)
+    // pc->position_tol = POSITION_TOL_IN;      // Acceptable static error on position (m)
+    // pc->drift_tol    = 2e-1;      // Acceptable drift from reference position when reorienting (m)
     pc->angular_tol  = 1*M_PI/180; // Acceptable static error on orientation (rad, eq to 5 degrees)
 
     pc->omega_ref = 0;
@@ -61,7 +61,7 @@ void control_position(
     dx = x_ref - x;
     dy = y_ref - y;
     p = hypot(dx, dy);
-    pc->flag_position_reached = (abs(p) < pc->position_tol);
+    
     //int flag_too_far_away = (p > 1.0); // Stop if further than 50cm away from the target
     #ifdef VERBOSE
     // printf("xref = %f\n", x_ref);
@@ -96,7 +96,11 @@ void control_position(
             #endif
             vref = kp*p; //*SMOOTH_WINDOW(a, 0.8*M_PI/2, 5);
             omega_ref = ka*a + kb*b;
-            pc->position_tol = POSITION_TOL_IN;
+            // pc->position_tol = POSITION_TOL_IN;
+
+            if (abs(p) < POSITION_TOL_IN) {
+                pc->flag_position_reached = TRUE;
+            }
             pc->flag_angular_position_reached = FALSE;
             break;
         }
@@ -108,8 +112,9 @@ void control_position(
             #ifdef VERBOSE
             printf("Goal reached\n");
             #endif
-            pc->position_tol = POSITION_TOL_OUT;
-            if (fabs(theta_ref - theta) < 4*M_PI/180 && (fabs(rp->omega) < 5e-2)) {
+            
+            // pc->position_tol = POSITION_TOL_OUT;
+            if (fabs(theta_ref - theta) < ANGULAR_TOL && (fabs(rp->omega) < ANGULAR_SPEED_TOL)) {
                 pc->flag_angular_position_reached = TRUE;
             } else {
                 pc->flag_angular_position_reached = FALSE;

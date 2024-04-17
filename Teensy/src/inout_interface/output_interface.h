@@ -25,7 +25,7 @@
 #define A3 36
 
 #define MOTOR_DUTY_RANGE 256  // Duty cycle range
-#define BUF_STEP 50           // Max step to avoid brutal speed changes
+#define BUF_STEP 3           // Max step to avoid brutal speed changes
 
 typedef struct OutputInterface {
     int duty_cycle_refl, duty_cycle_refr; // Reference duty cycles

@@ -263,7 +263,7 @@ void dxl_turn(team_color_t team, double angle) {
     }
 }
 
-void dxl_init_sp() { 
+void dxl_reset_sp() { 
     uint16_t dxl_goal_position = 512;
     uint16_t dxl_present_position = 0;
 
@@ -289,8 +289,10 @@ void dxl_init_sp() {
 }
 
 void solar_panel(team_color_t team, double angle) {
+    dxl_init_sp(); 
     dxl_deploy(Down); 
     dxl_turn(team, angle);
     dxl_deploy(Up); 
+    dxl_init_sp(); 
 }
 

@@ -8,7 +8,7 @@
 class ActionSP : public Action {
     private: 
         uint8_t sp_counter;
-        bool reserved;
+        bool reserved;  
     public: 
         ActionSP (graph_path_t* graph_path, uint8_t sp_number, bool is_reserved) : Action(TurnSP, true, graph_path) { 
             sp_counter = sp_number;

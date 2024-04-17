@@ -222,7 +222,7 @@ int main(int argc, char const *argv[])
     // steppers->slider_move(SliderDepositPot, CALL_BLOCKING);
     // steppers->slider_move(SliderHigh, CALL_BLOCKING); 
     printf("Go ! \n");
-    //teensy->set_position(1.0,1.0,0);
+    teensy->set_position(1.0,1.0,0);
     steppers->setup_all_speeds(); 
     steppers->reset_all(); 
 
@@ -239,7 +239,7 @@ int main(int argc, char const *argv[])
 
     
     TakePlantCHAIN(2); 
-
+    #endif 
 
     #ifdef PLANTER
     steppers->plate_move(2,CALL_BLOCKING);
