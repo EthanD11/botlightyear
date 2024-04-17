@@ -23,6 +23,9 @@ typedef struct LidarData{
     double transfo_x;
     double transfo_y;
     double transfo_a;
+    double old_transfo_x;
+    double old_transfo_y;
+    double old_transfo_a;
 
     double x_adv;
     double y_adv;

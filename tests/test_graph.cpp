@@ -23,26 +23,30 @@ int main(int argc, char const *argv[])
         printf("%d\n\n", graphNodes[i].neighbors[graphNodes[i].nNeighbors-1]->id);
     }*/
     
-    uint8_t from = 20;
+    double xFrom = 0.435, yFrom = 1.860; // 20
     uint8_t tos[] = {41,45};
     uint8_t len_tos = 2;
     graph.level = 0;
-    graph.update_obstacle(10,1);
+    /*graph.update_obstacle(10,1);
+    graph.update_obstacle(15,1);
+    graph.update_obstacle(20,1);
+    graph.update_obstacle(25,1);
+    graph.update_adversary_pos(1.0,1.0);
+    graph.update_adversary_pos(0.5,2.0);*/
 
-    printf("Searching for a path between %d and {", from);
+    printf("Searching for a path between (%.3f,%.3f) and {", xFrom, yFrom);
     for (uint8_t i = 0; i < len_tos-1; i++) { printf("%d,", tos[i]); }
     printf("%d} with graph level %d\n",tos[len_tos-1], graph.level);
 
     clock_t start = clock();
-    graph_path_t* result = graph.compute_path(from, tos, len_tos, 1, 0);
+    graph_path_t* result = graph.compute_path(xFrom, yFrom, tos, len_tos);
     clock_t stop = clock();
 
-    if (result == NULL) {
-        printf("No path was found\n");
-        return 0;
+    if (result == NULL) printf("No path was found\n");
+    else {
+        Graph::print_path(result);
+        printf("\nTime taken : %ld clock cycles\n", stop-start);
     }
-    Graph::print_path(result);
-    printf("\nTime taken : %ld clock cycles\n", stop-start);
 
     double x = 1.0;
     double y = 1.0;

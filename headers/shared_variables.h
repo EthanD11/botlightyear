@@ -9,13 +9,10 @@
 #include "graph.h"
 #include "odometry.h"
 #include "teensy.h"
-#include <signal.h>
 #include <time.h>
 #include <stdint.h>
 
-#include "decision.h"
-
-typedef enum _storage_slot : uint8_t
+typedef enum _storage_slot : int8_t
 {
     SlotM3,
     SlotM2,
@@ -24,7 +21,8 @@ typedef enum _storage_slot : uint8_t
     Slot2,
     Slot1,
     SlotGripper,
-    SlotFlaps
+    SlotFlaps, 
+    SlotInvalid = -1
 } storage_slot_t;
 
 /**

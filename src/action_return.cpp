@@ -1,17 +1,10 @@
 #include "action_return.h"
-#include "decision.h"
-#include "actions.h"
 
 
-
-void path_following_to_base() {
-
-    if (path_following_to_action(decision.path) == -1) return;
-
+void ActionBackToBase::do_action() {
+    if (path_following_to_action(path) == -1) return;
     // Idle
     shared.teensy->idle(); 
-
     // Score update
     shared.score += 10;
-
 }
