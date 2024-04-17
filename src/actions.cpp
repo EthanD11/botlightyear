@@ -224,7 +224,7 @@ int8_t get_plate_slot(storage_slot_t slotID) {
         plateSlotID = -3;
         break;
     default: 
-        printf("Invalid plate slot ! {%d}\n", slot);
+        printf("Invalid plate slot ! {%d}\n", slotID);
         return 0;
         break;
     }
@@ -233,7 +233,7 @@ int8_t get_plate_slot(storage_slot_t slotID) {
 
 storage_slot_t get_next_unloaded_slot_ID (storage_content_t content) {
     storage_slot_t unloaded_slot_order[6] = {Slot1, SlotM1, Slot2, SlotM2, Slot3, SlotM3}; 
-    storage_content_t storage = shared.storage;
+    storage_content_t *storage = shared.storage;
     for (uint8_t i = 0; i < 6; i++) {
         if ((storage[unloaded_slot_order[i]] & content) == content) {
             return unloaded_slot_order[i]; 
@@ -245,7 +245,7 @@ storage_slot_t get_next_unloaded_slot_ID (storage_content_t content) {
 
 storage_slot_t get_next_free_slot_ID (storage_content_t content) {
     storage_slot_t loading_slot_order[6] = {SlotM3, Slot3, SlotM2, Slot2, SlotM1, Slot1}; 
-    storage_content_t storage = shared.storage;
+    storage_content_t *storage = shared.storage;
     for (uint8_t i = 0; i < 6; i++) {
         if (!(storage[loading_slot_order[i]] & content)) {
             return loading_slot_order[i]; 
@@ -258,7 +258,7 @@ void update_plate_content(storage_slot_t slotID, storage_content_t content) {
     if(content == ContainsNothing) {
         shared.storage[slotID] = ContainsNothing; 
     } else {
-        shared.storage[slotID] |= content; 
+        shared.storage[slotID] = (storage_content_t) (((uint8_t) content) | ((uint8_t)shared.storage[slotID] )); 
     }
 }
 
@@ -270,6 +270,6 @@ double periodic_angle(double angle) {
 }
 
 double trigo_diff(double theta_a, double theta_b) {
-    double diff = theta_a-theta_b
+    double diff = theta_a-theta_b;
     return periodic_angle(diff);
 }

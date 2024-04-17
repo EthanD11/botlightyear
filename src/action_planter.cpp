@@ -16,16 +16,16 @@ typedef enum _state : int8_t
     Abort // End thread with failure
 } state_t;
 
-pthread_t KCID;
-volatile state_t state;
-volatile state_t stateKC;
+static pthread_t KCID;
+static volatile state_t state;
+static volatile state_t stateKC;
 
-void leave() {
+static void leave() {
     state = Abort;
     pthread_join(KCID, NULL);
 }
 
-void *kinematic_chain(void *args) {
+static void *kinematic_chain(void *args) {
     Steppers *steppers = shared.steppers;
     Flaps *servoFlaps = shared.servoFlaps;
     GripperDeployer *grpDeployer = shared.grpDeployer;
@@ -59,7 +59,7 @@ void *kinematic_chain(void *args) {
 
         case Get: // Get next plant in plate
             stateKC = Get;
-            storage_slot_t slotID = get_next_unloaded_slot_ID(ContainsWeakPlant);
+            slotID = get_next_unloaded_slot_ID(ContainsWeakPlant);
             if (slotID == SlotInvalid) slotID = get_next_unloaded_slot_ID(ContainsStrongPlant);
             toDrop = shared.storage[slotID];
             steppers->plate_move(get_plate_slot(slotID),CALL_BLOCKING);

@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <cmath>
 
-//#define TESTS
+#define TESTS
 
 class ActionGameFinished : public Action {
     public :
@@ -101,7 +101,7 @@ void decide_possible_actions() {
 
     if (in_array(shared.graph->plants, 6, currentNode)) {
         // If it's in a plant node, go back to a base 
-        path = shared.graph->compute_path(x_pos, y_pos, shared.graph->friendlyBases, 3,0);
+        path = shared.graph->compute_path(x_pos, y_pos, shared.graph->friendlyBases, 3);
         if (path != NULL) {
             path->thetaStart = theta_pos; 
             path->thetaEnd = getThetaEnd(shared.graph->friendlyBases, shared.graph->friendlyBasesTheta, 3, path->target); 
@@ -112,7 +112,7 @@ void decide_possible_actions() {
     } else {
         // Else, go to a random plant node 
         uint8_t target = shared.graph->plants[rand()%6]; // get random plant node
-        path = shared.graph->compute_path(x_pos, y_pos, &target, 1, 0);       
+        path = shared.graph->compute_path(x_pos, y_pos, &target, 1);       
         if (path != NULL) {
             path->thetaStart = theta_pos; 
             path->thetaEnd = 0; 

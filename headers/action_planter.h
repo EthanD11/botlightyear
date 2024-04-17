@@ -26,6 +26,7 @@ public:
         this->preference = preference;
         this->needsPotClear = needsPotClear;
     }
+    ~ActionPlanter() {}
     void do_action();
 };
 

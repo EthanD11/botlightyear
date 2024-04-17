@@ -22,8 +22,6 @@
 #define ASCII_y 121
 #define ASCII_Y 89
 
-decision_t decision;
-
 pthread_t localizerID;
 uint8_t localizerEnd = 0; // Set to one to finish localizer thread
 void *localizer(void* arg);
@@ -155,8 +153,6 @@ void finish_main() {
     pthread_join(localizerID, NULL);
 
     shared.~SharedVariables();
-
-    free(decision.path);
 
     //dxl_close_port();
 

@@ -1,6 +1,5 @@
 #include "Dynamixels_sdk/dynamixel_sdk.h"
 #include "dynamixels.h"
-#include "colors.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -289,7 +288,7 @@ void dxl_init_sp() {
     }
 }
 
-void solar_panel(team__color_t team, double angle) {
+void solar_panel(team_color_t team, double angle) {
     dxl_deploy(Down); 
     dxl_turn(team, angle);
     dxl_deploy(Up); 

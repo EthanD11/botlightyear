@@ -10,6 +10,7 @@ class ActionBackToBase : public Action {
     public: 
         ActionBackToBase(graph_path_t* graph_path) : Action(ReturnToBase, true, graph_path) {
         }
+        ~ActionBackToBase() {}
         void do_action();
 };
 

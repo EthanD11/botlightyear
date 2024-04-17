@@ -45,36 +45,6 @@ void take_plant_kinematicChain(int8_t slotNumber) {
     deployer->idle();
 }
 
-void ActionPlants::do_action() {
-    // Positions itself in front of the plant node, without going in
-    uint8_t plantsNode = path->target; 
-    path->theta_end = atan2(y[path->ncheckpoints-1]-y[path->ncheckpoints-2], x[path->ncheckpoints-1]-x[path->ncheckpoints-2]);
-    path->ncheckpoints--;
-    if (path_following_to_action(path) == -1) return; 
-
-    double xpos, ypos, theta_pos; 
-    double xpos_initial, ypos_initial, theta_pos_initial; 
-    shared.get_robot_pos(&xpos_initial, &ypos_initial, &theta_pos_initial);
-    
-    double x_plant, y_plant, theta_plant; 
-    for (uint8_t plant_i=0; i<plantCounter; i++) {
-        // Get closest plant from lidar pov
-        // x_plant, y_plant = ... TODO TODO 
-        shared.get_robot_pos(&xpos, &ypos, &theta_pos);
-
-        theta_plant = atan2(y_plant-ypos, x_plant-xpos); 
-        if (position_to_plant(x_plant, y_plant, shared.graph->nodes[plantsNode].x, shared.graph->nodes[plantsNode].y), trigo_diff(theta_plant, theta_pos)>0, i==0) return; 
-        // Get next storage slot and put the plant
-        storage_slot_t nextSlot = get_next_free_slot_ID(); 
-        int8_t plate_pos = get_plate_slot(nextSlot); 
-        take_plant_kinematicChain(plate_pos); 
-        update_plate_content(nextSlot, ContainsWeakPlant); 
-    }
-
-    // Position control to the initial location with opposed theta for departure
-    if (action_position_control(xpos_initial, ypos_initial, periodic_angle(theta_pos_initial-M_PI)) == -1) return; 
-    
-}
 /**
  * @brief Uses position control to 
  * @return 0 if completion success, -1 otherwise
@@ -96,7 +66,7 @@ int8_t position_to_plant(double x_plant, double y_plant, double x_plant_center, 
     double dy= (y_plant - y_plant_center)/plant_to_center_dist; 
     double x_approach = x_plant + (dx*cos(alpha) + dy*sin(alpha))* plant_approach_dist; 
     double y_approach = y_plant + (-dx*sin(alpha) + dy*cos(alpha))* plant_approach_dist; 
-    double theta_approach = periodic_angle(atan(y_plant_center-y_plant, x_plant_center-x_plant)-alpha);
+    double theta_approach = periodic_angle(atan2(y_plant_center-y_plant, x_plant_center-x_plant)-alpha);
 
     if (action_position_control(x_approach, y_approach, theta_approach) == -1) return -1; 
 
@@ -105,6 +75,40 @@ int8_t position_to_plant(double x_plant, double y_plant, double x_plant_center, 
     double x_grab = x_plant + (dx*cos(alpha) + dy*sin(alpha)) * plant_grab_dist; 
     double y_grab = y_plant + (-dx*sin(alpha) + dy*cos(alpha)) * plant_approach_dist; 
     
-    if (action_position_control(x_grab y_grab, theta_approach) == -1) return -1; 
+    if (action_position_control(x_grab, y_grab, theta_approach) == -1) return -1; 
     return 0; 
+}
+
+
+void ActionPlants::do_action() {
+    // Positions itself in front of the plant node, without going in
+    uint8_t plantsNode = path->target; 
+    double *x = path->x;
+    double *y = path->y;
+    path->thetaEnd = atan2(y[path->nNodes-1]-y[path->nNodes-2], x[path->nNodes-1]-x[path->nNodes-2]);
+    path->nNodes--;
+    if (path_following_to_action(path) == -1) return; 
+
+    double xpos, ypos, theta_pos; 
+    double xpos_initial, ypos_initial, theta_pos_initial; 
+    shared.get_robot_pos(&xpos_initial, &ypos_initial, &theta_pos_initial);
+    
+    double x_plant, y_plant, theta_plant; 
+    for (uint8_t plant_i = 0; plant_i < plantCounter; plant_i++) {
+        // Get closest plant from lidar pov
+        // x_plant, y_plant = ... TODO TODO 
+        shared.get_robot_pos(&xpos, &ypos, &theta_pos);
+
+        theta_plant = atan2(y_plant-ypos, x_plant-xpos); 
+        if (position_to_plant(x_plant, y_plant, shared.graph->nodes[plantsNode].x, shared.graph->nodes[plantsNode].y, trigo_diff(theta_plant, theta_pos)>0, plant_i==0)) return; 
+        // Get next storage slot and put the plant
+        storage_slot_t nextSlot = get_next_free_slot_ID(ContainsStrongPlant); 
+        int8_t plate_pos = get_plate_slot(nextSlot); 
+        take_plant_kinematicChain(plate_pos); 
+        update_plate_content(nextSlot, ContainsWeakPlant); 
+    }
+
+    // Position control to the initial location with opposed theta for departure
+    if (action_position_control(xpos_initial, ypos_initial, periodic_angle(theta_pos_initial-M_PI)) == -1) return; 
+    
 }

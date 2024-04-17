@@ -11,6 +11,7 @@ public:
     ActionPlants(graph_path_t *path, uint8_t plantNumber) : Action(DepositPlanter, true, path) {
         plantCounter = plantNumber;
     }
+    ~ActionPlants() {}
     void do_action();
 };
 #endif

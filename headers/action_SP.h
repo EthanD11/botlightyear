@@ -14,7 +14,8 @@ class ActionSP : public Action {
             sp_counter = sp_number;
             reserved = is_reserved;
         }
-        void do_action();
+        ~ActionSP() {}
+        void do_action();        
 };
 
 #endif

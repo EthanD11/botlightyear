@@ -18,20 +18,21 @@ typedef enum _state : int8_t {
     Abort // End thread with failure
 } state_t;
 
-pthread_t KCID;
-volatile state_t state;
-volatile state_t stateKC;
+static pthread_t KCID;
+static volatile state_t state;
+static volatile state_t stateKC;
 
 volatile double camera_angle; 
 volatile double dxl_angle;
 
-void leave() {
+static void leave() {
     state = Abort;
     pthread_join(KCID, NULL);
 }
 
-void *kinematic_chain() {
+static void *kinematic_chain(void* argv) {
 
+    uint8_t sp_counter = *(uint8_t*) argv;
     team_color_t team = shared.color; 
 
     // Reset wheel, just to be sure :)
@@ -94,7 +95,7 @@ void ActionSP::do_action() {
 
     state = Path_Following;
     stateKC = Path_Following;
-    pthread_create(&KCID, NULL, kinematic_chain, NULL);
+    pthread_create(&KCID, NULL, kinematic_chain, &sp_counter);
 
     if (path_following_to_action(path)) return leave(); 
 

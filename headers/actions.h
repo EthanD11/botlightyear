@@ -34,6 +34,7 @@ class Action {
             needs_path = needsPath;
             path = graph_path;
         }
+        virtual ~Action() {}
 };
 
 
@@ -80,11 +81,7 @@ double periodic_angle(double angle);
  * @brief Returns the difference in radians theta_a - theta_b, while resolving discontinuity issues
  * Angles need to be in the range [-pi, pi]
 */
-double trigo_diff(double theta_a, double theta_b)
-/* UTILS: CLOSER_IN_PATH
-uint8_t closer_in_path(graph_path_t *path, double xr, double yr); 
+double trigo_diff(double theta_a, double theta_b);
 
-/* UTILS: ADVERSARY_IN_PATH
-uint8_t adversary_in_path(graph_path_t *path, uint8_t closer_node_id); */
 
 #endif

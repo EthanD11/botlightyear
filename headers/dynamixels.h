@@ -1,6 +1,8 @@
 #ifndef BLY_DYNAMIXELS_H
 #define BLY_DYNAMIXELS_H
 
+#include "colors.h"
+
 typedef enum {
     Up, 
     Down,
@@ -21,9 +23,9 @@ void dxl_idle(int ID, float PROTOCOL);
 void dxl_deploy(position_t position);
 void dxl_multiturn(direction_t direction);
 void dxl_position(double goal_pos); 
-void dxl_turn(team_t team, double angle); 
+void dxl_turn(team_color_t team, double angle); 
 void dxl_init_sp(); 
 
-void solar_panel(team_t team, double angle); 
+void solar_panel(team_color_t team, double angle); 
 
 #endif

@@ -7,8 +7,9 @@
 
 class ActionDisplacement : public Action {
     public: 
-        ActionDisplacement (graph_path_t* graph_path) : Action(Displacement, true, graph_path) {
+        ActionDisplacement (graph_path_t* path) : Action(Displacement, true, path) {
         }
+        ~ActionDisplacement() {}
         void do_action();
 };
 
