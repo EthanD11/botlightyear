@@ -52,7 +52,9 @@ void *kinematic_chain(void *args) {
             break;
 
         case Clear: // Clearing pots away
-
+            stateKC = Clear;
+            steppers->flaps_move(FlapsPlant);
+            servoFlaps->deploy();
             break;
 
         case Get: // Get next plant in plate

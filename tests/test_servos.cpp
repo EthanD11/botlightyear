@@ -26,18 +26,20 @@ int main(int argc, char const *argv[])
     sleep(3);
     servoGripperHolder.open(); 
     sleep(3);
+    servoGripperHolder.open_full(); 
+    sleep(3);
     servoGripperHolder.hold_plant(); 
     sleep(3);
     servoGripperHolder.hold_pot(); 
     sleep(1);
     servoGripperHolder.idle();
 
-    // servoGripperDeployer.deploy();
-    // sleep(3);
-    // servoGripperDeployer.half(); 
-    // sleep(3);
-    // servoGripperDeployer.raise();
-    // sleep(1);
+    servoGripperDeployer.deploy();
+    sleep(3);
+    servoGripperDeployer.half(); 
+    sleep(3);
+    servoGripperDeployer.raise();
+    sleep(1);
     servoGripperDeployer.idle(); 
 
     return 0;

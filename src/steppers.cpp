@@ -121,7 +121,7 @@ void Steppers::flaps_move(flaps_pos_t pos, uint8_t blocking) {
         steps = 0; 
         break;
     case FlapsPlant :
-        steps = 2220; 
+        steps = 3150; 
         break;
     case FlapsPot :
         steps = 2050; 
@@ -308,7 +308,7 @@ void Steppers::setup_acc(steppers_t stepperName, uint8_t accSteps) {
 
 void Steppers::setup_all_speeds() {
     setup_speed(StprPlate,80,400); 
-    setup_speed(StprSlider,300,450);
+    setup_speed(StprSlider,350,450);
     setup_speed(StprFlaps,200,300); 
 }
 

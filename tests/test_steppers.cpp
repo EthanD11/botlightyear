@@ -2,6 +2,7 @@
 #include "GPIO.h"
 #include "steppers.h"
 #include "servos.h"
+#include "teensy.h"
 #include <unistd.h> 
 #include <stdio.h>
 
@@ -17,8 +18,10 @@ GPIOPins pins = GPIOPins();
 Steppers* steppers = new Steppers(&spi_bus, &pins); 
 GripperHolder* holder = new GripperHolder(&spi_bus); 
 GripperDeployer* deployer = new GripperDeployer(&spi_bus); 
-
 Flaps* servoFlaps = new Flaps(&spi_bus); 
+
+Teensy *teensy = new Teensy(&spi_bus, &pins);
+
 // void TakePotCHAIN() {
 //     holder->idle();
 //     deployer->idle();
@@ -60,6 +63,15 @@ void TakePlantCHAIN(int slotNumber) {
     // GripperDeployer* deployer = shared.grpDeployer; 
     // Steppers* steppers = shared.steppers; 
 
+    teensy->set_position_controller_gains(3.0,2.5,-0.8,4.0);
+
+    servoFlaps->deploy();
+    steppers->flaps_move(FlapsPlant, CALL_BLOCKING); 
+    steppers->flaps_move(FlapsOpen, CALL_BLOCKING);
+    teensy->pos_ctrl(0.96,1.0,0); // Reverse 4 cm
+    usleep(100000);
+    servoFlaps->raise();
+
     steppers->slider_move(SliderHigh, CALL_BLOCKING);
     deployer->half(); 
     steppers->plate_move(0, CALL_BLOCKING); 
@@ -68,27 +80,31 @@ void TakePlantCHAIN(int slotNumber) {
 
     holder->open_full();
 
-    steppers->slider_move(SliderLow, CALL_BLOCKING); 
-
+    steppers->slider_move(SliderLow, CALL_BLOCKING);
+    teensy->pos_ctrl(1.02,1.0,0);
+    usleep(500000);
     holder->hold_plant();
+    usleep(200000);
 
-    steppers->slider_move(SliderHigh, CALL_BLOCKING);
     deployer->half(); 
-
+    steppers->slider_move(SliderHigh, CALL_BLOCKING);
     steppers->plate_move(slotNumber, CALL_BLOCKING); 
 
     
-    steppers->slider_move(SliderStorage, CALL_BLOCKING);
+    steppers->slider_move(SliderStorage);
+    usleep(500000);
     deployer->deploy(); 
-    usleep(100000);
+    usleep(300000);
     holder->open_full();
-    usleep(100000);
+    usleep(200000);
 
+    deployer->half();
     steppers->slider_move(SliderHigh, CALL_BLOCKING); 
     steppers->plate_move(0, CALL_BLOCKING); 
 
     holder->idle();
     deployer->idle();
+    teensy->set_position_controller_gains(0.8,2.5,-0.8,4.0);
 }
 
 void demoPlate(){
@@ -134,24 +150,23 @@ int main(int argc, char const *argv[])
     // steppers->slider_move(SliderDepositPot, CALL_BLOCKING);
     // steppers->slider_move(SliderHigh, CALL_BLOCKING); 
     printf("Go ! \n");
-    //steppers->setup_all_speeds(); 
+    teensy->set_position(1.0,1.0,0);
+    steppers->setup_all_speeds(); 
     steppers->reset_all(); 
 
-    //steppers->calibrate_all(CALL_BLOCKING); 
-    //steppers->calibrate(StprFlaps, CALL_BLOCKING); 
+    steppers->calibrate_all(CALL_BLOCKING); 
 
-    steppers->flaps_move(FlapsPlant, CALL_BLOCKING); 
-    sleep(1);
-    steppers->flaps_move(FlapsOpen, CALL_BLOCKING); 
-    sleep(1);
-    steppers->flaps_move(FlapsPot, CALL_BLOCKING); 
-    sleep(1);
-    steppers->flaps_move(FlapsOpen, CALL_BLOCKING); 
+    // deployer->deploy();
+    // holder->hold_plant();
+    // sleep(1);
+    // steppers->flaps_move(FlapsPot, CALL_BLOCKING); 
+    // sleep(1);
+    // steppers->flaps_move(FlapsOpen, CALL_BLOCKING); 
 
 
 
     
-    //TakePlantCHAIN(3); 
+    TakePlantCHAIN(2); 
 
     #endif
 
