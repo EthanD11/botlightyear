@@ -13,6 +13,12 @@ class ActionSP : public Action {
         ActionSP (graph_path_t* graph_path, uint8_t sp_number, bool is_reserved) : Action(TurnSP, true, graph_path) { 
             sp_counter = sp_number;
             reserved = is_reserved;
+            this->needs[0] = 0;  // SptrPlate
+            this->needs[1] = 0;  // StprSlider
+            this->needs[2] = 0;  // StprFlaps
+            this->needs[3] = 0;  // Dxl1 (0 for now, permissive)
+            this->needs[4] = 0;  // Dxl2 (0 for now, permissive)
+            this->needs[5] = 0;  // LidarBottom
         }
         ~ActionSP() {}
         void do_action();        

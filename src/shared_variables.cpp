@@ -15,6 +15,7 @@ SharedVariables::SharedVariables()
     color = NoTeam;
     score = 0;
     for (uint8_t i = 0; i < 8; i++) storage[i] = ContainsNothing;
+    for (uint8_t j=0; j<6; j++) valids[i] = 0; 
     nFreeSlots = 8;
 
     spiBus = new SPIBus();

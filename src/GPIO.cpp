@@ -57,7 +57,7 @@ void GPIOPins::free_gpio(GPIO_t gpio_pin) {
     lgGpioFree(handle, gpio_pin);
 }
 
-void GPIOPins::wait_for_gpio_value(GPIO_t gpio, uint8_t val, uint32_t msMaxWait) {
+int8_t GPIOPins::wait_for_gpio_value(GPIO_t gpio, uint8_t val, uint32_t msMaxWait) {
     int readValue;
     uint32_t msElapsed;
     struct timespec start_ts;
@@ -71,6 +71,7 @@ void GPIOPins::wait_for_gpio_value(GPIO_t gpio, uint8_t val, uint32_t msMaxWait)
         clock_gettime(CLOCK_BOOTTIME, &now_ts);
         msElapsed = (now_ts.tv_sec - start_ts.tv_sec) * 1000 + (uint32_t) ((now_ts.tv_nsec-start_ts.tv_nsec)/1000000);
     } while (readValue != val && msElapsed < msMaxWait);
+    return (msElapsed >= msMaxWait) ? -1 : 0; 
 }
 
 int8_t GPIOPins::read(GPIO_t gpio) {

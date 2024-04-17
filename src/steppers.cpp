@@ -62,7 +62,7 @@ void Steppers::move(steppers_t stepperName, uint32_t steps, uint8_t neg, uint8_t
     }
 }
 
-void Steppers::calibrate(steppers_t stepperName, uint8_t blocking) {
+void Steppers::calibrate(steppers_t stepperName, uint8_t blocking, uint8_t*valids = NULL) {
     char request; 
     char calibDir;
     switch (stepperName) {
@@ -95,21 +95,25 @@ void Steppers::calibrate(steppers_t stepperName, uint8_t blocking) {
     if (blocking == CALL_BLOCKING) {
         
         GPIO_t stepper_gpio; 
+        uint8_t validityID;
         switch (stepperName) {
             case StprPlate :
                 stepper_gpio = StprPlateGPIO; 
+                validityID = 0; 
                 break;
             case StprSlider :
                 stepper_gpio = StprSliderGPIO; 
+                validityID = 1; 
                 break;
             case StprFlaps :
                 stepper_gpio = StprFlapsGPIO; 
+                validityID = 2; 
                 break;
             default : 
                 printf("Error : not a stepper %d \n", stepperName); 
                 return; 
         }
-        pins->wait_for_gpio_value(stepper_gpio, 1, 10000); 
+        valids[validityID] = pins->wait_for_gpio_value(stepper_gpio, 1, 10000) == 0; 
     }   
 }
 
@@ -312,10 +316,10 @@ void Steppers::setup_all_speeds() {
     setup_speed(StprFlaps,200,300); 
 }
 
-void Steppers::calibrate_all(uint8_t blocking) {
-    calibrate(StprFlaps, blocking);
-    calibrate(StprPlate, blocking);
-    calibrate(StprSlider, blocking);
+void Steppers::calibrate_all(uint8_t blocking, uint8_t*valids = NULL) {
+    calibrate(StprFlaps, blocking, valids);
+    calibrate(StprPlate, blocking, valids);
+    calibrate(StprSlider, blocking, valids);
 }
 
 void Steppers::reset_all() {

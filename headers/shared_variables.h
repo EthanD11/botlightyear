@@ -71,6 +71,8 @@ public:
     storage_content_t storage[8]; // Storage of the robot, indices respect the order defined by storage_slot_t
     uint8_t nFreeSlots; // Number of free storage slots
 
+    uint8_t valids[6]; // SptrPlate, StprSlider, StprFlaps, dxl1, dxl2, lidarBottom
+
     SPIBus *spiBus;
     GPIOPins *pins;
     Steppers *steppers;

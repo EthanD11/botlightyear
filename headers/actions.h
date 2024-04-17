@@ -29,6 +29,7 @@ class Action {
         action_t action_type; 
         bool needs_path; 
         graph_path_t* path; 
+        uint8_t needs[6]; 
         Action(action_t type, bool needsPath, graph_path_t* graph_path) {
             action_type = type;
             needs_path = needsPath;

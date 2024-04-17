@@ -139,7 +139,7 @@ void init_and_wait_for_start() {
     if (pthread_create(&localizerID, NULL, localizer, NULL) != 0) exit(4);
 
     shared.steppers->reset_all();
-    shared.steppers->calibrate_all();
+    shared.steppers->calibrate_all(CALL_BLOCKING, shared.valids);
     shared.servoFlaps->raise();
     
     shared.start_timer();

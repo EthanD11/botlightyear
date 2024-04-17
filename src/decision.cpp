@@ -123,6 +123,13 @@ void decide_possible_actions() {
     }
 
 }
+bool check_validity(Action* action) {
+    if (action->needs_path && action->path == NULL) return false; 
+    for (uint8_t i=0; i<6; i++) {
+        if (action->needs[i]==1 && shared.valids[i]==0) return false; 
+    }
+    return true; 
+}
     
 Action* make_decision() {
     decide_possible_actions(); 
@@ -130,7 +137,7 @@ Action* make_decision() {
 
     for (uint8_t i=0; i<n_possible_actions; i++) {
         if (selected_action == NULL) {
-            if (possible_actions[i]->needs_path && possible_actions[i]->path == NULL) {
+            if (!check_validity(possible_actions[i])) {
                 delete possible_actions[i]; 
             } else {
                 selected_action = possible_actions[i];
