@@ -64,14 +64,14 @@ int main(int argc, char const *argv[])
     double kp = 0.8;
     double ka = 2.5;
     double kb = -0.5;
-    double kw = 2.0;
+    double kw = 5.0;
     teensy.set_position_controller_gains(kp, ka, kb, kw);
 
     double kt = 0.001;
-    double kn = 0.8; // 0 < kn <= 1
+    double kn = 0.5; // 0 < kn <= 1
     double kz = 25.0;
-    double delta = 80e-3; // delta is in meters
-    double sigma = 0.;
+    double delta = 100e-3; // delta is in meters
+    double sigma = 5.;
     double epsilon = M_PI/8; // epsilon is in radians
     double wn = 0.2; // Command filter discrete cutoff frequency
     double kv_en = 0.;
@@ -97,12 +97,12 @@ int main(int argc, char const *argv[])
     lguSleep(2);
 
     teensy.path_following(x, y, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
-    // lguSleep(0.2);
-    // while (teensy.ask_mode() != ModePositionControlOver) {
-    //     odo.get_pos(&xpos, &ypos, &thetapos);
-    //     teensy.set_position(xpos, ypos, thetapos);
-    //     lguSleep(0.5);
-    // }
+    lguSleep(0.2);
+    while (teensy.ask_mode() != ModePositionControlOver) {
+        odo.get_pos(&xpos, &ypos, &thetapos);
+        teensy.set_position(xpos, ypos, thetapos);
+        lguSleep(0.35);
+    }
     #endif
 
     #ifdef SET_POSITION
