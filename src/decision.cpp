@@ -74,7 +74,13 @@ void decide_possible_actions() {
     uint8_t currentNode = shared.graph->identify_pos(x_pos, y_pos, &dist_from_currentNode);
 
     #ifdef TESTS
-    possible_actions[0] = new ActionTest(); 
+    uint8_t target = 16;
+    path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+        if (path != NULL) {
+            path->thetaStart = theta_pos; 
+            path->thetaEnd = -M_PI/2;  
+        }
+    possible_actions[0] = new ActionSP(path, 3, true); 
     n_possible_actions = 1; 
     return;
     #endif
