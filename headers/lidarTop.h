@@ -14,7 +14,6 @@ typedef struct LidarData{
     double readLidar_a_opponent;
     bool readLidar_lost;
 
-
     ///toutes les données dans les coordonées tq balise en 0,0
     double x_robot;
     double y_robot;
@@ -34,8 +33,6 @@ typedef struct LidarData{
 
     // distance and angle of beacon and opponent from the previous data
     double * beaconAdv;
-
-
     int countObj_adv;
 
 

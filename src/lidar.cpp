@@ -56,7 +56,7 @@ double moduloLidarMPIPI(double angle) {
 
 void StartLidarTop(){
     ///  Create a communication channel instance
-    Result<IChannel*> _channel = createSerialPortChannel("/dev/ttyUSB1", 115200); //port série spécifié est "/dev/ttyUSB0" avec un débit de 115200 bps.
+    Result<IChannel*> _channel = createSerialPortChannel("/dev/ttyUSB0", 115200); //port série spécifié est "/dev/ttyUSB0" avec un débit de 115200 bps.
 
     if (_channel.err) {
         fprintf(stderr, "Failed to create communication channel\r\n");
