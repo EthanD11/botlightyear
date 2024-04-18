@@ -23,7 +23,7 @@ ASPathNodeSource source;
 Graph::Graph() {
     nNodes = -1;
     nodes = NULL;
-    pthread_rwlock_init(&lock, NULL);
+    if (pthread_rwlock_init(&lock, NULL) != 0) exit(1);
 }
 
 Graph::~Graph() {

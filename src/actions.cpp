@@ -2,7 +2,7 @@
 #include <cmath>
 #include <algorithm>
 
-//#define VERBOSE
+#define VERBOSE
 #include <stdio.h>
 
 uint8_t closer_in_path(graph_path_t *path, double xr, double yr)
@@ -51,26 +51,16 @@ int8_t path_following_to_action(graph_path_t *path)
     double *x = path->x;
     double *y = path->y;
     for (int i=0; i<ncheckpoints; i++) {
-         printf("Node %d : x :%.3f and y: %.3f \n", i, x[i], y[i]);
+        printf("Node %d : x :%.3f and y: %.3f \n", i, x[i], y[i]);
     }
     double theta_start = path->thetaStart;
     double theta_end = path->thetaEnd;
 
     double kp = 0.8;
-    double ka = 2.5;
-    double kb = -0.8;
-    double kw = 4.0;
+    double ka = 8;
+    double kb = -1.5;
+    double kw = 6.0;
     teensy->set_position_controller_gains(kp, ka, kb, kw);
-
-    double kt = 2.0;
-    double kn = 0.3; // 0 < kn <= 1
-    double kz = 25.0;
-    double delta = 20e-3; // delta is in meters
-    double sigma = 10;
-    double epsilon = M_PI / 8; // epsilon is in radians
-    double wn = 0.2;           // Command filter discrete cutoff frequency
-    double kv_en = 0.;
-    teensy->set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
 
     double xCurrent, yCurrent;
     shared.get_robot_pos(&xCurrent, &yCurrent, NULL);
@@ -80,8 +70,8 @@ int8_t path_following_to_action(graph_path_t *path)
     printf("First node theta : %.3f and current theta : %.3f \n", first_node_theta, theta_start);
     #endif
 
-    if (abs(first_node_theta - theta_start) > M_PI_4)
-    { //&& abs(first_node_theta - theta_start) < 3*M_PI_4
+    if (trigo_diff(first_node_theta, theta_start) > M_PI_4)
+    { 
         teensy->pos_ctrl(xCurrent, yCurrent, first_node_theta);
         #ifdef VERBOSE
         printf("Position control before PF to %.3f, %.3f, %.3f\n", xCurrent, yCurrent, first_node_theta);
@@ -94,17 +84,19 @@ int8_t path_following_to_action(graph_path_t *path)
     #ifdef VERBOSE
     printf("PF\n");
     #endif
-     for (int i=0; i<ncheckpoints; i++) {
-         printf("Node %d : x :%.3f and y: %.3f \n", i, x[i], y[i]);
+    for (int i=0; i<ncheckpoints; i++) {
+        printf("Node %d : x :%.3f and y: %.3f \n", i, x[i], y[i]);
     }
 
     teensy->path_following(x, y, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
 
     // Check Teensy mode
-    usleep(100000);
+    #ifdef VERBOSE
+    printf("Wait for Teensy ok\n");
+    #endif
+    while (teensy->ask_mode() == ModePositionControlOver || teensy->ask_mode() == ModeIdle) usleep(30000);
     while ((teensy->ask_mode()) != ModePositionControlOver)
     {
-
         // Get update on robot and adversary position
         double xr, yr, tr;
         shared.get_robot_pos(&xr, &yr, &tr);
@@ -139,7 +131,7 @@ int8_t path_following_to_action(graph_path_t *path)
             return -1;
         }
 
-        usleep(1000);
+        usleep(10000);
     }
 
     free(path);
@@ -155,7 +147,7 @@ int8_t action_position_control(double x_end, double y_end, double theta_end)
     // Set position control gains (see with Ethan?)
     double kp = 0.8;
     double ka = 2.5;
-    double kb = -0.5;
+    double kb = -1.0;
     double kw = 4.0;
     teensy->set_position_controller_gains(kp, ka, kb, kw);
 

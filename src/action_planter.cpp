@@ -134,7 +134,7 @@ void ActionPlanter::do_action() {
     if (nbPlants > 3) nbPlants = 3;
     state = PF;
     stateKC = PF;
-    pthread_create(&KCID, NULL, kinematic_chain, NULL);
+    if (pthread_create(&KCID, NULL, kinematic_chain, NULL) != 0) return;
 
     if (path_following_to_action(path)) return leave();
     double xPlanter, yPlanter, thetaPlanter;
