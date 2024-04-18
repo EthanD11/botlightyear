@@ -18,14 +18,17 @@ void take_plant_kinematicChain(int8_t slotNumber) {
     Teensy* teensy = shared.teensy; 
     Flaps* servoFlaps = shared.servoFlaps; 
 
+    double x_pos_init, y_pos_init, theta_pos_init; 
+    shared.get_robot_pos(&x_pos_init, &y_pos_init, &theta_pos_init);
 
+    //teensy->set_position(1.0,1.0,0);
     teensy->set_position_controller_gains(3.0,5.0,-0.8,4.0);
 
     servoFlaps->deploy();
     steppers->flaps_move(FlapsPlant, CALL_BLOCKING); 
     steppers->flaps_move(FlapsOpen);
     usleep(250000);
-    teensy->pos_ctrl(0.94,1.0,0); // Reverse 4 cm
+    teensy->pos_ctrl(x_pos_init-0.06*cos(theta_pos_init), y_pos_init-0.06*sin(theta_pos_init), theta_pos_init);
     usleep(200000);
     servoFlaps->raise();
 
@@ -38,7 +41,7 @@ void take_plant_kinematicChain(int8_t slotNumber) {
     holder->open_full();
 
     steppers->slider_move(SliderLow, CALL_BLOCKING);
-    teensy->pos_ctrl(1.0,1.0,0);
+    teensy->pos_ctrl(x_pos_init, y_pos_init, theta_pos_init);
     usleep(600000);
     holder->hold_plant();
     usleep(250000);
