@@ -62,7 +62,7 @@ void Steppers::move(steppers_t stepperName, uint32_t steps, uint8_t neg, uint8_t
     }
 }
 
-void Steppers::calibrate(steppers_t stepperName, uint8_t blocking, uint8_t*valids = NULL) {
+void Steppers::calibrate(steppers_t stepperName, uint8_t blocking, uint8_t*valids) {
     char request; 
     char calibDir;
     switch (stepperName) {
@@ -316,7 +316,7 @@ void Steppers::setup_all_speeds() {
     setup_speed(StprFlaps,200,300); 
 }
 
-void Steppers::calibrate_all(uint8_t blocking, uint8_t*valids = NULL) {
+void Steppers::calibrate_all(uint8_t blocking, uint8_t*valids) {
     calibrate(StprFlaps, blocking, valids);
     calibrate(StprPlate, blocking, valids);
     calibrate(StprSlider, blocking, valids);

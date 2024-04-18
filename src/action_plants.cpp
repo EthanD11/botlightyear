@@ -145,7 +145,7 @@ int8_t get_closest_plant_from_lidar(double x_pos, double y_pos, double theta_pos
         default : 
             zoneIdx = 0; 
             printf("Invalid plant zone !\n");
-            return; 
+            return -1; 
     }
     uint8_t plantCount = plantZone[zoneIdx]->numberPlant; 
     if (plantCount==0) {
@@ -171,7 +171,6 @@ void ActionPlants::do_action() {
     if (path_following_to_action(path) == -1) return; 
 
     double xpos, ypos, theta_pos; 
-    double x_plant, y_plant; 
     double xpos_initial, ypos_initial, theta_pos_initial; 
     shared.get_robot_pos(&xpos_initial, &ypos_initial, &theta_pos_initial);
     
