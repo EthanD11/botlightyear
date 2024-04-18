@@ -4,6 +4,7 @@
 #include "cameraTag.h"
 
 #include <pthread.h>
+#include <cmath>
 
 //#define VERBOSE
 
@@ -111,6 +112,11 @@ static void *kinematic_chain(void* argv) {
                         dxl_deploy(Up); 
                         dxl_reset_sp(); 
                         break; 
+                    
+                    case Position_Control: 
+                        dxl_deploy(Up); 
+                        dxl_reset_sp(); 
+                        break; 
                 
                     default:
                         break;
@@ -137,7 +143,29 @@ void ActionSP::do_action() {
     stateKC = Path_Following;
     if (pthread_create(&KCID, NULL, kinematic_chain, &sp_counter) != 0) return;
 
+    // Set path following from path planning (decision)
+    int ncheckpoints = (int)path->nNodes;
+    double *x = path->x;
+    double *y = path->y;
+    for (int i=0; i<ncheckpoints; i++) {
+        printf("Node %d : x :%.3f and y: %.3f \n", i, x[i], y[i]); }
+    double theta_start = path->thetaStart;
+    double theta_end = path->thetaEnd;
+
     if (path_following_to_action(path)) return leave(); 
+
+    //double step;
+    if (path->target == 15) {
+        double x16 = 1.780;
+        double y16 = 1.725;
+        //step = -22.5e-2; 
+        if (action_position_control(x16, y16, -M_PI_2)) return leave();
+    } else if (path->target == 37) {
+        double x27 = 1.780;
+        double y27 = 1.275; 
+        //step = 22.5e-2; 
+        if (action_position_control(x27, y27, -M_PI_2)) return leave();
+    }
 
     #ifdef VERBOSE
     printf("SP do_action: Successfull Path Following\n"); 
@@ -172,7 +200,8 @@ void ActionSP::do_action() {
         shared.get_robot_pos(&x, &y, &theta); 
 
         //TODO Variable Sens
-        yend = y-22.5e-2; 
+        yend = y-22.5e-2;
+        //yend = y+step; 
 
         #ifdef VERBOSE
         printf("SP do_action: robot position = (%.3f, %.3f, %.3f)\n SP do_action: yend = %.3f\n", x, y, theta, yend); 
