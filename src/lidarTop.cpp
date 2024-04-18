@@ -29,7 +29,7 @@ bool analyseRotationBalise = false;
 
 ///précision pour le déplacement effectué-> permet d'etre augmenté si on est perdu
 double precisionPredef = 0.25;
-
+double precisionAngle = 90.0/180.0*M_PI;
 
 ///décalage balise et coin de la table (x_reel = x_B3 + delta)
 double deltaXB3 = 0.05;
@@ -748,10 +748,8 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
                             printf("std::abs(lidarData->y_robot - oldYRobot) < precision = %d\n", std::abs(lidarData->y_robot - oldYRobot) < precision);
                             printf("lidarData-orientation_robot %f\n", lidarData->orientation_robot);
                             printf("OldOrientationRobot %f\n", oldOrientationRobot);
-                            printf("std::abs(lidarData->orientation_robot - oldOrientationRobot) < 90.0/180.0*M_PI) = %d\n", fabs(moduloLidarMPIPI(lidarData->orientation_robot - oldOrientationRobot)) < 90.0/180.0*M_PI);
-                            
-                            
-                            printf("balises d= %f a=%f\nd= %f a= %f \n d= %f a= %f", dObj[b1], aObj[b1]*180.0/M_PI,dObj[b2], aObj[b2]*180.0/M_PI,dObj[b3], aObj[b3]*180.0/M_PI );
+                            printf("std::abs(lidarData->orientation_robot - oldOrientationRobot) < 90.0/180.0*M_PI) = %d\n", fabs(moduloLidarMPIPI(lidarData->orientation_robot - oldOrientationRobot)) < 60.0/180.0*M_PI);
+                            printf("balises d= %f a=%f\nd= %f a= %f \n d= %f a= %f", dObj[b1], aObj[b1]*180.0/M_PI,dObj[b2], aObj[b2]*180.0/M_PI,dObj[b3], aObj[b3]*180.0/M_PI);
                             
                             printf("\n");
                             
@@ -763,7 +761,7 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
                                 (fullScan || (
                                     (std::abs(lidarData->x_robot - oldXRobot) < precision) &&
                                     (std::abs(lidarData->y_robot - oldYRobot) < precision) &&
-                                    (std::abs(lidarData->orientation_robot - oldOrientationRobot) < 20.0/180.0*M_PI))
+                                    (std::abs(moduloLidarMPIPI(lidarData->orientation_robot )- oldOrientationRobot) < precisionAngle))
                                 )) 
                                 {
                                 /// we save the number of elements that could possibly be beacon (opponent)
@@ -824,9 +822,9 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
 
 void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool fromOdo) {
         if(premierScan){
-        lidarData->x_odo = 0.9;
-        lidarData->y_odo = 2.9;
-        lidarData->theta_odo = -M_PI/2.0;
+        lidarData->x_odo = 2.0-0.9;
+        lidarData->y_odo = 3.0-2.9;
+        lidarData->theta_odo = moduloLidarMPIPI(-120.0/180.0*M_PI-M_PI);
     }//DOELELELlelellelelel    lidarData->readLidar_lost = false;
     lidarData->old_transfo_x = lidarData->x_adv;
     lidarData->old_transfo_y = lidarData->y_adv;
@@ -839,7 +837,7 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
     //TODO TEEEEEEEEEEEEEEEEEEEEEEEST AAAAAAAAAAAAAAH   
     //fullScanPcqLost = true;
     //if (shared.color == TeamBlue) {
-    if (true){
+    if (false){
         lidarData->orientation_robot = lidarData->theta_odo;
         lidarData->x_robot = lidarData->x_odo + 0.1 * cos(lidarData->orientation_robot) + deltaXB3;
         lidarData->y_robot = lidarData->y_odo + 0.1 * sin(lidarData->orientation_robot) + deltaYB3+0.2;//TODO PAULINE
@@ -886,7 +884,7 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
     if (!lidarData->readLidar_lost) {
         //2 des positions pour être centré au niveau des roues sauf la distance et l'angle de l'adversaire
         //if (shared.color == TeamBlue) {
-        if (true){
+        if (false){
             lidarData->readLidar_x_robot = lidarData->x_robot - 0.1 * cos(lidarData->orientation_robot) + deltaXB3;
             lidarData->readLidar_y_robot = lidarData->y_robot - 0.1 * sin(lidarData->orientation_robot) + deltaYB3;
             lidarData->readLidar_theta_robot = moduloLidarMPIPI(lidarData->orientation_robot);
@@ -922,7 +920,7 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
             lidarData->readLidar_d_opponent = lidarData->d_adv;
             lidarData->readLidar_a_opponent = lidarData->a_adv;
             //if (shared.color == TeamBlue) {
-            if (true){
+            if (false){
                 lidarData->readLidar_x_opponent = lidarData->x_adv + deltaXB3;
                 lidarData->readLidar_y_opponent = lidarData->y_adv + deltaYB3;;
             }
