@@ -30,6 +30,9 @@ all: main.cpp $(SOURCES_OBJ)
 run: all
 	@./exe_botlightyear
 
+valgrind: all
+	@valgrind --leak-check=yes --track-origins=yes ./exe_botlightyear
+
 #Create the OBJ_DIR directory
 $(OBJ_DIR):
 	@mkdir -p $(OBJ_DIR)
@@ -77,6 +80,10 @@ camera_program:
 
 lidarTop: lidarTop_program 
 	@./bin/lidarTop 
+	@rm ./bin/lidarTop 
+
+val_lidarTop: lidarTop_program 
+	@valgrind --leak-check=yes --track-origins=yes ./bin/lidarTop 
 	@rm ./bin/lidarTop 
  
 # Run the lidar program 
