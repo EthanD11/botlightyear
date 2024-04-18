@@ -730,7 +730,7 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
                                 precision *= 2;
                             }
                             //TODO CHECK tableX tableY
-                            printf("precision : %f\n",precision);
+                            /*printf("precision : %f\n",precision);
                             printf(" old : %f %f \n", oldXRobot, oldYRobot);
                             printf("table x : %f %f\n", minTableX, tableX);
                             printf("table Y : %f %f \n", minTableY, tableY);
@@ -752,7 +752,7 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
                             printf("std::abs(lidarData->orientation_robot - oldOrientationRobot) < 90.0/180.0*M_PI) = %d\n", fabs(moduloLidarMPIPI(lidarData->orientation_robot - oldOrientationRobot)) < 60.0/180.0*M_PI);
                             printf("balises d= %f a=%f\nd= %f a= %f \n d= %f a= %f", dObj[b1], aObj[b1]*180.0/M_PI,dObj[b2], aObj[b2]*180.0/M_PI,dObj[b3], aObj[b3]*180.0/M_PI);
                             
-                            printf("\n");
+                            printf("\n");*/
                             
                             if (
                                 (lidarData->x_robot > minTableX) && 
@@ -766,7 +766,6 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
                                 )) 
                                 {
                                 /// we save the number of elements that could possibly be beacon (opponent)
-                                printf("found\n\n");
                                 lidarData->countObj_adv = countObj_adv;
                                 Adversary(aObj_adv, dObj_adv, lidarData);
 
@@ -852,8 +851,7 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
 
     //TODO TEEEEEEEEEEEEEEEEEEEEEEEST AAAAAAAAAAAAAAH   
 
-    //updateDataTop(angles, distances, quality, as);
-    updateDataFile(angles, distances,quality,"test6.txt", as);
+    updateDataTop(angles, distances, quality, as);
     //updateDataFile(angles, distances, quality, "DataTest/DataP/testLidarMobile/" + std::to_string(i), as);
     arraySize = as[0];
     if (fromOdo) {

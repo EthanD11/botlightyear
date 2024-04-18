@@ -174,7 +174,6 @@ void *localizer(void* arg) {
     double x, y, theta;
     double odoWeight = 1.0;
     shared.get_robot_pos(&lidarData->x_odo, &lidarData->y_odo, &lidarData->theta_odo);
-    int pau = 6;
     while (!localizerEnd) {
 
         teensy_mode_t teensyMode = shared.teensy->ask_mode();
@@ -226,12 +225,7 @@ void *localizer(void* arg) {
         printf("                    %.3f %.3f %.3f   %.3f %.3f\n", lidarData->readLidar_x_robot, lidarData->readLidar_y_robot, lidarData->readLidar_theta_robot*180/M_PI, lidarData->readLidar_d_opponent,lidarData->readLidar_a_opponent*180.0/M_PI);
         printf("                    Adversary at %.3f %.3f\n", lidarData->readLidar_x_opponent,lidarData->readLidar_y_opponent);
         printf("odometry : %.3f %.3f %.3f\n", x, y, theta*180/M_PI);
-        //TODO PAULINE
-        if (abs(lidarData->readLidar_x_opponent-0.8)>0.2 && abs(lidarData->readLidar_y_opponent-1)>0.2){
-            DataToFileTop("test"+std::to_string(pau)+".txt");
-            pau++;
-            printf("distance et angle %f %f\n", lidarData->d_adv, lidarData->a_adv*180/M_PI);
-        }
+
 
 
 
