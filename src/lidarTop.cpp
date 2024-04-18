@@ -1,6 +1,6 @@
 #include "lidarTop.h"
 #include <chrono>
-//#include "shared_variables.h"
+#include "shared_variables.h"
 
 ///facteur si mouvent brusque
 int facteurLost = 1;
@@ -23,6 +23,7 @@ double dref2 = sqrt((0.95) * (0.95) + (1.594 * 2) * (2 * 1.594));
 double largeurMatBalise = 0.1;//TODO modif remettre 0.065
 double largeurMatAdvers = 0.22;
 
+///utile pour des prints
 bool analyseDetail = false;
 bool analyseDetail_objet = false;
 bool analyseRotationBalise = false;
@@ -35,10 +36,10 @@ double precisionAngle = 90.0/180.0*M_PI;
 double deltaXB3 = 0.05;
 double deltaYB3 = -0.09;
 
-
+///dimension de la table
 double tableX = 2.1;
 double tableY = 3.1;
-double mintableX = -0.1;
+double minTableX = -0.1;
 double minTableY = 0.01;
 
 
@@ -731,14 +732,14 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
                             //TODO CHECK tableX tableY
                             printf("precision : %f\n",precision);
                             printf(" old : %f %f \n", oldXRobot, oldYRobot);
-                            printf("table x : %f %f\n", mintableX, tableX);
+                            printf("table x : %f %f\n", minTableX, tableX);
                             printf("table Y : %f %f \n", minTableY, tableY);
                             printf("estimation : %f %f\n\n", lidarData->x_robot, lidarData->y_robot);
                             printf("%d fullscan\n", fullScan);
-                            printf("%d %d %d %d %d %d\n", (lidarData->x_robot > mintableX) , (lidarData->x_robot < tableX), (lidarData->y_robot > minTableY) ,(lidarData->y_robot < tableY),(std::abs(lidarData->x_robot - oldXRobot) < precision), std::abs(lidarData->y_robot - oldYRobot) < precision);
+                            printf("%d %d %d %d %d %d\n", (lidarData->x_robot > minTableX) , (lidarData->x_robot < tableX), (lidarData->y_robot > minTableY) ,(lidarData->y_robot < tableY),(std::abs(lidarData->x_robot - oldXRobot) < precision), std::abs(lidarData->y_robot - oldYRobot) < precision);
                             printf("%d \n\n\n", std::abs(lidarData->orientation_robot - oldOrientationRobot) < 60.0/180.0*M_PI);
 
-                            printf("lidarData->x_robot > mintableX = %d\n", lidarData->x_robot > mintableX); 
+                            printf("lidarData->x_robot > minTableX = %d\n", lidarData->x_robot > minTableX); 
                             printf("lidarData->x_robot < tableX = %d\n", lidarData->x_robot < tableX); 
                             printf("lidarData->y_robot > minTableY = %d\n", lidarData->y_robot > minTableY);
                             printf("lidarData->y_robot < tableY = %d\n", lidarData->y_robot < tableY); 
@@ -754,7 +755,7 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
                             printf("\n");
                             
                             if (
-                                (lidarData->x_robot > mintableX) && 
+                                (lidarData->x_robot > minTableX) && 
                                 (lidarData->x_robot < tableX) && 
                                 (lidarData->y_robot > minTableY) &&
                                 (lidarData->y_robot < tableY) && 
