@@ -87,7 +87,7 @@ void decide_possible_actions() {
     
     possible_actions[0] = new ActionDisplacement(path); */
 
-    uint8_t target = 16;
+    uint8_t target = 15;
     path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
     if (path != NULL) {
         path->thetaStart = theta_pos; 
