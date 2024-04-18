@@ -9,13 +9,25 @@ double plant_grab_dist = 0.265;
 double plant_approach_angle = M_PI/3; 
 double away_distance = 0.1; 
 /*
-WARNING : TO BE TESTED FIRST
 Takes plant and puts it to the plate storage specified
 */
 void take_plant_kinematicChain(int8_t slotNumber) {
     GripperHolder* holder = shared.grpHolder; 
     GripperDeployer* deployer = shared.grpDeployer; 
     Steppers* steppers = shared.steppers; 
+    Teensy* teensy = shared.teensy; 
+    Flaps* servoFlaps = shared.servoFlaps; 
+
+
+    teensy->set_position_controller_gains(3.0,5.0,-0.8,4.0);
+
+    servoFlaps->deploy();
+    steppers->flaps_move(FlapsPlant, CALL_BLOCKING); 
+    steppers->flaps_move(FlapsOpen);
+    usleep(250000);
+    teensy->pos_ctrl(0.94,1.0,0); // Reverse 4 cm
+    usleep(200000);
+    servoFlaps->raise();
 
     steppers->slider_move(SliderHigh, CALL_BLOCKING);
     deployer->half(); 
@@ -25,26 +37,31 @@ void take_plant_kinematicChain(int8_t slotNumber) {
 
     holder->open_full();
 
-    steppers->slider_move(SliderLow, CALL_BLOCKING); 
-
+    steppers->slider_move(SliderLow, CALL_BLOCKING);
+    teensy->pos_ctrl(1.0,1.0,0);
+    usleep(600000);
     holder->hold_plant();
+    usleep(250000);
 
-    steppers->slider_move(SliderHigh, CALL_BLOCKING);
     deployer->half(); 
-
+    steppers->slider_move(SliderHigh, CALL_BLOCKING);
     steppers->plate_move(slotNumber, CALL_BLOCKING); 
 
     
-    steppers->slider_move(SliderStorage, CALL_BLOCKING);
+    steppers->slider_move(SliderStorage);
+    usleep(450000);
     deployer->deploy(); 
-    usleep(100000);
+    usleep(300000);
     holder->open_full();
-    usleep(100000);
+    usleep(200000);
 
+    deployer->half();
     steppers->slider_move(SliderHigh, CALL_BLOCKING); 
+    steppers->plate_move(0, CALL_BLOCKING); 
 
     holder->idle();
     deployer->idle();
+    teensy->set_position_controller_gains(0.8,2.5,-0.8,4.0);
 }
 
 /**
