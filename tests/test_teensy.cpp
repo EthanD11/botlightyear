@@ -97,11 +97,11 @@ int main(int argc, char const *argv[])
 
     teensy.path_following(x, y, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
     lguSleep(0.2);
-    while (teensy.ask_mode() != ModePositionControlOver) {
-        odo.get_pos(&xpos, &ypos, &thetapos);
-        teensy.set_position(xpos, ypos, thetapos);
-        lguSleep(0.5);
-    }
+    // while (teensy.ask_mode() != ModePositionControlOver) {
+    //     odo.get_pos(&xpos, &ypos, &thetapos);
+    //     teensy.set_position(xpos, ypos, thetapos);
+    //     lguSleep(0.5);
+    // }
     #endif
 
     #ifdef SET_POSITION

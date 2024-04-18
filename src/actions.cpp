@@ -176,7 +176,7 @@ int8_t path_following_to_action(graph_path_t *path)
             #endif
             teensy->idle();
             free(path);
-            sleep(1);
+            sleep(5);
             return -1;
         }
 

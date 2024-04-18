@@ -934,12 +934,11 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
     //}
     fullScanPcqLost = false;    
     premierScan=false;
-    for (size_t i = 0; i < 6; i+=2)
+    /*for (size_t i = 0; i < 6; i+=2)
     {
-        /* code */
         printf("%f %f ",lidarData->beaconAdv[i],lidarData->beaconAdv[i]*180/M_PI  );
 
-    }
+    }*/
     
       
 }
