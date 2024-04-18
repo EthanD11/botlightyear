@@ -324,7 +324,7 @@ int foundAdvWithOdo(double *anglesAdv, double *distancesAdv, LidarData *lidarDat
         }
     }
     /// We haven't found the opponent, by default the coordinates remain in 0
-    return (ytemp==6);
+    return (yold==6);
 }
 
 /**
@@ -850,7 +850,6 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
         lidarData->readLidar_lost=true;
     }
     fullScanPcqLost = false;
-    //TODO eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
       
 }
 
