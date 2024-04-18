@@ -137,8 +137,8 @@ void init_and_wait_for_start() {
     double kt = 0.001;
     double kn = 0.5; // 0 < kn <= 1
     double kz = 20.0;
-    double delta = 100e-3; // delta is in meters
-    double sigma = 2.;
+    double delta = 80e-3; // delta is in meters
+    double sigma = 0.;
     double epsilon = M_PI/8; // epsilon is in radians
     double wn = 0.2; // Command filter discrete cutoff frequency
     double kv_en = 0.;
@@ -212,10 +212,10 @@ void *localizer(void* arg) {
         shared.set_robot_pos(x,y,theta);
         if (!lidarData->readLidar_lost) { 
             shared.set_adv_pos(
-            lidarData->readLidar_x_opponent,
-            lidarData->readLidar_y_opponent,
-            lidarData->readLidar_d_opponent,
-            lidarData->a_adv);
+                lidarData->readLidar_x_opponent,
+                lidarData->readLidar_y_opponent,
+                lidarData->readLidar_d_opponent,
+                lidarData->a_adv);
             shared.graph->update_adversary_pos(lidarData->readLidar_x_opponent, lidarData->readLidar_y_opponent);
         }
         lidarData->x_odo = x; lidarData->y_odo = y; lidarData->theta_odo = theta;
@@ -252,6 +252,7 @@ int main(int argc, char const *argv[])
     // ----- GAME -----
     uint8_t gameFinished;
     do {
+
         Action* decided_action = make_decision();
         printf("Action type : %d\n", decided_action->action_type);
         double x, y, theta;
