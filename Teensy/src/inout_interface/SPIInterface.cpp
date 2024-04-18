@@ -50,7 +50,9 @@ void __spi_receive_event() {
 		int i = __spi_interface->i;
 		data = mySPI->popr();
 		data_buffer[i] = data;
-        
+        #ifdef VERBOSE
+        printf("i = %d\n", i);
+        #endif
 		if (i == 0) {
 			__spi_interface->query = (query_t) data;
             #ifdef VERBOSE

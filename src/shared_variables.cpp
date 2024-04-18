@@ -9,8 +9,8 @@ pthread_rwlock_t robotPosLock, advPosLock;
 
 SharedVariables::SharedVariables()
 {
-    pthread_rwlock_init(&robotPosLock, NULL);
-    pthread_rwlock_init(&advPosLock, NULL);
+    if (pthread_rwlock_init(&robotPosLock, NULL) != 0) exit(1);
+    if (pthread_rwlock_init(&advPosLock, NULL) != 0) exit(1);
 
     color = NoTeam;
     score = 0;

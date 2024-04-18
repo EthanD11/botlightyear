@@ -13,6 +13,7 @@ typedef enum _action : uint8_t
     GameFinished,
     ReturnToBase,
     Displacement,
+    BackManoeuvre,
     TakePlants,
     TakePots,
     TurnSP,

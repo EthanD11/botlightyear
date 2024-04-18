@@ -273,19 +273,22 @@ void loop() {
     // printf("isl = %.5e\n", speed_regulator->isl);
     // printf("isr = %.5e\n", speed_regulator->isr);
 
-    // switch (mode) {
-    //   case ModePathFollowing:
-    //     printf("et = %.5e\n", path_follower->et);
-    //     printf("en = %.5e\n", path_follower->en);
-    //     printf("z = %.5e\n", path_follower->z);
-    //     break;
+    switch (mode) {
+      case ModePathFollowing:
+        printf("xref = %.5e\n", path_follower->xref);
+        printf("yref = %.5e\n", path_follower->yref);
+        printf("qref = %.5e\n", path_follower->qref);
+        printf("et = %.5e\n", path_follower->et);
+        printf("en = %.5e\n", path_follower->en);
+        printf("z = %.5e\n", path_follower->z);
+        break;
 
-    //   default:
-    //     printf("et = NaN\n");
-    //     printf("en = NaN\n");
-    //     printf("z = NaN\n");
-    //     break;
-    // }
+      default:
+        printf("et = NaN\n");
+        printf("en = NaN\n");
+        printf("z = NaN\n");
+        break;
+    }
 
     switch (mode) {
       case ModePathFollowing:
@@ -304,8 +307,8 @@ void loop() {
         break;
 
       default:
-        printf("ref_speedl = NaN\n");
-        printf("ref_speedr = NaN\n");
+        printf("vref = NaN\n");
+        printf("omega_ref = NaN\n");
         break;
     }
     

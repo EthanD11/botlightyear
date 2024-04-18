@@ -6,7 +6,7 @@
 
 //#define VERBOSE
 
-#define SPI_CLK_FREQ 5000000
+#define SPI_CLK_FREQ 1000000
 #define SPI_MODE_DEFAULT 0
 
 pthread_mutex_t mutex;
@@ -17,7 +17,7 @@ SPIBus::SPIBus() {
     #endif
     DE0_handle = lgSpiOpen(0, 1, SPI_CLK_FREQ, SPI_MODE_DEFAULT);
     Teensy_handle = lgSpiOpen(0, 0, SPI_CLK_FREQ, SPI_MODE_DEFAULT);
-    if (pthread_mutex_init(&mutex,NULL) < 0 || DE0_handle < 0 || Teensy_handle < 0) exit(-1);
+    if (pthread_mutex_init(&mutex,NULL) != 0 || DE0_handle < 0 || Teensy_handle < 0) exit(-1);
     int test_res = test();
     if (test_res != 0) exit(test_res);
 }

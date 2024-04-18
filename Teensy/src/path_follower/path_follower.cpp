@@ -10,16 +10,16 @@ PathFollower* init_path_follower() {
     PathFollower *path_follower = (PathFollower *) malloc(sizeof(PathFollower));
     path_follower->speed_refl = 0;
     path_follower->speed_refr = 0;
-    path_follower->kt = 0.01;
-    path_follower->kn = 0.95; // 0 < kn <= 1
+    path_follower->kt = 0.001;
+    path_follower->kn = 0.5; // 0 < kn <= 1
     path_follower->kz = 25.0;
-    path_follower->delta = 80e-3; // delta is in meters
-    path_follower->sigma = .0;
+    path_follower->delta = 100e-3; // delta is in meters
+    path_follower->sigma = 5.;
     path_follower->epsilon = M_PI/8; // epsilon is in radians
-    path_follower->wn = 0.25; // Command filter discrete cutoff frequency
+    path_follower->wn = 0.2; // Command filter discrete cutoff frequency
     path_follower->kv_en = 0.; // 
-    path_follower->vref = 0.;
-    path_follower->dist_goal_reached = 0.2;
+    path_follower->vref = 0.15;
+    path_follower->dist_goal_reached = 0.3;
 
     path_follower->et = 0; // for print in main loop
     path_follower->en = 0;// for print in main loop

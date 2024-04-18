@@ -4,8 +4,9 @@
 #include "cameraTag.h"
 
 #include <pthread.h>
+#include <cmath>
 
-#define VERBOSE
+//#define VERBOSE
 
 #ifdef VERBOSE
 #include <stdio.h>
@@ -44,7 +45,7 @@ static void *kinematic_chain(void* argv) {
     team_color_t team = shared.color; 
 
     // Reset wheel, just to be sure :)
-    dxl_init_sp(); 
+    dxl_reset_sp(); 
 
     while(1) {
 
@@ -90,7 +91,7 @@ static void *kinematic_chain(void* argv) {
 
                 #ifdef VERBOSE
                 printf("SP Thread sp_counter: %d\n", sp_counter); 
-                #endif:
+                #endif
 
                 break; 
             
@@ -103,11 +104,16 @@ static void *kinematic_chain(void* argv) {
 
             default: // Abort or End
                 #ifdef VERBOSE
-                printf("SP Thread: Abord, End\n"); 
+                printf("SP Thread: Abort, End\n"); 
                 #endif
 
                 switch (stateKC) {
                     case Solar_Panel: 
+                        dxl_deploy(Up); 
+                        dxl_reset_sp(); 
+                        break; 
+                    
+                    case Position_Control: 
                         dxl_deploy(Up); 
                         dxl_reset_sp(); 
                         break; 
@@ -135,9 +141,31 @@ void ActionSP::do_action() {
 
     state = Path_Following;
     stateKC = Path_Following;
-    pthread_create(&KCID, NULL, kinematic_chain, &sp_counter);
+    if (pthread_create(&KCID, NULL, kinematic_chain, &sp_counter) != 0) return;
+
+    // Set path following from path planning (decision)
+    int ncheckpoints = (int)path->nNodes;
+    double *x = path->x;
+    double *y = path->y;
+    for (int i=0; i<ncheckpoints; i++) {
+        printf("Node %d : x :%.3f and y: %.3f \n", i, x[i], y[i]); }
+    double theta_start = path->thetaStart;
+    double theta_end = path->thetaEnd;
 
     if (path_following_to_action(path)) return leave(); 
+
+    //double step;
+    if (path->target == 15) {
+        double x16 = 1.780;
+        double y16 = 1.725;
+        //step = -22.5e-2; 
+        if (action_position_control(x16, y16, -M_PI_2)) return leave();
+    } else if (path->target == 37) {
+        double x27 = 1.780;
+        double y27 = 1.275; 
+        //step = 22.5e-2; 
+        if (action_position_control(x27, y27, -M_PI_2)) return leave();
+    }
 
     #ifdef VERBOSE
     printf("SP do_action: Successfull Path Following\n"); 
@@ -171,12 +199,9 @@ void ActionSP::do_action() {
         double yend; 
         shared.get_robot_pos(&x, &y, &theta); 
 
-        if (team == TeamBlue) { 
-            yend = y-(22.5e-2); 
-        }
-        else if (team == TeamYellow) {
-            yend = y+(22.5e-2); 
-        }
+        //TODO Variable Sens
+        yend = y-22.5e-2;
+        //yend = y+step; 
 
         #ifdef VERBOSE
         printf("SP do_action: robot position = (%.3f, %.3f, %.3f)\n SP do_action: yend = %.3f\n", x, y, theta, yend); 

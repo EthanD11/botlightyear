@@ -83,7 +83,7 @@ int main(int argc, char const *argv[])
     // double y[5] = {1.5,1.5};
     double theta_start = 0.;
     double theta_end = M_PI;
-    double vref = 0.3;
+    double vref = 0.25;
     double dist_goal_reached = 0.5;
 
     double xpos, ypos, thetapos;

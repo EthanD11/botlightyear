@@ -58,7 +58,7 @@ void update_localization(RobotPosition *robot_position)
     tick_right = enc_r->read();
     dtick_left = tick_left - robot_position->old_tick_left;
     dtick_right = tick_right - robot_position->old_tick_right;
-
+    
     delta_left  = ((double) dtick_left)*TICKS_TO_M;
     delta_right = ((double) dtick_right)*TICKS_TO_M;
     robot_position->old_tick_left = tick_left;
