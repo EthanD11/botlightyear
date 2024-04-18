@@ -189,6 +189,9 @@ void decide_possible_actions() {
     // Early part of the game : actions with plants
     int8_t current_plant_count = get_content_count(ContainsWeakPlant); 
     if (current_plant_count ==0) { // Go take plants quicc
+        for(uint8_t i = 0; i<6; i++) {
+            shared.graph->update_obstacle(shared.graph->plants[i], 0); 
+        }
         path = shared.graph->compute_path(x_pos, y_pos, shared.graph->plants, 6); 
         if (path != NULL) {
             path->thetaStart = theta_pos; 
@@ -196,6 +199,11 @@ void decide_possible_actions() {
         }
         possible_actions[0] = new ActionPlants(path,6); // Plant number "could" be modulated with time 
         n_possible_actions = 1; 
+
+
+        for(uint8_t i = 0; i<6; i++) {
+            shared.graph->update_obstacle(shared.graph->plants[i], 1); 
+        }
         return; 
     } else {
         uint8_t i=0; 
