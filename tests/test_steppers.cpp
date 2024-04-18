@@ -11,7 +11,7 @@
 //#define SETUP_CUSTOM_SPEED_NEW
 //#define DEMO_S6
 #define PLANTER
-#define TESTS
+//#define TESTS
 
 SPIBus spi_bus = SPIBus();
 GPIOPins pins = GPIOPins(); 
@@ -191,6 +191,10 @@ void demoPlate(){
 
 int main(int argc, char const *argv[])
 {
+    steppers->setup_all_speeds(); 
+    steppers->reset_all(); 
+
+    steppers->calibrate_all(CALL_BLOCKING); 
     #ifdef TESTS
 
     // holder->idle();
@@ -222,11 +226,8 @@ int main(int argc, char const *argv[])
     // steppers->slider_move(SliderDepositPot, CALL_BLOCKING);
     // steppers->slider_move(SliderHigh, CALL_BLOCKING); 
     printf("Go ! \n");
-    teensy->set_position(1.0,1.0,0);
-    steppers->setup_all_speeds(); 
-    steppers->reset_all(); 
-
-    steppers->calibrate_all(CALL_BLOCKING); 
+    //teensy->set_position(1.0,1.0,0);
+    
 
     // deployer->deploy();
     // holder->hold_plant();
@@ -256,6 +257,13 @@ int main(int argc, char const *argv[])
     deployer->half();
     steppers->plate_move(0, CALL_BLOCKING);
     deployer->deploy();
+
+    getchar();
+
+    steppers->slider_move(SliderIntermediateLow, CALL_BLOCKING);
+    holder->open_full();
+    deployer->half();
+    steppers->slider_move(SliderHigh);
 
     
 

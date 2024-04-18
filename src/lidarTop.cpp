@@ -37,7 +37,7 @@ double deltaYB3 = -0.09;
 
 double tableX = 2.0;
 double tableY = 2.9;
-double mintableX = 0.0;
+double mintableX = 0.1;
 double minTableY = 0.1;
 
 
