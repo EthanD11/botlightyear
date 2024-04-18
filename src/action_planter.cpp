@@ -58,6 +58,10 @@ static void *kinematic_chain(void *args) {
             break;
 
         case Get: // Get next plant in plate
+            if (stateKC == Clear) {
+                steppers->flaps_move(FlapsOpen, CALL_BLOCKING);
+                servoFlaps->raise();
+            }
             stateKC = Get;
             slotID = get_next_unloaded_slot_ID(ContainsWeakPlant);
             if (slotID == SlotInvalid) slotID = get_next_unloaded_slot_ID(ContainsStrongPlant);
@@ -88,7 +92,7 @@ static void *kinematic_chain(void *args) {
             steppers->slider_move(SliderIntermediateLow, CALL_BLOCKING);
             grpHolder->open_full();
             stateKC = Drop;
-            shared.score += 3 + ((toDrop & ContainsPot) == ContainsPot) + ((toDrop & ContainsWeakPlant) == ContainsWeakPlant);
+            shared.score += 4 + ((toDrop & ContainsPot) == ContainsPot);
             grpDeployer->half();
             steppers->slider_move(SliderHigh);
             break;
@@ -134,14 +138,13 @@ void ActionPlanter::do_action() {
     if (nbPlants > 3) nbPlants = 3;
     state = PF;
     stateKC = PF;
-    pthread_create(&KCID, NULL, kinematic_chain, NULL);
+    if (pthread_create(&KCID, NULL, kinematic_chain, NULL) != 0) return;
 
-    if (path_following_to_action(path)) return leave();
     double xPlanter, yPlanter, thetaPlanter;
-    double x, y, theta;
     xPlanter = path->x[path->nNodes];
     yPlanter = path->y[path->nNodes];
     thetaPlanter = path->thetaEnd;
+    if (path_following_to_action(path)) return leave();
 
     if (needsPotClear) {
         state = Clear;

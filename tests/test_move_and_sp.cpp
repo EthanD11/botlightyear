@@ -18,7 +18,7 @@ int main(int argc, char const *argv[]) {
     dxl_ping(6, 1.0);
     dxl_ping(8, 1.0);
 
-    solar_panel(Blue, 0);
+    solar_panel(TeamBlue, 0); 
 
     usleep(500000);
 
@@ -65,8 +65,27 @@ int main(int argc, char const *argv[]) {
         lguSleep(0.3);
     } while(abs(xpos-x[1]) > 0.01); 
 
-    lguSleep(2.0);
-    solar_panel(Blue, 0);
+    lguSleep(3.0);
+    solar_panel(TeamBlue, 0);
+    
+    double xx, yy, tt; 
+    odo.get_pos(&xx, &yy, &tt); 
+    teensy.set_position(xx, yy, tt); 
+
+    // Orientation with position control
+    teensy.pos_ctrl(xx+22.5e-2, yy, 0);
+    lguSleep(0.1);
+
+    // Reset teensy estimated position with odometry
+    do {
+        odo.get_pos(&xpos, &ypos, &thetapos);
+        teensy.set_position(xpos, ypos, thetapos);
+        printf("%.3f,%.3f,%.3f\n",xpos, ypos, thetapos);
+        lguSleep(0.3);
+    } while(abs(xpos-(xx+22.5e-2)) > 0.01); 
+
+    lguSleep(3.0);
+    solar_panel(TeamBlue, 0);
 
     dxl_close_port();
 

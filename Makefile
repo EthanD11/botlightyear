@@ -75,7 +75,13 @@ camera_program:
 	@g++ ./src/cameraTag.cpp -o ./bin/camera -lpthread -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_aruco -lopencv_videoio -lopencv_imgcodecs -I$(HEADERS_DIR)
 #@g++ ./src/cameraTag.cpp -o ./bin/camera.o -lpthread -I/usr/include/opencv4 -I/path/to/raspicam/include -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_aruco -lopencv_videoio -L/usr/local/lib -L/path/to/raspicam/lib -lraspicam -lraspicam_cv
 
-
+lidarTop: lidarTop_program 
+	@./bin/lidarTop 
+	@rm ./bin/lidarTop 
+ 
+# Run the lidar program 
+lidarTop_program: 
+	@g++ ./tests/test_lidarTop.cpp ./src/lidarTop.cpp ./src/lidar.cpp -o ./bin/lidarTop -lsl_lidar_sdk -lpthread -L./rplidar/output/Linux/Release -I./rplidar/sdk/include -I./rplidar/sdk/src -I$(HEADERS_DIR)
 
 #Run valgrind on the project
 #valgrind : fec

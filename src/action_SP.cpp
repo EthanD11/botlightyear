@@ -5,7 +5,8 @@
 
 #include <pthread.h>
 
-#define VERBOSE
+//#define VERBOSE
+
 #ifdef VERBOSE
 #include <stdio.h>
 #endif
@@ -26,19 +27,27 @@ volatile double camera_angle;
 volatile double dxl_angle;
 
 static void leave() {
+    #ifdef VERBOSE
+    printf("SP Aborting\n"); 
+    #endif
     state = Abort;
     pthread_join(KCID, NULL);
 }
 
 static void *kinematic_chain(void* argv) {
 
+    #ifdef VERBOSE
+    printf("Entering SP Kinematic Chain Thread\n"); 
+    #endif
+
     uint8_t sp_counter = *(uint8_t*) argv;
     team_color_t team = shared.color; 
 
     // Reset wheel, just to be sure :)
-    dxl_init_sp(); 
+    dxl_reset_sp(); 
 
     while(1) {
+
         if (state == stateKC) {
             usleep(50000);
             continue; 
@@ -46,17 +55,30 @@ static void *kinematic_chain(void* argv) {
 
         switch (state) {
             case Path_Following: // Moving to destination
+                #ifdef VERBOSE
+                printf("SP Thread: Path_Following\n"); 
+                #endif
+
                 stateKC = Path_Following; 
                 usleep(50000);
                 break;
 
             case Position_Control: 
+                #ifdef VERBOSE
+                printf("SP Thread: Position_Control (Dxl reset)\n"); 
+                #endif
+
                 stateKC = Position_Control; 
-                dxl_init_sp(); // Reset wheel
+                dxl_reset_sp(); // Reset wheel
                 break; 
 
             case Solar_Panel: 
+                #ifdef VERBOSE
+                printf("SP Thread: Solar_Panel\n SP Thread sp_counter: %d\n SP Thread dxl_angle: %d\n", sp_counter, dxl_angle); 
+                #endif
+
                 stateKC = Solar_Panel; 
+
                 dxl_deploy(Down);
                 dxl_turn(team, dxl_angle); 
 
@@ -64,16 +86,30 @@ static void *kinematic_chain(void* argv) {
                 else dxl_deploy(Up);
 
                 shared.score += 5; 
+                sp_counter--; 
+
+                #ifdef VERBOSE
+                printf("SP Thread sp_counter: %d\n", sp_counter); 
+                #endif
+
                 break; 
             
             case End:
+                #ifdef VERBOSE
+                printf("SP Thread: End\n"); 
+                #endif
+
                 return NULL;
 
             default: // Abort or End
+                #ifdef VERBOSE
+                printf("SP Thread: Abort, End\n"); 
+                #endif
+
                 switch (stateKC) {
                     case Solar_Panel: 
                         dxl_deploy(Up); 
-                        dxl_init_sp(); 
+                        dxl_reset_sp(); 
                         break; 
                 
                     default:
@@ -91,20 +127,40 @@ static void *kinematic_chain(void* argv) {
 
 void ActionSP::do_action() {
 
+    #ifdef VERBOSE
+    printf("Entering SP do_action\n"); 
+    #endif
+
     team_color_t team = shared.color; 
 
     state = Path_Following;
     stateKC = Path_Following;
-    pthread_create(&KCID, NULL, kinematic_chain, &sp_counter);
+    if (pthread_create(&KCID, NULL, kinematic_chain, &sp_counter) != 0) return;
 
     if (path_following_to_action(path)) return leave(); 
 
+    #ifdef VERBOSE
+    printf("SP do_action: Successfull Path Following\n"); 
+    #endif
+
     while (sp_counter > 0) {
+        #ifdef VERBOSE
+        printf("SP do_action: Solar_Panel\n SP do_action sp_counter : %d\n", sp_counter); 
+        #endif
+
         state = Solar_Panel; 
         while (stateKC != Solar_Panel) usleep(50000);
 
-        if (reserved) camera_angle = 0; 
-        else camera_angle = tagSolar(); 
+        if (reserved) {
+            camera_angle = 0; 
+        }
+        else {
+            camera_angle = tagSolar(); 
+        }
+
+        #ifdef VERBOSE
+        printf("SP do_action: camera_angle : %d\n", camera_angle); 
+        #endif
 
         ////////////////////////////////////////////////////
 
@@ -115,134 +171,33 @@ void ActionSP::do_action() {
         double yend; 
         shared.get_robot_pos(&x, &y, &theta); 
 
-        if (team == TeamBlue) yend = y+22.5e-2; 
-        else if (team == TeamYellow) yend = y-22.5e-2; 
+        //TODO Variable Sens
+        yend = y-22.5e-2; 
+
+        #ifdef VERBOSE
+        printf("SP do_action: robot position = (%.3f, %.3f, %.3f)\n SP do_action: yend = %.3f\n", x, y, theta, yend); 
+        #endif
 
 
         if (sp_counter > 1) {
             dxl_angle = camera_angle;
             if (action_position_control(x, yend, theta)) return leave();
+
+            #ifdef VERBOSE
+            printf("SP do_action: Successfull Postion Control\n"); 
+            #endif
         }
         
     }
     
+    #ifdef VERBOSE
+    printf("SP do_action: End\n"); 
+    #endif
     state = End;
     pthread_join(KCID, NULL);
 }
 
+    
 
 
 
-/*void turn_solar_panel_reserved(uint8_t sp_counter) { 
-
-    team_color_t team = shared.color; 
-
-    // Case asking more than one solar panel
-    while (sp_counter > 1) {
-        #ifdef VERBOSE
-        printf("SP Counter: %d\n", sp_counter); 
-        #endif
-
-        // Action turn solar panel
-        dxl_deploy(Down);
-        dxl_turn(team, 0);
-        dxl_deploy(Mid);
-
-        // Update dynamic score
-        shared.score += 5;
-        counter--; 
-
-        // Go to next
-        double x, y, theta, yend; 
-        share.get_robot_pos(&x, &y, theta); 
-
-        if (team == TeamYellow) {yend = y-22.5e-2}; // Reverse 
-        else {yend = y+22.5e-2}; // Forward
-
-        action_position_control(x, yend, theta); 
-    }
-
-    #ifdef VERBOSE
-    printf("Check last SP Counter: %d\n", sp_counter); 
-    #endif
-
-    // Last solar panel
-    if (sp_counter == 1) {
-        #ifdef VERBOSE
-        printf("Last solar panel in sequence \n"); 
-        #endif
-
-        //Action turn solar panel
-        dxl_deploy(Down);
-        dxl_turn(team, 0);
-        dxl_deploy(Up);
-
-        // Update dynamic score
-        shared.score += 5; 
-        sp_counter--; 
-    }
-
-    // Reset solar panel wheel 
-    dxl_init_sp();
-
-     return;         
-
-}
-
-void turn_solar_panel_public(uint8_t sp_counter) {
-
-    team_color_t team = shared.color; 
-
-    // Case asking more than one solar panel
-    while (sp_counter > 1) {
-        #ifdef VERBOSE
-        printf("SP Counter: %d\n", sp_counter); 
-        #endif
-
-        // Action turn solar panel
-        dxl_deploy(Down);
-        double angle = tagSolar(); 
-        dxl_turn(team, angle);
-        dxl_deploy(Mid);
-
-        // Update dynamic score
-        shared.score += 5;
-        counter--; 
-
-        // Go to next
-        double x, y, theta, yend; 
-        share.get_robot_pos(&x, &y, theta); 
-
-        if (team == TeamYellow) {yend = y-22.5e-2}; // Reverse 
-        else {yend = y+22.5e-2}; // Forward
-
-        action_position_control(x, yend, theta); 
-    }
-
-    #ifdef VERBOSE
-    printf("Check last SP Counter: %d\n", sp_counter); 
-    #endif
-
-    // Last solar panel
-    if (sp_counter == 1) {
-        #ifdef VERBOSE
-        printf("Last solar panel in sequence \n"); 
-        #endif
-
-        //Action turn solar panel
-        dxl_deploy(Down);
-        double angle = tagSolar(); 
-        dxl_turn(team, angle);
-        dxl_deploy(Mid);
-
-        // Update dynamic score
-        shared.score += 5; 
-        sp_counter--; 
-    }
-
-    // Reset solar panel wheel 
-    dxl_init_sp();
-
-     return;   
-}
-*/

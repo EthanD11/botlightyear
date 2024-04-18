@@ -118,10 +118,10 @@ void ask_user_input_params() {
 
 void init_and_wait_for_start() {
 
-    /*
+    
     dxl_init_port();
     dxl_ping(6,1.0);
-    dxl_ping(8,1.0); */
+    dxl_ping(8,1.0);
 
     if (shared.graph->init_from_file("./graphs/BL_V3.txt", shared.color) != 0) exit(3);
     /*for (int i=0; i<3; i++) {
@@ -134,7 +134,15 @@ void init_and_wait_for_start() {
         printf("Plants at %d \n", shared.graph->plants[i]);
     }*/
 
-
+    double kt = 0.001;
+    double kn = 0.5; // 0 < kn <= 1
+    double kz = 20.0;
+    double delta = 100e-3; // delta is in meters
+    double sigma = 2.;
+    double epsilon = M_PI/8; // epsilon is in radians
+    double wn = 0.2; // Command filter discrete cutoff frequency
+    double kv_en = 0.;
+    shared.teensy->set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
     
     if (pthread_create(&localizerID, NULL, localizer, NULL) != 0) exit(4);
 
@@ -154,7 +162,7 @@ void finish_main() {
 
     shared.~SharedVariables();
 
-    //dxl_close_port();
+    dxl_close_port();
 
 }
 
@@ -171,6 +179,7 @@ void *localizer(void* arg) {
         teensy_mode_t teensyMode = shared.teensy->ask_mode();
 
         #ifdef TIME_MEAS
+        clock_t odoClock;
         clock_t start = clock();
         #endif
 
@@ -178,7 +187,6 @@ void *localizer(void* arg) {
 
         #ifdef TIME_MEAS
         clock_t lidarClock = clock();
-        clock_t odoClock;
         #endif
 
         if ((teensyMode == ModePositionControlOver || teensyMode == ModeIdle) && !lidarData->readLidar_lost) {
@@ -215,7 +223,8 @@ void *localizer(void* arg) {
         #ifdef VERBOSE
         //TODO TODO
         printf("                    %.3f %.3f %.3f   %.3f %.3f\n", lidarData->readLidar_x_robot, lidarData->readLidar_y_robot, lidarData->readLidar_theta_robot*180/M_PI, lidarData->readLidar_d_opponent,lidarData->readLidar_a_opponent*180.0/M_PI);
-        //printf("odometry : %.3f %.3f %.3f\n", xOdo, yOdo, thetaOdo*180/M_PI);
+        printf("                    Adversary at %.3f %.3f\n", lidarData->readLidar_x_opponent,lidarData->readLidar_y_opponent);
+        printf("odometry : %.3f %.3f %.3f\n", x, y, theta*180/M_PI);
         #endif
 
         #ifdef TIME_MEAS
@@ -224,7 +233,7 @@ void *localizer(void* arg) {
         printf("Odometry took %ld clock cycles to update.\n\tCumulated time since iteration start : %ld\n", odoClock - lidarClock, odoClock - start);
         printf("Teensy took %ld clock cycles to update.\n\tCumulated time since iteration start : %ld\n", teensyClock - odoClock, teensyClock - start);
         #endif
-        usleep(300000);
+        usleep(500000);
     }
     clear_lidar(lidarData);
     StopLidarTop();
@@ -259,8 +268,8 @@ int main(int argc, char const *argv[])
     shared.teensy->idle();
     shared.steppers->reset_all();
     shared.servoFlaps->idle(); shared.grpDeployer->idle(); shared.grpHolder->idle();
-    //dxl_idle(6, 1.0);
-    //dxl_idle(8, 1.0);
+    dxl_idle(6, 1.0);
+    dxl_idle(8, 1.0);
 
     printf("Game finished\n");
     // TODO : show score
