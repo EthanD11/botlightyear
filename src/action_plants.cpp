@@ -1,11 +1,13 @@
 #include "action_plants.h"
+#include "lidarBottom.h"
 #include <unistd.h>
 #include <cmath>
 
 
-double plant_approach_dist = 0.3; 
-double plant_grab_dist = 0.1; 
+double plant_approach_dist = 0.4; 
+double plant_grab_dist = 0.265; 
 double plant_approach_angle = M_PI/3; 
+double away_distance = 0.1; 
 /*
 WARNING : TO BE TESTED FIRST
 Takes plant and puts it to the plate storage specified
@@ -79,6 +81,65 @@ int8_t position_to_plant(double x_plant, double y_plant, double x_plant_center, 
     return 0; 
 }
 
+int8_t move_back(double x_plant, double y_plant) {
+    double x_pos, y_pos, theta_pos; 
+    shared.get_robot_pos(&x_pos, &y_pos, &theta_pos);
+    double plant_to_bot_dist = hypot(x_plant-x_pos, y_plant-y_pos); 
+
+    double dx = (x_pos-x_plant)/plant_to_bot_dist; 
+    double dy = (y_pos-y_plant)/plant_to_bot_dist; 
+
+    double x_away = x_pos+dx*away_distance; 
+    double y_away = y_pos+dy*away_distance; 
+
+    if (action_position_control(x_away, y_away, theta_pos) == -1) return -1; 
+
+    return 0; 
+}
+
+int8_t get_closest_plant_from_lidar(double x_pos, double y_pos, double theta_pos, uint8_t plantNode, double* x_plant, double* y_plant) {
+    PlantZone* plantZone[6]; 
+    initBottomLidar(plantZone);
+    int zones[6] = {1,1,1,1,1,1}; 
+    getNumberOfPlantInAllZone(x_pos, y_pos, theta_pos, zones, plantZone);
+    uint8_t zoneIdx; 
+    switch (plantNode) {
+        case 21: 
+            zoneIdx = 0; 
+            break;
+        case 12 :
+            zoneIdx = 1; 
+            break;
+        case 14 :
+            zoneIdx = 2; 
+            break;
+        case 25 :
+            zoneIdx = 3; 
+            break;
+        case 29 :
+            zoneIdx = 4; 
+            break;
+        case 31 :
+            zoneIdx = 5; 
+            break;
+        default : 
+            zoneIdx = 0; 
+            printf("Invalid plant zone !\n");
+            return; 
+    }
+    uint8_t plantCount = plantZone[zoneIdx]->numberPlant; 
+    if (plantCount==0) {
+        deleteBottomLidar(plantZone); 
+        printf("Lidar sees no plant in zone ! \n");
+        return -1; 
+    } 
+
+    *x_plant = plantZone[zoneIdx]->xClosestPlant;
+    *y_plant = plantZone[zoneIdx]->yClosestPlant; 
+    deleteBottomLidar(plantZone); 
+    return 0; 
+}
+
 
 void ActionPlants::do_action() {
     // Positions itself in front of the plant node, without going in
@@ -90,14 +151,15 @@ void ActionPlants::do_action() {
     if (path_following_to_action(path) == -1) return; 
 
     double xpos, ypos, theta_pos; 
+    double x_plant, y_plant; 
     double xpos_initial, ypos_initial, theta_pos_initial; 
     shared.get_robot_pos(&xpos_initial, &ypos_initial, &theta_pos_initial);
     
     double x_plant, y_plant, theta_plant; 
     for (uint8_t plant_i = 0; plant_i < plantCounter; plant_i++) {
         // Get closest plant from lidar pov
-        // x_plant, y_plant = ... TODO TODO 
         shared.get_robot_pos(&xpos, &ypos, &theta_pos);
+        if (get_closest_plant_from_lidar(xpos, ypos, theta_pos, plantsNode, &x_plant, &y_plant) == -1) return;
 
         theta_plant = atan2(y_plant-ypos, x_plant-xpos); 
         if (position_to_plant(x_plant, y_plant, shared.graph->nodes[plantsNode].x, shared.graph->nodes[plantsNode].y, trigo_diff(theta_plant, theta_pos)>0, plant_i==0)) return; 
@@ -106,6 +168,7 @@ void ActionPlants::do_action() {
         int8_t plate_pos = get_plate_slot(nextSlot); 
         take_plant_kinematicChain(plate_pos); 
         update_plate_content(nextSlot, ContainsWeakPlant); 
+        move_back(x_plant, y_plant); 
     }
 
     // Position control to the initial location with opposed theta for departure

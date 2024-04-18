@@ -146,6 +146,8 @@ void init_and_wait_for_start() {
     
     if (pthread_create(&localizerID, NULL, localizer, NULL) != 0) exit(4);
 
+    StartLidarBottom();
+
     shared.steppers->reset_all();
     shared.steppers->calibrate_all(CALL_BLOCKING, shared.valids);
     shared.servoFlaps->raise();
@@ -270,7 +272,7 @@ int main(int argc, char const *argv[])
     shared.servoFlaps->idle(); shared.grpDeployer->idle(); shared.grpHolder->idle();
     dxl_idle(6, 1.0);
     dxl_idle(8, 1.0);
-
+    StopLidarBottom();
     printf("Game finished\n");
     // TODO : show score
     getch();

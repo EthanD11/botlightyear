@@ -11,8 +11,11 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <cmath>
+#include <algorithm>
 
-#define TESTS
+//#define TESTS
+
+//#define FINAL_STRATEGY
 
 class ActionGameFinished : public Action {
     public :
@@ -37,7 +40,9 @@ class ActionTest : public Action {
 Action* possible_actions[10]; 
 uint8_t n_possible_actions;
 
-int8_t time_gotobase = 20; 
+int8_t time_gotobase = 15; 
+int8_t time_sp = 40; 
+int8_t time_sp_reserved = 25;
 
 
 // ------------ UTILS --------------
@@ -65,7 +70,7 @@ double getThetaEnd(uint8_t * arrNodes, double * arrThetas , uint8_t len, uint8_t
 // Create the different actions that can be taken (in order !) with respect to the strategy
 void decide_possible_actions() {
 
-    int8_t current_time = shared.update_and_get_timer();
+    int8_t remaining_time = shared.update_and_get_timer();
     double x_pos, y_pos, theta_pos, dist_from_currentNode; 
     shared.get_robot_pos(&x_pos, &y_pos, &theta_pos); 
     graph_path_t* path;
@@ -99,14 +104,16 @@ void decide_possible_actions() {
     return;
     #endif
 
-    if (current_time < 0) {
+    if (remaining_time < 0) {
         possible_actions[0] = new ActionGameFinished(); 
         n_possible_actions = 1; 
         return; 
     }
+    // Check if adversary is close to do the back avoidance
+
 
     // Second check if time is running out : 
-    if (current_time < time_gotobase) {
+    if (remaining_time < time_gotobase) {
         // Get the closest base from the robot pov
         path = shared.graph->compute_path(x_pos, y_pos, shared.graph->friendlyBases, 3);
         if (path != NULL) {
@@ -118,7 +125,7 @@ void decide_possible_actions() {
         return; 
     }
     // Strategy : for now, only cycling between random plant nodes and going back to closest base
-
+    #ifndef FINAL_STRATEGY
     if (in_array(shared.graph->plants, 6, currentNode)) {
         // If it's in a plant node, go back to a base 
         path = shared.graph->compute_path(x_pos, y_pos, shared.graph->friendlyBases, 3);
@@ -141,6 +148,93 @@ void decide_possible_actions() {
         possible_actions[0] = new ActionDisplacement(path); 
         n_possible_actions = 1; 
     }
+
+    #else 
+    // ----------- ENDGAME -----------------
+    if (remaining_time < time_sp) { //Time to switch to solar panels
+        if (remaining_time < time_sp_reserved) {
+            for (uint8_t i=0; i<3; i++) {
+                path = shared.graph->compute_path(x_pos, y_pos, &shared.graph->friendlySPs[i], 1); 
+                if (path!=NULL) {
+                    path->thetaStart = theta_pos; 
+                    path->thetaEnd = -M_PI/2; 
+                }
+                possible_actions[i] = new ActionSP(path, 3-i, false);
+            }
+            n_possible_actions = 3; 
+            return;
+        } else {
+            for (uint8_t i=0; i<3; i++) {
+                path = shared.graph->compute_path(x_pos, y_pos, &shared.graph->commonSPs[i], 1); 
+                if (path!=NULL) {
+                    path->thetaStart = theta_pos; 
+                    path->thetaEnd = -M_PI/2; 
+                }
+                possible_actions[i] = new ActionSP(path, 3-i, true);
+            }
+            for (uint8_t i=0; i<3; i++) {
+                path = shared.graph->compute_path(x_pos, y_pos, &shared.graph->friendlySPs[i], 1); 
+                if (path!=NULL) {
+                    path->thetaStart = theta_pos; 
+                    path->thetaEnd = -M_PI/2; 
+                }
+                possible_actions[i+3] = new ActionSP(path, 3-i, false);
+            }
+            n_possible_actions = 6; 
+            return;
+        }
+    }
+
+    // --------- EARLY GAME -------------
+    // Early part of the game : actions with plants
+    int8_t current_plant_count = get_content_count(ContainsWeakPlant); 
+    if (current_plant_count ==0) { // Go take plants quicc
+        path = shared.graph->compute_path(x_pos, y_pos, shared.graph->plants, 6); 
+        if (path != NULL) {
+            path->thetaStart = theta_pos; 
+            path->thetaEnd = 0; // gets updated within ActionPlants anyways, no need to worry about it :)
+        }
+        possible_actions[0] = new ActionPlants(path,6); // Plant number "could" be modulated with time 
+        n_possible_actions = 1; 
+        return; 
+    } else {
+        uint8_t i=0; 
+        if (shared.plantersDone[0] == 0) {
+            // Reserved planter action if not done yet
+            path = shared.graph->compute_path(x_pos, y_pos, &shared.graph->friendlyPlanters[0], 1); 
+            if (path != NULL) {
+                path->thetaStart = theta_pos; 
+                path->thetaEnd = shared.graph->friendlyPlantersTheta[0];
+            }
+            possible_actions[i] = new ActionPlanter(path, std::max((current_plant_count-2)/2,1), SideMiddle, SideMiddle);
+            i++;
+        }
+        if (shared.plantersDone[1] == 0) {
+            // Second planter action if not done yet
+            path = shared.graph->compute_path(x_pos, y_pos, &shared.graph->friendlyPlanters[1], 1); 
+            if (path != NULL) {
+                path->thetaStart = theta_pos; 
+                path->thetaEnd = shared.graph->friendlyPlantersTheta[1];
+            }
+            planter_side_t planter_side = (shared.color==TeamBlue) ? SideRight : SideLeft; 
+            planter_side_t pot_clear_side = (shared.color==TeamBlue) ? SideRight : SideLeft; 
+            possible_actions[i] = new ActionPlanter(path, std::max((current_plant_count-2)/2,1), planter_side, pot_clear_side);
+            i++;
+        }
+        if (shared.zonesDone[0] == 0) {
+            // Reserved zone action if not done yet
+            path = shared.graph->compute_path(x_pos, y_pos, &shared.graph->friendlyBases[0], 1); 
+            if (path != NULL) {
+                path->thetaStart = theta_pos; 
+                path->thetaEnd = shared.graph->friendlyBases[0]; 
+            }
+            possible_actions[i] = new ActionZone(path, 1);
+            i++;
+        }
+        n_possible_actions = i; 
+    }
+
+    #endif
 
 }
 bool check_validity(Action* action) {

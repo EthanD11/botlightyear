@@ -75,6 +75,12 @@ storage_slot_t get_next_free_slot_ID (storage_content_t content);
 void update_plate_content(storage_slot_t slotID, storage_content_t content); 
 
 /**
+ * @brief Gets the number of slots containing the given content
+ * @param content the type of object to count
+*/
+int8_t get_content_count(storage_content_t content); 
+
+/**
  * @brief Returns the angle in radians in between [-pi, pi]
 */
 double periodic_angle(double angle); 

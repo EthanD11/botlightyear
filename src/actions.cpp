@@ -255,7 +255,13 @@ void update_plate_content(storage_slot_t slotID, storage_content_t content) {
         shared.storage[slotID] = (storage_content_t) (((uint8_t) content) | ((uint8_t)shared.storage[slotID] )); 
     }
 }
-
+int8_t get_content_count(storage_content_t content) {
+    int8_t count = 0; 
+    for (int8_t i=SlotM3; i<SlotFlaps; i++) {
+        count += (((uint8_t)shared.storage[i]) & content) !=0; 
+    }
+    return count; 
+}
 
 double periodic_angle(double angle) {
     if (angle > M_PI) return angle-2*M_PI; 
