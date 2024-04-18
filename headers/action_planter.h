@@ -13,7 +13,7 @@ typedef enum _preference : int8_t
 class ActionPlanter : public Action
 {
 private:
-    planter_side_t preference; // Set plants in on a certain side first, conditions the way pot clearing is done
+    planter_side_t preference; // Set plants in on a certain side first
     uint8_t nbPlants;
     // Will clear away pots if needsPotClear != 0,
     // from left to right if needsPotClear == SideLeft
