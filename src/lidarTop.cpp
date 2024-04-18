@@ -37,7 +37,7 @@ double deltaYB3 = -0.09;
 
 double tableX = 2.0;
 double tableY = 2.9;
-double mintableX = 0.0;
+double mintableX = 0.1;
 double minTableY = 0.1;
 
 
@@ -850,6 +850,8 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
         lidarData->readLidar_lost=true;
     }
     fullScanPcqLost = false;
+    //TODO eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+      
 }
 
 void init_lidar(LidarData *lidarData) {

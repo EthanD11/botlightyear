@@ -55,6 +55,7 @@ static void *kinematic_chain(void *args) {
             slotID = get_next_unloaded_slot_ID(ConstainsWeakPlantInPot);
             if (slotID == SlotInvalid) slotID = get_next_unloaded_slot_ID(ContainsStrongPlant);
             toDrop = shared.storage[slotID];
+            grpDeployer->half();
             steppers->plate_move(get_plate_slot(slotID),CALL_BLOCKING);
             grpDeployer->deploy();
 
@@ -69,22 +70,24 @@ static void *kinematic_chain(void *args) {
             if ((toDrop & ContainsPot) == ContainsPot) grpHolder->hold_pot();
             else grpHolder->hold_plant();
             update_plate_content(slotID, ContainsNothing);
+            usleep(400000);
 
             // Ready to drop
-            steppers->slider_move(SliderHigh, CALL_BLOCKING);
-            grpDeployer->half();
+            steppers->slider_move(SliderHigh);
+            usleep(700000);
             steppers->plate_move(0, CALL_BLOCKING);
-            grpDeployer->deploy();
+            grpDeployer->idle();
             break;
 
         case Drop:
             steppers->slider_move(SliderLow, CALL_BLOCKING);
-            grpHolder->open_full();
+            grpHolder->open();
             stateKC = Drop;
             if ((toDrop == ConstainsWeakPlantInPot) || (toDrop & ContainsStrongPlant == ContainsStrongPlant))
                 shared.score += 3 + ((toDrop & ContainsPot) == ContainsPot);
-            grpDeployer->raise();
             steppers->slider_move(SliderHigh);
+            usleep(200000);
+            grpHolder->idle();
             break;
         
         case End:

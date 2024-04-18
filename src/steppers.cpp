@@ -146,7 +146,7 @@ void Steppers::slider_move(slider_pos_t pos, uint8_t blocking){
         steps = 5300;
         break;
     case SliderIntermediateLow:
-        steps = 4650;
+        steps = 3650;
         break;
     case SliderStorage : // Deposit plant, take plant, take pot
         steps = 1800;
