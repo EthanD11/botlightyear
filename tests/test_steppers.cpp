@@ -10,8 +10,8 @@
 //#define SETUP_CUSTOM_SPEED_OLD
 //#define SETUP_CUSTOM_SPEED_NEW
 //#define DEMO_S6
-#define PLANTER
-//#define TESTS
+//#define PLANTER
+#define TESTS
 
 SPIBus spi_bus = SPIBus();
 GPIOPins pins = GPIOPins(); 
@@ -64,14 +64,14 @@ void TakePlantCHAIN(int slotNumber) {
     // GripperDeployer* deployer = shared.grpDeployer; 
     // Steppers* steppers = shared.steppers; 
 
-    teensy->set_position_controller_gains(4.0,5.0,-0.8,4.0);
+    teensy->set_position_controller_gains(3.0,5.0,-0.8,4.0);
 
     servoFlaps->deploy();
     steppers->flaps_move(FlapsPlant, CALL_BLOCKING); 
     steppers->flaps_move(FlapsOpen);
     usleep(250000);
     teensy->pos_ctrl(0.94,1.0,0); // Reverse 4 cm
-    usleep(100000);
+    usleep(200000);
     servoFlaps->raise();
 
     steppers->slider_move(SliderHigh, CALL_BLOCKING);
@@ -191,10 +191,12 @@ void demoPlate(){
 
 int main(int argc, char const *argv[])
 {
+    printf("Test is running\n");
     steppers->setup_all_speeds(); 
     steppers->reset_all(); 
 
-    steppers->calibrate_all(CALL_BLOCKING); 
+    steppers->calibrate_all(CALL_BLOCKING);
+    steppers->plate_move(0,CALL_BLOCKING);
     #ifdef TESTS
 
     // holder->idle();
@@ -226,7 +228,7 @@ int main(int argc, char const *argv[])
     // steppers->slider_move(SliderDepositPot, CALL_BLOCKING);
     // steppers->slider_move(SliderHigh, CALL_BLOCKING); 
     printf("Go ! \n");
-    //teensy->set_position(1.0,1.0,0);
+    teensy->set_position(1.0,1.0,0);
     
 
     // deployer->deploy();
@@ -243,6 +245,16 @@ int main(int argc, char const *argv[])
     #endif 
 
     #ifdef PLANTER
+
+    steppers->flaps_move(FlapsOpen);
+    servoFlaps->raise();
+    steppers->plate_move(0,CALL_BLOCKING);
+    steppers->slider_move(SliderHigh, CALL_BLOCKING);
+    deployer->idle();
+
+    getchar();
+
+    deployer->half();
     steppers->plate_move(2,CALL_BLOCKING);
     deployer->deploy();
 
@@ -251,28 +263,32 @@ int main(int argc, char const *argv[])
     steppers->slider_move(SliderStorage, CALL_BLOCKING);
     if (0) holder->hold_pot();
     else holder->hold_plant();
+    usleep(400000);
 
     // Ready to drop
-    steppers->slider_move(SliderHigh, CALL_BLOCKING);
-    deployer->half();
+    steppers->slider_move(SliderHigh);
+    usleep(400000);
+    //deployer->half();
+    usleep(300000);
     steppers->plate_move(0, CALL_BLOCKING);
-    deployer->deploy();
+    //deployer->deploy();
+    //usleep(100000);
+    deployer->idle();
 
     getchar();
 
-    steppers->slider_move(SliderIntermediateLow, CALL_BLOCKING);
-    holder->open_full();
-    deployer->half();
+    steppers->slider_move(SliderLow, CALL_BLOCKING);
+    holder->open();
     steppers->slider_move(SliderHigh);
-
+    usleep(200000);
+    holder->idle();
     
 
     #endif
 
     #ifdef RESET_CALIBRATE
     steppers->reset_all(); 
-    steppers->calibrate_all();
-    sleep(10);
+    steppers->calibrate_all(CALL_BLOCKING);
     #endif
 
     #ifdef SETUP_CUSTOM_SPEED_OLD

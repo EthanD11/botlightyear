@@ -42,7 +42,7 @@ int main(int argc, char const *argv[])
     sleep(1);
     servoGripperDeployer.idle(); */
 
-    servoGripperHolder.hold_plant();
+    servoGripperHolder.open();
 
     return 0;
 }

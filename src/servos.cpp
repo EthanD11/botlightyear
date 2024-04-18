@@ -90,5 +90,5 @@ void GripperHolder::hold_pot() {
     this->send_dutyCycle(725);
 } 
 void GripperHolder::hold_plant() {
-    this->send_dutyCycle(650);
+    this->send_dutyCycle(645);
 }

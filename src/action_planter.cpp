@@ -35,8 +35,8 @@ static void *kinematic_chain(void *args) {
     steppers->flaps_move(FlapsOpen);
     servoFlaps->raise();
     steppers->plate_move(0,CALL_BLOCKING);
-    grpDeployer->half();
     steppers->slider_move(SliderHigh, CALL_BLOCKING);
+    grpDeployer->idle();
 
     storage_slot_t slotID;
     storage_content_t toDrop;
@@ -66,6 +66,7 @@ static void *kinematic_chain(void *args) {
             slotID = get_next_unloaded_slot_ID(ContainsWeakPlant);
             if (slotID == SlotInvalid) slotID = get_next_unloaded_slot_ID(ContainsStrongPlant);
             toDrop = shared.storage[slotID];
+            grpDeployer->half();
             steppers->plate_move(get_plate_slot(slotID),CALL_BLOCKING);
             grpDeployer->deploy();
 
@@ -77,24 +78,27 @@ static void *kinematic_chain(void *args) {
             // Grab plant
             grpHolder->open_full();
             steppers->slider_move(SliderStorage, CALL_BLOCKING);
-            if (toDrop & ContainsPot) grpHolder->hold_pot();
+            if (toDrop & ContainsPot) printf("Warning : Pot not implemented  !! \n");
             else grpHolder->hold_plant();
             update_plate_content(slotID, ContainsNothing);
+            usleep(400000);
 
             // Ready to drop
-            steppers->slider_move(SliderHigh, CALL_BLOCKING);
-            grpDeployer->half();
+            steppers->slider_move(SliderHigh);
+            usleep(700000);
+            grpDeployer->idle();
             steppers->plate_move(0, CALL_BLOCKING);
-            grpDeployer->deploy();
             break;
 
         case Drop:
             steppers->slider_move(SliderIntermediateLow, CALL_BLOCKING);
-            grpHolder->open_full();
+            grpHolder->open();
             stateKC = Drop;
             shared.score += 4 + ((toDrop & ContainsPot) == ContainsPot);
-            grpDeployer->half();
             steppers->slider_move(SliderHigh);
+            usleep(200000);
+            grpHolder->idle();
+
             break;
         
         case End:
