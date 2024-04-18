@@ -6,7 +6,7 @@
 
 //#define VERBOSE
 
-#define SPI_CLK_FREQ 1000000
+#define SPI_CLK_FREQ 125000
 #define SPI_MODE_DEFAULT 0
 
 pthread_mutex_t mutex;

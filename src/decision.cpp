@@ -12,7 +12,8 @@
 #include <stdio.h>
 #include <cmath>
 
-#define TESTS
+//#define TESTS
+#define HOMOLOGATION
 
 class ActionGameFinished : public Action {
     public :
@@ -24,7 +25,11 @@ class ActionWait: public Action {
     public :
         ActionWait() : Action(Wait, false, NULL) {}
         void do_action () {
-            usleep(5000);
+            double x,y;
+            shared.get_robot_pos(&x,&y,NULL);
+            uint8_t node = shared.graph->identify_pos(x,y,NULL);
+            printf("Current node : %d with level %d\n", node, shared.graph->nodes[node].level);
+            usleep(300000);
         } 
 };
 
@@ -95,6 +100,25 @@ void decide_possible_actions() {
     }
     
     possible_actions[0] = new ActionSP(path, 3, true); 
+    n_possible_actions = 1; 
+    return;
+    #endif
+
+    #ifdef HOMOLOGATION 
+    if (shared.graph->identify_pos(x_pos, y_pos, NULL) == 41) {
+        possible_actions[0] = new ActionGameFinished(); 
+        n_possible_actions = 1; 
+        return;
+    }
+    uint8_t target = 41;
+    path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+    if (path == NULL) {
+        n_possible_actions = 0;
+        return;
+    }
+    path->thetaStart = theta_pos; 
+    path->thetaEnd = -M_PI/2;  
+    possible_actions[0] = new ActionDisplacement(path); 
     n_possible_actions = 1; 
     return;
     #endif

@@ -314,7 +314,13 @@ int foundAdvWithOdo(double *anglesAdv, double *distancesAdv, LidarData *lidarDat
         if (xobj > 0.03 && xobj < xmax-0.03) {
 
             ///check whether the y coordinate is valid (on the table)
-            if (yobj > 0.03 && yobj < ymax-0.03 && abs(yobj-1.5)<abs(yold-1.5)) {
+            ///deplacement de l'adversaire
+            double deltX = lidarData->old_x_adv-xobj;
+            double deltY = lidarData->old_y_adv-yobj;
+            
+            double depl = sqrt(deltX*deltX+deltY*deltY);
+            if (yobj > 0.03 && yobj < ymax-0.03) {
+                //&& (yobj-1.5)<abs(yold-1.5)
                 /// if the object is on the table, it's our opponent,
                 /// we save its coordinates in the new base (xy based on beacon3)
                 /// and the original coordinates (relative to the robot, distance and angle)
@@ -686,7 +692,7 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
                                 precision *= 2;
                             }
                             //TODO CHECK tableX tableY
-printf("precision : %f\n",precision);
+//printf("precision : %f\n",precision);
                             //     printf(" old : %f %f \n", oldXRobot, oldYRobot);
                             //     printf("table x : %f %f\n", mintableX, tableX);
                             //     printf("table Y : %f %f \n", minTableY, tableY);
@@ -724,8 +730,7 @@ printf("precision : %f\n",precision);
                             lidarData->x_robot = oldXRobot;
                             lidarData->y_robot = oldYRobot;
                             lidarData->orientation_robot = oldOrientationRobot;
-                            
-                            
+                                                        
                         }
                     }
                 }
@@ -755,7 +760,12 @@ printf("precision : %f\n",precision);
 }
 
 void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool fromOdo) {
+        if(premierScan){
+        lidarData->x_odo = 0.9;
+    }//DOELELELlelellelelel
     lidarData->readLidar_lost = false;
+    lidarData->old_transfo_x = lidarData->x_adv;
+    lidarData->old_transfo_y = lidarData->y_adv;
     facteurLost = 1;
     double *angles = new double[8000];
     double *distances = new double[8000];
@@ -775,6 +785,7 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
         lidarData->y_robot = 3 - (lidarData->y_odo + 0.1 * sin(lidarData->orientation_robot) + deltaYB3);
 
     }
+
     //TODO TEEEEEEEEEEEEEEEEEEEEEEEST AAAAAAAAAAAAAAH   
 
     updateDataTop(angles, distances, quality, as);
@@ -887,7 +898,7 @@ void init_lidar(LidarData *lidarData) {
 
     lidarData->x_adv = 0;
     lidarData->y_adv = 0;
-    lidarData->d_adv = 0;
+    lidarData->d_adv = 400;
     lidarData->a_adv = 0;
 
     lidarData->beaconAdv = new double[8]{0, 0, 0, 0, 0, 0, 0, 0};
@@ -896,6 +907,8 @@ void init_lidar(LidarData *lidarData) {
     lidarData->y_odo = 0.0;
     lidarData->theta_odo = 0.0;
 
+    lidarData->old_x_adv = 0.7;
+    lidarData->old_y_adv = 0.7;
     return;
 }
 

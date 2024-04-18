@@ -67,10 +67,10 @@ int main(int argc, char const *argv[])
     teensy.set_position_controller_gains(kp, ka, kb, kw);
 
     double kt = 0.001;
-    double kn = 0.6; // 0 < kn <= 1
-    double kz = 18.0;
-    double delta = 80e-3; // delta is in meters
-    double sigma = 1.;
+    double kn = 0.5; // 0 < kn <= 1
+    double kz = 20.0;
+    double delta = 100e-3; // delta is in meters
+    double sigma = 2.;
     double epsilon = M_PI/8; // epsilon is in radians
     double wn = 0.2; // Command filter discrete cutoff frequency
     double kv_en = 0.;
@@ -156,6 +156,7 @@ int main(int argc, char const *argv[])
 
     #ifdef ASK_STATE
     teensy.ask_mode();
+    printf("%d\n", teensy.ask_mode());
     #endif
 
     return 0;

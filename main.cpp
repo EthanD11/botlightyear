@@ -172,8 +172,9 @@ void *localizer(void* arg) {
     init_lidar(lidarData);
     double xOdo, yOdo, thetaOdo;
     double x, y, theta;
-    double odoWeight = 0.8;
+    double odoWeight = 1.0;
     shared.get_robot_pos(&lidarData->x_odo, &lidarData->y_odo, &lidarData->theta_odo);
+    int pau = 6;
     while (!localizerEnd) {
 
         teensy_mode_t teensyMode = shared.teensy->ask_mode();
@@ -210,22 +211,29 @@ void *localizer(void* arg) {
         #endif
 
         shared.set_robot_pos(x,y,theta);
-        if (!lidarData->readLidar_lost) { 
-            shared.set_adv_pos(
-            lidarData->readLidar_x_opponent,
-            lidarData->readLidar_y_opponent,
-            lidarData->readLidar_d_opponent,
-            lidarData->a_adv);
-            shared.graph->update_adversary_pos(lidarData->readLidar_x_opponent, lidarData->readLidar_y_opponent);
-        }
+        //if (!lidarData->readLidar_lost) { 
+        shared.set_adv_pos(
+        lidarData->readLidar_x_opponent,
+        lidarData->readLidar_y_opponent,
+        lidarData->readLidar_d_opponent,
+        lidarData->a_adv);
+        shared.graph->update_adversary_pos(lidarData->readLidar_x_opponent, lidarData->readLidar_y_opponent);
         lidarData->x_odo = x; lidarData->y_odo = y; lidarData->theta_odo = theta;
 
         #ifdef VERBOSE
         //TODO TODO
+        #endif
         printf("                    %.3f %.3f %.3f   %.3f %.3f\n", lidarData->readLidar_x_robot, lidarData->readLidar_y_robot, lidarData->readLidar_theta_robot*180/M_PI, lidarData->readLidar_d_opponent,lidarData->readLidar_a_opponent*180.0/M_PI);
         printf("                    Adversary at %.3f %.3f\n", lidarData->readLidar_x_opponent,lidarData->readLidar_y_opponent);
         printf("odometry : %.3f %.3f %.3f\n", x, y, theta*180/M_PI);
-        #endif
+        //TODO PAULINE
+        if (abs(lidarData->readLidar_x_opponent-0.8)>0.2 && abs(lidarData->readLidar_y_opponent-1)>0.2){
+            DataToFileTop("test"+std::to_string(pau)+".txt");
+            pau++;
+            printf("distance et angle %f %f\n", lidarData->d_adv, lidarData->a_adv*180/M_PI);
+        }
+
+
 
         #ifdef TIME_MEAS
         printf("Timing results : \n");

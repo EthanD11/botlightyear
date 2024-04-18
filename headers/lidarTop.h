@@ -31,6 +31,9 @@ typedef struct LidarData{
     double d_adv;
     double a_adv;
 
+    double old_x_adv;
+    double old_y_adv;
+
     // distance and angle of beacon and opponent from the previous data
     double * beaconAdv;
     int countObj_adv;
