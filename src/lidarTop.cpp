@@ -162,6 +162,7 @@ int Adversary(double *anglesAdv, double *distancesAdv, LidarData *lidarData) {
     double ytemp;
     double xobj;
     double yobj;
+    double yold = 6;
 
     for (int i = 0; i < size; ++i) {
         /// transformation identical to that of beacons and robots
@@ -174,7 +175,7 @@ int Adversary(double *anglesAdv, double *distancesAdv, LidarData *lidarData) {
             yobj = (sin(lidarData->transfo_a) * xtemp + cos(lidarData->transfo_a) * ytemp);
 
             ///check whether the y coordinate is valid (on the table)
-            if (yobj > 0.001 && yobj < ymax) {
+            if (yobj > 0.001 && yobj < ymax && abs(yobj-1.5)<abs(yold-1.5)) {
                 /// if the object is on the table, it's our opponent,
                 /// we save its coordinates in the new base (xy based on beacon3)
                 /// and the original coordinates (relative to the robot, distance and angle)
@@ -182,14 +183,16 @@ int Adversary(double *anglesAdv, double *distancesAdv, LidarData *lidarData) {
                 lidarData->y_adv = yobj;
                 lidarData->d_adv = distancesAdv[i];
                 lidarData->a_adv = anglesAdv[i];
+                yold = yobj;
+
                 /// we assume that the lidar can only see one object on the table
                 /// and that it is therefore automatically the robot
-                return 0;
+                //return 0;
             }
         }
     }
     /// We haven't found the opponent, by default the coordinates remain in 0
-    return 1;
+    return (yold==6);
 }
 
 /**
@@ -296,7 +299,7 @@ int foundAdvWithOdo(double *anglesAdv, double *distancesAdv, LidarData *lidarDat
     ///coordinates in xy after one and two transformations (translations then rotation)
     double xobj;
     double yobj;
- 
+    double yold = 6;
 
     for (int i = 0; i < size; ++i) {
         /// transformation identical to that of beacons and robots
@@ -306,7 +309,7 @@ int foundAdvWithOdo(double *anglesAdv, double *distancesAdv, LidarData *lidarDat
         if (xobj > 0.03 && xobj < xmax-0.03) {
 
             ///check whether the y coordinate is valid (on the table)
-            if (yobj > 0.03 && yobj < ymax-0.03) {
+            if (yobj > 0.03 && yobj < ymax-0.03 && abs(yobj-1.5)<abs(yold-1.5)) {
                 /// if the object is on the table, it's our opponent,
                 /// we save its coordinates in the new base (xy based on beacon3)
                 /// and the original coordinates (relative to the robot, distance and angle)
@@ -314,14 +317,14 @@ int foundAdvWithOdo(double *anglesAdv, double *distancesAdv, LidarData *lidarDat
                 lidarData->y_adv = yobj;
                 lidarData->d_adv = distancesAdv[i];
                 lidarData->a_adv = anglesAdv[i];
+                yold = yobj;
                 /// we assume that the lidar can only see one object on the table
                 /// and that it is therefore automatically the robot
-                return 0;
             }
         }
     }
     /// We haven't found the opponent, by default the coordinates remain in 0
-    return 1;
+    return (yold==6);
 }
 
 /**
@@ -847,7 +850,6 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
         lidarData->readLidar_lost=true;
     }
     fullScanPcqLost = false;
-    //TODO eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
       
 }
 
