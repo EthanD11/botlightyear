@@ -173,7 +173,7 @@ void *localizer(void* arg) {
     //LidarData *lidarData = new LidarData();
     //init_lidar(lidarData);
     // double xOdo, yOdo, thetaOdo;
-    double x, y, theta;
+    double x = 0, y = 0, theta = 0;
     // double odoWeight = 1.0;
     //shared.get_robot_pos(&lidarData->x_odo, &lidarData->y_odo, &lidarData->theta_odo);
     while (!localizerEnd) {
@@ -265,7 +265,7 @@ int main(int argc, char const *argv[])
 
         Action* decided_action = make_decision();
         printf("Action type : %d\n", decided_action->action_type);
-        double x, y, theta;
+        double x = 0, y = 0, theta = 0;
         shared.get_robot_pos(&x,&y,&theta);
         printf("Current pos : (%.3f,%.3f,%.3f)\n",x,y,theta);
 

@@ -50,7 +50,7 @@ uint8_t back_manoeuvre(double backward_dist) {
     );
 
     // 2) Get position
-    double xpos, ypos, thetapos;
+    double xpos = 0, ypos = 0, thetapos = 0;
     shared.get_robot_pos(&xpos, &ypos, &thetapos);
 
     // 3) Compute new position 
@@ -111,7 +111,7 @@ int8_t path_following_to_action(graph_path_t *path)
     double kw = 4.0;
     teensy->set_position_controller_gains(kp, ka, kb, kw);
 
-    double xCurrent, yCurrent;
+    double xCurrent = 0, yCurrent = 0;
     shared.get_robot_pos(&xCurrent, &yCurrent, NULL);
 
     double first_node_theta = atan2(y[1] - yCurrent, x[1] - xCurrent);
@@ -147,9 +147,9 @@ int8_t path_following_to_action(graph_path_t *path)
     while ((teensy->ask_mode()) != ModePositionControlOver)
     {
         // Get update on robot and adversary position
-        double xr, yr, tr;
+        double xr = 0, yr = 0, tr = 0;
         shared.get_robot_pos(&xr, &yr, &tr);
-        double xa, ya, da, ta;
+        double xa = 0, ya = 0, da = 0, ta = 0;
         shared.get_adv_pos(&xa, &ya, &da, &ta);
 
         // Get closer in path
@@ -218,7 +218,7 @@ int8_t action_position_control(double x_end, double y_end, double theta_end)
     // teensy->set_position_controller_gains(kp, ka, kb, kw);
 
     // Retrieve robot current position
-    double x, y, theta;
+    double x = 0, y = 0, theta = 0;
     shared.get_robot_pos(&x, &y, &theta);
     #ifdef VERBOSE
     printf("Robot position from shared: %.3f, %.3f, %.3f \n", x, y, theta);
@@ -237,7 +237,7 @@ int8_t action_position_control(double x_end, double y_end, double theta_end)
     {
 
         // Retrieve adversary current position
-        double d_adv, a_adv;
+        double d_adv = 0, a_adv = 0;
         shared.get_adv_pos(NULL, NULL, &d_adv, &a_adv);
         #ifdef VERBOSE
         printf("Adversary position from shared: %.3f, %.3f\n", d_adv, a_adv);

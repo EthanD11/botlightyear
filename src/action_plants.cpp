@@ -18,7 +18,7 @@ void take_plant_kinematicChain(int8_t slotNumber) {
     Teensy* teensy = shared.teensy; 
     Flaps* servoFlaps = shared.servoFlaps; 
 
-    double x_pos_init, y_pos_init, theta_pos_init; 
+    double x_pos_init = 0, y_pos_init = 0, theta_pos_init = 0; 
     shared.get_robot_pos(&x_pos_init, &y_pos_init, &theta_pos_init);
 
     //teensy->set_position(1.0,1.0,0);
@@ -102,7 +102,7 @@ int8_t position_to_plant(double x_plant, double y_plant, double x_plant_center, 
 }
 
 int8_t move_back(double x_plant, double y_plant) {
-    double x_pos, y_pos, theta_pos; 
+    double x_pos = 0, y_pos = 0, theta_pos = 0; 
     shared.get_robot_pos(&x_pos, &y_pos, &theta_pos);
     double plant_to_bot_dist = hypot(x_plant-x_pos, y_plant-y_pos); 
 
@@ -165,8 +165,8 @@ int8_t get_closest_plant_from_lidar(double x_pos, double y_pos, double theta_pos
 
 
 void ActionPlants::do_action() {
-    double xpos, ypos, theta_pos; 
-    double xpos_initial, ypos_initial, theta_pos_initial; 
+    double xpos = 0, ypos = 0, theta_pos = 0; 
+    double xpos_initial = 0, ypos_initial = 0, theta_pos_initial = 0; 
     shared.get_robot_pos(&xpos_initial, &ypos_initial, &theta_pos_initial);
     
     // Positions itself in front of the plant node, without going in

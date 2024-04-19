@@ -40,7 +40,7 @@ class ActionWait: public Action {
             this->needs[4] = 0;  // LidarBottom
         }
         void do_action () {
-            double x,y;
+            double x = 0,y = 0;
             shared.get_robot_pos(&x,&y,NULL);
             uint8_t node = shared.graph->identify_pos(x,y,NULL);
             printf("Current node : %d with level %d\n", node, shared.graph->nodes[node].level);
@@ -94,7 +94,7 @@ double getThetaEnd(uint8_t * arrNodes, double * arrThetas , uint8_t len, uint8_t
 void decide_possible_actions() {
     n_possible_actions = 0; 
     int8_t remaining_time = shared.update_and_get_timer();
-    double x_pos, y_pos, theta_pos, dist_from_currentNode; 
+    double x_pos = 0, y_pos = 0, theta_pos = 0, dist_from_currentNode = 0; 
     shared.get_robot_pos(&x_pos, &y_pos, &theta_pos); 
     graph_path_t* path;
     x_pos += 0.15*cos(theta_pos);
@@ -169,7 +169,7 @@ void decide_possible_actions() {
         return; 
     }
     
-    double xPos, yPos, thetaPos;
+    double xPos = 0, yPos = 0, thetaPos = 0;
     shared.get_robot_pos(&xPos, &yPos, &thetaPos);
 
     // Second check if time is running out : 
