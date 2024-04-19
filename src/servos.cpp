@@ -80,7 +80,7 @@ void GripperHolder::close() {
     this->send_dutyCycle(675);
 } 
 void GripperHolder::open() {
-    this->send_dutyCycle(820);
+    this->send_dutyCycle(875);
 } 
 
 void GripperHolder::open_full() {
