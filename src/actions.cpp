@@ -182,7 +182,7 @@ int8_t path_following_to_action(graph_path_t *path)
         if (teensy->ask_mode() == ModeIdle) {
 
             if (closer_node_id >= path->nNodes-2) {
-                teensy->pos_ctrl(x[path->nNodes], y[path->nNodes], theta_end);
+                teensy->pos_ctrl(x[path->nNodes-1], y[path->nNodes-1], theta_end);
             } else {
                 closer_node_id++;
 
