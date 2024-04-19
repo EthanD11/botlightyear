@@ -134,7 +134,13 @@ void decide_possible_actions() {
         return; 
     }
     // Check if adversary is close to do the back avoidance
-
+    double xPos, yPos, thetaPos, xAdv, yAdv, thetaAdv;
+    shared.get_adv_pos(&xAdv, &yAdv, &thetaAdv);
+    shared.get_robot_pos(&xPos, &yPos, &thetaPos);
+    double dist_to_adv = hypot(xPos - xAdv, yPos - yAdv);
+    if (dist_to_adv < 0.7) {
+        back_manoeuvre(0.4);
+    }
 
     // Second check if time is running out : 
     if (remaining_time < time_gotobase) {

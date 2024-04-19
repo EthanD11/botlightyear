@@ -13,7 +13,6 @@ typedef enum _action : uint8_t
     GameFinished,
     ReturnToBase,
     Displacement,
-    BackManoeuvre,
     TakePlants,
     TakePots,
     TurnSP,
@@ -46,6 +45,8 @@ int8_t path_following_to_action(graph_path_t *path);
 /* UTILS: POSITION_CONTROL */
 int8_t action_position_control(double x_end, double y_end, double theta_end); 
 
+/* UTILS: BACK MANOEUVER*/
+uint8_t back_manoeuvre(double backward_dist);
 /**
  * @brief Get the plate slot associated with the plate slot ID
  * @param slot the slot ID
