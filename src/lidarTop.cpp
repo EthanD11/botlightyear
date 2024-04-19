@@ -20,7 +20,7 @@ double dref2 = sqrt((0.95) * (0.95) + (1.594 * 2) * (2 * 1.594));
 
 
 ///taille balise
-double largeurMatBalise = 0.1;//TODO modif remettre 0.065
+double largeurMatBalise = 0.12;//TODO modif remettre 0.065
 double largeurMatAdvers = 0.22;
 
 ///utile pour des prints
@@ -947,7 +947,7 @@ void init_lidar(LidarData *lidarData) {
     lidarData->readLidar_x_robot = 0.0;
     lidarData->readLidar_y_robot = 0.0;
     lidarData->readLidar_theta_robot = 0.0;
-    lidarData->readLidar_x_opponent = 0.0;
+    lidarData->readLidar_x_opponent = 400.0;
     lidarData->readLidar_y_opponent = 0.0;
     lidarData->readLidar_d_opponent = 400.0;
     lidarData->readLidar_a_opponent = 0.0;
@@ -964,7 +964,7 @@ void init_lidar(LidarData *lidarData) {
     lidarData->y_robot = -1.35 + 1.594;
     lidarData->orientation_robot = -M_PI / 2;
 
-    lidarData->x_adv = 0;
+    lidarData->x_adv = 400;
     lidarData->y_adv = 0;
     lidarData->d_adv = 400;
     lidarData->a_adv = 0;

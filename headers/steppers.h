@@ -85,7 +85,7 @@ public:
      * @param blocking CALL_BLOCKING if the command is blocking (waits until finished), CALL_NON_BLOCKING if it's non-blocking
      * (non-blocking by default)
      */
-    void calibrate(steppers_t stepperName, uint8_t blocking = CALL_NON_BLOCKING); 
+    void calibrate(steppers_t stepperName, uint8_t blocking = CALL_NON_BLOCKING, uint8_t*valids = NULL); 
 
 
 
@@ -126,7 +126,7 @@ public:
     /**
      * @brief Calibrates all the steppers
     */
-    void calibrate_all(uint8_t blocking = CALL_NON_BLOCKING);
+    void calibrate_all(uint8_t blocking = CALL_NON_BLOCKING, uint8_t*valids = NULL);
 
     /**
      * @brief Resets all the steppers

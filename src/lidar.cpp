@@ -92,13 +92,15 @@ void StartLidarTop(){
     }else{
         fprintf(stderr, "Failed to connect to LIDAR %08x\r\n", res);
     }
+        printf("Lidar Top connected\n");
+
 }
 
 void StartLidarBottom(){
     //TODO change en USB1
     ///  Create a communication channel instance
     //TODO USB1
-    Result<IChannel*> _channel = createSerialPortChannel("/dev/ttyUSB0", 256000); //port série spécifié est "/dev/ttyUSB0" avec un débit de 115200 bps.
+    Result<IChannel*> _channel = createSerialPortChannel("/dev/ttyUSB2", 256000); //port série spécifié est "/dev/ttyUSB0" avec un débit de 115200 bps.
     
 
     if (_channel.err) {
@@ -135,6 +137,7 @@ void StartLidarBottom(){
     }else{
         fprintf(stderr, "Failed to connect to LIDAR %08x\r\n", res);
     }
+    printf("Lidar Bottom connected\n");
 }
 
 void updateDataTop(double* angles, double* distances, double* quality, size_t* arraySize){

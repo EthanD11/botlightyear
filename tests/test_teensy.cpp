@@ -44,7 +44,7 @@ int main(int argc, char const *argv[])
     double xr = 0.4; 
     double yr = 0.0; 
     double tr = 0*deg_to_rads;
-    double xpos, ypos, thetapos;
+    double xpos = 0, ypos = 0, thetapos = 0;
 
     teensy.set_position(x, y, t);
     odo.set_pos(x, y, t);
@@ -86,7 +86,7 @@ int main(int argc, char const *argv[])
     double vref = 0.25;
     double dist_goal_reached = 0.4;
 
-    double xpos, ypos, thetapos;
+    double xpos = 0, ypos = 0, thetapos = 0;
     odo.set_pos(x[0], y[0], 0);
     lguSleep(0.5);
     teensy.set_position(x[0], y[0], 0);
@@ -114,7 +114,7 @@ int main(int argc, char const *argv[])
     #ifdef IDLE
     teensy.idle();
 
-    double xpos, ypos, thetapos;
+    double xpos = 0, ypos = 0, thetapos = 0;
     teensy.set_position(1.6, 3.651e-3, M_PI/2);
     odo.set_pos(1.6, 3.651e-3, M_PI/2);
     while (true) {

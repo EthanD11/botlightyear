@@ -211,8 +211,6 @@ teensy_mode_t Teensy::ask_mode() {
             return ModeConstantDC;
         case ModePositionControlOver:
             return ModePositionControlOver;
-        case ModePathFollowingLost:
-            return ModePathFollowingLost;
         }
     }
     printf("Unkown teensy mode\n");

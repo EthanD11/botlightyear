@@ -64,13 +64,15 @@ void TakePlantCHAIN(int slotNumber) {
     // GripperDeployer* deployer = shared.grpDeployer; 
     // Steppers* steppers = shared.steppers; 
 
+    printf("youhou\n");
+
     teensy->set_position_controller_gains(3.0,5.0,-0.8,4.0);
 
     servoFlaps->deploy();
     steppers->flaps_move(FlapsPlant, CALL_BLOCKING); 
     steppers->flaps_move(FlapsOpen);
     usleep(250000);
-    teensy->pos_ctrl(0.94,1.0,0); // Reverse 4 cm
+    teensy->pos_ctrl(0.94,1.0,0); // Reverse 6 cm
     usleep(200000);
     servoFlaps->raise();
 
@@ -195,7 +197,9 @@ int main(int argc, char const *argv[])
     steppers->setup_all_speeds(); 
     steppers->reset_all(); 
 
-    steppers->calibrate_all(CALL_BLOCKING);
+    // steppers->calibrate(StprPlate, CALL_BLOCKING, NULL); 
+
+    steppers->calibrate_all(CALL_BLOCKING, NULL);
     steppers->plate_move(0,CALL_BLOCKING);
     #ifdef TESTS
 
@@ -277,7 +281,7 @@ int main(int argc, char const *argv[])
 
     getchar();
 
-    steppers->slider_move(SliderLow, CALL_BLOCKING);
+    steppers->slider_move(SliderIntermediateLow, CALL_BLOCKING);
     holder->open();
     steppers->slider_move(SliderHigh);
     usleep(200000);

@@ -49,7 +49,7 @@ int main(int argc, char const *argv[]) {
 
 
     // Set teensy and odometry starting positions
-    double xpos, ypos, thetapos;
+    double xpos = 0, ypos = 0, thetapos = 0;
     odo.set_pos(x[0], y[0], theta_start);
     teensy.set_position(x[0], y[0], theta_start);
     
@@ -68,7 +68,7 @@ int main(int argc, char const *argv[]) {
     lguSleep(3.0);
     solar_panel(TeamBlue, 0);
     
-    double xx, yy, tt; 
+    double xx = 0, yy = 0, tt = 0; 
     odo.get_pos(&xx, &yy, &tt); 
     teensy.set_position(xx, yy, tt); 
 

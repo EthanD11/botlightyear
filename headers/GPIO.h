@@ -25,7 +25,7 @@ private:
 public:
     GPIOPins();
     ~GPIOPins();
-    void wait_for_gpio_value(GPIO_t gpio, uint8_t val, uint32_t msMaxWait = 5000);
+    int8_t wait_for_gpio_value(GPIO_t gpio, uint8_t val, uint32_t msMaxWait = 5000);
     int8_t read(GPIO_t gpio);
 };
 
