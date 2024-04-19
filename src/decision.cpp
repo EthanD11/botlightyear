@@ -13,9 +13,9 @@
 #include <cmath>
 #include <algorithm>
 
-//#define TESTS
+#define TESTS
 
-#define FINAL_STRATEGY
+//#define FINAL_STRATEGY
 //#define HOMOLOGATION
 
 class ActionGameFinished : public Action {
@@ -99,12 +99,8 @@ void decide_possible_actions() {
 
     uint8_t target = 26;
     shared.graph->update_obstacle(27,1);
-    shared.graph->update_obstacle(37,1);
-    shared.graph->update_obstacle(28,1);
     path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
     shared.graph->update_obstacle(27,0);
-    shared.graph->update_obstacle(37,0);
-    shared.graph->update_obstacle(28,0);
     if (path != NULL) {
         path->thetaStart = theta_pos; 
         path->thetaEnd = -M_PI_2;  
