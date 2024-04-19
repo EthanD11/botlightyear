@@ -60,6 +60,8 @@ public:
     Graph();
     ~Graph();
 
+    void print();
+
     void level_rdlock();
     void level_unlock();
 

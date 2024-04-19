@@ -7,7 +7,7 @@
 
 // Uncomment to enable
 // When enabled, init_graph_from_file should print out the exact file it has read
-#define VERBOSE
+//#define VERBOSE
 
 typedef struct __graph_targets
 {
@@ -331,8 +331,6 @@ int Graph::init_from_file(const char *filename, team_color_t color) {
     }
 
     nodes[adversaryBases[0]].level = NODE_ADV_BASE;
-    printf("Setting level of %d to %d", nodes[adversaryBases[0]], nodes[adversaryBases[0]].level);
-
 
     // Scan blue planters nodes
     for (size_t i = 0; i < 64; i++){ list[i] = 0; }
@@ -531,4 +529,79 @@ void Graph::print_path(graph_path_t* path) {
         printf("(%.3f,%.3f) ", path->x[i], path->y[i]);
     }
     printf("\n");
+}
+
+void Graph::print() {
+    printf("----- Printing Graph -----\n");
+    printf("--- Number of nodes : %d\n", nNodes);
+
+    for (ssize_t i = 0; i < nNodes; i++)
+    {
+        graph_node_t *myNode = nodes + i;
+        printf("Node %d :\n", myNode->id);
+        printf("\tXY coordinates : (%.3f, %.3f)\n", myNode->x, myNode->y);
+        printf("\tLevel : %d\n", myNode->level);
+        printf("\tNumber of neighbors : %d\n", myNode->nNeighbors);
+        printf("\tNeighbors : ");
+        for (size_t j = 0; j < myNode->nNeighbors; j++)
+        {
+            printf("%d ", myNode->neighbors[j]->id);
+        }
+        printf("\n");
+    }
+
+    printf("--- Level : %d\n", level);
+    printf("--- Special nodes :\n");
+
+    printf("Friendly bases, reserved first : ");
+    for (size_t i = 0; i < 3; i++) printf("%d ", friendlyBases[i]);
+    printf("\n");
+
+    printf("Friendly bases thetas, reserved first : ");
+    for (size_t i = 0; i < 3; i++) printf("%.3f ", friendlyBasesTheta[i]);
+    printf("\n");
+
+    printf("Adversary bases, reserved first : ");
+    for (size_t i = 0; i < 3; i++) printf("%d ", adversaryBases[i]);
+    printf("\n");
+
+
+    printf("Friendly planters, reserved first : ");
+    for (size_t i = 0; i < 3; i++) printf("%d ", friendlyPlanters[i]);
+    printf("\n");
+
+    printf("Friendly planters thetas, reserved first : ");
+    for (size_t i = 0; i < 3; i++) printf("%.3f ", friendlyPlantersTheta[i]);
+    printf("\n");
+
+    printf("Adversary planters, reserved first : ");
+    for (size_t i = 0; i < 3; i++) printf("%d ", adversaryPlanters[i]);
+    printf("\n");
+
+
+    printf("Friendly SPs : ");
+    for (size_t i = 0; i < 3; i++) printf("%d ", friendlySPs[i]);
+    printf("\n");
+
+    printf("Common SPs : ");
+    for (size_t i = 0; i < 3; i++) printf("%d ", commonSPs[i]);
+    printf("\n");
+
+    printf("Adversary SPs : ");
+    for (size_t i = 0; i < 3; i++) printf("%d ", adversarySPs[i]);
+    printf("\n");
+
+
+    printf("Plants : ");
+    for (size_t i = 0; i < 6; i++) printf("%d ", plants[i]);
+    printf("\n");
+
+    printf("Number of plants per zone : ");
+    for (size_t i = 0; i < 6; i++) printf("%d ", nbPlants[i]);
+    printf("\n");
+
+    printf("Pots : ");
+    for (size_t i = 0; i < 6; i++) printf("%d ", pots[i]);
+    printf("\n");
+    printf("----- End of Graph print -----\n");
 }
