@@ -210,14 +210,13 @@ void ActionSP::do_action() {
         state = Position_Control; 
         while (stateKC != Position_Control) usleep(50000); 
 
-        double x, y, theta; 
-        double yend; 
+        double x = 0, y = 0, theta = 0; 
         shared.get_robot_pos(&x, &y, &theta); 
 
         y1 += step; 
 
         #ifdef VERBOSE
-        printf("SP do_action: robot position = (%.3f, %.3f, %.3f)\n SP do_action: yend = %.3f\n", x, y, theta, yend); 
+        printf("SP do_action: robot position = (%.3f, %.3f, %.3f)\n SP do_action: yend = %.3f\n", x, y, theta, y1); 
         #endif
 
 

@@ -32,10 +32,10 @@ SPIBus::~SPIBus() {
 }
 
 int SPIBus::test() {
-    char send1[5]; send1[0] = 0; // Test read
+    char send1[5] = {0,0,0,0,0}; send1[0] = 0; // Test read
     char send2[] = {0x9F,0x05,0x04,0x03,0x02}; // Test write
-    char send3[5]; send3[0] = 0x1F;
-    char receive1[5]; char receive3[5];
+    char send3[5] = {0x1F,0,0,0,0}; send3[0] = 0x1F;
+    char receive1[5] = {0,0,0,0,0}; char receive3[5] = {0,0,0,0,0};
 
     pthread_mutex_lock(&mutex);
     lgSpiXfer(DE0_handle, send1, receive1, 5);

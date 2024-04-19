@@ -13,7 +13,6 @@ typedef enum _action : uint8_t
     GameFinished,
     ReturnToBase,
     Displacement,
-    BackManoeuvre,
     TakePlants,
     TakePots,
     TurnSP,
@@ -30,6 +29,7 @@ class Action {
         action_t action_type; 
         bool needs_path; 
         graph_path_t* path; 
+        uint8_t needs[5]; 
         Action(action_t type, bool needsPath, graph_path_t* graph_path) {
             action_type = type;
             needs_path = needsPath;
@@ -45,6 +45,8 @@ int8_t path_following_to_action(graph_path_t *path);
 /* UTILS: POSITION_CONTROL */
 int8_t action_position_control(double x_end, double y_end, double theta_end); 
 
+/* UTILS: BACK MANOEUVER*/
+uint8_t back_manoeuvre(double backward_dist);
 /**
  * @brief Get the plate slot associated with the plate slot ID
  * @param slot the slot ID
@@ -72,6 +74,12 @@ storage_slot_t get_next_free_slot_ID (storage_content_t content);
  * @param content the type of object to update (ContainsNothing to reset slot)
 */
 void update_plate_content(storage_slot_t slotID, storage_content_t content); 
+
+/**
+ * @brief Gets the number of slots containing the given content
+ * @param content the type of object to count
+*/
+int8_t get_content_count(storage_content_t content); 
 
 /**
  * @brief Returns the angle in radians in between [-pi, pi]

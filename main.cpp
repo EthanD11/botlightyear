@@ -124,6 +124,8 @@ void init_and_wait_for_start() {
     dxl_ping(8,1.0);
 
     if (shared.graph->init_from_file("./graphs/BL_V3.txt", shared.color) != 0) exit(3);
+
+    printf("%d\n",shared.graph->nodes[0].level);
     /*for (int i=0; i<3; i++) {
         printf("Friendly base %d \n", shared.graph->friendlyBases[i]);
         printf("Adversary base %d \n", shared.graph->adversaryBases[i]);
@@ -146,8 +148,10 @@ void init_and_wait_for_start() {
     
     if (pthread_create(&localizerID, NULL, localizer, NULL) != 0) exit(4);
 
+    StartLidarBottom();
+
     shared.steppers->reset_all();
-    shared.steppers->calibrate_all();
+    shared.steppers->calibrate_all(CALL_BLOCKING, shared.valids);
     shared.servoFlaps->raise();
     
     shared.start_timer();
@@ -170,13 +174,13 @@ void *localizer(void* arg) {
     StartLidarTop();
     LidarData *lidarData = new LidarData();
     init_lidar(lidarData);
-    double xOdo, yOdo, thetaOdo;
-    double x, y, theta;
-    double odoWeight = 1.0;
+    // double xOdo, yOdo, thetaOdo;
+    double x = 0, y = 0, theta = 0;
+    // double odoWeight = 1.0;
     shared.get_robot_pos(&lidarData->x_odo, &lidarData->y_odo, &lidarData->theta_odo);
     while (!localizerEnd) {
 
-        teensy_mode_t teensyMode = shared.teensy->ask_mode();
+        // teensy_mode_t teensyMode = shared.teensy->ask_mode();
 
         #ifdef TIME_MEAS
         clock_t odoClock;
@@ -189,20 +193,20 @@ void *localizer(void* arg) {
         clock_t lidarClock = clock();
         #endif
 
-        if ((teensyMode == ModePositionControlOver || teensyMode == ModeIdle) && !lidarData->readLidar_lost) {
-            shared.odo->get_pos(&xOdo, &yOdo, &thetaOdo);
-            #ifdef TIME_MEAS
-            odoClock = clock();
-            #endif
-            x = xOdo*odoWeight + lidarData->readLidar_x_robot*(1-odoWeight);
-            y = yOdo*odoWeight + lidarData->readLidar_y_robot*(1-odoWeight);
-            theta = thetaOdo*odoWeight + lidarData->readLidar_theta_robot*(1-odoWeight);
-        } else {
-            shared.odo->get_pos(&x, &y, &theta);
-            #ifdef TIME_MEAS
-            odoClock = clock();
-            #endif
-        }
+        // if ((teensyMode == ModePositionControlOver || teensyMode == ModeIdle) && !lidarData->readLidar_lost) {
+        //     shared.odo->get_pos(&xOdo, &yOdo, &thetaOdo);
+        //     #ifdef TIME_MEAS
+        //     odoClock = clock();
+        //     #endif
+        //     x = xOdo*odoWeight + lidarData->readLidar_x_robot*(1-odoWeight);
+        //     y = yOdo*odoWeight + lidarData->readLidar_y_robot*(1-odoWeight);
+        //     theta = thetaOdo*odoWeight + lidarData->readLidar_theta_robot*(1-odoWeight);
+        // } else {
+        shared.odo->get_pos(&x, &y, &theta);
+        #ifdef TIME_MEAS
+        odoClock = clock();
+        #endif
+        //}
         shared.teensy->set_position(x,y,theta);
 
         #ifdef TIME_MEAS
@@ -210,13 +214,20 @@ void *localizer(void* arg) {
         #endif
 
         shared.set_robot_pos(x,y,theta);
-        //if (!lidarData->readLidar_lost) { 
-        shared.set_adv_pos(
-        lidarData->readLidar_x_opponent,
-        lidarData->readLidar_y_opponent,
-        lidarData->readLidar_d_opponent,
-        lidarData->a_adv);
-        shared.graph->update_adversary_pos(lidarData->readLidar_x_opponent, lidarData->readLidar_y_opponent);
+        if (!lidarData->readLidar_lost) { 
+            shared.set_adv_pos(
+            lidarData->readLidar_x_opponent,
+            lidarData->readLidar_y_opponent,
+            lidarData->readLidar_d_opponent,
+            lidarData->readLidar_a_opponent);
+        // shared.set_adv_pos(
+        // 400,
+        // 400,
+        // 400,
+        // 0);
+            shared.graph->update_adversary_pos(lidarData->readLidar_x_opponent, lidarData->readLidar_y_opponent);
+        // shared.graph->update_adversary_pos(400, 400);
+        }
         lidarData->x_odo = x; lidarData->y_odo = y; lidarData->theta_odo = theta;
 
         #ifdef VERBOSE
@@ -257,7 +268,7 @@ int main(int argc, char const *argv[])
 
         Action* decided_action = make_decision();
         printf("Action type : %d\n", decided_action->action_type);
-        double x, y, theta;
+        double x = 0, y = 0, theta = 0;
         shared.get_robot_pos(&x,&y,&theta);
         printf("Current pos : (%.3f,%.3f,%.3f)\n",x,y,theta);
 
@@ -275,7 +286,7 @@ int main(int argc, char const *argv[])
     shared.servoFlaps->idle(); shared.grpDeployer->idle(); shared.grpHolder->idle();
     dxl_idle(6, 1.0);
     dxl_idle(8, 1.0);
-
+    StopLidarBottom();
     printf("Game finished\n");
     // TODO : show score
     getch();

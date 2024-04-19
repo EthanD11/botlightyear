@@ -70,6 +70,12 @@ public:
     uint8_t startingBaseID; // Graph node ID of the base where the robot started
     storage_content_t storage[8]; // Storage of the robot, indices respect the order defined by storage_slot_t
     uint8_t nFreeSlots; // Number of free storage slots
+    uint8_t plantersDone[3]; 
+    uint8_t zonesDone[3]; 
+    uint8_t SPsDone[2]; // Common, Reserved
+
+
+    uint8_t valids[5]; // SptrPlate, StprSlider, StprFlaps, dxls, lidarBottom
 
     SPIBus *spiBus;
     GPIOPins *pins;

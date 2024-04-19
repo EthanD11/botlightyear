@@ -28,7 +28,7 @@ uint8_t closer_in_path(graph_path_t *path, double xr, double yr)
 uint8_t adversary_in_path(graph_path_t *path, uint8_t closer_node_id)
 {
     shared.graph->level_rdlock();
-    for (uint8_t i = closer_node_id; i < std::min(closer_node_id + 3, (int)path->nNodes); i++)
+    for (uint8_t i = closer_node_id; i < std::min(closer_node_id + 4, (int)path->nNodes); i++)
     {
         if ((shared.graph->nodes[path->idNodes[i]].level & NODE_ADV_PRESENT) != 0)
             return -1;
@@ -45,12 +45,12 @@ uint8_t back_manoeuvre(double backward_dist) {
     shared.teensy->set_position_controller_gains(
         0.8, // kp
         8.0, // ka
-        2.0, // kb
+        -2.0, // kb
         6.0 // kw
     );
 
     // 2) Get position
-    double xpos, ypos, thetapos;
+    double xpos = 0, ypos = 0, thetapos = 0;
     shared.get_robot_pos(&xpos, &ypos, &thetapos);
 
     // 3) Compute new position 
@@ -111,7 +111,7 @@ int8_t path_following_to_action(graph_path_t *path)
     double kw = 4.0;
     teensy->set_position_controller_gains(kp, ka, kb, kw);
 
-    double xCurrent, yCurrent;
+    double xCurrent = 0, yCurrent = 0;
     shared.get_robot_pos(&xCurrent, &yCurrent, NULL);
 
     double first_node_theta = atan2(y[1] - yCurrent, x[1] - xCurrent);
@@ -147,9 +147,9 @@ int8_t path_following_to_action(graph_path_t *path)
     while ((teensy->ask_mode()) != ModePositionControlOver)
     {
         // Get update on robot and adversary position
-        double xr, yr, tr;
+        double xr = 0, yr = 0, tr = 0;
         shared.get_robot_pos(&xr, &yr, &tr);
-        double xa, ya, da, ta;
+        double xa = 0, ya = 0, da = 0, ta = 0;
         shared.get_adv_pos(&xa, &ya, &da, &ta);
 
         // Get closer in path
@@ -174,11 +174,12 @@ int8_t path_following_to_action(graph_path_t *path)
             printf("Adversary too close %f %f !!\n", da, ta);
             #endif
             teensy->idle();
-            sleep(5);
+            usleep(300000);
+            back_manoeuvre(0.4);
             return -1;
         }
 
-        if (teensy->ask_mode() == ModePathFollowingLost) {
+        if (teensy->ask_mode() == ModeIdle) {
 
             if (closer_node_id >= path->nNodes-2) {
                 teensy->pos_ctrl(x[path->nNodes], y[path->nNodes], theta_end);
@@ -217,7 +218,7 @@ int8_t action_position_control(double x_end, double y_end, double theta_end)
     // teensy->set_position_controller_gains(kp, ka, kb, kw);
 
     // Retrieve robot current position
-    double x, y, theta;
+    double x = 0, y = 0, theta = 0;
     shared.get_robot_pos(&x, &y, &theta);
     #ifdef VERBOSE
     printf("Robot position from shared: %.3f, %.3f, %.3f \n", x, y, theta);
@@ -236,7 +237,7 @@ int8_t action_position_control(double x_end, double y_end, double theta_end)
     {
 
         // Retrieve adversary current position
-        double d_adv, a_adv;
+        double d_adv = 0, a_adv = 0;
         shared.get_adv_pos(NULL, NULL, &d_adv, &a_adv);
         #ifdef VERBOSE
         printf("Adversary position from shared: %.3f, %.3f\n", d_adv, a_adv);
@@ -324,7 +325,13 @@ void update_plate_content(storage_slot_t slotID, storage_content_t content) {
         shared.storage[slotID] = (storage_content_t) (((uint8_t) content) | ((uint8_t)shared.storage[slotID] )); 
     }
 }
-
+int8_t get_content_count(storage_content_t content) {
+    int8_t count = 0; 
+    for (int8_t i=SlotM3; i<SlotFlaps; i++) {
+        count += (((uint8_t)shared.storage[i]) & content) !=0; 
+    }
+    return count; 
+}
 
 double periodic_angle(double angle) {
     if (angle > M_PI) return angle-2*M_PI; 

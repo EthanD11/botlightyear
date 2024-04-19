@@ -25,6 +25,12 @@ public:
         this->nbPlants = nbPlants;
         this->preference = preference;
         this->needsPotClear = needsPotClear;
+        this->needs[0] = 1;  // SptrPlate
+        this->needs[1] = 1;  // StprSlider
+        this->needs[2] = 1;  // StprFlaps
+        this->needs[3] = 0;  // Dxls
+        this->needs[4] = 0;  // LidarBottom
+
     }
     ~ActionPlanter() {}
     void do_action();

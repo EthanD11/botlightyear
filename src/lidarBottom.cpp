@@ -246,12 +246,13 @@ int getNumberOfPlantInAllZone(double x_robot, double y_robot, double theta_robot
         }
     }*/
 
-    delete (angles);
-    delete (distances);
-    delete (quality);
-    delete (obj);
-    delete (robot);
-    delete (asize);
+    delete[] (angles);
+    delete[] (distances);
+    delete[] (quality);
+    delete[] (obj);
+    delete[] (robot);
+    delete[] (asize);
+    printf("fin bottomlidar\n");
     return 1;
 }
 
