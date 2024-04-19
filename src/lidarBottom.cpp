@@ -91,9 +91,9 @@ void lidarGetPlantPosition(Point *robot, double *angles, double *distances, doub
         plantZone[i]->endAngle = moduloLidarZero2PI(plantZone[i]->endAngle);
 
         if (plantZone[i]->angle < M_PI / 4.0 || plantZone[i]->angle > 7.0 * M_PI / 4.0) {
-            plantZone[i]->isAccessible = true;
+            plantZone[i]->isVisible = true;
         } else {
-            plantZone[i]->isAccessible = false;
+            plantZone[i]->isVisible = false;
         }
     }
     /// à cette étape, on sait les angles de depart et de fin des zones ainsi que si la zone est accessible
@@ -103,7 +103,7 @@ void lidarGetPlantPosition(Point *robot, double *angles, double *distances, doub
     int countGap = 0;
     double size, a1, a2, d1, d2;
     for (int zp = 0; zp < 6; ++zp) {
-        if (plantZone[zp]->isAccessible) {
+        if (plantZone[zp]->isVisible) {
             start = (int) (plantZone[zp]->startAngle / (2.0 * M_PI) * arraysize);
             //(int) plantZone[zp].startAngle/(2*M_PI)*arraysize;
             stop = (int) (plantZone[zp]->endAngle / (2.0 * M_PI) * arraysize);
@@ -131,7 +131,7 @@ void lidarGetPlantPosition(Point *robot, double *angles, double *distances, doub
                             plantZone[zp]->aPlant[plantZone[zp]->numberPlant] = (a1 + a2) / 2.0;
                             plantZone[zp]->dPlant[plantZone[zp]->numberPlant] = (d1 + d2) / 2.0;
                             plantZone[zp]->xPlant[plantZone[zp]->numberPlant] = robot->x + plantZone[zp]->dPlant[plantZone[zp]->numberPlant]*std::cos(plantZone[zp]->aPlant[plantZone[zp]->numberPlant]);
-                            plantZone[zp]->xPlant[plantZone[zp]->numberPlant] = robot->y + plantZone[zp]->dPlant[plantZone[zp]->numberPlant]*std::sin(plantZone[zp]->aPlant[plantZone[zp]->numberPlant]);
+                            plantZone[zp]->yPlant[plantZone[zp]->numberPlant] = robot->y + plantZone[zp]->dPlant[plantZone[zp]->numberPlant]*std::sin(plantZone[zp]->aPlant[plantZone[zp]->numberPlant]);
                             plantZone[zp]->numberPlant++;
 
                             /// new object : initial values are stored
@@ -153,7 +153,7 @@ void lidarGetPlantPosition(Point *robot, double *angles, double *distances, doub
                         plantZone[zp]->aPlant[plantZone[zp]->numberPlant] = (a1 + a2) / 2.0;
                         plantZone[zp]->dPlant[plantZone[zp]->numberPlant] = (d1 + d2) / 2.0;
                         plantZone[zp]->xPlant[plantZone[zp]->numberPlant] = robot->x + plantZone[zp]->dPlant[plantZone[zp]->numberPlant]*std::cos(plantZone[zp]->aPlant[plantZone[zp]->numberPlant]);
-                        plantZone[zp]->xPlant[plantZone[zp]->numberPlant] = robot->y + plantZone[zp]->dPlant[plantZone[zp]->numberPlant]*std::sin(plantZone[zp]->aPlant[plantZone[zp]->numberPlant]);
+                        plantZone[zp]->yPlant[plantZone[zp]->numberPlant] = robot->y + plantZone[zp]->dPlant[plantZone[zp]->numberPlant]*std::sin(plantZone[zp]->aPlant[plantZone[zp]->numberPlant]);
                         plantZone[zp]->numberPlant++;
                         countGap = 1;
                     }
@@ -163,7 +163,7 @@ void lidarGetPlantPosition(Point *robot, double *angles, double *distances, doub
                 plantZone[zp]->aPlant[plantZone[zp]->numberPlant] = (a1 + a2) / 2.0;
                 plantZone[zp]->dPlant[plantZone[zp]->numberPlant] = (d1 + d2) / 2.0;
                 plantZone[zp]->xPlant[plantZone[zp]->numberPlant] = robot->x + plantZone[zp]->dPlant[plantZone[zp]->numberPlant]*std::cos(plantZone[zp]->aPlant[plantZone[zp]->numberPlant]);
-                plantZone[zp]->xPlant[plantZone[zp]->numberPlant] = robot->y + plantZone[zp]->dPlant[plantZone[zp]->numberPlant]*std::sin(plantZone[zp]->aPlant[plantZone[zp]->numberPlant]);
+                plantZone[zp]->yPlant[plantZone[zp]->numberPlant] = robot->y + plantZone[zp]->dPlant[plantZone[zp]->numberPlant]*std::sin(plantZone[zp]->aPlant[plantZone[zp]->numberPlant]);
 
                 plantZone[zp]->numberPlant++;
             }
@@ -264,7 +264,7 @@ void initBottomLidar(PlantZone **polarCoord) {
         polarCoord[i]->angle = 0.0; // en radians (angle au centre)
         polarCoord[i]->startAngle = 0.0;
         polarCoord[i]->endAngle = 0.0;
-        polarCoord[i]->isAccessible = true;
+        polarCoord[i]->isVisible = true;
         polarCoord[i]->empty = false;
         polarCoord[i]->numberPlant = 0;
         polarCoord[i]->aPlant = new double[6];

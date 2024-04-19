@@ -3,8 +3,8 @@
  * \brief File description
  */
 #include "math.h"
-#include "path_follower.h" // adapt it with your headers
-// where X should be replaced by your group number
+#include "path_follower.h"
+
 // #define VERBOSE
 PathFollower* init_path_follower() {
     PathFollower *path_follower = (PathFollower *) malloc(sizeof(PathFollower));
@@ -25,7 +25,8 @@ PathFollower* init_path_follower() {
     path_follower->en = 0;// for print in main loop
     path_follower->z = 0;
 
-    // path_follower->vref = 0;
+    path_follower->kir = 0;
+    path_follower->vref = 0;
     path_follower->omega_ref = 0;
     return path_follower;
 }
@@ -50,6 +51,10 @@ void free_path_follower(PathFollower *path_follower) {
     free(path_follower);
 }
 
+bool pf_maybe_unstable(PathFollower *pf, RobotPosition *rp) {
+    return ((fabs(PIPERIODIC(rp->theta - pf->kir)) > M_PI/3));
+}
+
 void init_path_following(PathFollower *path_follower, double *x, double *y, int n, double theta_start, double theta_stop, double vref, double dist_goal_reached){
     path_follower->checkpoints_x = (double *) malloc(sizeof(double)*n);
     path_follower->checkpoints_y = (double *) malloc(sizeof(double)*n);
@@ -70,6 +75,9 @@ void init_path_following(PathFollower *path_follower, double *x, double *y, int 
 
     path_follower->i_spline = 0;
     path_follower->qref = path_follower->x_splines->q[0];
+    // for (int i = 0; i < n; i++) {
+    //     printf("(xc, yc) = (%f,%f)\n", path_follower->checkpoints_x[i], path_follower->checkpoints_y[i]);
+    // }
 
     path_follower->xref = x[0];
     path_follower->yref = y[0];
@@ -85,8 +93,6 @@ void init_path_following(PathFollower *path_follower, double *x, double *y, int 
     path_follower->kifdot = 0;
     path_follower->curvature_f = 0.0;
     path_follower->curvature_fdot = 0.0;
-    path_follower->vref_f = 0.0;
-    path_follower->vref_fdot = 0.0;
     
     free(q_checkpoints);
 }
@@ -202,7 +208,6 @@ int update_path_follower_ref_speed(
     PathFollower *pf, 
     RobotPosition *rp) 
 {
-
     SplineSet *x_splines = pf->x_splines;
     SplineSet *y_splines = pf->y_splines;
     double *q_checkpoints = x_splines->q;
@@ -220,7 +225,7 @@ int update_path_follower_ref_speed(
     kif = pf->kif; kifdot = pf->kifdot; wn = pf->wn; xsi_n = pf->xsi_n;
     delta = pf->delta;
     dt = rp->dt;
-
+    
     // Compute error in the fixed reference frame
     ex = rp->x - pf->xref;
     ey = rp->y - pf->yref;
@@ -239,6 +244,7 @@ int update_path_follower_ref_speed(
 
     // Compute angle of the reference frame with x-axis tangent to trajectory (Serret-Frenet frame)
     kir = atan2(dydq, dxdq);
+    pf->kir = kir;
 
     // Compute error in the Serret-Frenet frame
     et =  cos(kir) * ex + sin(kir) * ey;
@@ -247,6 +253,13 @@ int update_path_follower_ref_speed(
     pf->en = en;
     kid = kir - asin(kn*en / (delta + fabs(en)));
     kidtilde = PIPERIODIC(kid - kir);
+
+    // Filters
+    pf->curvature_f += pf->curvature_fdot;
+    pf->curvature_fdot = wn*wn*(curvature - pf->curvature_f) - SQRT2 * wn * pf->curvature_fdot;
+    pf->kif = PIPERIODIC(pf->kif+kifdot);
+    pf->kifdot = wn*wn*PIPERIODIC(kid - kif) - SQRT2 * wn * kifdot;
+    
 
     // Angular error
     z = PIPERIODIC(rp->theta - kif);
@@ -261,15 +274,6 @@ int update_path_follower_ref_speed(
     // Reference speed correction
     vref = MAX(vref - fabs(pf->kv_en*en), 10e-2);
 
-    // Filters
-    pf->curvature_f += pf->curvature_fdot;
-    pf->curvature_fdot = wn*wn*(curvature - pf->curvature_f) - SQRT2 * wn * pf->curvature_fdot;
-    pf->kif = PIPERIODIC(pf->kif+kifdot);
-    pf->kifdot = wn*wn*PIPERIODIC(kid - kif) - SQRT2 * wn * kifdot;
-    pf->vref_f += pf->vref_fdot;
-    pf->vref_fdot = wn*wn*(vref - pf->vref_f) - SQRT2 * wn * pf->vref_fdot;
-    
-
     // Auxiliary signal (xsi_n = en in steady state)
     double sinckitilde = SINC(kitilde);
     double h = vctrl*sinckitilde*(kn/(delta+en));
@@ -277,7 +281,9 @@ int update_path_follower_ref_speed(
     pf->xsi_n += dxsindt*dt;
 
     // Compute arc-length evolution of serret-frenet frame along the path
-    delta_s = (kt*(et) + vctrl*cos(kir - rp->theta))*dt;// ;/(1 - pf->curvature_f*xsi_n);
+    double factor = 1 - curvature*xsi_n;
+    if (factor > 0.2) delta_s = (kt*(et) + vctrl*cos(kir - rp->theta))*dt/(1 - pf->curvature_f*xsi_n);
+    else delta_s = (kt*(et) + vctrl*cos(kir - rp->theta))*dt/0.2; 
     omega_ref = -kz*z + kifdot - vctrl*sinckitilde*epsilon_n -sigma*tanh(z/pf->epsilon);
     pf->vref = vref;
     pf->omega_ref = omega_ref;
@@ -286,8 +292,8 @@ int update_path_follower_ref_speed(
 
     // update reference speeds
     
-    pf->speed_refr = (pf->vref_f + WHEEL_L*omega_ref);
-    pf->speed_refl = (pf->vref_f - WHEEL_L*omega_ref);
+    pf->speed_refr = (pf->vref + WHEEL_L*omega_ref);
+    pf->speed_refl = (pf->vref - WHEEL_L*omega_ref);
 
     // Compute the point on the path which is at a distance delta_s from the current point
     double step = MIN(delta_s, MAX_DS); // Take step no bigger than MAX_DS
@@ -334,14 +340,27 @@ int update_path_follower_ref_speed(
         return 1;
     }
 
-    if (step < delta_s) { // if delta_s is bigger than MAX_DS, then use the function compute_next_point
-        // printf("compute next point\n");
-        if (compute_next_point(pf, rp, delta_s - step, dist_goal_reached) == 1) return 1;
-    }
-    
+    // if (step < delta_s) { // if delta_s is bigger than MAX_DS, then use the function compute_next_point
+    //     // printf("compute next point\n");
+    //     if (compute_next_point(pf, rp, delta_s - step, dist_goal_reached) == 1) return 1;
+    // }
     delta_q = pf->qref - q_checkpoints[i_spline];
+
     pf->xref = evaluate_spline(x_splines->a[i_spline], x_splines->b[i_spline], x_splines->c[i_spline], x_splines->d[i_spline], delta_q);
     pf->yref = evaluate_spline(y_splines->a[i_spline], y_splines->b[i_spline], y_splines->c[i_spline], y_splines->d[i_spline], delta_q);
+    // for (int i = 0; i < pf->n; i++) {
+    //     printf("%dx a b c d %f %f %f %f\n", i, pf->x_splines->a[i], pf->x_splines->b[i], pf->x_splines->c[i], pf->x_splines->d[i]);
+    // }
+    // for (int i = 0; i < pf->n; i++) {
+    //     printf("%dy a b c d %f %f %f %f\n", i, pf->y_splines->a[i], pf->y_splines->b[i], pf->y_splines->c[i], pf->y_splines->d[i]);
+    // }
     pf->i_spline = i_spline;
+    // printf("pf->xref = %f\n", pf->xref);
+    // printf("pf->yref = %f\n", pf->yref);
+    // printf("pf->qref = %f\n", pf->qref);
+    // for (uint8_t i = 0; i < ((uint8_t) pf->n); i++) {
+    //     printf("(xc, yc) = (%f,%f)\n", pf->checkpoints_x[i], pf->checkpoints_y[i]);
+    // }
+    
     return 0;
 }

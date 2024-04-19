@@ -70,9 +70,9 @@ typedef struct PathFollower {
     double xsi_n; // Auxiliary signal that asymptotically reaches the cross-track error en in steady state
     double curvature_f, curvature_fdot;
     double vref;
-    double vref_f;
-    double vref_fdot;
     double dist_goal_reached;
+    double kir;
+
     // State of the path_follower along trajectory
     int i_spline;
     double qref;
@@ -113,6 +113,7 @@ void close_path_following(PathFollower *pf);
 int update_path_follower_ref_speed(
     PathFollower *path_follower,
     RobotPosition *robot_position);
+bool pf_maybe_unstable(PathFollower *pf, RobotPosition *rp);
 
 inline double get_speed_refl(PathFollower *path_follower) {
     return path_follower->speed_refl;
