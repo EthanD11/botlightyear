@@ -91,6 +91,7 @@ int8_t position_to_plant(double x_plant, double y_plant, double x_plant_center, 
     double y_approach = y_plant + (-dx*sin(alpha) + dy*cos(alpha))* plant_approach_dist; 
     double theta_approach = periodic_angle(atan2(y_plant_center-y_plant, x_plant_center-x_plant)-alpha);
     printf("Position control to approach to x = %.3f, y = %.3f and theta = %.3f \n", x_approach, y_approach, theta_approach);
+    shared.teensy->set_position_controller_gains(2.0,5.0,-0.8,4.0);
 
     if (action_position_control(x_approach, y_approach, theta_approach) == -1) return -1; 
 
@@ -98,6 +99,8 @@ int8_t position_to_plant(double x_plant, double y_plant, double x_plant_center, 
 
     double x_grab = x_plant + (dx*cos(alpha) + dy*sin(alpha)) * plant_grab_dist; 
     double y_grab = y_plant + (-dx*sin(alpha) + dy*cos(alpha)) * plant_approach_dist; 
+    shared.teensy->set_position_controller_gains(2.0,5.0,-0.8,4.0);
+
     printf("Position control to grab to x = %.3f, y = %.3f and theta = %.3f \n", x_grab, y_grab, theta_approach);
     
     if (action_position_control(x_grab, y_grab, theta_approach) == -1) return -1; 
@@ -116,6 +119,8 @@ int8_t move_back(double x_plant, double y_plant) {
     double y_away = y_pos+dy*away_distance; 
 
     printf("Position control to go back to x = %.3f, y = %.3f and theta = %.3f \n", x_away, y_away, theta_pos);
+    shared.teensy->set_position_controller_gains(2.0,5.0,-0.8,4.0);
+
     if (action_position_control(x_away, y_away, theta_pos) == -1) return -1; 
 
     return 0; 
@@ -162,8 +167,20 @@ int8_t get_closest_plant_from_lidar(double x_pos, double y_pos, double theta_pos
     } 
     printf("avant avant free\n");
 
-    *x_plant = plantZone[zoneIdx]->xClosestPlant;
-    *y_plant = plantZone[zoneIdx]->yClosestPlant;
+    double dist_min_wall = 5; 
+    double plant_dist_wall; 
+    uint8_t closest_plant_idx = 0; 
+    for (uint8_t i=0; i<plantCount; i++){
+        plant_dist_wall = (shared.color == TeamBlue) ? plantZone[zoneIdx]->xPlant[i] : (3-plantZone[zoneIdx]->xPlant[i]);
+        if (plant_dist_wall < dist_min_wall) {
+            closest_plant_idx = i; 
+            dist_min_wall = plant_dist_wall;
+        }
+    }
+
+
+    *x_plant = plantZone[zoneIdx]->xPlant[closest_plant_idx];
+    *y_plant = plantZone[zoneIdx]->yPlant[closest_plant_idx];
     printf("avant free\n");
     deleteBottomLidar(plantZone); 
     printf("Lidar scan end\n");
