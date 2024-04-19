@@ -20,7 +20,7 @@ double dref2 = sqrt((0.95) * (0.95) + (1.594 * 2) * (2 * 1.594));
 
 
 ///taille balise
-double largeurMatBalise = 0.1;//TODO modif remettre 0.065
+double largeurMatBalise = 0.12;//TODO modif remettre 0.065
 double largeurMatAdvers = 0.22;
 
 ///utile pour des prints

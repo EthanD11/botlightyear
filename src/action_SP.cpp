@@ -202,7 +202,7 @@ void ActionSP::do_action() {
         }
 
         #ifdef VERBOSE
-        printf("SP do_action: camera_angle : %d\n", camera_angle); 
+        printf("SP do_action: camera_angle : %fn", camera_angle); 
         #endif
 
         ////////////////////////////////////////////////////
