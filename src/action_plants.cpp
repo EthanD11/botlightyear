@@ -126,6 +126,32 @@ int8_t move_back(double x_plant, double y_plant) {
     return 0; 
 }
 
+void get_closest_plant_from_kakoo(double x_pos, double y_pos, uint8_t plantNode, double* x_plant, double* y_plant, uint8_t* plants_collected, int8_t isFirst = 0) {
+    double x_center = shared.graph->nodes[plantNode].x;
+    double y_center = shared.graph->nodes[plantNode].y;
+    double x_plant_min = 2; 
+    double y_plant_min = 3; 
+    double dist = 3; 
+    uint8_t idx = 0;
+    for (uint8_t i=0; i<6; i++) {
+        if (!plants_collected[i]){
+            double x_new_plant = x_center + cos(-M_PI_2+i*M_PI/6)*0.1;
+            double y_new_plant = y_center + sin(-M_PI_2+i*M_PI/6)*0.1;
+            double dist_plant = isFirst ? ((shared.color == TeamBlue) ? y_new_plant : (3-y_new_plant)) : (hypot(x_pos-x_new_plant, y_pos-y_new_plant));
+            if (dist_plant < dist) {
+                dist = dist_plant;
+                y_plant_min = y_new_plant; 
+                x_plant_min = x_new_plant; 
+                idx = i; 
+            }
+        } 
+    }
+    *x_plant = x_plant_min; 
+    *y_plant = y_plant_min; 
+    plants_collected[idx] = 1; 
+}
+
+
 int8_t get_closest_plant_from_lidar(double x_pos, double y_pos, double theta_pos, uint8_t plantNode, double* x_plant, double* y_plant) {
     PlantZone** plantZone = new PlantZone *[6]; 
     initBottomLidar(plantZone);
@@ -191,6 +217,7 @@ int8_t get_closest_plant_from_lidar(double x_pos, double y_pos, double theta_pos
 
 
 void ActionPlants::do_action() {
+    uint8_t plants_taken[6] = {0,0,0,0,0,0};
     double xpos = 0, ypos = 0, theta_pos = 0; 
     double xpos_initial = 0, ypos_initial = 0, theta_pos_initial = 0; 
     shared.get_robot_pos(&xpos_initial, &ypos_initial, &theta_pos_initial);
@@ -219,8 +246,8 @@ void ActionPlants::do_action() {
         printf("Scanning with lidar...\n");
 
         shared.get_robot_pos(&xpos, &ypos, &theta_pos);
-        if (get_closest_plant_from_lidar(xpos, ypos, theta_pos, plantsNode, &x_plant, &y_plant) == -1) return;
-
+        //if (get_closest_plant_from_lidar(xpos, ypos, theta_pos, plantsNode, &x_plant, &y_plant) == -1) return;
+        get_closest_plant_from_kakoo(xpos, ypos, plantsNode, &x_plant, &y_plant, plants_taken); 
 
         theta_plant = atan2(y_plant-ypos, x_plant-xpos); 
         printf("Got plant at %f, %f, %f, beginning the approach\n", x_plant, y_plant, theta_plant);
