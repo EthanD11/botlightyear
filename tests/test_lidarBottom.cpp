@@ -13,9 +13,9 @@ int main(int argc, char *argv[]) {
     initBottomLidar(plantZonePolar);
 
 
-    //int res = getNumberOfPlantInAllZone(0.44 - 1.0, 0.13 - 1.5, M_PI / 2.0, zone, plantZonePolar);
+    int res = getNumberOfPlantInAllZone(0.390,0.382,65.501*M_PI/180.0, zone, plantZonePolar);
     DataToFileBottom("testBottom.txt");
-    int res =0;
+    // int res =0;
     if (res == 1) {
         if (testpython) {
             for (size_t i = 0; i < 6; i++) {

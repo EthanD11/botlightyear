@@ -33,7 +33,7 @@ int main(int argc, char const *argv[])
     sleep(0.5);
     dxl_deploy(Up);
     sleep(0.5); 
-    dxl_init_sp();
+    dxl_reset_sp();
     #endif
 
     #ifdef EXTENDED_SOLAR_PANELS

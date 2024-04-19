@@ -4,8 +4,8 @@
 #include <cmath>
 
 
-double plant_approach_dist = 0.3; //0.4
-double plant_grab_dist = 0.2; // 0.265
+double plant_approach_dist = 0.35; //0.35 MAX
+double plant_grab_dist = 0.265; // 0.265 MIN
 double plant_approach_angle = M_PI/3; 
 double away_distance = 0.1; 
 /*
@@ -171,13 +171,14 @@ int8_t get_closest_plant_from_lidar(double x_pos, double y_pos, double theta_pos
     double plant_dist_wall; 
     uint8_t closest_plant_idx = 0; 
     for (uint8_t i=0; i<plantCount; i++){
+        printf("Lidar sees plant %d at x = %.3f and y = %.3f \n", i, plantZone[zoneIdx]->xPlant[i], plantZone[zoneIdx]->yPlant[i]); 
         plant_dist_wall = (shared.color == TeamBlue) ? plantZone[zoneIdx]->yPlant[i] : (3-plantZone[zoneIdx]->yPlant[i]);
         if (plant_dist_wall < dist_min_wall) {
             closest_plant_idx = i; 
             dist_min_wall = plant_dist_wall;
         }
     }
-    printf("Closest plant to wall at distance = %.3f \n", dist_min_wall);
+    printf("Closest plant to wall at distance = %.3f (index %d)\n", dist_min_wall, closest_plant_idx);
 
 
     *x_plant = plantZone[zoneIdx]->xPlant[closest_plant_idx];

@@ -310,10 +310,11 @@ void lidarPerduAdv(double *angles, double *distances, LidarData *lidarData) {
 }
 
 int foundAdvWithOdo(double *anglesAdv, double *distancesAdv, LidarData *lidarData){
-    printf("check with odo\n");
     //recalcule des transformations pour trouver l'adversaire
     ///transfo contains 4 elem : deltaX, deltaY, angle of rotation, the number of elements in possible opponents (number of elements in *anglesAdv)
     int size = lidarData->countObj_adv;
+        printf("check with odo, count = %d\n", size);
+
     ///maximum table dimensions
     double xmax = tableX;
     double ymax = tableY;
@@ -324,6 +325,7 @@ int foundAdvWithOdo(double *anglesAdv, double *distancesAdv, LidarData *lidarDat
     double yold = 6;
 
     for (int i = 0; i < size; ++i) {
+        printf("objet d=%f a=%f\n", anglesAdv[i], distancesAdv[i]);
         //printf("robot : %f %f %f\n", lidarData->x_robot, lidarData->y_robot, lidarData->orientation_robot );
         /// transformation identical to that of beacons and robots
         double gamma =  lidarData->orientation_robot - anglesAdv[i];
@@ -393,7 +395,7 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
     double oldAngB3 = lidarData->beaconAdv[4];
 
     ///par défaut a 3.55 mais peut être diminuer en fonction des distances des balises précédentes
-    double distMax = 3.55;
+    double distMax = 3.6;
 
     ///objet==true : object detected at probable distance
     bool objet = false;
@@ -429,20 +431,19 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
                 a1 = angles[i];
                 d1 = distances[i];
 
+
             } else {
                 // object present before: if distance small enough it's the same (delta<2cm) -> nothing to do
                 // delta >2cm : new object -> check if the previous one is a beacon
                 //TODO check le count gap max possible : prendre donnée d'un poteau le plus porche possible et voir combien d'éléments ca prend
                 // lien avec d2 ok ??
 
-                if (std::abs(d2 - distances[i]) > 0.1) {//TODO CHECK CE PROB :  && countGap/d2<10) {
+                if (std::abs(d2 - distances[i]) > 0.05) {//TODO CHECK CE PROB :  && countGap/d2<10) {
                     //what we detect is a new object
 
                     ///size of object previously detected
                     size = std::sqrt(d2 * d2 + d1 * d1 - 2 * d2 * d1 * std::cos(a2 - a1));
-                    if ((size < largeurMatBalise) && (fullScan || premierScan || (((std::abs(d1 - olddistB1) < 0.2)) ||
-                                                      ((std::abs(d1 - olddistB2) < 0.2)) ||
-                                                      ((std::abs(d1 - olddistB3) < 0.2))))) {
+                    if ((size < largeurMatBalise)) {
                         ///it may be a beacon, its data is saved
                         aObj[countObj] = (a1 + a2) / 2;
                         dObj[countObj] = (d1 + d2) / 2;
@@ -515,6 +516,10 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
             }
         }
     }
+    // for (int i = 0; i < countObj_adv; i ++) {
+    //     printf("aObj[%d] = ")
+    // }
+    /*
     if (analyseDetail) {
         printf("count : %d %d\n", countObj, countObj_adv);
     }
@@ -737,30 +742,7 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
                             if (lidarData->readLidar_lost) {
                                 precision *= 2;
                             }
-                            //TODO CHECK tableX tableY
-                            /*printf("precision : %f\n",precision);
-                            printf(" old : %f %f \n", oldXRobot, oldYRobot);
-                            printf("table x : %f %f\n", minTableX, tableX);
-                            printf("table Y : %f %f \n", minTableY, tableY);
-                            printf("estimation : %f %f\n\n", lidarData->x_robot, lidarData->y_robot);
-                            printf("%d fullscan\n", fullScan);
-                            printf("%d %d %d %d %d %d\n", (lidarData->x_robot > minTableX) , (lidarData->x_robot < tableX), (lidarData->y_robot > minTableY) ,(lidarData->y_robot < tableY),(std::abs(lidarData->x_robot - oldXRobot) < precision), std::abs(lidarData->y_robot - oldYRobot) < precision);
-                            printf("%d \n\n\n", std::abs(lidarData->orientation_robot - oldOrientationRobot) < 60.0/180.0*M_PI);
-
-                            printf("lidarData->x_robot > minTableX = %d\n", lidarData->x_robot > minTableX); 
-                            printf("lidarData->x_robot < tableX = %d\n", lidarData->x_robot < tableX); 
-                            printf("lidarData->y_robot > minTableY = %d\n", lidarData->y_robot > minTableY);
-                            printf("lidarData->y_robot < tableY = %d\n", lidarData->y_robot < tableY); 
-                            printf("fullScan = %d\n", fullScan);
                             
-                            printf("std::abs(lidarData->x_robot - oldXRobot) < precision = %d\n", std::abs(lidarData->x_robot - oldXRobot) < precision);
-                            printf("std::abs(lidarData->y_robot - oldYRobot) < precision = %d\n", std::abs(lidarData->y_robot - oldYRobot) < precision);
-                            printf("lidarData-orientation_robot %f\n", lidarData->orientation_robot);
-                            printf("OldOrientationRobot %f\n", oldOrientationRobot);
-                            printf("std::abs(lidarData->orientation_robot - oldOrientationRobot) < 90.0/180.0*M_PI) = %d\n", fabs(moduloLidarMPIPI(lidarData->orientation_robot - oldOrientationRobot)) < 60.0/180.0*M_PI);
-                            printf("balises d= %f a=%f\nd= %f a= %f \n d= %f a= %f", dObj[b1], aObj[b1]*180.0/M_PI,dObj[b2], aObj[b2]*180.0/M_PI,dObj[b3], aObj[b3]*180.0/M_PI);
-                            
-                            printf("\n");*/
                             
                             if (
                                 (lidarData->x_robot > minTableX) && 
@@ -824,17 +806,15 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
     lidarData->x_robot = oldXRobot;
     lidarData->y_robot = oldYRobot;
     lidarData->orientation_robot = oldOrientationRobot;
-    lidarData->readLidar_lost = true;
+    lidarData->readLidar_lost = true;*/
+    
+    foundAdvWithOdo(aObj_adv, dObj_adv, lidarData);
     return;
 }
 
 void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool fromOdo) {
-        if(premierScan){
-        lidarData->x_odo = 2.0-0.9;
-        lidarData->y_odo = 3.0-2.9;
-        lidarData->theta_odo = moduloLidarMPIPI(-120.0/180.0*M_PI-M_PI);
-    }//DOELELELlelellelelel    lidarData->readLidar_lost = false;
-    DataToFileBottom("test"+std::to_string(debuglidardemerde));
+    lidarData->readLidar_lost = false;
+    //DataToFileBottom("test"+std::to_string(debuglidardemerde));
     debuglidardemerde++;
     lidarData->old_transfo_x = lidarData->x_adv;
     lidarData->old_transfo_y = lidarData->y_adv;

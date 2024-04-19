@@ -105,7 +105,7 @@ int8_t path_following_to_action(graph_path_t *path)
     double theta_start = path->thetaStart;
     double theta_end = path->thetaEnd;
 
-    double kp = 0.8;
+    double kp = 1.5;
     double ka = 8;
     double kb = -1.5;
     double kw = 4.0;
