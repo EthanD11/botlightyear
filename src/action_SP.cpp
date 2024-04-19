@@ -170,17 +170,17 @@ void ActionSP::do_action() {
     }
 
     // Position of first shared solar panel
-    double x16 = 1.790;
-    double y16 = 1.725; 
+    double x1 = 1.790;
+    double y1 = path->y[ncheckpoints-1]-step; 
 
-    // Set position control gains (see with Ethan?)
+    // Set position control gains
     double kp = 0.8;
     double ka = 2.5;
     double kb = -1.75;
     double kw = 4.0;
     teensy->set_position_controller_gains(kp, ka, kb, kw);
-
-    if (action_position_control(x16, y16, -M_PI_2)) return leave();  
+    
+    if (action_position_control(x1, y1, -M_PI_2)) return leave();   
 
     #ifdef VERBOSE
     printf("SP do_action: Successfull Path Following\n"); 
@@ -214,7 +214,7 @@ void ActionSP::do_action() {
         double yend; 
         shared.get_robot_pos(&x, &y, &theta); 
 
-        y16 += step; 
+        y1 += step; 
 
         #ifdef VERBOSE
         printf("SP do_action: robot position = (%.3f, %.3f, %.3f)\n SP do_action: yend = %.3f\n", x, y, theta, yend); 
@@ -223,7 +223,7 @@ void ActionSP::do_action() {
 
         if (sp_counter_glob >= 1) {
             dxl_angle = camera_angle;
-            if (action_position_control(x16, y16, -M_PI_2)) return leave();
+            if (action_position_control(x1, y1, -M_PI_2)) return leave();
 
             #ifdef VERBOSE
             printf("SP do_action: Successfull Postion Control\n"); 
