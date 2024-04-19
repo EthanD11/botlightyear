@@ -1,4 +1,0 @@
-RPi.GPIO
-pillow
-smbus2
-spidev
