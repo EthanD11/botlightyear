@@ -4,8 +4,8 @@
 #include <cmath>
 
 
-double plant_approach_dist = 0.4; 
-double plant_grab_dist = 0.265; 
+double plant_approach_dist = 0.3; //0.4
+double plant_grab_dist = 0.2; // 0.265
 double plant_approach_angle = M_PI/3; 
 double away_distance = 0.1; 
 /*
@@ -83,12 +83,14 @@ int8_t position_to_plant(double x_plant, double y_plant, double x_plant_center, 
             alpha = plant_approach_angle;
         }
     }
+    printf("Plant to center distance = %.3f, isFirst = %d and alpha = %.3f \n", plant_approach_dist, isFirst, alpha); 
     // First, position control to the approach point
     double dx = (x_plant - x_plant_center)/plant_to_center_dist; 
     double dy= (y_plant - y_plant_center)/plant_to_center_dist; 
     double x_approach = x_plant + (dx*cos(alpha) + dy*sin(alpha))* plant_approach_dist; 
     double y_approach = y_plant + (-dx*sin(alpha) + dy*cos(alpha))* plant_approach_dist; 
     double theta_approach = periodic_angle(atan2(y_plant_center-y_plant, x_plant_center-x_plant)-alpha);
+    printf("Position control to approach to x = %.3f, y = %.3f and theta = %.3f \n", x_approach, y_approach, theta_approach);
 
     if (action_position_control(x_approach, y_approach, theta_approach) == -1) return -1; 
 
@@ -96,6 +98,7 @@ int8_t position_to_plant(double x_plant, double y_plant, double x_plant_center, 
 
     double x_grab = x_plant + (dx*cos(alpha) + dy*sin(alpha)) * plant_grab_dist; 
     double y_grab = y_plant + (-dx*sin(alpha) + dy*cos(alpha)) * plant_approach_dist; 
+    printf("Position control to grab to x = %.3f, y = %.3f and theta = %.3f \n", x_grab, y_grab, theta_approach);
     
     if (action_position_control(x_grab, y_grab, theta_approach) == -1) return -1; 
     return 0; 
@@ -112,6 +115,7 @@ int8_t move_back(double x_plant, double y_plant) {
     double x_away = x_pos+dx*away_distance; 
     double y_away = y_pos+dy*away_distance; 
 
+    printf("Position control to go back to x = %.3f, y = %.3f and theta = %.3f \n", x_away, y_away, theta_pos);
     if (action_position_control(x_away, y_away, theta_pos) == -1) return -1; 
 
     return 0; 

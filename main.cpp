@@ -187,7 +187,7 @@ void *localizer(void* arg) {
         clock_t start = clock();
         #endif
 
-        lidarGetRobotPosition(lidarData, 10, false, lidarData->readLidar_lost);
+        //lidarGetRobotPosition(lidarData, 10, false, lidarData->readLidar_lost);
 
         #ifdef TIME_MEAS
         clock_t lidarClock = clock();

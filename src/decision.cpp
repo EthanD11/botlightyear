@@ -13,10 +13,10 @@
 #include <cmath>
 #include <algorithm>
 
-//#define TESTS
+#define TESTS
 
 //#define FINAL_STRATEGY
-#define HOMOLOGATION
+//#define HOMOLOGATION
 
 class ActionGameFinished : public Action {
     public :
@@ -127,6 +127,7 @@ void decide_possible_actions() {
     
     // possible_actions[0] = new ActionSP(path, 3, true, Forward); 
     // n_possible_actions = 1; 
+    // return;
 
     // ---------- Plants TEST -----------
 
