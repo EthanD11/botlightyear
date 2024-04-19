@@ -12,8 +12,8 @@
 #include <stdio.h>
 #include <cmath>
 
-//#define TESTS
-#define HOMOLOGATION
+#define TESTS
+//#define HOMOLOGATION
 
 class ActionGameFinished : public Action {
     public :
@@ -92,14 +92,20 @@ void decide_possible_actions() {
     
     possible_actions[0] = new ActionDisplacement(path); */
 
-    uint8_t target = 15;
+    uint8_t target = 26;
+    shared.graph->update_obstacle(27,1);
+    shared.graph->update_obstacle(37,1);
+    shared.graph->update_obstacle(28,1);
     path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+    shared.graph->update_obstacle(27,0);
+    shared.graph->update_obstacle(37,0);
+    shared.graph->update_obstacle(28,0);
     if (path != NULL) {
         path->thetaStart = theta_pos; 
-        path->thetaEnd = -M_PI/2;  
+        path->thetaEnd = -M_PI_2;  
     }
     
-    possible_actions[0] = new ActionSP(path, 3, true); 
+    possible_actions[0] = new ActionSP(path, 3, false, Forward); 
     n_possible_actions = 1; 
     return;
     #endif

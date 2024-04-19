@@ -7,7 +7,7 @@
 typedef enum {
     Forward, 
     Backward
-} sp_direction_t
+} sp_direction_t;
 
 
 class ActionSP : public Action {

@@ -2,7 +2,7 @@
 #include <cmath>
 #include <algorithm>
 
-#define VERBOSE
+//#define VERBOSE
 #include <stdio.h>
 
 uint8_t closer_in_path(graph_path_t *path, double xr, double yr)
@@ -108,7 +108,7 @@ int8_t path_following_to_action(graph_path_t *path)
     double kp = 0.8;
     double ka = 8;
     double kb = -1.5;
-    double kw = 6.0;
+    double kw = 4.0;
     teensy->set_position_controller_gains(kp, ka, kb, kw);
 
     double xCurrent, yCurrent;
@@ -162,7 +162,6 @@ int8_t path_following_to_action(graph_path_t *path)
             #ifdef VERBOSE
             printf("Adversary in path !!\n");
             #endif
-            free(path);
             sleep(1);
             return -1;
         }
@@ -175,15 +174,32 @@ int8_t path_following_to_action(graph_path_t *path)
             printf("Adversary too close %f %f !!\n", da, ta);
             #endif
             teensy->idle();
-            free(path);
             sleep(5);
             return -1;
+        }
+
+        if (teensy->ask_mode() == ModePathFollowingLost) {
+
+            if (closer_node_id >= path->nNodes-2) {
+                teensy->pos_ctrl(x[path->nNodes], y[path->nNodes], theta_end);
+            } else {
+                closer_node_id++;
+
+                double theta_recover = atan2(shared.graph->nodes[path->idNodes[closer_node_id]].y - yr,
+                                             shared.graph->nodes[path->idNodes[closer_node_id]].x - xr );
+
+                teensy->pos_ctrl(xr, yr, theta_recover);
+                sleep(2);
+                ncheckpoints -= closer_node_id;
+                x += closer_node_id;
+                y += closer_node_id;
+                teensy->path_following(x,y,ncheckpoints,theta_recover, theta_end, vref, dist_goal_reached);
+            }
         }
 
         usleep(10000);
     }
 
-    free(path);
     usleep(3000000);
     return 0; // Adversary not found and successfull path following
 }
@@ -198,7 +214,7 @@ int8_t action_position_control(double x_end, double y_end, double theta_end)
     double ka = 2.5;
     double kb = -1.0;
     double kw = 4.0;
-    teensy->set_position_controller_gains(kp, ka, kb, kw);
+    // teensy->set_position_controller_gains(kp, ka, kb, kw);
 
     // Retrieve robot current position
     double x, y, theta;
@@ -233,7 +249,10 @@ int8_t action_position_control(double x_end, double y_end, double theta_end)
                 teensy->idle();
                 printf("Adversary too close for position control !!\n");
             }
-            if (stopped >= 300) return -1;
+            if (stopped >= 300) {
+                teensy->set_position_controller_gains(kp, ka, kb, kw);
+                return -1;
+            } 
         } else if (stopped) {
             stopped = 0;
             teensy->pos_ctrl(x_end, y_end, theta_end);
@@ -241,6 +260,7 @@ int8_t action_position_control(double x_end, double y_end, double theta_end)
 
         usleep(10000);
     }
+    teensy->set_position_controller_gains(kp, ka, kb, kw);
     return 0;
 }
 

@@ -14,7 +14,7 @@
 #include <fcntl.h>
 #include <cmath>
 
-//#define VERBOSE
+#define VERBOSE
 //#define TIME_MEAS
 
 #define ASCII_b 98
@@ -263,6 +263,8 @@ int main(int argc, char const *argv[])
 
         gameFinished = (decided_action->action_type == GameFinished);
         decided_action->do_action();
+        free(decided_action->path);
+        decided_action->path = NULL;
         delete decided_action;
     } while (!gameFinished);
 
