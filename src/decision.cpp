@@ -15,7 +15,8 @@
 
 //#define TESTS
 
-//#define FINAL_STRATEGY
+////#define FINAL_STRATEGY
+#define HOMOLOGATION
 
 class ActionGameFinished : public Action {
     public :
@@ -27,7 +28,11 @@ class ActionWait: public Action {
     public :
         ActionWait() : Action(Wait, false, NULL) {}
         void do_action () {
-            usleep(5000);
+            double x,y;
+            shared.get_robot_pos(&x,&y,NULL);
+            uint8_t node = shared.graph->identify_pos(x,y,NULL);
+            printf("Current node : %d with level %d\n", node, shared.graph->nodes[node].level);
+            usleep(300000);
         } 
 };
 
@@ -104,6 +109,25 @@ void decide_possible_actions() {
     return;
     #endif
 
+    #ifdef HOMOLOGATION 
+    if (shared.graph->identify_pos(x_pos, y_pos, NULL) == 0) {
+        possible_actions[0] = new ActionGameFinished(); 
+        n_possible_actions = 1; 
+        return;
+    }
+    uint8_t target = 0;
+    path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+    if (path == NULL) {
+        n_possible_actions = 0;
+        return;
+    }
+    path->thetaStart = theta_pos; 
+    path->thetaEnd = M_PI/2;  
+    possible_actions[0] = new ActionDisplacement(path); 
+    n_possible_actions = 1; 
+    return;
+    #endif
+
     if (remaining_time < 0) {
         possible_actions[0] = new ActionGameFinished(); 
         n_possible_actions = 1; 
@@ -124,8 +148,8 @@ void decide_possible_actions() {
         n_possible_actions = 1; 
         return; 
     }
-    // Strategy : for now, only cycling between random plant nodes and going back to closest base
     #ifndef FINAL_STRATEGY
+    // Strategy : for now, only cycling between random plant nodes and going back to closest base
     if (in_array(shared.graph->plants, 6, currentNode)) {
         // If it's in a plant node, go back to a base 
         path = shared.graph->compute_path(x_pos, y_pos, shared.graph->friendlyBases, 3);

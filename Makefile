@@ -2,7 +2,7 @@
 #Variables
 # Arguments for the compilation
 CXX = g++
-FLAGS:=-Wall -O3
+FLAGS:=-Wall -O3 -g
 LIBS:=-llgpio -lm -lpthread -ldxl_sbc_c -lsl_lidar_sdk -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_videoio -lopencv_imgcodecs -lopencv_aruco
 
 # Directories 
@@ -29,6 +29,9 @@ all: main.cpp $(SOURCES_OBJ)
 
 run: all
 	@./exe_botlightyear
+
+valgrind: all
+	@valgrind --leak-check=yes --track-origins=yes ./exe_botlightyear
 
 #Create the OBJ_DIR directory
 $(OBJ_DIR):
@@ -77,6 +80,10 @@ camera_program:
 
 lidarTop: lidarTop_program 
 	@./bin/lidarTop 
+	@rm ./bin/lidarTop 
+
+val_lidarTop: lidarTop_program 
+	@valgrind --leak-check=yes --track-origins=yes ./bin/lidarTop 
 	@rm ./bin/lidarTop 
  
 # Run the lidar program 

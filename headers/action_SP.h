@@ -4,15 +4,22 @@
 
 #include "actions.h"
 
+typedef enum {
+    Forward, 
+    Backward
+} sp_direction_t
+
 
 class ActionSP : public Action {
     private: 
         uint8_t sp_counter;
         bool reserved;  
+        sp_direction_t sp_direction; 
     public: 
-        ActionSP (graph_path_t* graph_path, uint8_t sp_number, bool is_reserved) : Action(TurnSP, true, graph_path) { 
+        ActionSP (graph_path_t* graph_path, uint8_t sp_number, bool is_reserved, sp_direction_t direction) : Action(TurnSP, true, graph_path) { 
             sp_counter = sp_number;
             reserved = is_reserved;
+            sp_direction = direction; 
             this->needs[0] = 0;  // SptrPlate
             this->needs[1] = 0;  // StprSlider
             this->needs[2] = 0;  // StprFlaps
