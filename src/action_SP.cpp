@@ -6,7 +6,7 @@
 #include <pthread.h>
 #include <cmath>
 
-//#define VERBOSE
+#define VERBOSE
 
 #ifdef VERBOSE
 #include <stdio.h>
@@ -24,8 +24,9 @@ static pthread_t KCID;
 static volatile state_t state;
 static volatile state_t stateKC;
 
-volatile double camera_angle; 
-volatile double dxl_angle;
+static volatile double camera_angle; 
+static volatile double dxl_angle;
+static volatile uint8_t sp_counter_glob;
 
 static void leave() {
     #ifdef VERBOSE
@@ -33,6 +34,7 @@ static void leave() {
     #endif
     state = Abort;
     pthread_join(KCID, NULL);
+    shared.steppers->flaps_move(FlapsOpen);
 }
 
 static void *kinematic_chain(void* argv) {
@@ -41,7 +43,7 @@ static void *kinematic_chain(void* argv) {
     printf("Entering SP Kinematic Chain Thread\n"); 
     #endif
 
-    uint8_t sp_counter = *(uint8_t*) argv;
+    
     team_color_t team = shared.color; 
 
     // Reset wheel, just to be sure :)
@@ -75,7 +77,7 @@ static void *kinematic_chain(void* argv) {
 
             case Solar_Panel: 
                 #ifdef VERBOSE
-                printf("SP Thread: Solar_Panel\n SP Thread sp_counter: %d\n SP Thread dxl_angle: %d\n", sp_counter, dxl_angle); 
+                printf("SP Thread: Solar_Panel\n SP Thread sp_counter: %d\n SP Thread dxl_angle: %d\n", sp_counter_glob, dxl_angle); 
                 #endif
 
                 stateKC = Solar_Panel; 
@@ -83,14 +85,14 @@ static void *kinematic_chain(void* argv) {
                 dxl_deploy(Down);
                 dxl_turn(team, dxl_angle); 
 
-                if (sp_counter > 1) dxl_deploy(Mid);
+                if (sp_counter_glob > 1) dxl_deploy(Mid);
                 else dxl_deploy(Up);
 
                 shared.score += 5; 
-                sp_counter--; 
+                sp_counter_glob--;
 
                 #ifdef VERBOSE
-                printf("SP Thread sp_counter: %d\n", sp_counter); 
+                printf("SP Thread sp_counter: %d\n", sp_counter_glob); 
                 #endif
 
                 break; 
@@ -133,6 +135,8 @@ static void *kinematic_chain(void* argv) {
 
 void ActionSP::do_action() {
 
+    Teensy *teensy = shared.teensy; 
+
     #ifdef VERBOSE
     printf("Entering SP do_action\n"); 
     #endif
@@ -141,7 +145,8 @@ void ActionSP::do_action() {
 
     state = Path_Following;
     stateKC = Path_Following;
-    if (pthread_create(&KCID, NULL, kinematic_chain, &sp_counter) != 0) return;
+    sp_counter_glob = sp_counter;
+    if (pthread_create(&KCID, NULL, kinematic_chain, NULL) != 0) return;
 
     // Set path following from path planning (decision)
     int ncheckpoints = (int)path->nNodes;
@@ -152,8 +157,11 @@ void ActionSP::do_action() {
     double theta_start = path->thetaStart;
     double theta_end = path->thetaEnd;
 
-    if (path_following_to_action(path)) return leave(); 
+    shared.steppers->flaps_move(FlapsPlant); 
 
+    if (path_following_to_action(path)) return leave();
+     
+    // Step
     double step;
     if (sp_direction == Forward) {
         step = -22.5e-2; 
@@ -161,23 +169,26 @@ void ActionSP::do_action() {
         step = 22.5e-2; 
     }
 
-    if (path->target == 15) {
-        double x16 = 1.780;
-        double y16 = 1.725; 
-        if (action_position_control(x16, y16, -M_PI_2)) return leave();
-    } else if (path->target == 37) {
-        double x27 = 1.780;
-        double y27 = 1.275; 
-        if (action_position_control(x27, y27, -M_PI_2)) return leave();
-    }
+    // Position of first shared solar panel
+    double x1 = 1.790;
+    double y1 = path->y[ncheckpoints-1]-step; 
+
+    // Set position control gains
+    double kp = 0.8;
+    double ka = 2.5;
+    double kb = -1.75;
+    double kw = 4.0;
+    teensy->set_position_controller_gains(kp, ka, kb, kw);
+    
+    if (action_position_control(x1, y1, -M_PI_2)) return leave();   
 
     #ifdef VERBOSE
     printf("SP do_action: Successfull Path Following\n"); 
     #endif
 
-    while (sp_counter > 0) {
+    while (sp_counter_glob > 0) {
         #ifdef VERBOSE
-        printf("SP do_action: Solar_Panel\n SP do_action sp_counter : %d\n", sp_counter); 
+        printf("SP do_action: Solar_Panel\n SP do_action sp_counter : %d\n", sp_counter_glob); 
         #endif
 
         state = Solar_Panel; 
@@ -203,16 +214,16 @@ void ActionSP::do_action() {
         double yend; 
         shared.get_robot_pos(&x, &y, &theta); 
 
-        yend = y+step; 
+        y1 += step; 
 
         #ifdef VERBOSE
         printf("SP do_action: robot position = (%.3f, %.3f, %.3f)\n SP do_action: yend = %.3f\n", x, y, theta, yend); 
         #endif
 
 
-        if (sp_counter > 1) {
+        if (sp_counter_glob >= 1) {
             dxl_angle = camera_angle;
-            if (action_position_control(x, yend, theta)) return leave();
+            if (action_position_control(x1, y1, -M_PI_2)) return leave();
 
             #ifdef VERBOSE
             printf("SP do_action: Successfull Postion Control\n"); 
@@ -226,6 +237,7 @@ void ActionSP::do_action() {
     #endif
     state = End;
     pthread_join(KCID, NULL);
+    shared.steppers->flaps_move(FlapsOpen);
 }
 
     

@@ -15,6 +15,8 @@ SharedVariables::SharedVariables()
     color = NoTeam;
     score = 0;
     for (uint8_t i = 0; i < 8; i++) storage[i] = ContainsNothing;
+    for (uint8_t i = 0; i < 2; i++) SPsDone[i] = 0;
+
     for (uint8_t j = 0; j<3; j++) {
         plantersDone[j] = 0; 
         zonesDone[j] = 0;

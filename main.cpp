@@ -14,7 +14,7 @@
 #include <fcntl.h>
 #include <cmath>
 
-//#define VERBOSE
+#define VERBOSE
 //#define TIME_MEAS
 
 #define ASCII_b 98
@@ -134,11 +134,11 @@ void init_and_wait_for_start() {
         printf("Plants at %d \n", shared.graph->plants[i]);
     }*/
 
-    double kt = 0.001;
-    double kn = 0.5; // 0 < kn <= 1
+    double kt = 0.005;
+    double kn = 0.7; // 0 < kn <= 1
     double kz = 20.0;
     double delta = 80e-3; // delta is in meters
-    double sigma = 0.;
+    double sigma = 2.;
     double epsilon = M_PI/8; // epsilon is in radians
     double wn = 0.2; // Command filter discrete cutoff frequency
     double kv_en = 0.;
@@ -265,6 +265,8 @@ int main(int argc, char const *argv[])
 
         gameFinished = (decided_action->action_type == GameFinished);
         decided_action->do_action();
+        free(decided_action->path);
+        decided_action->path = NULL;
         delete decided_action;
     } while (!gameFinished);
 

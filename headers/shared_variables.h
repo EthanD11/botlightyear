@@ -72,6 +72,8 @@ public:
     uint8_t nFreeSlots; // Number of free storage slots
     uint8_t plantersDone[3]; 
     uint8_t zonesDone[3]; 
+    uint8_t SPsDone[2]; // Common, Reserved
+
 
     uint8_t valids[6]; // SptrPlate, StprSlider, StprFlaps, dxl1, dxl2, lidarBottom
 

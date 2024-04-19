@@ -15,7 +15,8 @@ typedef struct PlantZone {
     double angle; // en radians (angle au centre)
     double startAngle;
     double endAngle;
-    bool isAccessible;
+    //
+    bool isVisible;
     bool empty;
     int numberPlant;
     double *aPlant;
@@ -24,7 +25,6 @@ typedef struct PlantZone {
     double *yPlant;
     double xClosestPlant;
     double yClosestPlant;
-
 } PlantZone;
 
 

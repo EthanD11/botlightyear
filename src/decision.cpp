@@ -15,8 +15,8 @@
 
 //#define TESTS
 
-////#define FINAL_STRATEGY
-#define HOMOLOGATION
+#define FINAL_STRATEGY
+//#define HOMOLOGATION
 
 class ActionGameFinished : public Action {
     public :
@@ -74,7 +74,7 @@ double getThetaEnd(uint8_t * arrNodes, double * arrThetas , uint8_t len, uint8_t
 
 // Create the different actions that can be taken (in order !) with respect to the strategy
 void decide_possible_actions() {
-
+    n_possible_actions = 0; 
     int8_t remaining_time = shared.update_and_get_timer();
     double x_pos, y_pos, theta_pos, dist_from_currentNode; 
     shared.get_robot_pos(&x_pos, &y_pos, &theta_pos); 
@@ -97,14 +97,20 @@ void decide_possible_actions() {
     
     possible_actions[0] = new ActionDisplacement(path); */
 
-    uint8_t target = 15;
+    uint8_t target = 26;
+    shared.graph->update_obstacle(27,1);
+    shared.graph->update_obstacle(37,1);
+    shared.graph->update_obstacle(28,1);
     path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+    shared.graph->update_obstacle(27,0);
+    shared.graph->update_obstacle(37,0);
+    shared.graph->update_obstacle(28,0);
     if (path != NULL) {
         path->thetaStart = theta_pos; 
-        path->thetaEnd = -M_PI/2;  
+        path->thetaEnd = -M_PI_2;  
     }
     
-    possible_actions[0] = new ActionSP(path, 3, true); 
+    possible_actions[0] = new ActionSP(path, 3, false, Forward); 
     n_possible_actions = 1; 
     return;
     #endif
@@ -133,14 +139,9 @@ void decide_possible_actions() {
         n_possible_actions = 1; 
         return; 
     }
-    // Check if adversary is close to do the back avoidance
-    double xPos, yPos, thetaPos, xAdv, yAdv, thetaAdv;
-    shared.get_adv_pos(&xAdv, &yAdv, &thetaAdv);
+    
+    double xPos, yPos, thetaPos;
     shared.get_robot_pos(&xPos, &yPos, &thetaPos);
-    double dist_to_adv = hypot(xPos - xAdv, yPos - yAdv);
-    if (dist_to_adv < 0.7) {
-        back_manoeuvre(0.4);
-    }
 
     // Second check if time is running out : 
     if (remaining_time < time_gotobase) {
@@ -182,37 +183,65 @@ void decide_possible_actions() {
     #else 
     // ----------- ENDGAME -----------------
     if (remaining_time < time_sp) { //Time to switch to solar panels
-        if (remaining_time < time_sp_reserved) {
-            for (uint8_t i=0; i<3; i++) {
-                path = shared.graph->compute_path(x_pos, y_pos, &shared.graph->friendlySPs[i], 1); 
-                if (path!=NULL) {
-                    path->thetaStart = theta_pos; 
-                    path->thetaEnd = -M_PI/2; 
-                }
-                possible_actions[i] = new ActionSP(path, 3-i, false);
+        
+        if ((remaining_time < time_sp_reserved) && (shared.SPsDone[1]==0)) {
+            if (shared.color == TeamBlue) {
+                shared.graph->update_obstacle(41,1);
+                uint8_t target = 39;
+                path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+                shared.graph->update_obstacle(41,0);
+            } else {
+                shared.graph->update_obstacle(7,1);
+                uint8_t target = 6;
+                path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+                
+                shared.graph->update_obstacle(7,0);
             }
-            n_possible_actions = 3; 
-            return;
+            if (path != NULL) {
+                path->thetaStart = theta_pos; 
+                path->thetaEnd = -M_PI_2; 
+            }
+            possible_actions[n_possible_actions] = new ActionSP(path, 3, true, (shared.color == TeamBlue) ? Forward : Backward); 
+            n_possible_actions++;
+
         } else {
-            for (uint8_t i=0; i<3; i++) {
-                path = shared.graph->compute_path(x_pos, y_pos, &shared.graph->commonSPs[i], 1); 
-                if (path!=NULL) {
+            if(shared.SPsDone[0]==0) {
+                shared.graph->update_obstacle(27,1);
+                uint8_t target = 26;
+                path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+                if (path != NULL) {
                     path->thetaStart = theta_pos; 
-                    path->thetaEnd = -M_PI/2; 
+                    path->thetaEnd = -M_PI_2; 
                 }
-                possible_actions[i] = new ActionSP(path, 3-i, true);
+                shared.graph->update_obstacle(27,0);
+        
+                possible_actions[n_possible_actions] = new ActionSP(path, 3, false, Forward); 
+                n_possible_actions++;
             }
-            for (uint8_t i=0; i<3; i++) {
-                path = shared.graph->compute_path(x_pos, y_pos, &shared.graph->friendlySPs[i], 1); 
-                if (path!=NULL) {
+            
+
+            if (shared.SPsDone[1]==0) {
+                if (shared.color == TeamBlue) {
+                    shared.graph->update_obstacle(41,1);
+                    uint8_t target = 39;
+                    path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+                    shared.graph->update_obstacle(41,0);
+                } else {
+                    shared.graph->update_obstacle(7,1);
+                    uint8_t target = 6;
+                    path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+                    shared.graph->update_obstacle(7,0);
+                }
+                if (path != NULL) {
                     path->thetaStart = theta_pos; 
-                    path->thetaEnd = -M_PI/2; 
+                    path->thetaEnd = -M_PI_2; 
                 }
-                possible_actions[i+3] = new ActionSP(path, 3-i, false);
+                possible_actions[n_possible_actions] = new ActionSP(path, 3, true, (shared.color == TeamBlue) ? Forward : Backward); 
+                n_possible_actions++;
             }
-            n_possible_actions = 6; 
-            return;
+            
         }
+        
     }
 
     // --------- EARLY GAME -------------
@@ -227,8 +256,8 @@ void decide_possible_actions() {
             path->thetaStart = theta_pos; 
             path->thetaEnd = 0; // gets updated within ActionPlants anyways, no need to worry about it :)
         }
-        possible_actions[0] = new ActionPlants(path,6); // Plant number "could" be modulated with time 
-        n_possible_actions = 1; 
+        possible_actions[n_possible_actions] = new ActionPlants(path,6); // Plant number "could" be modulated with time 
+        n_possible_actions++; 
 
 
         for(uint8_t i = 0; i<6; i++) {
@@ -244,8 +273,8 @@ void decide_possible_actions() {
                 path->thetaStart = theta_pos; 
                 path->thetaEnd = shared.graph->friendlyPlantersTheta[0];
             }
-            possible_actions[i] = new ActionPlanter(path, std::max((current_plant_count-2)/2,1), SideMiddle, SideMiddle);
-            i++;
+            possible_actions[n_possible_actions] = new ActionPlanter(path, std::max((current_plant_count-2)/2,1), SideMiddle, SideMiddle);
+            n_possible_actions++;
         }
         if (shared.plantersDone[1] == 0) {
             // Second planter action if not done yet
@@ -256,8 +285,8 @@ void decide_possible_actions() {
             }
             planter_side_t planter_side = (shared.color==TeamBlue) ? SideRight : SideLeft; 
             planter_side_t pot_clear_side = (shared.color==TeamBlue) ? SideRight : SideLeft; 
-            possible_actions[i] = new ActionPlanter(path, std::max((current_plant_count-2)/2,1), planter_side, pot_clear_side);
-            i++;
+            possible_actions[n_possible_actions] = new ActionPlanter(path, std::max((current_plant_count-2)/2,1), planter_side, pot_clear_side);
+            n_possible_actions++;
         }
         if (shared.zonesDone[0] == 0) {
             // Reserved zone action if not done yet
@@ -266,10 +295,9 @@ void decide_possible_actions() {
                 path->thetaStart = theta_pos; 
                 path->thetaEnd = shared.graph->friendlyBases[0]; 
             }
-            possible_actions[i] = new ActionZone(path, 1);
-            i++;
+            possible_actions[n_possible_actions] = new ActionZone(path, 1);
+            n_possible_actions++;
         }
-        n_possible_actions = i; 
     }
 
     #endif
