@@ -10,8 +10,8 @@
 //#define SETUP_CUSTOM_SPEED_OLD
 //#define SETUP_CUSTOM_SPEED_NEW
 //#define DEMO_S6
-//#define PLANTER
-#define TESTS
+#define PLANTER
+//#define TESTS
 
 SPIBus spi_bus = SPIBus();
 GPIOPins pins = GPIOPins(); 
@@ -80,7 +80,7 @@ void TakePlantCHAIN(int slotNumber) {
 
     deployer->deploy();
 
-    holder->open_full();
+    holder->open();
 
     steppers->slider_move(SliderLow, CALL_BLOCKING);
     teensy->pos_ctrl(1.0,1.0,0);
@@ -135,7 +135,7 @@ void dropPlantCHAIN(int slotNumber) {
     steppers->slider_move(SliderLow, CALL_BLOCKING);
     deployer->deploy(); 
     usleep(250000);
-    holder->open_full(); 
+    holder->open(); 
     // Move teensy maybe ?
     usleep(250000);
     steppers->slider_move(SliderHigh, CALL_BLOCKING); 
@@ -170,7 +170,7 @@ void dropPlanterCHAIN(int slotNumber) {
     steppers->slider_move(SliderIntermediateLow, CALL_BLOCKING);
     deployer->deploy(); 
     usleep(250000);
-    holder->open_full(); 
+    holder->open(); 
     // Move teensy maybe ?
     usleep(250000);
     steppers->slider_move(SliderHigh, CALL_BLOCKING); 
