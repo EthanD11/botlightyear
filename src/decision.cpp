@@ -13,10 +13,10 @@
 #include <cmath>
 #include <algorithm>
 
-#define TESTS
+//#define TESTS
 
 //#define FINAL_STRATEGY
-//#define HOMOLOGATION
+#define HOMOLOGATION
 
 class ActionGameFinished : public Action {
     public :

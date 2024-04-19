@@ -329,7 +329,7 @@ int foundAdvWithOdo(double *anglesAdv, double *distancesAdv, LidarData *lidarDat
     double yold = 6;
 
     for (int i = 0; i < size; ++i) {
-        printf("objet d=%f a=%f\n", anglesAdv[i], distancesAdv[i]);
+        //printf("objet d=%f a=%f\n", anglesAdv[i], distancesAdv[i]);
         //printf("robot : %f %f %f\n", lidarData->x_robot, lidarData->y_robot, lidarData->orientation_robot );
         /// transformation identical to that of beacons and robots
         double gamma = lidarData->orientation_robot - anglesAdv[i];
@@ -343,7 +343,7 @@ int foundAdvWithOdo(double *anglesAdv, double *distancesAdv, LidarData *lidarDat
             ///deplacement de l'adversaire
             //double deltX = lidarData->old_x_adv-xobj;
             //double deltY = lidarData->old_y_adv-yobj;
-            double tol = 0.15;
+            double tol = 0.2;
             //double depl = sqrt(deltX*deltX+deltY*deltY);
             if (yobj > 0.03 && yobj < ymax - 0.03) {
                 bool premcondition = (yobj < tol) && ((xobj < tol) || (abs(xobj - 1) < tol) || (xobj > 2 - tol));
@@ -950,7 +950,7 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
         printf("%f %f ",lidarData->beaconAdv[i],lidarData->beaconAdv[i]*180/M_PI  );
 
     }*/
-
+    lidarData->readLidar_lost=true;
 
 }
 
