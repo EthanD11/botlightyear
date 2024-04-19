@@ -246,6 +246,9 @@ void spi_handle_path_following(PathFollower *path_follower) {
     for (int i = 0; i < ncheckpoints; i++) {
         printf("(x[%d], y[%d]) = (%f,%f)\n", i, i, x[i], y[i]);
     }
+    printf("xref = %f\n", path_follower->xref);
+    printf("yref = %f\n", path_follower->yref);
+    
     printf("theta_start = %f\n", theta_start);
     printf("theta_end = %f\n", theta_stop);
     printf("vref = %f\n", path_follower->vref);

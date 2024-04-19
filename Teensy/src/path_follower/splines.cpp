@@ -1,14 +1,15 @@
 #include "splines.h" // adapt it with your headers
 
 void init_spline_set(SplineSet *splines, int n) {
-    double *mem = (double *) malloc(sizeof(double)*(6*n+3));
+    double *mem = (double *) malloc(sizeof(double)*(6*n+4));
     splines->n = n;
     splines->a = mem;
     splines->b = splines->a + n + 1;
     splines->c = splines->b + n;
-    splines->d = splines->c + n;
+    splines->d = splines->c + n + 1;
     splines->q = splines->d + n;
     splines->x = splines->q + n + 1;
+    //                        n + 1;
 }
 
 void free_spline_set(SplineSet *splines) {
@@ -81,7 +82,7 @@ double* interpolate_splines(SplineSet *splines, int m) {
 
     double *interpolation = (double *) malloc(sizeof(double)*n*m);
     for (int i = 0; i < n; i++) {
-        // Loop throug each splines
+        // Loop through each splines
         qi = splines->q[i];
         for (int j = 0; j < m; j++) {
             dq = (splines->q[i+1] - qi) * ((double) j) / ((double) m);

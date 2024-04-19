@@ -35,6 +35,7 @@ Regulator *speed_regulator;
 
 controlmode_t mode = ModeIdle;
 controlmode_t nextmode = mode;
+controlmode_t prevmode = mode;
 
 // ----- TIME -----
 int control_time;
@@ -71,7 +72,7 @@ void loop() {
   int current_time = micros();
   int switch_mode = FALSE;
   robot_position->dt = 1e-6*((double)(current_time - control_time));
-  
+  prevmode = mode;
   if (spi_valid_transmission()) {
     spi_reset_transmission(); 
     #ifdef SPI_VERBOSE
@@ -160,10 +161,10 @@ void loop() {
   } else if (current_time - control_time >= REG_DELAY) {
 
     update_localization(robot_position);
-    int ncheckpoints = 5;
+    // int ncheckpoints = 5;
     int path_following_goal_reached = 0;
-    double x[5] = {0.0,0.4,0.8,0.4,0.0};
-    double y[5] = {0.0,0.2,0.0,-0.2,0.0};
+    // double x[5] = {0.0,0.4,0.8,0.4,0.0};
+    // double y[5] = {0.0,0.2,0.0,-0.2,0.0};
     // printf("mode = %d\n", (int) mode);
     spi_set_state((uint32_t) mode);
 
@@ -223,7 +224,7 @@ void loop() {
         #ifdef VERBOSE
         printf("\nMode path following INIT\n");
         #endif
-        init_path_following(path_follower, x, y, ncheckpoints, 0.0, M_PI, 0.2, 0.1);
+        // init_path_following(path_follower, x, y, ncheckpoints, 0.0, M_PI, 0.2, 0.1);
         break;
 
       case ModePathFollowing:
@@ -354,10 +355,12 @@ void loop() {
         nextmode = ModePathFollowing;
         break;
       case ModePathFollowing:
-        if (path_following_goal_reached) {
-          nextmode = ModePositionControl;
-        } else {
-          nextmode = ModePathFollowing;
+        if (pf_maybe_unstable(path_follower, robot_position)) {
+          nextmode = ModeIdle;
+        }
+        else {
+          if (path_following_goal_reached) nextmode = ModePositionControl;
+          else nextmode = ModePathFollowing;
         }
         break;
       case ModeSpeedControl:
@@ -384,7 +387,7 @@ void loop() {
     reset_encoders(robot_position);
     
     set_apins(outputs, (int8_t) mode);
-    switch (mode) {
+    switch (prevmode) {
       case ModePathFollowing:
         close_path_following(path_follower);
         break;
