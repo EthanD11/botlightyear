@@ -7,7 +7,7 @@
 
 // Uncomment to enable
 // When enabled, init_graph_from_file should print out the exact file it has read
-//#define VERBOSE
+#define VERBOSE
 
 typedef struct __graph_targets
 {
@@ -288,24 +288,6 @@ int Graph::init_from_file(const char *filename, team_color_t color) {
     printf("\n");
     #endif
 
-    nodes[adversaryBases[0]].level = NODE_ADV_BASE;
-
-    if (color == TeamBlue) {
-        friendlyBasesTheta[0] = -M_PI_2;
-        friendlyBasesTheta[1] = -M_PI_2;
-        friendlyBasesTheta[2] = M_PI_2;
-        friendlyPlantersTheta[0] = -M_PI;
-        friendlyPlantersTheta[1] = -M_PI_2;
-        friendlyPlantersTheta[2] = M_PI_2;
-    } else {
-        friendlyBasesTheta[0] = M_PI_2;
-        friendlyBasesTheta[1] = M_PI_2;
-        friendlyBasesTheta[2] = -M_PI_2;
-        friendlyPlantersTheta[0] = -M_PI;
-        friendlyPlantersTheta[1] = M_PI_2;
-        friendlyPlantersTheta[2] = -M_PI_2;
-    }
-
     // Scan yellow bases nodes
     for (size_t i = 0; i < 64; i++){ list[i] = 0; }
     if (fscanf(input_file, "Yellow bases, reserved first : %s\n", list) != 1) return -1;
@@ -331,6 +313,26 @@ int Graph::init_from_file(const char *filename, team_color_t color) {
     #ifdef VERBOSE
     printf("\n");
     #endif
+
+    if (color == TeamBlue) {
+        friendlyBasesTheta[0] = -M_PI_2;
+        friendlyBasesTheta[1] = -M_PI_2;
+        friendlyBasesTheta[2] = M_PI_2;
+        friendlyPlantersTheta[0] = -M_PI;
+        friendlyPlantersTheta[1] = -M_PI_2;
+        friendlyPlantersTheta[2] = M_PI_2;
+    } else {
+        friendlyBasesTheta[0] = M_PI_2;
+        friendlyBasesTheta[1] = M_PI_2;
+        friendlyBasesTheta[2] = -M_PI_2;
+        friendlyPlantersTheta[0] = -M_PI;
+        friendlyPlantersTheta[1] = M_PI_2;
+        friendlyPlantersTheta[2] = -M_PI_2;
+    }
+
+    nodes[adversaryBases[0]].level = NODE_ADV_BASE;
+    printf("Setting level of %d to %d", nodes[adversaryBases[0]], nodes[adversaryBases[0]].level);
+
 
     // Scan blue planters nodes
     for (size_t i = 0; i < 64; i++){ list[i] = 0; }

@@ -124,6 +124,8 @@ void init_and_wait_for_start() {
     dxl_ping(8,1.0);
 
     if (shared.graph->init_from_file("./graphs/BL_V3.txt", shared.color) != 0) exit(3);
+
+    printf("%d\n",shared.graph->nodes[0].level);
     /*for (int i=0; i<3; i++) {
         printf("Friendly base %d \n", shared.graph->friendlyBases[i]);
         printf("Adversary base %d \n", shared.graph->adversaryBases[i]);
@@ -169,23 +171,23 @@ void finish_main() {
 }
 
 void *localizer(void* arg) {
-    //StartLidarTop();
-    //LidarData *lidarData = new LidarData();
-    //init_lidar(lidarData);
+    StartLidarTop();
+    LidarData *lidarData = new LidarData();
+    init_lidar(lidarData);
     // double xOdo, yOdo, thetaOdo;
     double x = 0, y = 0, theta = 0;
     // double odoWeight = 1.0;
-    //shared.get_robot_pos(&lidarData->x_odo, &lidarData->y_odo, &lidarData->theta_odo);
+    shared.get_robot_pos(&lidarData->x_odo, &lidarData->y_odo, &lidarData->theta_odo);
     while (!localizerEnd) {
 
-        teensy_mode_t teensyMode = shared.teensy->ask_mode();
+        // teensy_mode_t teensyMode = shared.teensy->ask_mode();
 
         #ifdef TIME_MEAS
         clock_t odoClock;
         clock_t start = clock();
         #endif
 
-        // lidarGetRobotPosition(lidarData, 10, false, lidarData->readLidar_lost);
+        lidarGetRobotPosition(lidarData, 10, false, lidarData->readLidar_lost);
 
         #ifdef TIME_MEAS
         clock_t lidarClock = clock();
@@ -200,10 +202,10 @@ void *localizer(void* arg) {
         //     y = yOdo*odoWeight + lidarData->readLidar_y_robot*(1-odoWeight);
         //     theta = thetaOdo*odoWeight + lidarData->readLidar_theta_robot*(1-odoWeight);
         // } else {
-            shared.odo->get_pos(&x, &y, &theta);
-            #ifdef TIME_MEAS
-            odoClock = clock();
-            #endif
+        shared.odo->get_pos(&x, &y, &theta);
+        #ifdef TIME_MEAS
+        odoClock = clock();
+        #endif
         //}
         shared.teensy->set_position(x,y,theta);
 
@@ -212,26 +214,27 @@ void *localizer(void* arg) {
         #endif
 
         shared.set_robot_pos(x,y,theta);
-        //if (!lidarData->readLidar_lost) { 
+        if (!lidarData->readLidar_lost) { 
+            shared.set_adv_pos(
+            lidarData->readLidar_x_opponent,
+            lidarData->readLidar_y_opponent,
+            lidarData->readLidar_d_opponent,
+            lidarData->readLidar_a_opponent);
         // shared.set_adv_pos(
-        // lidarData->readLidar_x_opponent,
-        // lidarData->readLidar_y_opponent,
-        // lidarData->readLidar_d_opponent,
-        // lidarData->a_adv);
-        shared.set_adv_pos(
-        400,
-        400,
-        400,
-        0);
-        // shared.graph->update_adversary_pos(lidarData->readLidar_x_opponent, lidarData->readLidar_y_opponent);
-        shared.graph->update_adversary_pos(400, 400);
-        // lidarData->x_odo = x; lidarData->y_odo = y; lidarData->theta_odo = theta;
+        // 400,
+        // 400,
+        // 400,
+        // 0);
+            shared.graph->update_adversary_pos(lidarData->readLidar_x_opponent, lidarData->readLidar_y_opponent);
+        // shared.graph->update_adversary_pos(400, 400);
+        }
+        lidarData->x_odo = x; lidarData->y_odo = y; lidarData->theta_odo = theta;
 
         #ifdef VERBOSE
         //TODO TODO
         #endif
-        // printf("                    %.3f %.3f %.3f   %.3f %.3f\n", lidarData->readLidar_x_robot, lidarData->readLidar_y_robot, lidarData->readLidar_theta_robot*180/M_PI, lidarData->readLidar_d_opponent,lidarData->readLidar_a_opponent*180.0/M_PI);
-        // printf("                    Adversary at %.3f %.3f\n", lidarData->readLidar_x_opponent,lidarData->readLidar_y_opponent);
+        printf("                    %.3f %.3f %.3f   %.3f %.3f\n", lidarData->readLidar_x_robot, lidarData->readLidar_y_robot, lidarData->readLidar_theta_robot*180/M_PI, lidarData->readLidar_d_opponent,lidarData->readLidar_a_opponent*180.0/M_PI);
+        printf("                    Adversary at %.3f %.3f\n", lidarData->readLidar_x_opponent,lidarData->readLidar_y_opponent);
         printf("odometry : %.3f %.3f %.3f\n", x, y, theta*180/M_PI);
 
 
@@ -245,8 +248,8 @@ void *localizer(void* arg) {
         #endif
         usleep(500000);
     }
-    // clear_lidar(lidarData);
-    // StopLidarTop();
+    clear_lidar(lidarData);
+    StopLidarTop();
     return NULL;
 }
 

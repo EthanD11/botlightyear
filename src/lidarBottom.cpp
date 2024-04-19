@@ -209,10 +209,8 @@ int getNumberOfPlantInAllZone(double x_robot, double y_robot, double theta_robot
     robot->theta = theta_robot;
     size_t *asize = new size_t[2]{8000, 8000};
     updateDataBottom(angles, distances, quality, asize);
-    printf("angle  %f\n", angles[10]*180.0/M_PI);
     arraysize = asize[0];
     lidarGetPlantPosition(robot, angles, distances, obj, asize[0], plantZonePolar);
-    printf("angle  %f\n", angles[10]*180.0/M_PI);
 
     for (int i = 0; i < 6; ++i) {
         double dmin = 10;
@@ -223,21 +221,19 @@ int getNumberOfPlantInAllZone(double x_robot, double y_robot, double theta_robot
             }
         }
     }
-        printf("angle  %f\n", angles[10]*180.0/M_PI);
+    for (size_t i = 0; i < 6; i++)
+    {
+    printf("number of plant %d\n", plantZonePolar[i]->numberPlant);
+    }
+    
 
-    printf("avant delete 1\n");
     delete[] (angles);
-        printf("avant delete 2\n");
     delete[] (distances);
-        printf("avant delete 3\n");
     delete[] (quality);
-        printf("avant delete 4\n");
     delete[] (obj);
-        printf("avant delete 5\n");
     delete[] (robot);
-        printf("avant delete 6\n");
     delete[] (asize);
-    printf("fin\n");
+    printf("fin bottomlidar\n");
     return 1;
 }
 

@@ -92,6 +92,8 @@ void StartLidarTop(){
     }else{
         fprintf(stderr, "Failed to connect to LIDAR %08x\r\n", res);
     }
+        printf("Lidar Top connected\n");
+
 }
 
 void StartLidarBottom(){
@@ -135,6 +137,7 @@ void StartLidarBottom(){
     }else{
         fprintf(stderr, "Failed to connect to LIDAR %08x\r\n", res);
     }
+    printf("Lidar Bottom connected\n");
 }
 
 void updateDataTop(double* angles, double* distances, double* quality, size_t* arraySize){

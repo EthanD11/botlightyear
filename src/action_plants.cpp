@@ -118,7 +118,7 @@ int8_t move_back(double x_plant, double y_plant) {
 }
 
 int8_t get_closest_plant_from_lidar(double x_pos, double y_pos, double theta_pos, uint8_t plantNode, double* x_plant, double* y_plant) {
-    PlantZone* plantZone[6]; 
+    PlantZone** plantZone = new PlantZone *[6]; 
     initBottomLidar(plantZone);
     printf("Plant zone init\n");
     int zones[6] = {1,1,1,1,1,1}; 
@@ -150,14 +150,17 @@ int8_t get_closest_plant_from_lidar(double x_pos, double y_pos, double theta_pos
             return -1; 
     }
     uint8_t plantCount = plantZone[zoneIdx]->numberPlant; 
+    printf("plantcounts : %d \n", plantCount);
     if (plantCount==0) {
         deleteBottomLidar(plantZone); 
         printf("Lidar sees no plant in zone ! \n");
         return -1; 
     } 
+    printf("avant avant free\n");
 
     *x_plant = plantZone[zoneIdx]->xClosestPlant;
-    *y_plant = plantZone[zoneIdx]->yClosestPlant; 
+    *y_plant = plantZone[zoneIdx]->yClosestPlant;
+    printf("avant free\n");
     deleteBottomLidar(plantZone); 
     printf("Lidar scan end\n");
     return 0; 
