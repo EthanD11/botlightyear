@@ -13,9 +13,9 @@
 #include <cmath>
 #include <algorithm>
 
-#define TESTS
+//#define TESTS
 
-//#define FINAL_STRATEGY
+#define FINAL_STRATEGY
 //#define HOMOLOGATION
 
 class ActionGameFinished : public Action {
@@ -231,7 +231,7 @@ void decide_possible_actions() {
                 path->thetaStart = theta_pos; 
                 path->thetaEnd = -M_PI_2; 
             }
-            possible_actions[n_possible_actions] = new ActionSP(path, 3, true, (shared.color == TeamBlue) ? Forward : Backward); 
+            possible_actions[n_possible_actions] = new ActionSP(path, 3, true, Forward); //(shared.color == TeamBlue) ? Forward : Backward 
             n_possible_actions++;
 
         } else {
@@ -266,7 +266,7 @@ void decide_possible_actions() {
                     path->thetaStart = theta_pos; 
                     path->thetaEnd = -M_PI_2; 
                 }
-                possible_actions[n_possible_actions] = new ActionSP(path, 3, true, (shared.color == TeamBlue) ? Forward : Backward); 
+                possible_actions[n_possible_actions] = new ActionSP(path, 3, true, Forward); //(shared.color == TeamBlue) ? Forward : Backward
                 n_possible_actions++;
             }
             

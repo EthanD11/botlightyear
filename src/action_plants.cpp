@@ -171,12 +171,13 @@ int8_t get_closest_plant_from_lidar(double x_pos, double y_pos, double theta_pos
     double plant_dist_wall; 
     uint8_t closest_plant_idx = 0; 
     for (uint8_t i=0; i<plantCount; i++){
-        plant_dist_wall = (shared.color == TeamBlue) ? plantZone[zoneIdx]->xPlant[i] : (3-plantZone[zoneIdx]->xPlant[i]);
+        plant_dist_wall = (shared.color == TeamBlue) ? plantZone[zoneIdx]->yPlant[i] : (3-plantZone[zoneIdx]->yPlant[i]);
         if (plant_dist_wall < dist_min_wall) {
             closest_plant_idx = i; 
             dist_min_wall = plant_dist_wall;
         }
     }
+    printf("Closest plant to wall at distance = %.3f \n", dist_min_wall);
 
 
     *x_plant = plantZone[zoneIdx]->xPlant[closest_plant_idx];
