@@ -98,7 +98,7 @@ void StartLidarBottom(){
     //TODO change en USB1
     ///  Create a communication channel instance
     //TODO USB1
-    Result<IChannel*> _channel = createSerialPortChannel("/dev/ttyUSB0", 256000); //port série spécifié est "/dev/ttyUSB0" avec un débit de 115200 bps.
+    Result<IChannel*> _channel = createSerialPortChannel("/dev/ttyUSB2", 256000); //port série spécifié est "/dev/ttyUSB0" avec un débit de 115200 bps.
     
 
     if (_channel.err) {

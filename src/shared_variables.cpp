@@ -21,7 +21,7 @@ SharedVariables::SharedVariables()
         plantersDone[j] = 0; 
         zonesDone[j] = 0;
     }
-    for (uint8_t j=0; j<6; j++) valids[j] = 0; 
+    for (uint8_t j=0; j<5; j++) valids[j] = 0; 
     nFreeSlots = 8;
 
     spiBus = new SPIBus();

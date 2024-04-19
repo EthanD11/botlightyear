@@ -75,7 +75,7 @@ public:
     uint8_t SPsDone[2]; // Common, Reserved
 
 
-    uint8_t valids[6]; // SptrPlate, StprSlider, StprFlaps, dxl1, dxl2, lidarBottom
+    uint8_t valids[5]; // SptrPlate, StprSlider, StprFlaps, dxls, lidarBottom
 
     SPIBus *spiBus;
     GPIOPins *pins;

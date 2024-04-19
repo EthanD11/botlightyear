@@ -38,7 +38,7 @@ void take_plant_kinematicChain(int8_t slotNumber) {
 
     deployer->deploy();
 
-    holder->open_full();
+    holder->open();
 
     steppers->slider_move(SliderLow, CALL_BLOCKING);
     teensy->pos_ctrl(x_pos_init, y_pos_init, theta_pos_init);
@@ -55,14 +55,14 @@ void take_plant_kinematicChain(int8_t slotNumber) {
     usleep(450000);
     deployer->deploy(); 
     usleep(300000);
-    holder->open_full();
+    holder->open();
     usleep(200000);
 
     deployer->half();
+    holder->idle();
     steppers->slider_move(SliderHigh, CALL_BLOCKING); 
     steppers->plate_move(0, CALL_BLOCKING); 
 
-    holder->idle();
     deployer->idle();
     teensy->set_position_controller_gains(0.8,2.5,-0.8,4.0);
 }
@@ -120,8 +120,10 @@ int8_t move_back(double x_plant, double y_plant) {
 int8_t get_closest_plant_from_lidar(double x_pos, double y_pos, double theta_pos, uint8_t plantNode, double* x_plant, double* y_plant) {
     PlantZone* plantZone[6]; 
     initBottomLidar(plantZone);
+    printf("Plant zone init\n");
     int zones[6] = {1,1,1,1,1,1}; 
     getNumberOfPlantInAllZone(x_pos, y_pos, theta_pos, zones, plantZone);
+    printf("Number of plant in all zones\n");
     uint8_t zoneIdx; 
     switch (plantNode) {
         case 21: 
@@ -157,34 +159,50 @@ int8_t get_closest_plant_from_lidar(double x_pos, double y_pos, double theta_pos
     *x_plant = plantZone[zoneIdx]->xClosestPlant;
     *y_plant = plantZone[zoneIdx]->yClosestPlant; 
     deleteBottomLidar(plantZone); 
+    printf("Lidar scan end\n");
     return 0; 
 }
 
 
 void ActionPlants::do_action() {
-    // Positions itself in front of the plant node, without going in
-    uint8_t plantsNode = path->target; 
-    double *x = path->x;
-    double *y = path->y;
-    path->thetaEnd = atan2(y[path->nNodes-1]-y[path->nNodes-2], x[path->nNodes-1]-x[path->nNodes-2]);
-    path->nNodes--;
-    if (path_following_to_action(path) == -1) return; 
-
     double xpos, ypos, theta_pos; 
     double xpos_initial, ypos_initial, theta_pos_initial; 
     shared.get_robot_pos(&xpos_initial, &ypos_initial, &theta_pos_initial);
     
+    // Positions itself in front of the plant node, without going in
+    uint8_t plantsNode = path->target; 
+    double *x = path->x;
+    double *y = path->y;
+
+    if (path->nNodes >= 3) {
+        path->thetaEnd = atan2(y[path->nNodes-1]-y[path->nNodes-3], x[path->nNodes-1]-x[path->nNodes-3]);
+        path->nNodes -= 2;
+        if (path_following_to_action(path) == -1) return; 
+    } else {
+        path->thetaEnd = atan2(y[path->nNodes-1]-ypos_initial, x[path->nNodes-1]-xpos_initial);
+        if (action_position_control(x[path->nNodes-1], y[path->nNodes-1], path->thetaEnd)) return;
+    }
+
+    shared.get_robot_pos(&xpos_initial, &ypos_initial, &theta_pos_initial);
+    printf("Path following done with success \n");
+    
+    
     double x_plant, y_plant, theta_plant; 
     for (uint8_t plant_i = 0; plant_i < plantCounter; plant_i++) {
         // Get closest plant from lidar pov
+        printf("Scanning with lidar...\n");
+
         shared.get_robot_pos(&xpos, &ypos, &theta_pos);
         if (get_closest_plant_from_lidar(xpos, ypos, theta_pos, plantsNode, &x_plant, &y_plant) == -1) return;
 
+
         theta_plant = atan2(y_plant-ypos, x_plant-xpos); 
+        printf("Got plant at %f, %f, %f, beginning the approach\n", x_plant, y_plant, theta_plant);
         if (position_to_plant(x_plant, y_plant, shared.graph->nodes[plantsNode].x, shared.graph->nodes[plantsNode].y, trigo_diff(theta_plant, theta_pos)>0, plant_i==0)) return; 
         // Get next storage slot and put the plant
         storage_slot_t nextSlot = get_next_free_slot_ID(ContainsStrongPlant); 
         int8_t plate_pos = get_plate_slot(nextSlot); 
+        printf("Activating the kinematic chain\n", x_plant, y_plant, theta_plant);
         take_plant_kinematicChain(plate_pos); 
         update_plate_content(nextSlot, ContainsWeakPlant); 
         move_back(x_plant, y_plant); 

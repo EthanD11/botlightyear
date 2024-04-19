@@ -20,13 +20,25 @@
 
 class ActionGameFinished : public Action {
     public :
-        ActionGameFinished() : Action(GameFinished, false, NULL) {}
+        ActionGameFinished() : Action(GameFinished, false, NULL) {
+            this->needs[0] = 0;  // SptrPlate
+            this->needs[1] = 0;  // StprSlider
+            this->needs[2] = 0;  // StprFlaps
+            this->needs[3] = 0;  // Dxls
+            this->needs[4] = 0;  // LidarBottom
+        }
         void do_action () {} 
 };
 
 class ActionWait: public Action {
     public :
-        ActionWait() : Action(Wait, false, NULL) {}
+        ActionWait() : Action(Wait, false, NULL) {
+            this->needs[0] = 0;  // SptrPlate
+            this->needs[1] = 0;  // StprSlider
+            this->needs[2] = 0;  // StprFlaps
+            this->needs[3] = 0;  // Dxls
+            this->needs[4] = 0;  // LidarBottom
+        }
         void do_action () {
             double x,y;
             shared.get_robot_pos(&x,&y,NULL);
@@ -38,7 +50,13 @@ class ActionWait: public Action {
 
 class ActionTest : public Action {
     public :
-        ActionTest() : Action(TestAction, false, NULL) {}
+        ActionTest() : Action(TestAction, false, NULL) {
+            this->needs[0] = 0;  // SptrPlate
+            this->needs[1] = 0;  // StprSlider
+            this->needs[2] = 0;  // StprFlaps
+            this->needs[3] = 0;  // Dxls
+            this->needs[4] = 0;  // LidarBottom
+        }
         void do_action () {} 
 };
 
@@ -97,16 +115,31 @@ void decide_possible_actions() {
     
     possible_actions[0] = new ActionDisplacement(path); */
 
-    uint8_t target = 26;
-    shared.graph->update_obstacle(27,1);
+    // ---------- SP TEST -----------
+    // uint8_t target = 26;
+    // shared.graph->update_obstacle(27,1);
+    // path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+    // shared.graph->update_obstacle(27,0);
+    // if (path != NULL) {
+    //     path->thetaStart = theta_pos; 
+    //     path->thetaEnd = -M_PI_2;  
+    // }
+    
+    // possible_actions[0] = new ActionSP(path, 3, true, Forward); 
+    // n_possible_actions = 1; 
+
+    // ---------- Plants TEST -----------
+
+    uint8_t target = 31;
+    shared.graph->update_obstacle(31,0);
     path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
-    shared.graph->update_obstacle(27,0);
+    //shared.graph->update_obstacle(27,1);
     if (path != NULL) {
         path->thetaStart = theta_pos; 
-        path->thetaEnd = -M_PI_2;  
+        path->thetaEnd = 0;  
     }
-    
-    possible_actions[0] = new ActionSP(path, 3, false, Forward); 
+    shared.graph->update_obstacle(31,1);
+    possible_actions[0] = new ActionPlants(path, 1); 
     n_possible_actions = 1; 
     return;
     #endif
@@ -300,10 +333,21 @@ void decide_possible_actions() {
 
 }
 bool check_validity(Action* action) {
-    if (action->needs_path && action->path == NULL) return false; 
-    for (uint8_t i=0; i<6; i++) {
-        if (action->needs[i]==1 && shared.valids[i]==0) return false; 
+
+    if (action->needs_path && action->path == NULL) {
+        printf("Invalid path !\n "); 
+
+        return false; 
     }
+    // printf("Validities = "); 
+    // for (uint8_t i=0; i<5; i++) {
+    //     printf("%d \n", shared.valids[i]);
+    //     if (action->needs[i]==1 && shared.valids[i]==0) {
+    //         printf("Invalid need : %d \n", i); 
+    //         return false; 
+    //     }
+    // }
+    // printf("\n");
     return true; 
 }
     

@@ -200,7 +200,7 @@ int main(int argc, char const *argv[])
     // steppers->calibrate(StprPlate, CALL_BLOCKING, NULL); 
 
     steppers->calibrate_all(CALL_BLOCKING, NULL);
-    // steppers->plate_move(0,CALL_BLOCKING);
+    steppers->plate_move(0,CALL_BLOCKING);
     #ifdef TESTS
 
     // holder->idle();
@@ -281,7 +281,7 @@ int main(int argc, char const *argv[])
 
     getchar();
 
-    steppers->slider_move(SliderLow, CALL_BLOCKING);
+    steppers->slider_move(SliderIntermediateLow, CALL_BLOCKING);
     holder->open();
     steppers->slider_move(SliderHigh);
     usleep(200000);

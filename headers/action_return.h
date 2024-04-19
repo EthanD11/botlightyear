@@ -13,8 +13,7 @@ class ActionBackToBase : public Action {
             this->needs[1] = 0;  // StprSlider
             this->needs[2] = 0;  // StprFlaps
             this->needs[3] = 0;  // Dxl1
-            this->needs[4] = 0;  // Dxl2
-            this->needs[5] = 0;  // LidarBottom
+            this->needs[4] = 0;  // LidarBottom
         }
         ~ActionBackToBase() {}
         void do_action();
