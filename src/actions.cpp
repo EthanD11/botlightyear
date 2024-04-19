@@ -167,7 +167,7 @@ int8_t path_following_to_action(graph_path_t *path)
         }
 
         // Security check: adversary too close
-        double tolerance = 0.6;
+        double tolerance = 0.7;
         if ((da < tolerance) && (abs(ta) < M_PI_4))
         {
             #ifdef VERBOSE

@@ -19,8 +19,10 @@ double dref1 = 2 * 0.950;
 double dref2 = sqrt((0.95) * (0.95) + (1.594 * 2) * (2 * 1.594));
 
 
+int debuglidardemerde=0;
+
 ///taille balise
-double largeurMatBalise = 0.12;//TODO modif remettre 0.065
+double largeurMatBalise = 0.1;//TODO modif remettre 0.065
 double largeurMatAdvers = 0.22;
 
 ///utile pour des prints
@@ -29,7 +31,7 @@ bool analyseDetail_objet = false;
 bool analyseRotationBalise = false;
 
 ///précision pour le déplacement effectué-> permet d'etre augmenté si on est perdu
-double precisionPredef = 0.25;
+double precisionPredef = 0.15;
 double precisionAngle = 90.0/180.0*M_PI;
 
 ///décalage balise et coin de la table (x_reel = x_B3 + delta)
@@ -308,6 +310,7 @@ void lidarPerduAdv(double *angles, double *distances, LidarData *lidarData) {
 }
 
 int foundAdvWithOdo(double *anglesAdv, double *distancesAdv, LidarData *lidarData){
+    printf("check with odo\n");
     //recalcule des transformations pour trouver l'adversaire
     ///transfo contains 4 elem : deltaX, deltaY, angle of rotation, the number of elements in possible opponents (number of elements in *anglesAdv)
     int size = lidarData->countObj_adv;
@@ -352,7 +355,8 @@ int foundAdvWithOdo(double *anglesAdv, double *distancesAdv, LidarData *lidarDat
         }
     }
     /// We haven't found the opponent, by default the coordinates remain in 0
-    return (yold==6);
+    //return (yold==6);
+    return 1;
 }
 
 /**
@@ -528,6 +532,10 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
             printf("%f %f \n", aObj[i] * 180 / M_PI, dObj[i]);
         }
     }
+    printf("result\n");
+        for (int i = 0; i < countObj; i++) {
+            printf("%f %f \n", aObj[i] * 180 / M_PI, dObj[i]);
+        }
 
     ///récup balise perdue
     int countObjPlusOld = countObj;
@@ -826,6 +834,8 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
         lidarData->y_odo = 3.0-2.9;
         lidarData->theta_odo = moduloLidarMPIPI(-120.0/180.0*M_PI-M_PI);
     }//DOELELELlelellelelel    lidarData->readLidar_lost = false;
+    DataToFileBottom("test"+std::to_string(debuglidardemerde));
+    debuglidardemerde++;
     lidarData->old_transfo_x = lidarData->x_adv;
     lidarData->old_transfo_y = lidarData->y_adv;
     facteurLost = 1;
@@ -849,8 +859,9 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
 
     }
 
-    //TODO TEEEEEEEEEEEEEEEEEEEEEEEST AAAAAAAAAAAAAAH   
-
+    //TODO TEEEEEEEEEEEEEEEEEEEEEEEST AAAAAAAAAAAAAAH  
+    if (premierScan){ 
+    DataToFileTop("test.txt");}
     updateDataTop(angles, distances, quality, as);
     //updateDataFile(angles, distances, quality, "DataTest/DataP/testLidarMobile/" + std::to_string(i), as);
     arraySize = as[0];

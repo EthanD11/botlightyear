@@ -13,10 +13,10 @@
 #include <cmath>
 #include <algorithm>
 
-#define TESTS
+//#define TESTS
 
 //#define FINAL_STRATEGY
-//#define HOMOLOGATION
+#define HOMOLOGATION
 
 class ActionGameFinished : public Action {
     public :
@@ -146,8 +146,9 @@ void decide_possible_actions() {
     #endif
 
     #ifdef HOMOLOGATION 
-    uint8_t target = 0;
+    uint8_t target = shared.graph->friendlyBases[2];
     if (shared.graph->identify_pos(x_pos, y_pos, NULL) == target) {
+        printf("In position !\n"); 
         possible_actions[0] = new ActionGameFinished(); 
         n_possible_actions = 1; 
         return;
@@ -158,7 +159,7 @@ void decide_possible_actions() {
         return;
     }
     path->thetaStart = theta_pos; 
-    path->thetaEnd = M_PI_2;  
+    path->thetaEnd = shared.graph->friendlyBasesTheta[2];  
     possible_actions[0] = new ActionDisplacement(path); 
     n_possible_actions = 1; 
     return;
