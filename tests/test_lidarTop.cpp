@@ -4,7 +4,7 @@
 
 int main(int argc, char *argv[]) {
     //double *beaconAdv = new double[8]{11.4*M_PI/180, 2.88, 78/180*M_PI, 0.68, 104*M_PI/180, 1.63, 221*M_PI/180, 0.45};
-    StartLidarTop();
+    //StartLidarTop();
     auto started = std::chrono::high_resolution_clock::now();
     LidarData *lidarData = new LidarData[sizeof(LidarData)];
     init_lidar(lidarData);
@@ -15,8 +15,8 @@ int main(int argc, char *argv[]) {
     lidarData->y_odo = 1.8;
     lidarData->theta_odo = -0.1;
 
-    lidarGetRobotPosition(lidarData, 2, false, true);
-    DataToFileTop("jsp1.txt");
+    lidarGetRobotPosition(lidarData, 2, false, false);
+    // DataToFileTop("jsp1.txt");
 
     printf(" robot at x=%f; y=%f; orientation=%f\n", lidarData->readLidar_x_robot, lidarData->readLidar_y_robot,
            lidarData->readLidar_theta_robot*180/M_PI);
@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
     }
 
     sleep(0);
-    StopLidarTop();
+    //StopLidarTop();
     printf("\n");
     clear_lidar(lidarData);
 

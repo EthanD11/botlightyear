@@ -28,7 +28,7 @@ uint8_t closer_in_path(graph_path_t *path, double xr, double yr)
 uint8_t adversary_in_path(graph_path_t *path, uint8_t closer_node_id)
 {
     shared.graph->level_rdlock();
-    for (uint8_t i = closer_node_id; i < std::min(closer_node_id + 2, (int)path->nNodes); i++)
+    for (uint8_t i = closer_node_id; i < std::min(closer_node_id + 3, (int)path->nNodes); i++)
     {
         if ((shared.graph->nodes[path->idNodes[i]].level & NODE_ADV_PRESENT) != 0)
             return -1;
@@ -169,14 +169,14 @@ int8_t path_following_to_action(graph_path_t *path)
 
         // Security check: adversary too close
         double tolerance = 0.6;
-        if ((da < tolerance) && (abs(ta) < M_PI / 2))
+        if ((da < tolerance) && (abs(ta) < M_PI_4))
         {
             #ifdef VERBOSE
-            printf("Adversary too close !!\n");
+            printf("Adversary too close %f %f !!\n", da, ta);
             #endif
             teensy->idle();
             free(path);
-            sleep(1);
+            sleep(5);
             return -1;
         }
 
