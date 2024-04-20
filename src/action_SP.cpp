@@ -237,6 +237,13 @@ void ActionSP::do_action() {
     state = End;
     pthread_join(KCID, NULL);
     shared.steppers->flaps_move(FlapsOpen);
+    if (reserved) {
+        shared.SPsDone[1]=1;
+    } else {
+        shared.SPsDone[0]=1; 
+    }
+    
+    
 }
 
     

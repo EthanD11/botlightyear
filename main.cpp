@@ -235,9 +235,9 @@ void *localizer(void* arg) {
         #ifdef VERBOSE
         //TODO TODO
         #endif
-        printf("                    %.3f %.3f %.3f   %.3f %.3f\n", lidarData->readLidar_x_robot, lidarData->readLidar_y_robot, lidarData->readLidar_theta_robot*180/M_PI, lidarData->readLidar_d_opponent,lidarData->readLidar_a_opponent*180.0/M_PI);
+        /*printf("                    %.3f %.3f %.3f   %.3f %.3f\n", lidarData->readLidar_x_robot, lidarData->readLidar_y_robot, lidarData->readLidar_theta_robot*180/M_PI, lidarData->readLidar_d_opponent,lidarData->readLidar_a_opponent*180.0/M_PI);
         printf("                    Adversary at %.3f %.3f\n", lidarData->readLidar_x_opponent,lidarData->readLidar_y_opponent);
-        printf("odometry : %.3f %.3f %.3f\n", x, y, theta*180/M_PI);
+        printf("odometry : %.3f %.3f %.3f\n", x, y, theta*180/M_PI);*/
 
 
 

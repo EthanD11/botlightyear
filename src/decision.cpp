@@ -216,8 +216,9 @@ void decide_possible_actions() {
 
     #ifdef SP_STRATEGY
     // ----------- ENDGAME -----------------
-    time_sp_reserved = 25; 
+    time_sp_reserved = 30; 
     if ((remaining_time < time_sp_reserved) && (shared.SPsDone[1]==0)) {
+        printf("DOES SP RESERVED \n");
         if (shared.color == TeamBlue) {
             shared.graph->update_obstacle(41,1);
             uint8_t target = 39;
@@ -239,6 +240,7 @@ void decide_possible_actions() {
 
     } else {
         if(shared.SPsDone[0]==0) {
+            printf("DOES SP COMMON \n");
             shared.graph->update_obstacle(27,1);
             uint8_t target = 26;
             path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
@@ -252,6 +254,7 @@ void decide_possible_actions() {
             n_possible_actions++;
         } else {
             if (shared.spBlockDone == 0) {
+                printf("DOES SP BLOCK \n");
                 possible_actions[0] = new ActionBlockSps(); 
                 n_possible_actions = 1;
             } else {
