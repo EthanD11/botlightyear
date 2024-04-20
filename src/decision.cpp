@@ -13,10 +13,10 @@
 #include <cmath>
 #include <algorithm>
 
-//#define TESTS
+#define TESTS
 
 //#define FINAL_STRATEGY
-#define HOMOLOGATION
+// #define HOMOLOGATION
 
 class ActionGameFinished : public Action {
     public :
@@ -131,16 +131,16 @@ void decide_possible_actions() {
 
     // ---------- Plants TEST -----------
 
-    uint8_t target = 31;
-    shared.graph->update_obstacle(31,0);
+    uint8_t target = 12;
+    shared.graph->update_obstacle(target,0);
     path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
     //shared.graph->update_obstacle(27,1);
     if (path != NULL) {
         path->thetaStart = theta_pos; 
         path->thetaEnd = 0;  
     }
-    shared.graph->update_obstacle(31,1);
-    possible_actions[0] = new ActionPlants(path, 1); 
+    shared.graph->update_obstacle(target,1);
+    possible_actions[0] = new ActionPlants(path, 2); 
     n_possible_actions = 1; 
     return;
     #endif

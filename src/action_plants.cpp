@@ -4,9 +4,9 @@
 #include <cmath>
 
 
-double plant_approach_dist = 0.35; //0.35 MAX
-double plant_grab_dist = 0.22; // 0.22 MIN
-double plant_approach_angle = M_PI/3; 
+double plant_approach_dist = 0.4; //0.35 MAX
+double plant_grab_dist = 0.24; // 0.22 MIN
+double plant_approach_angle = M_PI/6; 
 double away_distance = 0.1; 
 /*
 Takes plant and puts it to the plate storage specified
@@ -22,14 +22,16 @@ void take_plant_kinematicChain(int8_t slotNumber) {
     shared.get_robot_pos(&x_pos_init, &y_pos_init, &theta_pos_init);
 
     //teensy->set_position(1.0,1.0,0);
+    //teensy->set_position_controller_gains(2.0,6.0,-0.2,4.0);
     teensy->set_position_controller_gains(3.0,5.0,-0.8,4.0);
+
 
     servoFlaps->deploy();
     steppers->flaps_move(FlapsPlant, CALL_BLOCKING); 
     steppers->flaps_move(FlapsOpen);
-    usleep(250000);
-    teensy->pos_ctrl(x_pos_init-0.06*cos(theta_pos_init), y_pos_init-0.06*sin(theta_pos_init), theta_pos_init);
     usleep(200000);
+    teensy->pos_ctrl(x_pos_init-0.06*cos(theta_pos_init), y_pos_init-0.06*sin(theta_pos_init), theta_pos_init);
+    usleep(300000);
     servoFlaps->raise();
 
     steppers->slider_move(SliderHigh, CALL_BLOCKING);
@@ -83,7 +85,7 @@ int8_t position_to_plant(double x_plant, double y_plant, double x_plant_center, 
             alpha = plant_approach_angle;
         }
     }
-    printf("Plant to center distance = %.3f, isFirst = %d and alpha = %.3f \n", plant_approach_dist, isFirst, alpha); 
+    printf("Plant approach distance = %.3f, isFirst = %d and alpha = %.3f \n", plant_approach_dist, isFirst, alpha); 
     // First, position control to the approach point
     double dx = (x_plant - x_plant_center)/plant_to_center_dist; 
     double dy= (y_plant - y_plant_center)/plant_to_center_dist; 
@@ -91,15 +93,15 @@ int8_t position_to_plant(double x_plant, double y_plant, double x_plant_center, 
     double y_approach = y_plant + (-dx*sin(alpha) + dy*cos(alpha))* plant_approach_dist; 
     double theta_approach = periodic_angle(atan2(y_plant_center-y_plant, x_plant_center-x_plant)-alpha);
     printf("Position control to approach to x = %.3f, y = %.3f and theta = %.3f \n", x_approach, y_approach, theta_approach);
-    shared.teensy->set_position_controller_gains(1.5,6.0,-1.0,4.0);
+    shared.teensy->set_position_controller_gains(0.8,2.5,-0.3,3.0);
 
     if (action_position_control(x_approach, y_approach, theta_approach) == -1) return -1; 
 
     // Then, position control to the plant distance
 
     double x_grab = x_plant + (dx*cos(alpha) + dy*sin(alpha)) * plant_grab_dist; 
-    double y_grab = y_plant + (-dx*sin(alpha) + dy*cos(alpha)) * plant_approach_dist; 
-    shared.teensy->set_position_controller_gains(2.0,5.0,-0.8,4.0);
+    double y_grab = y_plant + (-dx*sin(alpha) + dy*cos(alpha)) * plant_grab_dist; 
+    // shared.teensy->set_position_controller_gains(2.0,5.0,-0.8,4.0);
     // shared.teensy->set_position_controller_gains(0.8,2.5,-1.75,4.0);
 
 
@@ -121,7 +123,7 @@ int8_t move_back(double x_plant, double y_plant) {
     double y_away = y_pos+dy*away_distance; 
 
     printf("Position control to go back to x = %.3f, y = %.3f and theta = %.3f \n", x_away, y_away, theta_pos);
-    shared.teensy->set_position_controller_gains(2.0,5.0,-0.8,4.0);
+    // shared.teensy->set_position_controller_gains(2.0,5.0,-0.8,4.0);
 
     if (action_position_control(x_away, y_away, theta_pos) == -1) return -1; 
 
@@ -137,8 +139,8 @@ void get_closest_plant_from_kakoo(double x_pos, double y_pos, uint8_t plantNode,
     uint8_t idx = 0;
     for (uint8_t i=0; i<6; i++) {
         if (!plants_collected[i]){
-            double x_new_plant = x_center + cos(-M_PI_2+i*M_PI/6)*0.1;
-            double y_new_plant = y_center + sin(-M_PI_2+i*M_PI/6)*0.1;
+            double x_new_plant = x_center + cos(-M_PI_2+i*M_PI/3)*0.1;
+            double y_new_plant = y_center + sin(-M_PI_2+i*M_PI/3)*0.1;
             double dist_plant = isFirst ? ((shared.color == TeamBlue) ? y_new_plant : (3-y_new_plant)) : (hypot(x_pos-x_new_plant, y_pos-y_new_plant));
             if (dist_plant < dist) {
                 dist = dist_plant;

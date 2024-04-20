@@ -246,7 +246,7 @@ void *localizer(void* arg) {
         printf("Odometry took %ld clock cycles to update.\n\tCumulated time since iteration start : %ld\n", odoClock - lidarClock, odoClock - start);
         printf("Teensy took %ld clock cycles to update.\n\tCumulated time since iteration start : %ld\n", teensyClock - odoClock, teensyClock - start);
         #endif
-        usleep(500000);
+        usleep(350000);
     }
     clear_lidar(lidarData);
     StopLidarTop();

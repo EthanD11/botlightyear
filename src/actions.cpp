@@ -246,7 +246,7 @@ int8_t action_position_control(double x_end, double y_end, double theta_end)
         double d_adv = 0, a_adv = 0;
         shared.get_adv_pos(NULL, NULL, &d_adv, &a_adv);
         #ifdef VERBOSE
-        printf("Adversary position from shared: %.3f, %.3f\n", d_adv, a_adv);
+        //printf("Adversary position from shared: %.3f, %.3f\n", d_adv, a_adv);
         #endif
 
         if ((!reverse && d_adv < 0.4 && std::abs(a_adv) < M_PI/3) || 
