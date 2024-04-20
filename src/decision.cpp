@@ -179,14 +179,25 @@ void decide_possible_actions() {
     // Second check if time is running out : 
     if (remaining_time < time_gotobase) {
         // Get the closest base from the robot pov
-        path = shared.graph->compute_path(x_pos, y_pos, shared.graph->friendlyBases, 3);
+        #ifdef EMPTY_PLANTS_ON_RETURN
+        uint8_t base = 41, nbPlants = get_content_count(ContainsStrongPlant);
+        double theta_end = -M_PI_2;
+        if (shared.color == TeamYellow) {
+            base = 4; toBlock = 6; theta_end = M_PI_2;
+        }
+        if (nbPlants > 0) {
+
+        }
+        #else
+        path = shared.graph->compute_path(x_pos, y_pos, shared.graph->friendlyBases + 1, 1);
         if (path != NULL) {
             path->thetaStart = theta_pos; 
-            path->thetaEnd = getThetaEnd(shared.graph->friendlyBases, shared.graph->friendlyBasesTheta, 3, path->target); 
+            path->thetaEnd = (shared.color == TeamBlue) ? -M_PI_2 : M_PI_2; //getThetaEnd(shared.graph->friendlyBases, shared.graph->friendlyBasesTheta + 1, 1, path->target); 
         }
         possible_actions[0] = new ActionBackToBase(path); 
         n_possible_actions = 1; 
         return; 
+        #endif
     }
     #ifndef FINAL_STRATEGY
     // Strategy : for now, only cycling between random plant nodes and going back to closest base
