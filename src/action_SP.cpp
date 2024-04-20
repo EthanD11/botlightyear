@@ -170,7 +170,7 @@ void ActionSP::do_action() {
     }
 
     // Position of first shared solar panel
-    double x1 = 1.790;
+    double x1 = 1.780;
     double y1 = path->y[ncheckpoints-1]-step; 
 
     // Set position control gains
