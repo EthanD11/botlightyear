@@ -260,7 +260,7 @@ void ActionPlants::do_action() {
         // Get next storage slot and put the plant
         storage_slot_t nextSlot = get_next_free_slot_ID(ContainsStrongPlant); 
         int8_t plate_pos = get_plate_slot(nextSlot); 
-        printf("Activating the kinematic chain\n", x_plant, y_plant, theta_plant);
+        printf("Activating the kinematic chain\n");//, x_plant, y_plant, theta_plant);
         take_plant_kinematicChain(plate_pos); 
         update_plate_content(nextSlot, ContainsWeakPlant); 
         move_back(x_plant, y_plant); 

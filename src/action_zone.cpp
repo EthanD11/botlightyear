@@ -83,7 +83,7 @@ static void *kinematic_chain(void *args) {
             steppers->slider_move(SliderLow, CALL_BLOCKING);
             grpHolder->open();
             stateKC = Drop;
-            if ((toDrop == ConstainsWeakPlantInPot) || (toDrop & ContainsStrongPlant == ContainsStrongPlant))
+            if ((toDrop == ConstainsWeakPlantInPot) || ((toDrop & ContainsStrongPlant) == ContainsStrongPlant))
                 shared.score += 3 + ((toDrop & ContainsPot) == ContainsPot);
             steppers->slider_move(SliderHigh);
             usleep(200000);

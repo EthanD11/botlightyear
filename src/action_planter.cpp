@@ -38,8 +38,8 @@ static void *kinematic_chain(void *args) {
     steppers->slider_move(SliderHigh, CALL_BLOCKING);
     grpDeployer->idle();
 
-    storage_slot_t slotID;
-    storage_content_t toDrop;
+    storage_slot_t slotID = SlotInvalid;
+    storage_content_t toDrop = ContainsNothing;
     while (1) {
         if (state == stateKC) {
             usleep(50000);

@@ -140,7 +140,7 @@ graph_path_t *Graph::compute_path(double xFrom, double yFrom, uint8_t *targets, 
     result->x[0] = xFrom;
     result->y[0] = yFrom;
 
-    graph_node_t *currentNode;
+    graph_node_t *currentNode = NULL;
     for (size_t i = 1; i < nNodes; i++)
     {
         currentNode = (graph_node_t *) ASPathGetNode(path, i - includeFirst);

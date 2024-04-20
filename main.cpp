@@ -13,6 +13,7 @@
 #include <termios.h>
 #include <fcntl.h>
 #include <cmath>
+#include "oled.h"
 
 #define VERBOSE
 //#define TIME_MEAS
@@ -118,6 +119,7 @@ void ask_user_input_params() {
 
 void init_and_wait_for_start() {
 
+    oled_init(); 
     
     dxl_init_port();
     dxl_ping(6,1.0);
@@ -274,13 +276,17 @@ int main(int argc, char const *argv[])
 
         gameFinished = (decided_action->action_type == GameFinished);
         decided_action->do_action();
+        oled_score_update(shared.score); 
         free(decided_action->path);
         decided_action->path = NULL;
         delete decided_action;
     } while (!gameFinished);
 
     // ----- FINISH -----
-
+    shared.score +=15;
+    // shared.score *=0.9;
+    oled_score_update(shared.score); 
+    
     shared.teensy->idle();
     shared.steppers->reset_all();
     shared.servoFlaps->idle(); shared.grpDeployer->idle(); shared.grpHolder->idle();

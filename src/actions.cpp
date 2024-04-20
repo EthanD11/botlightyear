@@ -8,7 +8,7 @@
 uint8_t closer_in_path(graph_path_t *path, double xr, double yr)
 {
     double distance, min_distance = 3.6;
-    uint8_t found_node_id;
+    uint8_t found_node_id = 0;
 
     for (uint8_t i = 0; i < path->nNodes; i++)
     {

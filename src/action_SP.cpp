@@ -77,7 +77,7 @@ static void *kinematic_chain(void* argv) {
 
             case Solar_Panel: 
                 #ifdef VERBOSE
-                printf("SP Thread: Solar_Panel\n SP Thread sp_counter: %d\n SP Thread dxl_angle: %d\n", sp_counter_glob, dxl_angle); 
+                printf("SP Thread: Solar_Panel\n SP Thread sp_counter: %d\n SP Thread dxl_angle: %.3f\n", sp_counter_glob, dxl_angle); 
                 #endif
 
                 stateKC = Solar_Panel; 
