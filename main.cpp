@@ -264,6 +264,9 @@ int main(int argc, char const *argv[])
    
     init_and_wait_for_start();
 
+    shared.score +=16;
+    oled_score_update(shared.score); 
+
     // ----- GAME -----
     uint8_t gameFinished = 0;
     do {
@@ -283,9 +286,9 @@ int main(int argc, char const *argv[])
     } while (!gameFinished);
 
     // ----- FINISH -----
-    shared.score +=15;
-    // shared.score *=0.9;
-    oled_score_update(shared.score); 
+    // shared.score +=15;
+    // // shared.score *=0.9;
+    // oled_score_update(shared.score); 
     
     shared.teensy->idle();
     shared.steppers->reset_all();

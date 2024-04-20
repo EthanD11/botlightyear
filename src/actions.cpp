@@ -97,6 +97,7 @@ int8_t path_following_to_action(graph_path_t *path)
 
     Teensy *teensy = shared.teensy;
     teensy->idle();
+    usleep(50000);
 
     // Set path following from path planning (decision)
     int ncheckpoints = (int)path->nNodes;
@@ -146,16 +147,20 @@ int8_t path_following_to_action(graph_path_t *path)
     #ifdef VERBOSE
     //printf("Wait for Teensy ok\n");
     #endif
-    uint8_t modeSwitchCheck = 0;
+    uint8_t teensyStart = 0;
     while (teensy->ask_mode() == ModePositionControlOver || teensy->ask_mode() == ModeIdle) { 
         usleep(30000);
-        modeSwitchCheck++;
-        if (modeSwitchCheck > 33) {
+        teensyStart++;
+        if (teensyStart > 33) {
+            teensy->idle();
+            usleep(50000);
             teensy->pos_ctrl(xCurrent, yCurrent, first_node_theta);
             sleep(2);
             teensy->path_following(x, y, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
+            teensyStart = 0;
         } 
     }
+    teensyStart = 0;
     while ((teensy->ask_mode()) != ModePositionControlOver)
     {
         if (!shared.goingToBase && shared.update_and_get_timer() < 35) return -1;
@@ -189,8 +194,18 @@ int8_t path_following_to_action(graph_path_t *path)
             #endif
             teensy->idle();
             usleep(300000);
-            back_manoeuvre(0.4);
+            back_manoeuvre(0.6);
             return -1;
+        }
+
+        if (hypot(xr-xCurrent,yr-yCurrent) < 0.03) {
+            teensyStart++;
+            if (teensyStart > 100) {
+                teensy->idle();
+                usleep(50000);
+                teensy->path_following(x,y,ncheckpoints,theta_start,theta_end,vref, dist_goal_reached);
+                teensyStart = 0;
+            }
         }
 
         if (teensy->ask_mode() == ModeIdle) {

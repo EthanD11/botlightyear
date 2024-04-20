@@ -211,10 +211,10 @@ void decide_possible_actions() {
         // Get the closest base from the robot pov
         printf("Searching for bases %d %d %d\n", shared.graph->friendlyBases[0], shared.graph->friendlyBases[1], shared.graph->friendlyBases[2]);
         printf("Bases levels %d %d %d\n", shared.graph->nodes[shared.graph->friendlyBases[0]].level, shared.graph->nodes[shared.graph->friendlyBases[1]].level, shared.graph->nodes[shared.graph->friendlyBases[2]].level);
-        path = shared.graph->compute_path(x_pos, y_pos, shared.graph->friendlyBases, 3);
+        path = shared.graph->compute_path(x_pos, y_pos, shared.graph->friendlyBases+1, 1);
         if (path != NULL) {
             path->thetaStart = theta_pos; 
-            path->thetaEnd = getThetaEnd(shared.graph->friendlyBases, shared.graph->friendlyBasesTheta, 3, path->target); 
+            path->thetaEnd = getThetaEnd(shared.graph->friendlyBases, shared.graph->friendlyBasesTheta+1, 1, path->target); 
         }
         possible_actions[0] = new ActionBackToBase(path); 
         n_possible_actions = 1; 
@@ -249,8 +249,9 @@ void decide_possible_actions() {
 
     // } else {
     if(shared.SPsDone[0]==0) {
-        printf("DOES SP COMMON \n");
+        printf("TRIES SP COMMON \n");
         shared.graph->update_obstacle(27,1);
+        shared.graph->update_obstacle(25,1);
         uint8_t target = 26;
         path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
         if (path != NULL) {
@@ -258,6 +259,7 @@ void decide_possible_actions() {
             path->thetaEnd = -M_PI_2; 
         }
         shared.graph->update_obstacle(27,0);
+        shared.graph->update_obstacle(25,0);
 
         possible_actions[n_possible_actions] = new ActionSP(path, 3, false, Forward); 
         n_possible_actions++;
@@ -275,6 +277,7 @@ void decide_possible_actions() {
         
 
     if (shared.SPsDone[1]==0) {
+        printf("TRIES SP RESERVED \n");
         if (shared.color == TeamBlue) {
             shared.graph->update_obstacle(41,1);
             uint8_t target = 39;
@@ -481,6 +484,7 @@ Action* make_decision() {
                 delete possible_actions[i]; 
             } else {
                 selected_action = possible_actions[i];
+                printf("Deciding to do choice %d \n", i);
             }
         } else {
             delete possible_actions[i]; 

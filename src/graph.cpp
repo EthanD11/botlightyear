@@ -395,7 +395,7 @@ int Graph::init_from_file(const char *filename, team_color_t color) {
         if (token == NULL) return -1;
         if (sscanf(token, "%hhd", &node_id) != 1) return -1;
 
-        nodes[node_id].level = NODE_OBSTACLES_PRESENT;
+        //nodes[node_id].level = NODE_OBSTACLES_PRESENT;
         plants[i] = node_id;
         nbPlants[i] = 6;
 

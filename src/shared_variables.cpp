@@ -77,9 +77,7 @@ void SharedVariables::start_timer() {
     pins->wait_for_gpio_value(StartingCordGPIO, 1, 2000000);
     time(&tStart);
 
-    #ifdef VERBOSE
     printf("Game started! \n");
-    #endif
 }
 
 int8_t SharedVariables::update_and_get_timer() {
