@@ -19,7 +19,7 @@
 #define SP_STRATEGY
 //#define FINAL_STRATEGY
 
-// #define HOMOLOGATION
+//#define HOMOLOGATION
 
 class ActionGameFinished : public Action {
     public :
@@ -43,10 +43,12 @@ class ActionWait: public Action {
             this->needs[4] = 0;  // LidarBottom
         }
         void do_action () {
-            double x = 0,y = 0;
+            /*double x = 0,y = 0;
             shared.get_robot_pos(&x,&y,NULL);
             uint8_t node = shared.graph->identify_pos(x,y,NULL);
-            printf("Current node : %d with level %d\n", node, shared.graph->nodes[node].level);
+            printf("Current node : %d with level %d\n", node, shared.graph->nodes[node].level);*/
+            int8_t remaining_time = shared.update_and_get_timer();
+            printf("Waiting... Time = %d\n", remaining_time); 
             usleep(300000);
         } 
 };
@@ -82,7 +84,7 @@ class ActionBlockSps : public Action {
 Action* possible_actions[10]; 
 uint8_t n_possible_actions;
 
-int8_t time_gotobase = 15;
+int8_t time_gotobase = 30;
 #ifdef FINAL_STRATEGY
 int8_t time_sp = 40; 
 #else
@@ -115,6 +117,7 @@ double getThetaEnd(uint8_t * arrNodes, double * arrThetas , uint8_t len, uint8_t
 
 // Create the different actions that can be taken (in order !) with respect to the strategy
 void decide_possible_actions() {
+    printf("Deciding action\n");
     n_possible_actions = 0; 
     int8_t remaining_time = shared.update_and_get_timer();
     double x_pos = 0, y_pos = 0, theta_pos = 0, dist_from_currentNode = 0; 
@@ -198,12 +201,16 @@ void decide_possible_actions() {
 
     // Second check if time is running out : 
 
-    if (shared.backToBaseDone) { // Check to not cycle endlessly to back to base, goes into idle mode and waits the timer
+    if (shared.backToBaseDone==1) { // Check to not cycle endlessly to back to base, goes into idle mode and waits the timer
         n_possible_actions = 0; 
         return; 
     }
     if (remaining_time < time_gotobase) {
+        printf("GOES TO BASE \n");
+
         // Get the closest base from the robot pov
+        printf("Searching for bases %d %d %d\n", shared.graph->friendlyBases[0], shared.graph->friendlyBases[1], shared.graph->friendlyBases[2]);
+        printf("Bases levels %d %d %d\n", shared.graph->nodes[shared.graph->friendlyBases[0]].level, shared.graph->nodes[shared.graph->friendlyBases[1]].level, shared.graph->nodes[shared.graph->friendlyBases[2]].level);
         path = shared.graph->compute_path(x_pos, y_pos, shared.graph->friendlyBases, 3);
         if (path != NULL) {
             path->thetaStart = theta_pos; 
@@ -216,9 +223,58 @@ void decide_possible_actions() {
 
     #ifdef SP_STRATEGY
     // ----------- ENDGAME -----------------
-    time_sp_reserved = 30; 
-    if ((remaining_time < time_sp_reserved) && (shared.SPsDone[1]==0)) {
-        printf("DOES SP RESERVED \n");
+    // time_sp_reserved = 40; 
+    // if (shared.SPsDone[1]==0) {
+    //     printf("DOES SP RESERVED \n");
+    //     if (shared.color == TeamBlue) {
+    //         shared.graph->update_obstacle(41,1);
+    //         uint8_t target = 39;
+    //         path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+    //         shared.graph->update_obstacle(41,0);
+    //     } else {
+    //         shared.graph->update_obstacle(7,1);
+    //         uint8_t target = 6;
+    //         path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+    //         shared.graph->update_obstacle(7,0);
+    //     }
+    //     double xa = 0, ya = 0;
+    //     shared.get_adv_pos(&xa,&ya,NULL,NULL);
+    //     printf("Adversary at %d %d\n", xa, ya);
+    //     if (path != NULL) {
+    //         path->thetaStart = theta_pos; 
+    //         path->thetaEnd = -M_PI_2; 
+    //     }
+    //     possible_actions[n_possible_actions] = new ActionSP(path, 3, true, Forward); //(shared.color == TeamBlue) ? Forward : Backward 
+    //     n_possible_actions++;
+
+    // } else {
+    if(shared.SPsDone[0]==0) {
+        printf("DOES SP COMMON \n");
+        shared.graph->update_obstacle(27,1);
+        uint8_t target = 26;
+        path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+        if (path != NULL) {
+            path->thetaStart = theta_pos; 
+            path->thetaEnd = -M_PI_2; 
+        }
+        shared.graph->update_obstacle(27,0);
+
+        possible_actions[n_possible_actions] = new ActionSP(path, 3, false, Forward); 
+        n_possible_actions++;
+    }
+    // } else {
+    //     if (shared.spBlockDone == 0) {
+    //         printf("DOES SP BLOCK \n");
+    //         possible_actions[0] = new ActionBlockSps(); 
+    //         n_possible_actions = 1;
+    //     } else {
+    //         n_possible_actions = 0;
+    //     } 
+    //     return;
+    // }
+        
+
+    if (shared.SPsDone[1]==0) {
         if (shared.color == TeamBlue) {
             shared.graph->update_obstacle(41,1);
             uint8_t target = 39;
@@ -228,66 +284,19 @@ void decide_possible_actions() {
             shared.graph->update_obstacle(7,1);
             uint8_t target = 6;
             path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
-            
             shared.graph->update_obstacle(7,0);
         }
         if (path != NULL) {
             path->thetaStart = theta_pos; 
             path->thetaEnd = -M_PI_2; 
         }
-        possible_actions[n_possible_actions] = new ActionSP(path, 3, true, Forward); //(shared.color == TeamBlue) ? Forward : Backward 
+        possible_actions[n_possible_actions] = new ActionSP(path, 3, true, Forward); //(shared.color == TeamBlue) ? Forward : Backward
         n_possible_actions++;
-
-    } else {
-        if(shared.SPsDone[0]==0) {
-            printf("DOES SP COMMON \n");
-            shared.graph->update_obstacle(27,1);
-            uint8_t target = 26;
-            path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
-            if (path != NULL) {
-                path->thetaStart = theta_pos; 
-                path->thetaEnd = -M_PI_2; 
-            }
-            shared.graph->update_obstacle(27,0);
-    
-            possible_actions[n_possible_actions] = new ActionSP(path, 3, false, Forward); 
-            n_possible_actions++;
-        } else {
-            if (shared.spBlockDone == 0) {
-                printf("DOES SP BLOCK \n");
-                possible_actions[0] = new ActionBlockSps(); 
-                n_possible_actions = 1;
-            } else {
-                n_possible_actions = 0;
-            } 
-            return;
-        }
-        
-
-        if (shared.SPsDone[1]==0) {
-            if (shared.color == TeamBlue) {
-                shared.graph->update_obstacle(41,1);
-                uint8_t target = 39;
-                path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
-                shared.graph->update_obstacle(41,0);
-            } else {
-                shared.graph->update_obstacle(7,1);
-                uint8_t target = 6;
-                path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
-                shared.graph->update_obstacle(7,0);
-            }
-            if (path != NULL) {
-                path->thetaStart = theta_pos; 
-                path->thetaEnd = -M_PI_2; 
-            }
-            possible_actions[n_possible_actions] = new ActionSP(path, 3, true, Forward); //(shared.color == TeamBlue) ? Forward : Backward
-            n_possible_actions++;
-        }
-        
     }
         
+        
 
-    return;
+    // return;
 
 
 

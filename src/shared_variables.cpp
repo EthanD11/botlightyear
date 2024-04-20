@@ -25,6 +25,7 @@ SharedVariables::SharedVariables()
     nFreeSlots = 8;
     spBlockDone = 0; 
     backToBaseDone = 0;
+    goingToBase = 0;
 
     xAdv = 400; yAdv = 0; dAdv = 400; aAdv = 0;
 

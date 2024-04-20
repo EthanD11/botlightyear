@@ -165,15 +165,15 @@ void Graph::update_obstacle(uint8_t node, uint8_t blocked) {
 void Graph::update_adversary_pos(double xAdv, double yAdv) {
     pthread_rwlock_wrlock(&lock);
     // printf("Tild adversary present : %d \n", ~NODE_ADV_PRESENT); 
-    printf("Invalid nodes : ");
+    // printf("Invalid nodes : ");
     for (uint8_t i = 0; i < nNodes; i++)
     {
         double dist = hypot(nodes[i].x - xAdv, nodes[i].y - yAdv);
         // if (dist <= 0.4) printf("%d ",i);
-        nodes[i].level = (nodes[i].level & (~NODE_ADV_PRESENT)) | ((dist <= 0.4)*NODE_ADV_PRESENT); //???? ~NODE_ADV_PRESENT ????
-        if (nodes[i].level & NODE_ADV_PRESENT) printf("%d ",i);
+        nodes[i].level = (nodes[i].level & (~NODE_ADV_PRESENT)) | ((dist <= 0.4)*NODE_ADV_PRESENT); 
+        // if (nodes[i].level & NODE_ADV_PRESENT) printf("%d ",i);
     } // (level & 0b101) | (dist * 0b010)
-    printf("\n");
+    // printf("\n");
     pthread_rwlock_unlock(&lock);
 }
 
@@ -395,7 +395,7 @@ int Graph::init_from_file(const char *filename, team_color_t color) {
         if (token == NULL) return -1;
         if (sscanf(token, "%hhd", &node_id) != 1) return -1;
 
-        //nodes[node_id].level = NODE_OBSTACLES_PRESENT;
+        nodes[node_id].level = NODE_OBSTACLES_PRESENT;
         plants[i] = node_id;
         nbPlants[i] = 6;
 

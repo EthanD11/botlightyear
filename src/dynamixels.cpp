@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#define FARADAY
+//#define ROBOTIXS
+
 // Control table address for both Dynamixel AX-12 and XL-320
 #define ADDR_CW_ANGLE_LIMIT             6                  // JOINT MODE: neither are 0
 #define ADDR_CCW_ANGLE_LIMIT            8                  // WHEEL MODE: both are 0
@@ -126,6 +129,9 @@ void dxl_deploy(position_t position) {
       write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_GOAL_POSITION, dxl_goal_position);
       //printf("position_solar [ID:%03d] GoalPos:%03d  PresPos:%03d\n", 6, dxl_goal_position, dxl_present_position);
     }
+
+    // Max Dynamixel Torque
+    write1ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_AX_TORQUE, 1023);
 }
 
 void dxl_multiturn(direction_t direction) {
@@ -225,6 +231,7 @@ void dxl_turn(team_color_t team, double angle) {
          break;
 
         case TeamYellow:
+            #ifdef FARADAY
             if (angle == 0) {
                 dxl_goal_position = 170; 
             }
@@ -249,6 +256,36 @@ void dxl_turn(team_color_t team, double angle) {
             else {
                 printf("Undefined angle, Yellow\n"); 
             }
+            #endif 
+
+            #ifdef ROBOTIXS
+            if (angle == 0) {
+                dxl_goal_position = 250; 
+
+            }
+            else if ((angle >= -180) && (angle <=-90)) {
+                dxl_goal_position = (int)(1.92*angle + 1200); 
+            }
+            else if ((angle > -90) && (angle <= -70)) {
+                dxl_goal_position = 1023; 
+            }
+            else if ((angle >= -70) && (angle <= -45)) {
+                dxl_goal_position = 1023; 
+            }
+            else if ((angle > -45) && (angle < 0)) {
+                dxl_goal_position = (int)(3.8*angle + 167); //VERIF
+            }
+            else if ((angle > 0) && (angle < 90)) {
+                dxl_goal_position = (int)(2.9*angle + 230); 
+            }
+            else if (angle >= 90) {
+                dxl_goal_position = (int)(3.76*angle + 180); 
+            }
+            else {
+                printf("Undefined angle, Yellow\n"); 
+            }
+            #endif
+
         break;
     }
 

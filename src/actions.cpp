@@ -96,6 +96,7 @@ int8_t path_following_to_action(graph_path_t *path)
     printf("Entering path following to action\n"); 
 
     Teensy *teensy = shared.teensy;
+    teensy->idle();
 
     // Set path following from path planning (decision)
     int ncheckpoints = (int)path->nNodes;
@@ -125,7 +126,7 @@ int8_t path_following_to_action(graph_path_t *path)
     { 
         teensy->pos_ctrl(xCurrent, yCurrent, first_node_theta);
         #ifdef VERBOSE
-        //printf("Position control before PF to %.3f, %.3f, %.3f\n", xCurrent, yCurrent, first_node_theta);
+        printf("Position control before PF to %.3f, %.3f, %.3f\n", xCurrent, yCurrent, first_node_theta);
         #endif
         while ((teensy->ask_mode()) != ModePositionControlOver)
         {
@@ -145,9 +146,19 @@ int8_t path_following_to_action(graph_path_t *path)
     #ifdef VERBOSE
     //printf("Wait for Teensy ok\n");
     #endif
-    while (teensy->ask_mode() == ModePositionControlOver || teensy->ask_mode() == ModeIdle) usleep(30000);
+    uint8_t modeSwitchCheck = 0;
+    while (teensy->ask_mode() == ModePositionControlOver || teensy->ask_mode() == ModeIdle) { 
+        usleep(30000);
+        modeSwitchCheck++;
+        if (modeSwitchCheck > 33) {
+            teensy->pos_ctrl(xCurrent, yCurrent, first_node_theta);
+            sleep(2);
+            teensy->path_following(x, y, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
+        } 
+    }
     while ((teensy->ask_mode()) != ModePositionControlOver)
     {
+        if (!shared.goingToBase && shared.update_and_get_timer() < 35) return -1;
         // Get update on robot and adversary position
         double xr = 0, yr = 0, tr = 0;
         shared.get_robot_pos(&xr, &yr, &tr);
@@ -162,16 +173,16 @@ int8_t path_following_to_action(graph_path_t *path)
         {
             teensy->idle();
             #ifdef VERBOSE
-            printf("Adversary in path !!\n");
+            printf("Adversary in path !! %d %d\n", xa, ya, da, ta);
             #endif
             sleep(1);
             return -1;
         }
 
         // Security check: adversary too close
-        double tolerance = 0.7;
+        double tolerance = 0.75;
         //printf("da =%f, ta : %f \n", da, ta);
-        if ((da < tolerance) && (abs(ta) < M_PI_4))
+        if ((da < tolerance) && (abs(ta) < 2*M_PI/3))
         {
             #ifdef VERBOSE
             printf("Adversary too close %f %f !!\n", da, ta);
@@ -241,6 +252,8 @@ int8_t action_position_control(double x_end, double y_end, double theta_end)
     // Check Teensy mode
     while ((teensy->ask_mode()) != ModePositionControlOver)
     {
+
+        if (!shared.goingToBase && shared.update_and_get_timer() < 35) return -1;
 
         // Retrieve adversary current position
         double d_adv = 0, a_adv = 0;
