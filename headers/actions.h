@@ -20,6 +20,7 @@ typedef enum _action : uint8_t
     DepositPlanter, 
     TestAction, 
     BlockSPs, 
+    ClearPot,
     Wait
 } action_t;
 
