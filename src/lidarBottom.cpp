@@ -518,8 +518,8 @@ void calibrationBottom(double* return_x,double* return_y,double* return_theta){
 
     size_t *asize = new size_t[2]{8000, 8000};
     auto started = std::chrono::high_resolution_clock::now();
-    //updateDataBottom(angles, distances, quality, asize);
-    updateDataFile(angles, distances, quality, "DataTest/solar240410/panneausolaire.txt", asize);
+    updateDataBottom(angles, distances, quality, asize);
+    //updateDataFile(angles, distances, quality, "DataTest/solar240410/panneausolaire.txt", asize);
     arraysize = asize[0];
     //TODO faire case pour savoir quelle fonction appeler
     calibrationYellowR1(angles, distances, asize[0], return_x, return_y, return_theta);

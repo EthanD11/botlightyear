@@ -25,11 +25,13 @@ void oled_init() {
     ssd1306_oled_load_resolution(); 
     ssd1306_oled_clear_screen();
     ssd1306_oled_set_rotate(0);
-    ssd1306_oled_set_XY(40, 1);
-    ssd1306_oled_write_string(0x01, "BLY Init");
+    ssd1306_oled_set_XY(20, 1);
+    ssd1306_oled_write_string(0x01, "Calibration");
 }
 
 void oled_score_update(uint8_t score) {
+    ssd1306_oled_clear_screen();
+    
     char str[10];
     ssd1306_oled_set_XY(40, 1);
     ssd1306_oled_write_string(0x01, "Score :");

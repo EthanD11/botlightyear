@@ -93,9 +93,9 @@ void ask_user_input_params() {
             std::cin >> s;
             if (!s.compare("bottomleft")) {
                 shared.startingBaseID = shared.graph->friendlyBases[0];
-                shared.odo->set_pos(0.225,2.965,-M_PI_2);
-                shared.set_robot_pos(0.225,2.965,-M_PI_2);
-                shared.teensy->set_position(0.225,2.965,-M_PI_2);
+                shared.odo->set_pos(0.035,2.775,0);
+                shared.set_robot_pos(0.035,2.775,0);
+                shared.teensy->set_position(0.035,2.775,0);
                 break;
             }
             if (!s.compare("topleft")) {

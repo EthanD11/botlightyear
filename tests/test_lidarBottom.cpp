@@ -13,8 +13,8 @@ int main(int argc, char *argv[]) {
     initBottomLidar(plantZonePolar);
 
 
-    int res = getNumberOfPlantInAllZone(0.390,0.382,65.501*M_PI/180.0, zone, plantZonePolar);
-    DataToFileBottom("testBottom.txt");
+    int res = getNumberOfPlantInAllZone(0.035,2.775,-M_PI_4, zone, plantZonePolar);
+    //DataToFileBottom("testBottom.txt");
     // int res =0;
     if (res == 1) {
         if (testpython) {
@@ -26,6 +26,16 @@ int main(int argc, char *argv[]) {
             }
         }
     }
+    for (size_t i = 0; i < 6; i++)
+    {
+        printf("empty %d nbPlant %d accessible %d\n", plantZonePolar[i]->empty, plantZonePolar[i]->numberPlant, plantZonePolar[i]->isVisible);
+        for (size_t j = 0; j < plantZonePolar[i]->numberPlant; j++)
+        {
+            printf("x %f y %f d %f a %f\n", plantZonePolar[i]->xPlant[j],plantZonePolar[i]->yPlant[j], plantZonePolar[i]->dPlant[j],plantZonePolar[i]->dPlant[j] );
+        }
+        
+    }
+    
 
 
     StopLidarBottom();

@@ -13,7 +13,7 @@
 #include <cmath>
 #include <algorithm>
 
-//#define TESTS
+// #define TESTS
 
 // #define RANDOM
 #define SP_STRATEGY
@@ -126,7 +126,10 @@ void decide_possible_actions() {
     x_pos += 0.15*cos(theta_pos);
     y_pos += 0.15*sin(theta_pos);
     uint8_t currentNode = shared.graph->identify_pos(x_pos, y_pos, &dist_from_currentNode);
-
+    // if (dist_from_currentNode < 0.2) {
+    //     x_pos = shared.graph->nodes[currentNode].x; 
+    //     y_pos = shared.graph->nodes[currentNode].y;
+    // }
     #ifdef TESTS
     /*static uint8_t base = 0;
     uint8_t target;
@@ -166,7 +169,7 @@ void decide_possible_actions() {
     //     path->thetaEnd = 0;  
     // }
     // shared.graph->update_obstacle(target,1);
-    // possible_actions[0] = new ActionPlants(path, 2); 
+    // possible_actions[0] = new ActionPlants(path, 1); 
     // n_possible_actions = 1; 
     // return;
     #endif
@@ -285,9 +288,13 @@ void decide_possible_actions() {
             shared.graph->update_obstacle(41,0);
         } else {
             shared.graph->update_obstacle(7,1);
+            shared.graph->update_obstacle(15,1);
+            shared.graph->update_obstacle(25,1);
             uint8_t target = 6;
             path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
             shared.graph->update_obstacle(7,0);
+            shared.graph->update_obstacle(15,0);
+            shared.graph->update_obstacle(25,0);
         }
         if (path != NULL) {
             path->thetaStart = theta_pos; 
