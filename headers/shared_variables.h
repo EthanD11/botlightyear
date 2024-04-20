@@ -73,6 +73,8 @@ public:
     uint8_t plantersDone[3]; 
     uint8_t zonesDone[3]; 
     uint8_t SPsDone[2]; // Common, Reserved
+    uint8_t spBlockDone; 
+    uint8_t backToBaseDone; 
 
 
     uint8_t valids[5]; // SptrPlate, StprSlider, StprFlaps, dxls, lidarBottom

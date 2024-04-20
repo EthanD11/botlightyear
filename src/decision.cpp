@@ -13,9 +13,12 @@
 #include <cmath>
 #include <algorithm>
 
-#define TESTS
+//#define TESTS
 
+// #define RANDOM
+#define SP_STRATEGY
 //#define FINAL_STRATEGY
+
 // #define HOMOLOGATION
 
 class ActionGameFinished : public Action {
@@ -60,11 +63,31 @@ class ActionTest : public Action {
         void do_action () {} 
 };
 
+class ActionBlockSps : public Action {
+    public :
+        ActionBlockSps() : Action(BlockSPs, false, NULL) {
+            this->needs[0] = 0;  // SptrPlate
+            this->needs[1] = 0;  // StprSlider
+            this->needs[2] = 0;  // StprFlaps
+            this->needs[3] = 0;  // Dxls
+            this->needs[4] = 0;  // LidarBottom
+        }
+        void do_action () {
+            if (action_position_control(shared.graph->nodes[26].x, shared.graph->nodes[26].y, -M_PI_2) == -1) return; 
+            shared.spBlockDone = 1; 
+        } 
+};
+
+
 Action* possible_actions[10]; 
 uint8_t n_possible_actions;
 
-int8_t time_gotobase = 15; 
+int8_t time_gotobase = 15;
+#ifdef FINAL_STRATEGY
 int8_t time_sp = 40; 
+#else
+int8_t time_sp = 101;
+#endif 
 int8_t time_sp_reserved = 25;
 
 
@@ -172,11 +195,13 @@ void decide_possible_actions() {
         n_possible_actions = 1; 
         return; 
     }
-    
-    double xPos = 0, yPos = 0, thetaPos = 0;
-    shared.get_robot_pos(&xPos, &yPos, &thetaPos);
 
     // Second check if time is running out : 
+
+    if (shared.backToBaseDone) { // Check to not cycle endlessly to back to base, goes into idle mode and waits the timer
+        n_possible_actions = 0; 
+        return; 
+    }
     if (remaining_time < time_gotobase) {
         // Get the closest base from the robot pov
         path = shared.graph->compute_path(x_pos, y_pos, shared.graph->friendlyBases, 3);
@@ -188,7 +213,84 @@ void decide_possible_actions() {
         n_possible_actions = 1; 
         return; 
     }
-    #ifndef FINAL_STRATEGY
+
+    #ifdef SP_STRATEGY
+    // ----------- ENDGAME -----------------
+    time_sp_reserved = 25; 
+    if ((remaining_time < time_sp_reserved) && (shared.SPsDone[1]==0)) {
+        if (shared.color == TeamBlue) {
+            shared.graph->update_obstacle(41,1);
+            uint8_t target = 39;
+            path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+            shared.graph->update_obstacle(41,0);
+        } else {
+            shared.graph->update_obstacle(7,1);
+            uint8_t target = 6;
+            path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+            
+            shared.graph->update_obstacle(7,0);
+        }
+        if (path != NULL) {
+            path->thetaStart = theta_pos; 
+            path->thetaEnd = -M_PI_2; 
+        }
+        possible_actions[n_possible_actions] = new ActionSP(path, 3, true, Forward); //(shared.color == TeamBlue) ? Forward : Backward 
+        n_possible_actions++;
+
+    } else {
+        if(shared.SPsDone[0]==0) {
+            shared.graph->update_obstacle(27,1);
+            uint8_t target = 26;
+            path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+            if (path != NULL) {
+                path->thetaStart = theta_pos; 
+                path->thetaEnd = -M_PI_2; 
+            }
+            shared.graph->update_obstacle(27,0);
+    
+            possible_actions[n_possible_actions] = new ActionSP(path, 3, false, Forward); 
+            n_possible_actions++;
+        } else {
+            if (shared.spBlockDone == 0) {
+                possible_actions[0] = new ActionBlockSps(); 
+                n_possible_actions = 1;
+            } else {
+                n_possible_actions = 0;
+            } 
+            return;
+        }
+        
+
+        if (shared.SPsDone[1]==0) {
+            if (shared.color == TeamBlue) {
+                shared.graph->update_obstacle(41,1);
+                uint8_t target = 39;
+                path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+                shared.graph->update_obstacle(41,0);
+            } else {
+                shared.graph->update_obstacle(7,1);
+                uint8_t target = 6;
+                path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+                shared.graph->update_obstacle(7,0);
+            }
+            if (path != NULL) {
+                path->thetaStart = theta_pos; 
+                path->thetaEnd = -M_PI_2; 
+            }
+            possible_actions[n_possible_actions] = new ActionSP(path, 3, true, Forward); //(shared.color == TeamBlue) ? Forward : Backward
+            n_possible_actions++;
+        }
+        
+    }
+        
+
+    return;
+
+
+
+    return;
+    #endif
+    #ifdef RANDOM
     // Strategy : for now, only cycling between random plant nodes and going back to closest base
     if (in_array(shared.graph->plants, 6, currentNode)) {
         // If it's in a plant node, go back to a base 
@@ -212,8 +314,10 @@ void decide_possible_actions() {
         possible_actions[0] = new ActionDisplacement(path); 
         n_possible_actions = 1; 
     }
+    return; 
+    #endif
 
-    #else 
+    #ifdef FINAL_STRATEGY 
     // ----------- ENDGAME -----------------
     if (remaining_time < time_sp) { //Time to switch to solar panels
         
@@ -332,7 +436,7 @@ void decide_possible_actions() {
             n_possible_actions++;
         }
     }
-
+    return;
     #endif
 
 }

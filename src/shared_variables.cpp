@@ -23,6 +23,8 @@ SharedVariables::SharedVariables()
     }
     for (uint8_t j=0; j<5; j++) valids[j] = 0; 
     nFreeSlots = 8;
+    spBlockDone = 0; 
+    backToBaseDone = 0;
 
     xAdv = 400; yAdv = 0; dAdv = 400; aAdv = 0;
 
