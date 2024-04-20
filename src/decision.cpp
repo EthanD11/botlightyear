@@ -43,10 +43,12 @@ class ActionWait: public Action {
             this->needs[4] = 0;  // LidarBottom
         }
         void do_action () {
-            double x = 0,y = 0;
+            /*double x = 0,y = 0;
             shared.get_robot_pos(&x,&y,NULL);
             uint8_t node = shared.graph->identify_pos(x,y,NULL);
-            printf("Current node : %d with level %d\n", node, shared.graph->nodes[node].level);
+            printf("Current node : %d with level %d\n", node, shared.graph->nodes[node].level);*/
+            int8_t remaining_time = shared.update_and_get_timer();
+            printf("Waiting... Time = %d\n", remaining_time); 
             usleep(300000);
         } 
 };
@@ -82,7 +84,7 @@ class ActionBlockSps : public Action {
 Action* possible_actions[10]; 
 uint8_t n_possible_actions;
 
-int8_t time_gotobase = 15;
+int8_t time_gotobase = 25;
 #ifdef FINAL_STRATEGY
 int8_t time_sp = 40; 
 #else
@@ -115,6 +117,7 @@ double getThetaEnd(uint8_t * arrNodes, double * arrThetas , uint8_t len, uint8_t
 
 // Create the different actions that can be taken (in order !) with respect to the strategy
 void decide_possible_actions() {
+    printf("Deciding action\n");
     n_possible_actions = 0; 
     int8_t remaining_time = shared.update_and_get_timer();
     double x_pos = 0, y_pos = 0, theta_pos = 0, dist_from_currentNode = 0; 
@@ -198,11 +201,13 @@ void decide_possible_actions() {
 
     // Second check if time is running out : 
 
-    if (shared.backToBaseDone) { // Check to not cycle endlessly to back to base, goes into idle mode and waits the timer
+    if (shared.backToBaseDone==1) { // Check to not cycle endlessly to back to base, goes into idle mode and waits the timer
         n_possible_actions = 0; 
         return; 
     }
     if (remaining_time < time_gotobase) {
+        printf("GOES TO BASE \n");
+
         // Get the closest base from the robot pov
         path = shared.graph->compute_path(x_pos, y_pos, shared.graph->friendlyBases, 3);
         if (path != NULL) {
