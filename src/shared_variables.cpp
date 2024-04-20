@@ -5,7 +5,7 @@
 
 //#define VERBOSE
 
-pthread_rwlock_t robotPosLock, advPosLock;
+static pthread_rwlock_t robotPosLock, advPosLock;
 
 SharedVariables::SharedVariables()
 {

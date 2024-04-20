@@ -155,6 +155,7 @@ void decide_possible_actions() {
     }
     path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
     if (path == NULL) {
+        printf("No path \n");
         n_possible_actions = 0;
         return;
     }
@@ -162,6 +163,7 @@ void decide_possible_actions() {
     path->thetaEnd = shared.graph->friendlyBasesTheta[2];  
     possible_actions[0] = new ActionDisplacement(path); 
     n_possible_actions = 1; 
+    printf("New path \n");
     return;
     #endif
 

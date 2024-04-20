@@ -23,7 +23,7 @@ int debuglidardemerde = 0;
 
 ///taille balise
 double largeurMatBalise = 0.1;//TODO modif remettre 0.065
-double largeurMatAdvers = 0.22;
+double largeurMatAdvers = 0.17;
 
 ///utile pour des prints
 bool analyseDetail = false;
@@ -313,11 +313,10 @@ void lidarPerduAdv(double *angles, double *distances, LidarData *lidarData) {
 }
 
 int foundAdvWithOdo(double *anglesAdv, double *distancesAdv, LidarData *lidarData) {
-    printf("check with odo\n");
     //recalcule des transformations pour trouver l'adversaire
     ///transfo contains 4 elem : deltaX, deltaY, angle of rotation, the number of elements in possible opponents (number of elements in *anglesAdv)
     int size = lidarData->countObj_adv;
-        printf("check with odo, count = %d\n", size);
+    //printf("check with odo, count = %d\n", size);
 
     ///maximum table dimensions
     double xmax = tableX;
@@ -861,9 +860,9 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
     }
 
     //TODO TEEEEEEEEEEEEEEEEEEEEEEEST AAAAAAAAAAAAAAH  
-    if (premierScan) {
+    /*if (premierScan) {
         DataToFileTop("test.txt");
-    }
+    }*/
     updateDataTop(angles, distances, quality, as);
     //updateDataFile(angles, distances, quality, "DataTest/DataP/testLidarMobile/" + std::to_string(i), as);
     arraySize = as[0];
@@ -892,7 +891,6 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
     delete[] (distances);
     delete[] (quality);
     delete[] (as);
-
     if (!lidarData->readLidar_lost) {
         //2 des positions pour être centré au niveau des roues sauf la distance et l'angle de l'adversaire
         if (shared.color == TeamBlue) {

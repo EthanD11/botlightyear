@@ -34,8 +34,10 @@ uint8_t adversary_in_path(graph_path_t *path, uint8_t closer_node_id)
     for (uint8_t i = closer_node_id; i < std::min(closer_node_id + 3, (int)path->nNodes); i++)
     {
         printf("%d, %d\n", graph.nodes[path->idNodes[i]].level, graph.nodes[path->idNodes[i]].level & NODE_ADV_PRESENT);
-        if ((graph.nodes[path->idNodes[i]].level & NODE_ADV_PRESENT) != 0)
+        if ((graph.nodes[path->idNodes[i]].level & NODE_ADV_PRESENT) != 0) {
+            graph.level_unlock();
             return -1;
+        }
     }
     graph.level_unlock();
     return 0;

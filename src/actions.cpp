@@ -2,7 +2,7 @@
 #include <cmath>
 #include <algorithm>
 
-//#define VERBOSE
+#define VERBOSE
 #include <stdio.h>
 
 uint8_t closer_in_path(graph_path_t *path, double xr, double yr)
@@ -30,8 +30,10 @@ uint8_t adversary_in_path(graph_path_t *path, uint8_t closer_node_id)
     shared.graph->level_rdlock();
     for (uint8_t i = closer_node_id; i < std::min(closer_node_id + 4, (int)path->nNodes); i++)
     {
-        if ((shared.graph->nodes[path->idNodes[i]].level & NODE_ADV_PRESENT) != 0)
+        if ((shared.graph->nodes[path->idNodes[i]].level & NODE_ADV_PRESENT) != 0) {
+            shared.graph->level_unlock();
             return -1;
+        }
     }
     shared.graph->level_unlock();
     return 0;
@@ -99,9 +101,9 @@ int8_t path_following_to_action(graph_path_t *path)
     int ncheckpoints = (int)path->nNodes;
     double *x = path->x;
     double *y = path->y;
-    for (int i=0; i<ncheckpoints; i++) {
+    /*for (int i=0; i<ncheckpoints; i++) {
         printf("Node %d : x :%.3f and y: %.3f \n", i, x[i], y[i]);
-    }
+    }*/
     double theta_start = path->thetaStart;
     double theta_end = path->thetaEnd;
 
@@ -116,14 +118,14 @@ int8_t path_following_to_action(graph_path_t *path)
 
     double first_node_theta = atan2(y[1] - yCurrent, x[1] - xCurrent);
     #ifdef VERBOSE
-    printf("First node theta : %.3f and current theta : %.3f \n", first_node_theta, theta_start);
+    //printf("First node theta : %.3f and current theta : %.3f \n", first_node_theta, theta_start);
     #endif
 
     if (trigo_diff(first_node_theta, theta_start) > M_PI_4)
     { 
         teensy->pos_ctrl(xCurrent, yCurrent, first_node_theta);
         #ifdef VERBOSE
-        printf("Position control before PF to %.3f, %.3f, %.3f\n", xCurrent, yCurrent, first_node_theta);
+        //printf("Position control before PF to %.3f, %.3f, %.3f\n", xCurrent, yCurrent, first_node_theta);
         #endif
         while ((teensy->ask_mode()) != ModePositionControlOver)
         {
@@ -133,15 +135,15 @@ int8_t path_following_to_action(graph_path_t *path)
     #ifdef VERBOSE
     printf("PF\n");
     #endif
-    for (int i=0; i<ncheckpoints; i++) {
+    /*for (int i=0; i<ncheckpoints; i++) {
         printf("Node %d : x :%.3f and y: %.3f \n", i, x[i], y[i]);
-    }
+    }*/
 
     teensy->path_following(x, y, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
 
     // Check Teensy mode
     #ifdef VERBOSE
-    printf("Wait for Teensy ok\n");
+    //printf("Wait for Teensy ok\n");
     #endif
     while (teensy->ask_mode() == ModePositionControlOver || teensy->ask_mode() == ModeIdle) usleep(30000);
     while ((teensy->ask_mode()) != ModePositionControlOver)
@@ -168,6 +170,7 @@ int8_t path_following_to_action(graph_path_t *path)
 
         // Security check: adversary too close
         double tolerance = 0.7;
+        //printf("da =%f, ta : %f \n", da, ta);
         if ((da < tolerance) && (abs(ta) < M_PI_4))
         {
             #ifdef VERBOSE
@@ -180,6 +183,10 @@ int8_t path_following_to_action(graph_path_t *path)
         }
 
         if (teensy->ask_mode() == ModeIdle) {
+
+            #ifdef VERBOSE
+            printf("Teensy unstable, restarting\n");
+            #endif
 
             if (closer_node_id >= path->nNodes-2) {
                 teensy->pos_ctrl(x[path->nNodes-1], y[path->nNodes-1], theta_end);
@@ -198,10 +205,9 @@ int8_t path_following_to_action(graph_path_t *path)
             }
         }
 
-        usleep(10000);
+        usleep(50000);
     }
 
-    usleep(3000000);
     return 0; // Adversary not found and successfull path following
 }
 

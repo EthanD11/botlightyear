@@ -16,7 +16,7 @@ typedef struct __graph_targets
     Graph *graph;
 } context_t;
 
-pthread_rwlock_t lock;
+static pthread_rwlock_t lock;
 
 ASPathNodeSource source;
 
