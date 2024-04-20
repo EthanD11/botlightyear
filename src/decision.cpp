@@ -43,7 +43,7 @@ class ActionWait: public Action {
             this->needs[4] = 0;  // LidarBottom
         }
         void do_action () {
-            /*double x = 0,y = 0;
+            /*/*double x = 0,y = 0;
             shared.get_robot_pos(&x,&y,NULL);
             uint8_t node = shared.graph->identify_pos(x,y,NULL);
             printf("Current node : %d with level %d\n", node, shared.graph->nodes[node].level);*/
