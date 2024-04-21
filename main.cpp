@@ -17,6 +17,7 @@
 
 #define VERBOSE
 //#define TIME_MEAS
+#define CLEAR_POTS
 
 #define ASCII_b 98
 #define ASCII_B 66
@@ -93,9 +94,15 @@ void ask_user_input_params() {
             std::cin >> s;
             if (!s.compare("bottomleft")) {
                 shared.startingBaseID = shared.graph->friendlyBases[0];
+                #ifdef CLEAR_POTS
+                shared.odo->set_pos(0.035,2.835,0);
+                shared.set_robot_pos(0.035,2.835,0);
+                shared.teensy->set_position(0.035,2.835,0);
+                #else
                 shared.odo->set_pos(0.225,2.965,-M_PI_2);
                 shared.set_robot_pos(0.225,2.965,-M_PI_2);
                 shared.teensy->set_position(0.225,2.965,-M_PI_2);
+                #endif
                 break;
             }
             if (!s.compare("topleft")) {
@@ -147,6 +154,7 @@ void init_and_wait_for_start() {
     double wn = 0.2; // Command filter discrete cutoff frequency
     double kv_en = 0.;
     shared.teensy->set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
+    shared.teensy->set_position_controller_gains(1.0,6.0,-1.0,4.0);
     
     if (pthread_create(&localizerID, NULL, localizer, NULL) != 0) exit(4);
 
@@ -264,16 +272,38 @@ int main(int argc, char const *argv[])
    
     init_and_wait_for_start();
 
-    shared.score +=16;
+    shared.score += 16;
     oled_score_update(shared.score); 
 
     // ----- GAME -----
+
+    #ifdef CLEAR_POTS
+    double x = 0, y = 0, theta = 0;
+    shared.get_robot_pos(&x,&y,&theta);
+    shared.teensy->set_position_controller_gains(1.5, 4.0, 0.1, 2.0);
+    if (shared.color )
+    shared.teensy->pos_ctrl(x+0.7*cos(theta), y+0.7*sin(theta), theta);
+    usleep(1000000);
+    if (shared.color == TeamYellow) {
+        x = 22.5;
+        y = 2.75;
+    } else {
+        x = 22.5;
+        y = 0.25;
+    }
+    shared.teensy->pos_ctrl(x, y, 0);
+    usleep(1500000);
+    shared.teensy->idle();
+    #endif
+
     uint8_t gameFinished = 0;
     do {
 
         Action* decided_action = make_decision();
         printf("Action type : %d\n", decided_action->action_type);
+        #ifndef CLEAR_POTS
         double x = 0, y = 0, theta = 0;
+        #endif
         shared.get_robot_pos(&x,&y,&theta);
         printf("Current pos : (%.3f,%.3f,%.3f)\n",x,y,theta);
 

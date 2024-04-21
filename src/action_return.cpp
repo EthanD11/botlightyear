@@ -27,6 +27,7 @@ void ActionBackToBase::do_action() {
 
     if (path_following_to_action(path) == -1) return;*/
     shared.goingToBase = 1;
+    shared.teensy->set_position_controller_gains(1.0,6.0,-1.0,3.0);
     if (action_position_control(path->x[path->nNodes-1], path->y[path->nNodes-1], path->thetaEnd) == -1) return; 
     // Idle
     shared.teensy->idle(); 
