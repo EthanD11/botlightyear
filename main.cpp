@@ -280,8 +280,19 @@ int main(int argc, char const *argv[])
     #ifdef CLEAR_POTS
     double x = 0, y = 0, theta = 0;
     shared.get_robot_pos(&x,&y,&theta);
+    shared.teensy->set_position_controller_gains(1.5, 4.0, 0.1, 2.0);
+    if (shared.color )
     shared.teensy->pos_ctrl(x+0.7*cos(theta), y+0.7*sin(theta), theta);
-    sleep(2);
+    usleep(1000000);
+    if (shared.color == TeamYellow) {
+        x = 22.5;
+        y = 2.75;
+    } else {
+        x = 22.5;
+        y = 0.25;
+    }
+    shared.teensy->pos_ctrl(x, y, 0);
+    usleep(1500000);
     shared.teensy->idle();
     #endif
 
