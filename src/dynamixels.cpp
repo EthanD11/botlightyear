@@ -131,7 +131,7 @@ void dxl_deploy(position_t position) {
     }
 
     // Max Dynamixel Torque
-    write1ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_AX_TORQUE, 1023);
+    write1ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_AX_TORQUE, 255);
 }
 
 void dxl_multiturn(direction_t direction) {

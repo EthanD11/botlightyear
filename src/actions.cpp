@@ -168,7 +168,7 @@ int8_t path_following_to_action(graph_path_t *path)
     while (teensy->ask_mode() == ModePositionControlOver || teensy->ask_mode() == ModeIdle) { 
         teensyStart++;
         if (teensyStart > 60) {
-            printf("Relaunching path following\n");
+            printf("Relaunching path following due to mode unchanged\n");
             teensy->idle();
             usleep(50000);
             shared.get_robot_pos(&xCurrent, &yCurrent, NULL);
@@ -206,7 +206,7 @@ int8_t path_following_to_action(graph_path_t *path)
         // Security check: adversary too close
         double tolerance = 0.75;
         //printf("da =%f, ta : %f \n", da, ta);
-        if ((da < tolerance) && (abs(ta) < 2*M_PI/3))
+        if ((da < tolerance) && (abs(ta) < M_PI/3))
         {
             #ifdef VERBOSE
             printf("Adversary too close %f %f !!\n", da, ta);
@@ -220,7 +220,7 @@ int8_t path_following_to_action(graph_path_t *path)
         if (hypot(xr-xCurrent,yr-yCurrent) < 0.03) {
             teensyStart++;
             if (teensyStart > 100) {
-                printf("Relaunching path followin\n");
+                printf("Relaunching path following due to absence of movement\n");
                 teensy->idle();
                 usleep(50000);
                 teensy->path_following(x,y,ncheckpoints,theta_start,theta_end,vref, dist_goal_reached);
@@ -288,7 +288,10 @@ int8_t action_position_control(double x_end, double y_end, double theta_end)
     while ((teensy->ask_mode()) != ModePositionControlOver)
     {
 
-        if (!shared.goingToBase && shared.update_and_get_timer() < 35) return -1;
+        if (!shared.goingToBase && shared.update_and_get_timer() < 30) {
+            printf("Path following aborted because of timer\n");
+            return -1;
+        }
 
         // Retrieve adversary current position
         double d_adv = 0, a_adv = 0;

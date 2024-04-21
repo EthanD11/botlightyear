@@ -214,7 +214,10 @@ void decide_possible_actions() {
         path = shared.graph->compute_path(x_pos, y_pos, shared.graph->friendlyBases+1, 1);
         if (path != NULL) {
             path->thetaStart = theta_pos; 
-            path->thetaEnd = getThetaEnd(shared.graph->friendlyBases, shared.graph->friendlyBasesTheta+1, 1, path->target); 
+            path->thetaEnd = getThetaEnd(shared.graph->friendlyBases, shared.graph->friendlyBasesTheta, 3, path->target); 
+            #ifdef SP_STRATEGY
+            if (shared.color = TeamYellow) path->thetaEnd = -M_PI/2.0;
+            #endif
         }
         possible_actions[0] = new ActionBackToBase(path); 
         n_possible_actions = 1; 
