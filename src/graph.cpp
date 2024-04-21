@@ -526,7 +526,7 @@ void Graph::print_path(graph_path_t* path) {
     printf("Path towards %d of length %.3fm in %d points\n", path->target, path->totalCost, path->nNodes);
     for (uint8_t i = 0; i < path->nNodes; i++)
     {
-        printf("(%.3f,%.3f) ", path->x[i], path->y[i]);
+        printf("(%d : %.3f,%.3f) ", path->idNodes[i], path->x[i], path->y[i]);
     }
     printf("\n");
 }

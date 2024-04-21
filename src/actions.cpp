@@ -109,9 +109,9 @@ int8_t path_following_to_action(graph_path_t *path)
     double theta_start = path->thetaStart;
     double theta_end = path->thetaEnd;
 
-    double kp = 1.5;
-    double ka = 8;
-    double kb = -1.5;
+    double kp = 1.0;
+    double ka = 6.0;
+    double kb = -1.0;
     double kw = 4.0;
     teensy->set_position_controller_gains(kp, ka, kb, kw);
 
@@ -123,12 +123,30 @@ int8_t path_following_to_action(graph_path_t *path)
     //printf("First node theta : %.3f and current theta : %.3f \n", first_node_theta, theta_start);
     #endif
 
+    uint8_t teensyStart = 0;
+
     if (trigo_diff(first_node_theta, theta_start) > M_PI_4)
-    { 
+    {
+        // double towardsCenter = atan2(1.5 - yCurrent, 1 - xCurrent);
+        // teensy->pos_ctrl(xCurrent, yCurrent, towardsCenter);
+        // sleep(1);
+        
+        shared.get_robot_pos(&xCurrent, &yCurrent, NULL);
         teensy->pos_ctrl(xCurrent, yCurrent, first_node_theta);
         #ifdef VERBOSE
         printf("Position control before PF to %.3f, %.3f, %.3f\n", xCurrent, yCurrent, first_node_theta);
         #endif
+        while (teensy->ask_mode() == ModeIdle) {
+            teensyStart++;
+            if (teensyStart > 60) {
+                printf("Relaunching pos control to theta first node\n");
+                teensy->idle();
+                usleep(50000);
+                shared.get_robot_pos(&xCurrent, &yCurrent, NULL);
+                teensy->pos_ctrl(xCurrent, yCurrent, first_node_theta);
+            }
+            usleep(50000);
+        }
         while ((teensy->ask_mode()) != ModePositionControlOver)
         {
             usleep(10000);
@@ -141,24 +159,25 @@ int8_t path_following_to_action(graph_path_t *path)
         printf("Node %d : x :%.3f and y: %.3f \n", i, x[i], y[i]);
     }*/
 
-    teensy->path_following(x, y, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
+    teensy->path_following(x, y, ncheckpoints, first_node_theta, theta_end, vref, dist_goal_reached);
 
     // Check Teensy mode
     #ifdef VERBOSE
     //printf("Wait for Teensy ok\n");
     #endif
-    uint8_t teensyStart = 0;
     while (teensy->ask_mode() == ModePositionControlOver || teensy->ask_mode() == ModeIdle) { 
-        usleep(30000);
         teensyStart++;
-        if (teensyStart > 33) {
+        if (teensyStart > 60) {
+            printf("Relaunching path following\n");
             teensy->idle();
             usleep(50000);
+            shared.get_robot_pos(&xCurrent, &yCurrent, NULL);
             teensy->pos_ctrl(xCurrent, yCurrent, first_node_theta);
             sleep(2);
             teensy->path_following(x, y, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
             teensyStart = 0;
         } 
+        usleep(50000);
     }
     teensyStart = 0;
     while ((teensy->ask_mode()) != ModePositionControlOver)
@@ -201,6 +220,7 @@ int8_t path_following_to_action(graph_path_t *path)
         if (hypot(xr-xCurrent,yr-yCurrent) < 0.03) {
             teensyStart++;
             if (teensyStart > 100) {
+                printf("Relaunching path followin\n");
                 teensy->idle();
                 usleep(50000);
                 teensy->path_following(x,y,ncheckpoints,theta_start,theta_end,vref, dist_goal_reached);
