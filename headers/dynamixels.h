@@ -14,10 +14,10 @@ typedef enum {
     CW,
 } direction_t;
 
-void dxl_init_port(); 
+int dxl_init_port(); 
 void dxl_close_port(); 
 
-void dxl_ping(int ID, float PROTOCOL); 
+int dxl_ping(int ID, float PROTOCOL); 
 void dxl_idle(int ID, float PROTOCOL);
 
 void dxl_deploy(position_t position);

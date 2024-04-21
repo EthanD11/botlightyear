@@ -121,9 +121,9 @@ void init_and_wait_for_start() {
 
     oled_init(); 
     
-    dxl_init_port();
-    dxl_ping(6,1.0);
-    dxl_ping(8,1.0);
+    if (dxl_init_port()) shared.valids[3] = 0;
+    if (dxl_ping(6,1.0)) shared.valids[3] = 0;
+    if (dxl_ping(8,1.0)) shared.valids[3] = 0;
 
     if (shared.graph->init_from_file("./graphs/BL_V3.txt", shared.color) != 0) exit(3);
 
@@ -150,7 +150,7 @@ void init_and_wait_for_start() {
     
     if (pthread_create(&localizerID, NULL, localizer, NULL) != 0) exit(4);
 
-    StartLidarBottom();
+    if (StartLidarBottom()) shared.valids[4] = 1;
 
     shared.steppers->reset_all();
     shared.steppers->calibrate_all(CALL_BLOCKING, shared.valids);

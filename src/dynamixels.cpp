@@ -43,20 +43,21 @@ void dxl_init_port() {
 
     if (!openPort(port_num)) {
         printf("Failed to open the port!\n");
-        exit(1);
+        return 1;
     }
 
     if (!setBaudRate(port_num, BAUDRATE)) {
         printf("Failed to set the baudrate!\n");
-        exit(1);
-    }   
+        return 1;
+    }
+    return 0;
 }
 
 void dxl_close_port() {
     closePort(port_num);
 }   
 
-void dxl_ping(int ID, float PROTOCOL) {
+int dxl_ping(int ID, float PROTOCOL) {
     int dxl_comm_result = COMM_TX_FAIL;
     uint8_t dxl_error = 0;   
  
@@ -65,14 +66,15 @@ void dxl_ping(int ID, float PROTOCOL) {
     if ((dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL)) != COMM_SUCCESS)
     {
         printf("%s\n", getTxRxResult(PROTOCOL, dxl_comm_result));
-        exit(1);
+        return 1;
     }
     if ((dxl_error = getLastRxPacketError(port_num, PROTOCOL)) != 0)
     {
         printf("%s\n", getRxPacketError(PROTOCOL, dxl_error));
-        exit(1);
+        return 1;
     }
     printf("Dynamixel %03d has been successfully connected \n", ID);
+    return 0;
 }
 
 void dxl_idle(int ID, float PROTOCOL) { 

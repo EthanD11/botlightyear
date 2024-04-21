@@ -98,7 +98,7 @@ void StartLidarTop(){
 
 }
 
-void StartLidarBottom(){
+int StartLidarBottom(){
     //TODO change en USB1
     ///  Create a communication channel instance
     //TODO USB1
@@ -107,14 +107,14 @@ void StartLidarBottom(){
 
     if (_channel.err) {
         fprintf(stderr, "Failed to create communication channel\r\n");
-        return;
+        return 1;
     }
     channelBottom = _channel.value;
 
     Result<ILidarDriver *> _lidar = createLidarDriver();
     if (_lidar.err) {
         fprintf(stderr, "Failed to create Lidar driver\r\n");
-        return;
+        return 1;
     }
     lidarBottom = _lidar.value;
     u_result res = lidarBottom->connect(channelBottom);
@@ -135,13 +135,14 @@ void StartLidarBottom(){
 
         }else{
             fprintf(stderr, "Failed to get device information from LIDAR %08x\r\n", res);
-            return;
+            return 1;
         }
     }else{
         fprintf(stderr, "Failed to connect to LIDAR %08x\r\n", res);
-        return;
+        return 1;
     }
     printf("Lidar Bottom connected\n");
+    return 0;
 }
 
 void updateDataTop(double* angles, double* distances, double* quality, size_t* arraySize){

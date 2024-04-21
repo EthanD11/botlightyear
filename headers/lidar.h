@@ -24,7 +24,7 @@ double moduloLidarMPIPI(double angle);
  */
 void StartLidarTop();
 
-void StartLidarBottom();
+int StartLidarBottom();
 
 /**
  * close Lidar

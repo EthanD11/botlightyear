@@ -193,7 +193,7 @@ void decide_possible_actions() {
     return;
     #endif
 
-    if (remaining_time < 0) {
+    if (remaining_time <= 0) {
         possible_actions[0] = new ActionGameFinished(); 
         n_possible_actions = 1; 
         return; 
@@ -462,15 +462,15 @@ bool check_validity(Action* action) {
 
         return false; 
     }
-    // printf("Validities = "); 
-    // for (uint8_t i=0; i<5; i++) {
-    //     printf("%d \n", shared.valids[i]);
-    //     if (action->needs[i]==1 && shared.valids[i]==0) {
-    //         printf("Invalid need : %d \n", i); 
-    //         return false; 
-    //     }
-    // }
-    // printf("\n");
+    printf("Validities = "); 
+    for (uint8_t i=0; i<5; i++) {
+        printf("%d \n", shared.valids[i]);
+        if (action->needs[i]==1 && shared.valids[i]==0) {
+            printf("Invalid need : %d \n", i); 
+            return false; 
+        }
+    }
+    printf("\n");
     return true; 
 }
     

@@ -94,8 +94,8 @@ void Steppers::calibrate(steppers_t stepperName, uint8_t blocking, uint8_t*valid
 
     if (blocking == CALL_BLOCKING) {
         
-        GPIO_t stepper_gpio; 
-        uint8_t validityID;
+        GPIO_t stepper_gpio = StprFlapsGPIO; 
+        uint8_t validityID = 0;
         switch (stepperName) {
             case StprPlate :
                 stepper_gpio = StprPlateGPIO; 
@@ -114,7 +114,7 @@ void Steppers::calibrate(steppers_t stepperName, uint8_t blocking, uint8_t*valid
                 return; 
         }
         int8_t wait_res = pins->wait_for_gpio_value(stepper_gpio, 1, 10000); 
-        if (valids != NULL) wait_res == 0; 
+        if (valids != NULL) valids[validityID] = 1; 
     }   
 }
 
