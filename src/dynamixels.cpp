@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#define VERBOSE
 #define FARADAY
 //#define ROBOTIXS
 
@@ -96,9 +95,6 @@ void dxl_idle(int ID, float PROTOCOL) {
 }
 
 void dxl_deploy(position_t position) {
-    #ifdef VERBOSE 
-    printf("Entering dxl_deploy\n"); 
-    #endif
     uint16_t dxl_goal_position = 0;
     uint16_t dxl_present_position = 0;
 
@@ -123,9 +119,6 @@ void dxl_deploy(position_t position) {
 
     // Write speed
     write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_MOVING_SPEED, 200);
-
-    // Max Dynamixel Torque
-    write1ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_AX_TORQUE, 255);
     
     // Write goal position
     write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_GOAL_POSITION, dxl_goal_position);
@@ -134,10 +127,11 @@ void dxl_deploy(position_t position) {
       // Read present position
       dxl_present_position = read2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_AX_PRESENT_POSITION);
       write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_GOAL_POSITION, dxl_goal_position);
-      #ifdef VERBOSE 
-      printf("position_solar [ID:%03d] GoalPos:%03d  PresPos:%03d\n", 6, dxl_goal_position, dxl_present_position); 
-      #endif
+      //printf("position_solar [ID:%03d] GoalPos:%03d  PresPos:%03d\n", 6, dxl_goal_position, dxl_present_position);
     }
+
+    // Max Dynamixel Torque
+    write1ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_AX_TORQUE, 255);
 }
 
 void dxl_multiturn(direction_t direction) {
@@ -195,10 +189,6 @@ void dxl_position(double goal_pos) {
 }
 
 void dxl_turn(team_color_t team, double angle) {
-    #ifdef VERBOSE 
-    printf("Entering dxl_turn\n"); 
-    #endif
-
     uint16_t dxl_goal_position = 512;
     uint16_t dxl_present_position = dxl_present_position = read2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_AX_PRESENT_POSITION);
 
@@ -306,16 +296,11 @@ void dxl_turn(team_color_t team, double angle) {
       // Read present position
       dxl_present_position = read2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_AX_PRESENT_POSITION);
       write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_GOAL_POSITION, dxl_goal_position);
-      #ifdef VERBOSE
-      printf("position_solar [ID:%03d] GoalPos:%03d  PresPos:%03d\n", 6, dxl_goal_position, dxl_present_position);
-      #endif
+      //printf("position_solar [ID:%03d] GoalPos:%03d  PresPos:%03d\n", 6, dxl_goal_position, dxl_present_position);
     }
 }
 
 void dxl_reset_sp() { 
-    #ifdef VERBOSE 
-    printf("Entering dxl_reset_sp\n"); 
-    #endif
     uint16_t dxl_goal_position = 512;
     uint16_t dxl_present_position = 0;
 
@@ -336,9 +321,7 @@ void dxl_reset_sp() {
       // Read present position
       dxl_present_position = read2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_AX_PRESENT_POSITION);
       write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_GOAL_POSITION, dxl_goal_position);
-      #ifdef VERBOSE
-      printf("position_solar [ID:%03d] GoalPos:%03d  PresPos:%03d\n", 6, dxl_goal_position, dxl_present_position);
-      #endif
+      //printf("position_solar [ID:%03d] GoalPos:%03d  PresPos:%03d\n", 6, dxl_goal_position, dxl_present_position);
     }
 }
 
