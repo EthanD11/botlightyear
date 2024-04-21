@@ -6,7 +6,6 @@
 #include "action_return.h"
 #include "action_SP.h"
 #include "action_zone.h"
-#include "action_bulldozer.h"
 
 #include <stdlib.h> // For random numbers
 #include <stdbool.h>
@@ -252,24 +251,6 @@ void decide_possible_actions() {
     //     n_possible_actions++;
 
     // } else {
-    // Action bulldozer
-    shared.graph->update_obstacle(1,1);
-    shared.graph->update_obstacle(2,1);
-    shared.graph->update_obstacle(3,1);
-    shared.graph->update_obstacle(9,1);
-    uint8_t target;
-    path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
-    path->thetaStart = 0;
-    if (shared.color == TeamYellow) path->thetaEnd = M_PI/2.0;
-    else path->thetaStart = M_PI/2.0;
-    shared.graph->update_obstacle(1,0);
-    shared.graph->update_obstacle(2,0);
-    shared.graph->update_obstacle(3,0);
-    shared.graph->update_obstacle(9,0);
-    possible_actions[n_possible_actions] = new ActionBulldozer(path);
-    n_possible_actions++;
-
-
     if(shared.SPsDone[0]==0) {
         printf("TRIES SP COMMON \n");
         shared.graph->update_obstacle(27,1);

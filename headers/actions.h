@@ -5,7 +5,7 @@
 #include <cmath>
 #include <unistd.h>
 
-#define vref 0.3                // [m/s] Speed reference for path following
+#define vref 0.25                 // [m/s] Speed reference for path following
 #define dist_goal_reached 0.40    // [m] Distance tolerance to goal for path following
 
 typedef enum _action : uint8_t
@@ -13,7 +13,6 @@ typedef enum _action : uint8_t
     GameFinished,
     ReturnToBase,
     Displacement,
-    Bulldozer,
     TakePlants,
     TakePots,
     TurnSP,
