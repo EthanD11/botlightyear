@@ -66,9 +66,9 @@ void ask_user_input_params() {
             std::cin >> s;
             if (!s.compare("bottomright")) {
                 shared.startingBaseID = shared.graph->friendlyBases[0];
-                shared.odo->set_pos(0.225,0.035,M_PI_2);
-                shared.set_robot_pos(0.225,0.035,M_PI_2);
-                shared.teensy->set_position(0.225,0.035,M_PI_2);
+                shared.odo->set_pos(0.035,0.165,0);
+                shared.set_robot_pos(0.035,0.165,0);
+                shared.teensy->set_position(0.035,0.165,0);
                 break;
             }
             if (!s.compare("topright")) {
@@ -158,7 +158,7 @@ void init_and_wait_for_start() {
     
     if (pthread_create(&localizerID, NULL, localizer, NULL) != 0) exit(4);
 
-    StartLidarBottom();
+    //StartLidarBottom();
 
     shared.steppers->reset_all();
     shared.steppers->calibrate_all(CALL_BLOCKING, shared.valids);
@@ -279,10 +279,32 @@ int main(int argc, char const *argv[])
 
     #ifdef CLEAR_POTS
     double x = 0, y = 0, theta = 0;
+    double xgoal, ygoal, theta_goal;
     shared.get_robot_pos(&x,&y,&theta);
-    shared.teensy->pos_ctrl(x+0.7*cos(theta), y+0.7*sin(theta), theta);
-    sleep(2);
-    shared.teensy->idle();
+    shared.teensy->set_position_controller_gains(1.2, 4.0, 0., 2.0);
+    if (shared.color == TeamYellow) {
+        xgoal = x + 0.7;
+        ygoal = y - 0.05;
+        theta_goal = 0; 
+    } else {
+        xgoal = x + 0.7;
+        ygoal = y + 0.05;
+        theta_goal = 0;
+    }
+    shared.teensy->pos_ctrl(xgoal, ygoal, theta_goal);
+    usleep(1500000);
+    // if (shared.color == TeamYellow) {
+    //     xgoal = 0.225;
+    //     ygoal = 0.275;
+    //     theta_goal = 0;
+    // } else {
+    //     xgoal = 22.5;
+    //     ygoal = 0.25;
+    //     theta_goal = 0;
+    // }
+    // shared.teensy->pos_ctrl(xgoal, ygoal, theta_goal);
+    // usleep(4000000);
+    // shared.teensy->idle();
     #endif
 
     uint8_t gameFinished = 0;
@@ -314,7 +336,7 @@ int main(int argc, char const *argv[])
     shared.servoFlaps->idle(); shared.grpDeployer->idle(); shared.grpHolder->idle();
     dxl_idle(6, 1.0);
     dxl_idle(8, 1.0);
-    StopLidarBottom();
+    //StopLidarBottom();
     printf("Game finished with time %d\n", shared.update_and_get_timer());
     // TODO : show score
     getch();

@@ -213,10 +213,11 @@ void decide_possible_actions() {
         printf("Bases levels %d %d %d\n", shared.graph->nodes[shared.graph->friendlyBases[0]].level, shared.graph->nodes[shared.graph->friendlyBases[1]].level, shared.graph->nodes[shared.graph->friendlyBases[2]].level);
         path = shared.graph->compute_path(x_pos, y_pos, shared.graph->friendlyBases+1, 1);
         if (path != NULL) {
-            path->thetaStart = theta_pos; 
-            path->thetaEnd = getThetaEnd(shared.graph->friendlyBases, shared.graph->friendlyBasesTheta, 3, path->target); 
+            path->thetaStart = theta_pos;  
             #ifdef SP_STRATEGY
-            if (shared.color = TeamYellow) path->thetaEnd = -M_PI/2.0;
+            path->thetaEnd = -M_PI/2.0;
+            #else
+            path->thetaEnd = getThetaEnd(shared.graph->friendlyBases, shared.graph->friendlyBasesTheta, 3, path->target);
             #endif
         }
         possible_actions[0] = new ActionBackToBase(path); 

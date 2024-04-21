@@ -7,7 +7,7 @@
 #include <cmath>
 
 #define VERBOSE
-#define OPPONENT_UCL
+//#define OPPONENT_UCL
 
 #ifdef VERBOSE
 #include <stdio.h>
@@ -165,9 +165,11 @@ void ActionSP::do_action() {
 
     shared.steppers->flaps_move(FlapsPlant); 
     if (!previous_action_is_sp_shared) {
+        printf("Initiating path following\n");
         if (path_following_to_action(path) != 0) return leave();
         previous_action_is_sp_shared = true; 
     } else {
+        printf("Iniitating position control to reserved sp\n");
         teensy->set_position_controller_gains(0.4, 5.0, -0.1, 3.0);
         if (action_position_control(path->x[path->nNodes-1]-0.05, path->y[path->nNodes-1], -M_PI/2.0)) return leave();
     }
@@ -191,6 +193,7 @@ void ActionSP::do_action() {
     double kw = 4.0;
     teensy->set_position_controller_gains(kp, ka, kb, kw);
     
+    printf("SP do_action: pos ctrl backward\n");
     if (action_position_control(x1, y1, -M_PI_2) != 0) return leave();   
 
     #ifdef VERBOSE
@@ -204,7 +207,7 @@ void ActionSP::do_action() {
 
         state = Solar_Panel; 
         while (stateKC != Solar_Panel) usleep(50000);
-
+        printf("SP do_action: State KC == Solar_panel");
         if (reserved) {
             camera_angle = 0; 
             #ifdef OPPONENT_UCL

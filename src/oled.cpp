@@ -30,6 +30,7 @@ void oled_init() {
 }
 
 void oled_score_update(uint8_t score) {
+    ssd1306_oled_clear_screen();
     char str[10];
     ssd1306_oled_set_XY(40, 1);
     ssd1306_oled_write_string(0x01, "Score :");
