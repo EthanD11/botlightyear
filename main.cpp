@@ -17,7 +17,7 @@
 
 #define VERBOSE
 //#define TIME_MEAS
-#define CLEAR_POTS
+// #define CLEAR_POTS
 
 #define ASCII_b 98
 #define ASCII_B 66
@@ -128,9 +128,9 @@ void init_and_wait_for_start() {
 
     oled_init(); 
     
-    dxl_init_port();
-    dxl_ping(6,1.0);
-    dxl_ping(8,1.0);
+    // dxl_init_port();
+    // dxl_ping(6,1.0);
+    // dxl_ping(8,1.0);
 
     if (shared.graph->init_from_file("./graphs/BL_V3.txt", shared.color) != 0) exit(3);
 
@@ -272,7 +272,7 @@ int main(int argc, char const *argv[])
    
     init_and_wait_for_start();
 
-    shared.score += 16;
+    shared.score += 21;
     oled_score_update(shared.score); 
 
     // ----- GAME -----
@@ -284,11 +284,11 @@ int main(int argc, char const *argv[])
     shared.teensy->set_position_controller_gains(1.2, 4.0, 0., 2.0);
     if (shared.color == TeamYellow) {
         xgoal = x + 0.7;
-        ygoal = y - 0.05;
+        ygoal = y - 0.03;
         theta_goal = 0; 
     } else {
         xgoal = x + 0.7;
-        ygoal = y + 0.05;
+        ygoal = y + 0.03;
         theta_goal = 0;
     }
     shared.teensy->pos_ctrl(xgoal, ygoal, theta_goal);

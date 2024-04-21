@@ -96,6 +96,7 @@ graph_path_t *Graph::compute_path(double xFrom, double yFrom, uint8_t *targets, 
     pthread_rwlock_rdlock(&lock);
     if (nodes[from].level & NODE_ADV_PRESENT) {
         pthread_rwlock_unlock(&lock);
+        printf("Adversary is on current node\n");
         return NULL;
     }
     // Start the search

@@ -93,7 +93,7 @@ int8_t position_to_plant(double x_plant, double y_plant, double x_plant_center, 
     double y_approach = y_plant + (-dx*sin(alpha) + dy*cos(alpha))* plant_approach_dist; 
     double theta_approach = periodic_angle(atan2(y_plant_center-y_plant, x_plant_center-x_plant)-alpha);
     printf("Position control to approach to x = %.3f, y = %.3f and theta = %.3f \n", x_approach, y_approach, theta_approach);
-    shared.teensy->set_position_controller_gains(0.8,2.5,-0.3,3.0);
+    shared.teensy->set_position_controller_gains(0.8,2.5,-1.75,3.0);
 
     if (action_position_control(x_approach, y_approach, theta_approach) == -1) return -1; 
 
@@ -102,7 +102,7 @@ int8_t position_to_plant(double x_plant, double y_plant, double x_plant_center, 
     double x_grab = x_plant + (dx*cos(alpha) + dy*sin(alpha)) * plant_grab_dist; 
     double y_grab = y_plant + (-dx*sin(alpha) + dy*cos(alpha)) * plant_grab_dist; 
     // shared.teensy->set_position_controller_gains(2.0,5.0,-0.8,4.0);
-    // shared.teensy->set_position_controller_gains(0.8,2.5,-1.75,4.0);
+    shared.teensy->set_position_controller_gains(0.8,2.5,-1.75,4.0);
 
 
     printf("Position control to grab to x = %.3f, y = %.3f and theta = %.3f \n", x_grab, y_grab, theta_approach);
@@ -251,8 +251,8 @@ void ActionPlants::do_action() {
         printf("Scanning with lidar...\n");
 
         shared.get_robot_pos(&xpos, &ypos, &theta_pos);
-        //if (get_closest_plant_from_lidar(xpos, ypos, theta_pos, plantsNode, &x_plant, &y_plant) == -1) return;
-        get_closest_plant_from_kakoo(xpos, ypos, plantsNode, &x_plant, &y_plant, plants_taken); 
+        if (get_closest_plant_from_lidar(xpos, ypos, theta_pos, plantsNode, &x_plant, &y_plant) == -1) return;
+        //get_closest_plant_from_kakoo(xpos, ypos, plantsNode, &x_plant, &y_plant, plants_taken); 
 
         theta_plant = atan2(y_plant-ypos, x_plant-xpos); 
         printf("Got plant at %f, %f, %f, beginning the approach\n", x_plant, y_plant, theta_plant);

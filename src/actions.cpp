@@ -43,6 +43,7 @@ const double safety_distance_to_walls = 0.2;
 const double safety_distance_to_pami_side_wall = 0.3;
 const double dist_useless = 0.05;
 uint8_t back_manoeuvre(double backward_dist) {
+    //do {
     // 1) Initiate pos control gains
     shared.teensy->set_position_controller_gains(
         0.8, // kp
@@ -84,6 +85,7 @@ uint8_t back_manoeuvre(double backward_dist) {
         // 5.2) Wait for position control to be over
         while ((shared.teensy->ask_mode()) != ModePositionControlOver) usleep(10000);
     }
+    // } while (shared.graph->identify_pos(xpos,ypos).level & NODE_ADV_PRESENT != 0)
 
     return 1;
 }
@@ -136,7 +138,7 @@ int8_t path_following_to_action(graph_path_t *path)
         #ifdef VERBOSE
         printf("Position control before PF to %.3f, %.3f, %.3f\n", xCurrent, yCurrent, first_node_theta);
         #endif
-        while (teensy->ask_mode() == ModeIdle) {
+        while (teensy->ask_mode() == ModePositionControlOver || teensy->ask_mode() == ModeIdle) {
             teensyStart++;
             if (teensyStart > 60) {
                 printf("Relaunching pos control to theta first node\n");
@@ -173,11 +175,15 @@ int8_t path_following_to_action(graph_path_t *path)
             usleep(50000);
             shared.get_robot_pos(&xCurrent, &yCurrent, NULL);
             teensy->pos_ctrl(xCurrent, yCurrent, first_node_theta);
-            sleep(2);
+            printf("Starting position control to (%f,%f,%f)\n", xCurrent, yCurrent, first_node_theta);
+            sleep(1);
             teensy->path_following(x, y, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
+            for (int i = 0; i < ncheckpoints; i++) {
+                printf("Node %d; (%f,%f)\n", i, x[i], y[i]);
+            }
             teensyStart = 0;
         } 
-        usleep(50000);
+        usleep(300000);
     }
     teensyStart = 0;
     while ((teensy->ask_mode()) != ModePositionControlOver)
@@ -280,8 +286,20 @@ int8_t action_position_control(double x_end, double y_end, double theta_end)
     uint8_t stopped = 0;
 
     // Orientation with position control
+
+    uint8_t teensyStart = 0;
     teensy->pos_ctrl(x_end, y_end, theta_end);
-    usleep(1000);
+    while (teensy->ask_mode() == ModePositionControlOver || teensy->ask_mode() == ModeIdle) {
+        teensyStart++;
+        if (teensyStart > 60) {
+            printf("Relaunching pos control to theta first node\n");
+            teensy->idle();
+            usleep(50000);
+            shared.get_robot_pos(&x, &y, NULL);
+            teensy->pos_ctrl(x_end, y_end, theta_end);
+        }
+        usleep(50000);
+    }
 
     // Waiting end to start function turn_solar_panel
     // Check Teensy mode
