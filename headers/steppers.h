@@ -18,9 +18,10 @@ typedef enum {
 /*The position of a flaps*/
 typedef enum {
     FlapsOpen, 
-    FlapsPlant,
     FlapsApproachPlant,
-    FlapsPot
+    FlapsPlant, 
+    FlapsPot,
+    FlapsIntermediatePot
 } flaps_pos_t;
 
 typedef enum {

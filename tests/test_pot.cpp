@@ -10,7 +10,8 @@
 //#define SETUP_CUSTOM_SPEED_OLD
 //#define SETUP_CUSTOM_SPEED_NEW
 //#define DEMO_S6
-#define PLANTER
+//#define PLANTER
+#define POT
 //#define TESTS
 
 SPIBus spi_bus = SPIBus();
@@ -23,39 +24,38 @@ Flaps* servoFlaps = new Flaps(&spi_bus);
 
 Teensy *teensy = new Teensy(&spi_bus, &pins);
 
-void TakePotCHAIN() {// ancienne version avec ancienne pince
+void TakePotCHAIN(int slotnumber) {// ancienne version avec ancienne pince
     holder->idle();
     deployer->idle();
-    // steppers->setup_speed(StprSlider, 300,600);
-    steppers->reset_all(); 
-    steppers->calibrate(StprPlate, CALL_BLOCKING);
-    steppers->calibrate(StprSlider, CALL_BLOCKING); 
+    //steppers->setup_speed(StprSlider, 300,600);
+    //steppers->reset_all(); 
+    //steppers->calibrate(StprPlate, CALL_BLOCKING);
+    //steppers->calibrate(StprSlider, CALL_BLOCKING); 
 
-
-    steppers->plate_move(0, CALL_BLOCKING); 
-    deployer->deploy();
-
+    servoFlaps->deploy();
+    steppers->flaps_move(FlapsIntermediatePot); 
+    steppers->slider_move(SliderIntermediateLow);
+    //approche TEENSY
+    sleep(1);
+    steppers->flaps_move(FlapsPot,CALL_BLOCKING);
+    steppers->flaps_move(FlapsOpen);
     holder->open_full();
-    steppers->slider_move(SliderIntermediateLow, CALL_BLOCKING);
-    holder->open();
+    steppers->slider_move(SliderLow,CALL_BLOCKING);
+    holder->hold_pot();//fermeture pot
 
-
-    steppers->slider_move(SliderLow, CALL_BLOCKING); 
-    sleep(2);
-
-    holder->hold_pot();
-
+    //remonte
     steppers->slider_move(SliderHigh, CALL_BLOCKING);
+    steppers->plate_move(slotnumber, CALL_BLOCKING); 
+
     deployer->pot_deposit();
-
-    steppers->plate_move(3, CALL_BLOCKING); 
-
-    
     steppers->slider_move(SliderDepositPot, CALL_BLOCKING);
-    deployer->deploy(); 
-    sleep(2);
-    holder->open();
-    sleep(2);
+    deployer->deploy();
+    steppers->slider_move(SliderStorage, CALL_BLOCKING);
+    holder->open_full();
+    steppers->slider_move(SliderHigh,CALL_BLOCKING);
+    steppers->plate_move(0, CALL_BLOCKING);
+    holder->idle();
+    deployer->idle();
 }
 
 
@@ -201,6 +201,12 @@ int main(int argc, char const *argv[])
 
     steppers->calibrate_all(CALL_BLOCKING, NULL);
     steppers->plate_move(0,CALL_BLOCKING);
+
+
+    #ifdef POT
+    TakePotCHAIN(2);
+    #endif
+
     #ifdef TESTS
 
     // holder->idle();
