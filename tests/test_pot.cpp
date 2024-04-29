@@ -25,8 +25,9 @@ Flaps* servoFlaps = new Flaps(&spi_bus);
 Teensy *teensy = new Teensy(&spi_bus, &pins);
 
 void TakePotCHAIN(int slotnumber) {// ancienne version avec ancienne pince
-    holder->idle();
-    deployer->idle();
+    
+    deployer->deploy();
+    holder->open();
     //steppers->setup_speed(StprSlider, 300,600);
     //steppers->reset_all(); 
     //steppers->calibrate(StprPlate, CALL_BLOCKING);
@@ -34,10 +35,11 @@ void TakePotCHAIN(int slotnumber) {// ancienne version avec ancienne pince
 
     servoFlaps->deploy();
     steppers->flaps_move(FlapsIntermediatePot); 
-    steppers->slider_move(SliderIntermediateLow);
+    steppers->slider_move(SliderPreparePot);
     //approche TEENSY
-    sleep(1);
+    sleep(2);
     steppers->flaps_move(FlapsPot,CALL_BLOCKING);
+    steppers->flaps_move(FlapsIntermediatePot,CALL_BLOCKING);
     steppers->flaps_move(FlapsOpen);
     holder->open_full();
     steppers->slider_move(SliderLow,CALL_BLOCKING);
@@ -52,6 +54,7 @@ void TakePotCHAIN(int slotnumber) {// ancienne version avec ancienne pince
     deployer->deploy();
     steppers->slider_move(SliderStorage, CALL_BLOCKING);
     holder->open_full();
+    deployer->half();
     steppers->slider_move(SliderHigh,CALL_BLOCKING);
     steppers->plate_move(0, CALL_BLOCKING);
     holder->idle();
@@ -194,7 +197,7 @@ void demoPlate(){
 int main(int argc, char const *argv[])
 {
     printf("Test is running\n");
-    steppers->setup_all_speeds(); 
+    //steppers->setup_all_speeds(); 
     steppers->reset_all(); 
 
     // steppers->calibrate(StprPlate, CALL_BLOCKING, NULL); 
@@ -202,7 +205,15 @@ int main(int argc, char const *argv[])
     steppers->calibrate_all(CALL_BLOCKING, NULL);
     steppers->plate_move(0,CALL_BLOCKING);
 
-
+    //steppers->flaps_move(FlapsIntermediatePot,CALL_BLOCKING);
+    // holder->hold_pot();
+    // steppers->slider_move(SliderHigh, CALL_BLOCKING);
+    // steppers->plate_move(2,CALL_BLOCKING);
+    // sleep(4);
+    // //deployer->pot_deposit();
+    // steppers->slider_move(SliderDepositPot, CALL_BLOCKING);
+    // deployer->deploy();
+    // holder->open();
     #ifdef POT
     TakePotCHAIN(2);
     #endif

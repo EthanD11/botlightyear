@@ -31,7 +31,8 @@ typedef enum {
     //SliderPlate, 
     //SliderTake, 
     SliderDepositPot, 
-    SliderIntermediateLow
+    SliderIntermediateLow,
+    SliderPreparePot
 } slider_pos_t;
 
 class Steppers : public SPIUser, public GPIOUser
