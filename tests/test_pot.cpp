@@ -24,7 +24,7 @@ Flaps* servoFlaps = new Flaps(&spi_bus);
 
 Teensy *teensy = new Teensy(&spi_bus, &pins);
 
-void TakePotCHAIN(int slotnumber) {// ancienne version avec ancienne pince
+void TakePotCHAIN(int slotNumber) {// ancienne version avec ancienne pince
     
     deployer->deploy();
     holder->open();
@@ -47,7 +47,7 @@ void TakePotCHAIN(int slotnumber) {// ancienne version avec ancienne pince
 
     //remonte
     steppers->slider_move(SliderHigh, CALL_BLOCKING);
-    steppers->plate_move(slotnumber, CALL_BLOCKING); 
+    steppers->plate_move(slotNumber, CALL_BLOCKING); 
 
     deployer->pot_deposit();
     steppers->slider_move(SliderDepositPot, CALL_BLOCKING);

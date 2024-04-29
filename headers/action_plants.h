@@ -8,7 +8,7 @@ class ActionPlants : public Action
 private: 
     uint8_t plantCounter; 
 public:
-    ActionPlants(graph_path_t *path, uint8_t plantNumber) : Action(DepositPlanter, true, path) {
+    ActionPlants(graph_path_t *path, uint8_t plantNumber) : Action(TakePlants, true, path) {
         this->plantCounter = plantNumber;
         this->needs[0] = 1;  // SptrPlate
         this->needs[1] = 1;  // StprSlider
