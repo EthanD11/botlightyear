@@ -19,6 +19,8 @@
 //#define TIME_MEAS
 // #define CLEAR_POTS
 
+#define LIDAR_BOTTOM
+// #define DXL
 #define ASCII_b 98
 #define ASCII_B 66
 #define ASCII_y 121
@@ -127,11 +129,11 @@ void ask_user_input_params() {
 void init_and_wait_for_start() {
 
     oled_init(); 
-    
-    // dxl_init_port();
-    // dxl_ping(6,1.0);
-    // dxl_ping(8,1.0);
-
+    #ifdef DXL
+    dxl_init_port();
+    dxl_ping(6,1.0);
+    dxl_ping(8,1.0);
+    #endif
     if (shared.graph->init_from_file("./graphs/BL_V3.txt", shared.color) != 0) exit(3);
 
     printf("%d\n",shared.graph->nodes[0].level);
@@ -157,8 +159,9 @@ void init_and_wait_for_start() {
     shared.teensy->set_position_controller_gains(1.0,6.0,-1.0,4.0);
     
     if (pthread_create(&localizerID, NULL, localizer, NULL) != 0) exit(4);
-
-    //StartLidarBottom();
+    #ifdef LIDAR_BOTTOM
+    StartLidarBottom();
+    #endif
 
     shared.steppers->reset_all();
     shared.steppers->calibrate_all(CALL_BLOCKING, shared.valids);
@@ -175,9 +178,9 @@ void finish_main() {
     pthread_join(localizerID, NULL);
 
     shared.~SharedVariables();
-
+    #ifdef DXL
     dxl_close_port();
-
+    #endif
 }
 
 void *localizer(void* arg) {
@@ -187,7 +190,8 @@ void *localizer(void* arg) {
     // double xOdo, yOdo, thetaOdo;
     double x = 0, y = 0, theta = 0;
     // double odoWeight = 1.0;
-    shared.get_robot_pos(&lidarData->x_odo, &lidarData->y_odo, &lidarData->theta_odo);
+    lidarData->x_odo = 0, lidarData->y_odo = 0, lidarData->theta_odo = 0;
+    shared.get_robot_pos(&lidarData->x_odo, &lidarData->y_odo, &(lidarData->theta_odo));
     while (!localizerEnd) {
 
         // teensy_mode_t teensyMode = shared.teensy->ask_mode();
@@ -334,9 +338,13 @@ int main(int argc, char const *argv[])
     shared.teensy->idle();
     shared.steppers->reset_all();
     shared.servoFlaps->idle(); shared.grpDeployer->idle(); shared.grpHolder->idle();
+    #ifdef DXL
     dxl_idle(6, 1.0);
     dxl_idle(8, 1.0);
-    //StopLidarBottom();
+    #endif
+    #ifdef LIDAR_BOTTOM
+    StopLidarBottom();
+    #endif
     printf("Game finished with time %d\n", shared.update_and_get_timer());
     // TODO : show score
     getch();

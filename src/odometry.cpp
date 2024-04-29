@@ -1,5 +1,5 @@
 #include "odometry.h"
-
+#include <stdio.h>
 // Converts words from big endian to little endian (and vice versa)
 // https://codereview.stackexchange.com/questions/151049/endianness-conversion-in-c
 static inline int32_t Reverse32(int32_t value) 
@@ -28,20 +28,23 @@ void Odometry::get_pos(double *x, double *y, double *theta) {
     bus->DE0_xfer(sendt, receivet);
     bus->unlock();
 
-    int32_t receive_int;
+    int32_t receive_int = 0;
     float *receive_float = (float*) &receive_int;
 
     if (x != NULL) {
     receive_int = Reverse32(*(int32_t *)(&(receivex[1])));
     *x = (double) *receive_float;
-    }
+    // printf("x = %f\n", *x);
+    } 
     if (y != NULL) {
     receive_int = Reverse32(*(int32_t *)(&(receivey[1])));
     *y = (double) *receive_float;
+    // printf("y = %f\n", *y);
     }
     if (theta != NULL) {
     receive_int = Reverse32(*(int32_t *)(&(receivet[1])));
     *theta = (double) *receive_float;
+    // printf("theta = %f\n", *theta);
     }
 }
 

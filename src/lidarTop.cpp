@@ -326,7 +326,7 @@ int foundAdvWithOdo(double *anglesAdv, double *distancesAdv, LidarData *lidarDat
     double xobj;
     double yobj;
     double yold = 6;
-
+    // printf("List of potential adversaries\n");
     for (int i = 0; i < size; ++i) {
         //printf("objet d=%f a=%f\n", anglesAdv[i], distancesAdv[i]);
         //printf("robot : %f %f %f\n", lidarData->x_robot, lidarData->y_robot, lidarData->orientation_robot );
@@ -336,8 +336,9 @@ int foundAdvWithOdo(double *anglesAdv, double *distancesAdv, LidarData *lidarDat
         yobj = lidarData->y_robot + distancesAdv[i] * std::sin(gamma);
         //printf("tttttttt %f %f %f %f %f\n", distancesAdv[i],anglesAdv[i]*180.0/M_PI, xobj,yobj, gamma);
         double minDistAuCentre = 5.0;
+        // printf("Object %d at (%f,%f)\n", i, xobj, yobj);
         if (xobj > 0.03 && xobj < xmax - 0.03) {
-
+            
             ///check whether the y coordinate is valid (on the table)
             ///deplacement de l'adversaire
             //double deltX = lidarData->old_x_adv-xobj;
@@ -345,7 +346,8 @@ int foundAdvWithOdo(double *anglesAdv, double *distancesAdv, LidarData *lidarDat
             double tol = 0.2;
             //double depl = sqrt(deltX*deltX+deltY*deltY);
             if (yobj > 0.03 && yobj < ymax - 0.03) {
-                bool premcondition = (yobj < tol) && ((xobj < tol) || (abs(xobj - 1) < tol) || (xobj > 2 - tol));
+                // printf("Object on table\n");
+                bool premcondition = (yobj < tol) && ((xobj < tol) || (abs(xobj - 1) < tol) || (xobj > 2 - tol)); // 
                 bool seccondition = (yobj > 3 - tol) && ((xobj < tol) || (abs(xobj - 1) < tol) || (xobj > 2 - tol));
                 bool troicondition = (abs(yobj - 1.5) < 0.5) && xobj < 0.18;
                 if (!(premcondition || seccondition || troicondition)) {
@@ -370,6 +372,7 @@ int foundAdvWithOdo(double *anglesAdv, double *distancesAdv, LidarData *lidarDat
     }
     /// We haven't found the opponent, by default the coordinates remain in 0
     //return (yold==6);
+    // printf("Adversary found at (%f,%f)\n", lidarData->x_adv, lidarData->y_adv);
     return 1;
 }
 
