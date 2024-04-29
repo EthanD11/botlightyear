@@ -19,7 +19,8 @@ typedef enum {
 typedef enum {
     FlapsOpen, 
     FlapsPlant, 
-    FlapsPot
+    FlapsPot,
+    FlapsIntermediatePot
 } flaps_pos_t;
 
 typedef enum {

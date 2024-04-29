@@ -130,7 +130,10 @@ void Steppers::flaps_move(flaps_pos_t pos, uint8_t blocking) {
         break;
     case FlapsPot :
         steps = 2050; 
-        break;  
+        break; 
+    case FlapsIntermediatePot:
+        steps = 1500;  //a iterer...
+        break; 
     default:
         printf("Error : not a position %d \n", pos);
         steps = 0; 
@@ -150,7 +153,7 @@ void Steppers::slider_move(slider_pos_t pos, uint8_t blocking){
     case SliderLow :
         steps = 5300;
         break;
-    case SliderIntermediateLow:
+    case SliderIntermediateLow: //position pour jardiniere
         steps = 3650;
         break;
     case SliderStorage : // Deposit plant, take plant, take pot
