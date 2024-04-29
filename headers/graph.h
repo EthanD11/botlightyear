@@ -46,10 +46,10 @@ public:
     */
     int8_t level;
     uint8_t friendlyBases[3]; // Array of friendly bases ids, first one is reserved
-    double friendlyBasesTheta[3]; // Array of friendly bases ids, first one is reserved
+    double friendlyBasesTheta[3]; // Array of friendly bases angles, first one is reserved
     uint8_t adversaryBases[3]; // Array of adversary bases ids, first one is reserved
     uint8_t friendlyPlanters[3]; // Array of friendly planter ids, first one is reserved
-    double friendlyPlantersTheta[3]; // Array of friendly planter ids, first one is reserved
+    double friendlyPlantersTheta[3]; // Array of friendly planter angles, first one is reserved
     uint8_t adversaryPlanters[3]; // Array of adversary planter ids, first one is reserved
     uint8_t friendlySPs[3]; // Array of friendly reserved solar panel ids
     uint8_t adversarySPs[3]; // Array of adversary reserved solar panel ids
@@ -57,6 +57,7 @@ public:
     uint8_t plants[6]; // Array of plant spots ids
     uint8_t nbPlants[6]; // Array of number of plants per plant spot
     uint8_t pots[6]; // Array of pot spots ids
+    double potsTheta[6]; // Array of pot spots angles
     Graph();
     ~Graph();
 

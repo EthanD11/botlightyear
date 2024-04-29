@@ -331,6 +331,7 @@ int Graph::init_from_file(const char *filename, team_color_t color) {
         friendlyPlantersTheta[2] = -M_PI_2;
     }
 
+
     nodes[adversaryBases[0]].level = NODE_ADV_BASE;
 
     // Scan blue planters nodes
@@ -432,6 +433,14 @@ int Graph::init_from_file(const char *filename, team_color_t color) {
         if (token != NULL) printf(",");
         #endif
     }    
+
+    potsTheta[0] = M_PI_2;
+    potsTheta[1] = M_PI_2;
+    potsTheta[2] = 0;
+    potsTheta[3] = 0;
+    potsTheta[4] = -M_PI_2;
+    potsTheta[5] = -M_PI_2;
+    
     #ifdef VERBOSE
     printf("\n");
     #endif

@@ -155,6 +155,21 @@ void decide_possible_actions() {
     // n_possible_actions = 1; 
     // return;
 
+    // ---------- Pots TEST -----------
+
+    // path = shared.graph->compute_path(x_pos, y_pos, shared.graph->pots, 6);
+    
+    // if (path != NULL) {
+    //     path->thetaStart = theta_pos; 
+    //     path->thetaEnd = getThetaEnd(shared.graph->pots, shared.graph->potsTheta, 6, path->target);;
+    // } else {
+    //     printf("Path is NULL\n");
+    // }
+    // possible_actions[0] = new ActionPots(path, 1); 
+    // n_possible_actions = 1; 
+    // return;
+
+
     // ---------- Plants TEST -----------
 
     uint8_t target = 12;
