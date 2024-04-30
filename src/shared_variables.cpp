@@ -70,9 +70,7 @@ void SharedVariables::start_timer() {
     #endif
     usleep(1000000);
 
-    #ifdef VERBOSE
     printf("Waiting start of the game... \n");
-    #endif
 
     pins->wait_for_gpio_value(StartingCordGPIO, 1, 2000000);
     time(&tStart);

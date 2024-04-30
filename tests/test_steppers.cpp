@@ -10,8 +10,8 @@
 //#define SETUP_CUSTOM_SPEED_OLD
 //#define SETUP_CUSTOM_SPEED_NEW
 //#define DEMO_S6
-#define PLANTER
-//#define TESTS
+// #define PLANTER
+#define TESTS
 
 SPIBus spi_bus = SPIBus();
 GPIOPins pins = GPIOPins(); 

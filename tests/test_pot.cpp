@@ -30,7 +30,6 @@ double mappingOnPi(double angle){
     if(angleMapped < -M_PI){
         angleMapped = 2*M_PI + angleMapped;
     }
-    double angleMappedPi = angleMapped;
     if(angleMapped > M_PI){
         angleMapped = angleMapped - 2*M_PI;
     }
@@ -44,21 +43,23 @@ void TakePotCHAIN(int slotNumber, int numeroPot = 1) {
     //  / 1 2 \ 
     // | 3 4 5 |
     //position des pot de la premiere zone bleu
-    int posPotX = 0.6125;
-    int posPotY = 0.035;
-    int posPotTheta = M_PI_2;
-    teensy->set_position(posPotX,posPotY,posPotTheta);
+    double posPotX = 0.6125;
+    double posPotY = 0.035;
+    double posPotTheta = M_PI_2;
+    //teensy->set_position(posPotX,posPotY,mappingOnPi(posPotTheta-M_PI));
+    //printf("Starting angle : %f \n", mappingOnPi(posPotTheta-M_PI)); 
     //parametre approach/prise pot 
-    int betaPot1 = M_PI_2/4;
-    int distanceRoue = 0.26;
-    int deltaApproach = 0.1;
+    double betaPot1 = M_PI_2/3;
+    double distanceRoue = 0.3;
+    double deltaApproach = 0.2;
+    double rayonPot = 0.08;
 
-    int posPotXApproach;
-    int posPotYApproach;
-    int posPotThetaApproach;
-    int posPotXPrise;
-    int posPotYPrise;
-    int posPotThetaPrise;
+    double posPotXApproach;
+    double posPotYApproach;
+    double posPotThetaApproach;
+    double posPotXPrise;
+    double posPotYPrise;
+    double posPotThetaPrise;
 
     deployer->deploy();
     holder->open();
@@ -69,19 +70,19 @@ void TakePotCHAIN(int slotNumber, int numeroPot = 1) {
     switch (numeroPot)
     {
     case 1 :
-        posPotXApproach = posPotX+(distanceRoue+deltaApproach)*cos(betaPot1+posPotTheta);
-        posPotYApproach = posPotY+(distanceRoue+deltaApproach)*sin(betaPot1+posPotTheta);
+        posPotXApproach = posPotX+(distanceRoue+deltaApproach+rayonPot)*cos(betaPot1+posPotTheta);
+        posPotYApproach = posPotY+(distanceRoue+deltaApproach+rayonPot)*sin(betaPot1+posPotTheta);
         posPotThetaApproach = posPotTheta+betaPot1-M_PI;
-        posPotXPrise = posPotX+(distanceRoue)*cos(betaPot1+posPotTheta);
-        posPotYPrise = posPotY+(distanceRoue)*sin(betaPot1+posPotTheta);
+        posPotXPrise = posPotX+(distanceRoue+rayonPot)*cos(betaPot1+posPotTheta);
+        posPotYPrise = posPotY+(distanceRoue+rayonPot)*sin(betaPot1+posPotTheta);
         posPotThetaPrise = posPotTheta+betaPot1-M_PI;
         break;
     case 2 :
-        posPotXApproach = posPotX+(distanceRoue+deltaApproach)*cos(-betaPot1+posPotTheta);
-        posPotYApproach = posPotY+(distanceRoue+deltaApproach)*sin(-betaPot1+posPotTheta);
+        posPotXApproach = posPotX+(distanceRoue+deltaApproach+rayonPot)*cos(-betaPot1+posPotTheta);
+        posPotYApproach = posPotY+(distanceRoue+deltaApproach+rayonPot)*sin(-betaPot1+posPotTheta);
         posPotThetaApproach = posPotTheta-betaPot1-M_PI;
-        posPotXPrise = posPotX+(distanceRoue)*cos(-betaPot1+posPotTheta);
-        posPotYPrise = posPotY+(distanceRoue)*sin(-betaPot1+posPotTheta);
+        posPotXPrise = posPotX+(distanceRoue+rayonPot)*cos(-betaPot1+posPotTheta);
+        posPotYPrise = posPotY+(distanceRoue+rayonPot)*sin(-betaPot1+posPotTheta);
         posPotThetaPrise = posPotTheta-betaPot1-M_PI;
         break;
     default:
@@ -91,14 +92,14 @@ void TakePotCHAIN(int slotNumber, int numeroPot = 1) {
     posPotThetaApproach = mappingOnPi(posPotThetaApproach);
     posPotThetaPrise = mappingOnPi(posPotThetaPrise);
     //-----approche grossiere-----
-    printf("approche grossiere\n");
+    printf("approche grossiere : %f, %f, %f ,distance :%f\n", posPotXApproach, posPotYApproach, posPotThetaApproach,distanceRoue+deltaApproach+rayonPot);
     teensy->pos_ctrl(posPotXApproach,posPotYApproach,posPotThetaApproach); 
     sleep(10);
     servoFlaps->deploy();
     steppers->flaps_move(FlapsIntermediatePot); 
     steppers->slider_move(SliderPreparePot);
     //-----approche précise-----
-    printf("approche précise\n");
+    printf("approche précise : %f, %f, %f, distance :%f\n", posPotXPrise, posPotYPrise, posPotThetaPrise,distanceRoue+rayonPot);
     //teensy->pos_ctrl(posPotX+(distanceRoue)*(betaPot1),posPotY+(distanceRoue)*(betaPot1),posPotTheta+betaPot1-M_PI);
     teensy->pos_ctrl(posPotXPrise,posPotYPrise,posPotThetaPrise);
     sleep(10);    
@@ -140,7 +141,7 @@ int main(int argc, char const *argv[])
     steppers->calibrate_all(CALL_BLOCKING, NULL);
     steppers->plate_move(0,CALL_BLOCKING);
     printf("Go ! \n");
-    teensy->set_position(0.612,0.5,-M_PI_2); //position des pot de la premiere zone bleu
+    teensy->set_position(0.612,0.60,-M_PI_2); //position des pot de la premiere zone bleu
     //steppers->flaps_move(FlapsIntermediatePot,CALL_BLOCKING);
     // holder->hold_pot();
     // steppers->slider_move(SliderHigh, CALL_BLOCKING);
@@ -157,7 +158,7 @@ int main(int argc, char const *argv[])
     sleep(1);
     holder->idle();
     deployer->idle();
-    
+    teensy->idle();
     return 0;
 }
 
