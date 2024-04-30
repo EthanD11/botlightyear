@@ -21,7 +21,6 @@ Steppers* steppers = new Steppers(&spi_bus, &pins);
 GripperHolder* holder = new GripperHolder(&spi_bus); 
 GripperDeployer* deployer = new GripperDeployer(&spi_bus); 
 Flaps* servoFlaps = new Flaps(&spi_bus); 
-
 Teensy *teensy = new Teensy(&spi_bus, &pins);
 
 
