@@ -5,7 +5,7 @@
 #include "teensy.h"
 #include <unistd.h> 
 #include <stdio.h>
-
+#include <cmath>
 //#define RESET_CALIBRATE
 //#define SETUP_CUSTOM_SPEED_OLD
 //#define SETUP_CUSTOM_SPEED_NEW
@@ -24,20 +24,86 @@ Flaps* servoFlaps = new Flaps(&spi_bus);
 
 Teensy *teensy = new Teensy(&spi_bus, &pins);
 
-void TakePotCHAIN(int slotNumber) {// ancienne version avec ancienne pince
-    
+
+double mappingOnPi(double angle){
+    double angleMapped = angle;
+    if(angleMapped < -M_PI){
+        angleMapped = 2*M_PI + angleMapped;
+    }
+    double angleMappedPi = angleMapped;
+    if(angleMapped > M_PI){
+        angleMapped = angleMapped - 2*M_PI;
+    }
+    printf("angle initiale : %f angle mappé : %f\n", angle,angleMapped);
+    return angleMapped;
+}
+
+void TakePotCHAIN(int slotNumber, int numeroPot = 1) {
+    //numeroPot :
+    //   _____
+    //  / 1 2 \ 
+    // | 3 4 5 |
+    //position des pot de la premiere zone bleu
+    int posPotX = 0.6125;
+    int posPotY = 0.035;
+    int posPotTheta = M_PI_2;
+    teensy->set_position(posPotX,posPotY,posPotTheta);
+    //parametre approach/prise pot 
+    int betaPot1 = M_PI_2/4;
+    int distanceRoue = 0.26;
+    int deltaApproach = 0.1;
+
+    int posPotXApproach;
+    int posPotYApproach;
+    int posPotThetaApproach;
+    int posPotXPrise;
+    int posPotYPrise;
+    int posPotThetaPrise;
+
     deployer->deploy();
     holder->open();
     //steppers->setup_speed(StprSlider, 300,600);
     //steppers->reset_all(); 
     //steppers->calibrate(StprPlate, CALL_BLOCKING);
     //steppers->calibrate(StprSlider, CALL_BLOCKING); 
-
+    switch (numeroPot)
+    {
+    case 1 :
+        posPotXApproach = posPotX+(distanceRoue+deltaApproach)*cos(betaPot1+posPotTheta);
+        posPotYApproach = posPotY+(distanceRoue+deltaApproach)*sin(betaPot1+posPotTheta);
+        posPotThetaApproach = posPotTheta+betaPot1-M_PI;
+        posPotXPrise = posPotX+(distanceRoue)*cos(betaPot1+posPotTheta);
+        posPotYPrise = posPotY+(distanceRoue)*sin(betaPot1+posPotTheta);
+        posPotThetaPrise = posPotTheta+betaPot1-M_PI;
+        break;
+    case 2 :
+        posPotXApproach = posPotX+(distanceRoue+deltaApproach)*cos(-betaPot1+posPotTheta);
+        posPotYApproach = posPotY+(distanceRoue+deltaApproach)*sin(-betaPot1+posPotTheta);
+        posPotThetaApproach = posPotTheta-betaPot1-M_PI;
+        posPotXPrise = posPotX+(distanceRoue)*cos(-betaPot1+posPotTheta);
+        posPotYPrise = posPotY+(distanceRoue)*sin(-betaPot1+posPotTheta);
+        posPotThetaPrise = posPotTheta-betaPot1-M_PI;
+        break;
+    default:
+        break;
+    }
+    //remapping pour -PI a +PI
+    posPotThetaApproach = mappingOnPi(posPotThetaApproach);
+    posPotThetaPrise = mappingOnPi(posPotThetaPrise);
+    //-----approche grossiere-----
+    printf("approche grossiere\n");
+    teensy->pos_ctrl(posPotXApproach,posPotYApproach,posPotThetaApproach); 
+    sleep(10);
     servoFlaps->deploy();
     steppers->flaps_move(FlapsIntermediatePot); 
     steppers->slider_move(SliderPreparePot);
-    //approche TEENSY
-    sleep(2);
+    //-----approche précise-----
+    printf("approche précise\n");
+    //teensy->pos_ctrl(posPotX+(distanceRoue)*(betaPot1),posPotY+(distanceRoue)*(betaPot1),posPotTheta+betaPot1-M_PI);
+    teensy->pos_ctrl(posPotXPrise,posPotYPrise,posPotThetaPrise);
+    sleep(10);    
+    //-----prise pot-----
+    printf("debut chaine cinématique\n");
     steppers->flaps_move(FlapsPot,CALL_BLOCKING);
     steppers->flaps_move(FlapsIntermediatePot,CALL_BLOCKING);
     steppers->flaps_move(FlapsOpen);
@@ -62,137 +128,6 @@ void TakePotCHAIN(int slotNumber) {// ancienne version avec ancienne pince
 }
 
 
-void TakePlantCHAIN(int slotNumber) {
-    // GripperHolder* holder = shared.grpHolder; 
-    // GripperDeployer* deployer = shared.grpDeployer; 
-    // Steppers* steppers = shared.steppers; 
-
-    printf("youhou\n");
-
-    teensy->set_position_controller_gains(3.0,5.0,-0.8,4.0);
-
-    servoFlaps->deploy();
-    steppers->flaps_move(FlapsPlant, CALL_BLOCKING); 
-    steppers->flaps_move(FlapsOpen);
-    usleep(250000);
-    teensy->pos_ctrl(0.94,1.0,0); // Reverse 6 cm
-    usleep(200000);
-    servoFlaps->raise();
-
-    steppers->slider_move(SliderHigh, CALL_BLOCKING);
-    deployer->half(); 
-    steppers->plate_move(0, CALL_BLOCKING); 
-
-    deployer->deploy();
-
-    holder->open();
-
-    steppers->slider_move(SliderLow, CALL_BLOCKING);
-    teensy->pos_ctrl(1.0,1.0,0);
-    usleep(600000);
-    holder->hold_plant();
-    usleep(250000);
-
-    deployer->half(); 
-    steppers->slider_move(SliderHigh, CALL_BLOCKING);
-    steppers->plate_move(slotNumber, CALL_BLOCKING); 
-
-    
-    steppers->slider_move(SliderStorage);
-    usleep(450000);
-    deployer->deploy(); 
-    usleep(300000);
-    holder->open_full();
-    usleep(200000);
-
-    deployer->half();
-    steppers->slider_move(SliderHigh, CALL_BLOCKING); 
-    steppers->plate_move(0, CALL_BLOCKING); 
-
-    holder->idle();
-    deployer->idle();
-    teensy->set_position_controller_gains(0.8,2.5,-0.8,4.0);
-}
-
-
-void dropPlantCHAIN(int slotNumber) {
-    // GripperHolder* holder = shared.grpHolder; 
-    // GripperDeployer* deployer = shared.grpDeployer; 
-    // Steppers* steppers = shared.steppers; 
-
-    steppers->plate_move(0, CALL_BLOCKING); 
-    steppers->slider_move(SliderHigh, CALL_BLOCKING);
-    deployer->half(); 
-    steppers->plate_move(slotNumber, CALL_BLOCKING); 
-    holder->open_full();
-    deployer->deploy();
-    usleep(250000);
-
-    
-
-    steppers->slider_move(SliderStorage, CALL_BLOCKING);
-    holder->hold_plant();
-    usleep(250000);
-    steppers->slider_move(SliderHigh, CALL_BLOCKING);
-    deployer->half(); 
-
-    steppers->plate_move(0, CALL_BLOCKING); 
-    steppers->slider_move(SliderLow, CALL_BLOCKING);
-    deployer->deploy(); 
-    usleep(250000);
-    holder->open(); 
-    // Move teensy maybe ?
-    usleep(250000);
-    steppers->slider_move(SliderHigh, CALL_BLOCKING); 
-
-    holder->idle();
-    deployer->idle();
-}
-
-
-void dropPlanterCHAIN(int slotNumber) {
-    // GripperHolder* holder = shared.grpHolder; 
-    // GripperDeployer* deployer = shared.grpDeployer; 
-    // Steppers* steppers = shared.steppers; 
-
-    steppers->plate_move(0, CALL_BLOCKING); 
-    steppers->slider_move(SliderHigh, CALL_BLOCKING);
-    deployer->half(); 
-    steppers->plate_move(slotNumber, CALL_BLOCKING); 
-    holder->open_full();
-    deployer->deploy();
-    usleep(250000);
-
-    
-
-    steppers->slider_move(SliderStorage, CALL_BLOCKING);
-    holder->hold_plant();
-    usleep(250000);
-    steppers->slider_move(SliderHigh, CALL_BLOCKING);
-    deployer->half(); 
-
-    steppers->plate_move(0, CALL_BLOCKING); 
-    steppers->slider_move(SliderIntermediateLow, CALL_BLOCKING);
-    deployer->deploy(); 
-    usleep(250000);
-    holder->open(); 
-    // Move teensy maybe ?
-    usleep(250000);
-    steppers->slider_move(SliderHigh, CALL_BLOCKING); 
-
-    holder->idle();
-    deployer->idle();
-}
-
-void demoPlate(){
-    steppers->plate_move(-3);
-    sleep(3);
-    for(int i = -2; i<= 3; i++) {
-        steppers->plate_move(i);
-        sleep(2);
-    }
-    steppers->plate_move(0);
-}
 
 int main(int argc, char const *argv[])
 {
@@ -204,7 +139,8 @@ int main(int argc, char const *argv[])
 
     steppers->calibrate_all(CALL_BLOCKING, NULL);
     steppers->plate_move(0,CALL_BLOCKING);
-
+    printf("Go ! \n");
+    teensy->set_position(0.612,0.5,-M_PI_2); //position des pot de la premiere zone bleu
     //steppers->flaps_move(FlapsIntermediatePot,CALL_BLOCKING);
     // holder->hold_pot();
     // steppers->slider_move(SliderHigh, CALL_BLOCKING);
@@ -215,137 +151,7 @@ int main(int argc, char const *argv[])
     // deployer->deploy();
     // holder->open();
     #ifdef POT
-    TakePotCHAIN(2);
-    #endif
-
-    #ifdef TESTS
-
-    // holder->idle();
-    // deployer->idle();
-    // steppers->reset_all();
-    
-    // TakePotCHAIN(); 
-
-
-
-    // steppers->setup_all_speeds(); 
-    // steppers->reset_all(); 
-    // steppers->calibrate(StprPlate, CALL_BLOCKING); 
-    // steppers->calibrate(StprSlider, CALL_BLOCKING); 
-
-    // //steppers->calibrate(StprFlaps, CALL_BLOCKING); 
-    // deployer->half();
-    // holder->hold_plant(); 
-
-    // steppers->plate_move(-3, CALL_BLOCKING); 
-    // steppers->plate_move(0, CALL_BLOCKING); 
-    // steppers->plate_move(3, CALL_BLOCKING); 
-    // steppers->plate_move(0, CALL_BLOCKING); 
-    // // sleep(2);
-    // deployer->deploy(); 
-
-    // steppers->slider_move(SliderStorage, CALL_BLOCKING); 
-    // steppers->slider_move(SliderLow, CALL_BLOCKING); 
-    // steppers->slider_move(SliderDepositPot, CALL_BLOCKING);
-    // steppers->slider_move(SliderHigh, CALL_BLOCKING); 
-    printf("Go ! \n");
-    teensy->set_position(1.0,1.0,0);
-    
-
-    // deployer->deploy();
-    // holder->hold_plant();
-    // sleep(1);
-    // steppers->flaps_move(FlapsPot, CALL_BLOCKING); 
-    // sleep(1);
-    // steppers->flaps_move(FlapsOpen, CALL_BLOCKING); 
-
-
-
-    
-    TakePlantCHAIN(2); 
-    #endif 
-
-    #ifdef PLANTER
-
-    steppers->flaps_move(FlapsOpen);
-    servoFlaps->raise();
-    steppers->plate_move(0,CALL_BLOCKING);
-    steppers->slider_move(SliderHigh, CALL_BLOCKING);
-    deployer->idle();
-
-    getchar();
-
-    deployer->half();
-    steppers->plate_move(2,CALL_BLOCKING);
-    deployer->deploy();
-
-    // Grab plant
-    holder->open_full();
-    steppers->slider_move(SliderStorage, CALL_BLOCKING);
-    if (0) holder->hold_pot();
-    else holder->hold_plant();
-    usleep(400000);
-
-    // Ready to drop
-    steppers->slider_move(SliderHigh);
-    usleep(400000);
-    //deployer->half();
-    usleep(300000);
-    steppers->plate_move(0, CALL_BLOCKING);
-    //deployer->deploy();
-    //usleep(100000);
-    deployer->idle();
-
-    getchar();
-
-    steppers->slider_move(SliderIntermediateLow, CALL_BLOCKING);
-    holder->open();
-    steppers->slider_move(SliderHigh);
-    usleep(200000);
-    holder->idle();
-    
-
-    #endif
-
-    #ifdef RESET_CALIBRATE
-    steppers->reset_all(); 
-    steppers->calibrate_all(CALL_BLOCKING);
-    #endif
-
-    #ifdef SETUP_CUSTOM_SPEED_OLD
-    steppers->setup_speed(StprFlaps,5,10); 
-    steppers->setup_speed(StprPlate,2,10); 
-    steppers->setup_speed(StprSlider,4,10);
-    #endif 
-
-    #ifdef SETUP_CUSTOM_SPEED_NEW
-    steppers->setup_speed(StprFlaps,500,1000); 
-    steppers->setup_speed(StprPlate,200,1000); 
-    steppers->setup_speed(StprSlider,400,1000);
-    steppers->setup_acc(StprPlate, 5);
-    #endif
-
-    #ifdef DEMO_S6
-    servoFlaps->deploy(); 
-    steppers->flaps_move(FlapsPlant);
-    sleep(4);
-    steppers->flaps_move(FlapsOpen);
-    steppers->slider_move(SliderLow);
-    sleep(2);
-    servoFlaps->raise(); 
-    sleep(3);
-    steppers->slider_move(SliderHigh);
-    sleep(5);
-    demoPlate();
-    sleep(5);
-    //steppers->slider_move(SliderLow);
-    steppers->move(StprFlaps, 600,0);
-    sleep(5);
-    steppers->plate_move(1);
-    servoFlaps->deploy(); 
-    
-    sleep(5);
-    servoFlaps->idle();
+    TakePotCHAIN(2,1);
     #endif
 
     sleep(1);
