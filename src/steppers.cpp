@@ -114,7 +114,7 @@ void Steppers::calibrate(steppers_t stepperName, uint8_t blocking, uint8_t*valid
                 return; 
         }
         int8_t wait_res = pins->wait_for_gpio_value(stepper_gpio, 1, 10000); 
-        if (valids != NULL) wait_res == 0; 
+        if (valids != NULL) valids[validityID] = (wait_res == 0); 
     }   
 }
 

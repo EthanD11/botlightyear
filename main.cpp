@@ -133,6 +133,7 @@ void init_and_wait_for_start() {
     dxl_init_port();
     dxl_ping(6,1.0);
     dxl_ping(8,1.0);
+    shared.valids[3] = 1; //For now, if it passes this far, dynamixels are valid
     #endif
     if (shared.graph->init_from_file("./graphs/BL_V3.txt", shared.color) != 0) exit(3);
 
@@ -161,6 +162,7 @@ void init_and_wait_for_start() {
     if (pthread_create(&localizerID, NULL, localizer, NULL) != 0) exit(4);
     #ifdef LIDAR_BOTTOM
     StartLidarBottom();
+    shared.valids[4] = 1;
     #endif
 
     shared.steppers->reset_all();

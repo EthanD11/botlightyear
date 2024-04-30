@@ -486,9 +486,9 @@ bool check_validity(Action* action) {
     }
     // printf("Validities = "); 
     // for (uint8_t i=0; i<5; i++) {
-    //     printf("%d \n", shared.valids[i]);
+    //     printf("%d ", shared.valids[i]);
     //     if (action->needs[i]==1 && shared.valids[i]==0) {
-    //         printf("Invalid need : %d \n", i); 
+    //         printf("\n Invalid need : %d \n", i); 
     //         return false; 
     //     }
     // }
