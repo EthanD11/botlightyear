@@ -113,7 +113,7 @@ void Steppers::calibrate(steppers_t stepperName, uint8_t blocking, uint8_t*valid
                 printf("Error : not a stepper %d \n", stepperName); 
                 return; 
         }
-        int8_t wait_res = pins->wait_for_gpio_value(stepper_gpio, 1, 10000); 
+        int8_t wait_res = pins->wait_for_gpio_value(stepper_gpio, 1, 20000); 
         if (valids != NULL) valids[validityID] = (wait_res == 0); 
     }   
 }

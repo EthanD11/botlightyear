@@ -7,7 +7,7 @@
 
 static pthread_t KCID;
 static volatile bool ThreadKinematicOccuped = false;
-
+ 
 /*
 Takes pot and puts it to the plate storage specified
 */
@@ -39,6 +39,7 @@ void *take_pot_kinematicChain_SecondPart(void *args ){
     deployer->deploy();
     ThreadKinematicOccuped = false;
     printf("end thread kinematic\n");
+    
     return NULL;
 }
 
@@ -138,6 +139,7 @@ void take_pot_kinematicChain(int8_t slotNumber, int8_t numeroPot) {
     // recule, réouvre flaps et vas au prochain pot
     if (action_position_control(posPotXApproach,posPotYApproach,posPotThetaApproach)==-1) return; 
     steppers->flaps_move(FlapsOpen);
+    servoFlaps->raise();
 
 }
 
@@ -176,7 +178,8 @@ int8_t get_numeroPot(int8_t i) {
 
 void ActionPots::do_action() {
     double xpos, ypos, theta_pos; 
-
+    double xposInitiale, yposInitiale, theta_posInitiale;
+    shared.get_robot_pos(&xposInitiale, &yposInitiale, &theta_posInitiale);
     if (path_following_to_action(path) == -1) return; 
     //path->target
     initial_pos_stepper();
@@ -187,8 +190,11 @@ void ActionPots::do_action() {
         int8_t plate_pos = get_plate_slot(nextSlot); 
         int8_t numeroPot = get_numeroPot(i);
         take_pot_kinematicChain(plate_pos,numeroPot); // Launches the kinematic chain
+        update_plate_content(nextSlot, ContainsPot); 
+
     }
-    if (action_position_control(xpos,ypos,periodic_angle(theta_pos+M_PI))==-1) return; 
+
+    if (action_position_control(xposInitiale,yposInitiale,periodic_angle(theta_posInitiale+M_PI))==-1) return; 
 
     while(ThreadKinematicOccuped == true) {usleep(1000);};
     initial_pos_stepper();

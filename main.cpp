@@ -143,7 +143,6 @@ void init_and_wait_for_start() {
 
     if (shared.graph->init_from_file("./graphs/BL_V3.txt", shared.color) != 0) exit(3);
 
-    printf("%d\n",shared.graph->nodes[0].level);
     /*for (int i=0; i<3; i++) {
         printf("Friendly base %d \n", shared.graph->friendlyBases[i]);
         printf("Adversary base %d \n", shared.graph->adversaryBases[i]);
