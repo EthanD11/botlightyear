@@ -11,6 +11,38 @@ static volatile bool ThreadKinematicOccuped = false;
 /*
 Takes pot and puts it to the plate storage specified
 */
+
+void *take_pot_kinematicChain_SecondPart(void *args ){
+    // !!! ne peut pas utiliser flaps !!!
+    //int slotNumber
+    printf("start thread kinematic\n");
+    int slotNumber = *((int*) args);
+    GripperHolder* holder = shared.grpHolder; 
+    GripperDeployer* deployer = shared.grpDeployer; 
+    Steppers* steppers = shared.steppers; 
+    // Flaps* servoFlaps = shared.servoFlaps; 
+
+    ThreadKinematicOccuped = true;
+    //remonte
+    steppers->slider_move(SliderHigh, CALL_BLOCKING);
+    //depose pot en plateau
+    steppers->plate_move(slotNumber, CALL_BLOCKING); 
+    deployer->pot_deposit();
+    steppers->slider_move(SliderDepositPot, CALL_BLOCKING);
+    deployer->deploy();
+    steppers->slider_move(SliderStorage, CALL_BLOCKING);
+    //reouvre et remonte
+    holder->open_full();
+    deployer->half();
+    steppers->slider_move(SliderHigh,CALL_BLOCKING);
+    steppers->plate_move(0, CALL_BLOCKING);
+    deployer->deploy();
+    ThreadKinematicOccuped = false;
+    printf("end thread kinematic\n");
+    return NULL;
+}
+
+
 void take_pot_kinematicChain(int8_t slotNumber, int8_t numeroPot) {
     GripperHolder* holder = shared.grpHolder; 
     GripperDeployer* deployer = shared.grpDeployer; 
@@ -31,7 +63,7 @@ void take_pot_kinematicChain(int8_t slotNumber, int8_t numeroPot) {
     //parametre approach/prise pot 
     double betaPot1 = M_PI_2/3;
     double distanceRoue = 0.28;
-    double deltaApproach = 0.15;
+    double deltaApproach = 0.1;
     double rayonPot = 0.08;
 
     double posPotXApproach;
@@ -41,8 +73,7 @@ void take_pot_kinematicChain(int8_t slotNumber, int8_t numeroPot) {
     double posPotYPrise;
     double posPotThetaPrise;
 
-    deployer->deploy();
-    holder->open();
+
 
     switch (numeroPot)
     {
@@ -62,12 +93,6 @@ void take_pot_kinematicChain(int8_t slotNumber, int8_t numeroPot) {
         posPotYPrise = posPotY+(distanceRoue+rayonPot)*sin(-betaPot1+posPotTheta);
         posPotThetaPrise = posPotTheta-betaPot1-M_PI;
         break;
-    case 3 :
-        break;
-    case 4:
-        break;
-    case 5:
-        break;
     default:
         return;
         break;
@@ -80,12 +105,17 @@ void take_pot_kinematicChain(int8_t slotNumber, int8_t numeroPot) {
     //teensy->pos_ctrl(posPotXApproach,posPotYApproach,posPotThetaApproach); 
     if (action_position_control(posPotXApproach,posPotYApproach,posPotThetaApproach)==-1) return; 
     // sleep(10);
+
+
+    //attend variable global de chaine cinematique fini 
+    printf("en attente de la fin du thread\n");
+    while (ThreadKinematicOccuped == true) {usleep(1000);}
+    printf("thread fini\n");
+    deployer->deploy();
+    holder->open_full();
     servoFlaps->deploy();
     steppers->flaps_move(FlapsIntermediatePot); 
     steppers->slider_move(SliderPreparePot);
-
-    //attend variable global de chaine cinematique fini 
-    while (ThreadKinematicOccuped == true) {usleep(1000);}
 
     //-----approche précise-----
     printf("approche précise : %f, %f, %f, distance :%f\n", posPotXPrise, posPotYPrise, posPotThetaPrise,distanceRoue+rayonPot);
@@ -112,32 +142,6 @@ void take_pot_kinematicChain(int8_t slotNumber, int8_t numeroPot) {
 }
 
 
-void *take_pot_kinematicChain_SecondPart(void *args ){
-    //int slotNumber
-    int slotNumber = *((int*) args);
-    GripperHolder* holder = shared.grpHolder; 
-    GripperDeployer* deployer = shared.grpDeployer; 
-    Steppers* steppers = shared.steppers; 
-    Flaps* servoFlaps = shared.servoFlaps; 
-
-    ThreadKinematicOccuped = true;
-    //remonte
-    steppers->slider_move(SliderHigh, CALL_BLOCKING);
-    //depose pot en plateau
-    steppers->plate_move(slotNumber, CALL_BLOCKING); 
-    deployer->pot_deposit();
-    steppers->slider_move(SliderDepositPot, CALL_BLOCKING);
-    deployer->deploy();
-    steppers->slider_move(SliderStorage, CALL_BLOCKING);
-    //reouvre et remonte
-    holder->open_full();
-    deployer->half();
-    steppers->slider_move(SliderHigh,CALL_BLOCKING);
-    steppers->plate_move(0, CALL_BLOCKING);
-    holder->idle();
-    deployer->idle();
-    ThreadKinematicOccuped = false;
-}
 
 
 void initial_pos_stepper(){
@@ -165,7 +169,7 @@ int8_t get_numeroPot(int8_t i) {
     //   _____
     //  / 1 2 \ 
     // | 3 4 5 |
-    int orderPot[5] = {1, 3, 2, 5, 4};
+    int orderPot[5] = {1, 2, 3, 5, 4};
     if (i >= 5) return -1;
     return orderPot[i];
 }
@@ -187,5 +191,6 @@ void ActionPots::do_action() {
     if (action_position_control(xpos,ypos,periodic_angle(theta_pos+M_PI))==-1) return; 
 
     while(ThreadKinematicOccuped == true) {usleep(1000);};
-
+    initial_pos_stepper();
+    sleep(1000);
 }

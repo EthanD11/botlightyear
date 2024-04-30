@@ -165,7 +165,7 @@ void decide_possible_actions() {
     } else {
         printf("Path is NULL\n");
     }
-    possible_actions[0] = new ActionPots(path, 1); 
+    possible_actions[0] = new ActionPots(path, 2); 
     n_possible_actions = 1; 
     return;
 
@@ -485,13 +485,13 @@ bool check_validity(Action* action) {
         return false; 
     }
     // printf("Validities = "); 
-    // for (uint8_t i=0; i<5; i++) {
-    //     printf("%d ", shared.valids[i]);
-    //     if (action->needs[i]==1 && shared.valids[i]==0) {
-    //         printf("\n Invalid need : %d \n", i); 
-    //         return false; 
-    //     }
-    // }
+    for (uint8_t i=0; i<5; i++) {
+        printf("%d ", shared.valids[i]);
+        if (action->needs[i]==1 && shared.valids[i]==0) {
+            printf("\n Invalid need : %d for action : %d\n", i, action->action_type); 
+            return false; 
+        }
+    }
     // printf("\n");
     return true; 
 }
