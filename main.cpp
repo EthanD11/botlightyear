@@ -19,7 +19,8 @@
 //#define TIME_MEAS
 // #define CLEAR_POTS
 
-#define LIDAR_BOTTOM
+//#define LIDAR_BOTTOM
+// #define LIDAR_TOP
 // #define DXL
 #define ASCII_b 98
 #define ASCII_B 66
@@ -135,6 +136,11 @@ void init_and_wait_for_start() {
     dxl_ping(8,1.0);
     shared.valids[3] = 1; //For now, if it passes this far, dynamixels are valid
     #endif
+
+    #ifdef LIDAR_TOP
+    StartLidarTop();
+    #endif
+
     if (shared.graph->init_from_file("./graphs/BL_V3.txt", shared.color) != 0) exit(3);
 
     printf("%d\n",shared.graph->nodes[0].level);
@@ -186,14 +192,21 @@ void finish_main() {
 }
 
 void *localizer(void* arg) {
-    StartLidarTop();
-    LidarData *lidarData = new LidarData();
-    init_lidar(lidarData);
+
     // double xOdo, yOdo, thetaOdo;
     double x = 0, y = 0, theta = 0;
     // double odoWeight = 1.0;
+
+    #ifdef LIDAR_TOP
+    LidarData *lidarData = new LidarData();
+    init_lidar(lidarData);
     lidarData->x_odo = 0, lidarData->y_odo = 0, lidarData->theta_odo = 0;
     shared.get_robot_pos(&lidarData->x_odo, &lidarData->y_odo, &(lidarData->theta_odo));
+    #else
+    shared.set_adv_pos(4,0,4,0);
+    shared.graph->update_adversary_pos(4,0);
+    #endif
+
     while (!localizerEnd) {
 
         // teensy_mode_t teensyMode = shared.teensy->ask_mode();
@@ -203,7 +216,9 @@ void *localizer(void* arg) {
         clock_t start = clock();
         #endif
 
+        #ifdef LIDAR_TOP
         lidarGetRobotPosition(lidarData, 10, false, lidarData->readLidar_lost);
+        #endif
 
         #ifdef TIME_MEAS
         clock_t lidarClock = clock();
@@ -230,6 +245,7 @@ void *localizer(void* arg) {
         #endif
 
         shared.set_robot_pos(x,y,theta);
+        #ifdef LIDAR_TOP
         //if (!lidarData->readLidar_lost) { 
             shared.set_adv_pos(
             lidarData->readLidar_x_opponent,
@@ -245,6 +261,7 @@ void *localizer(void* arg) {
         // shared.graph->update_adversary_pos(400, 400);
         //}
         lidarData->x_odo = x; lidarData->y_odo = y; lidarData->theta_odo = theta;
+        #endif
 
         #ifdef VERBOSE
         //TODO TODO
@@ -264,8 +281,11 @@ void *localizer(void* arg) {
         #endif
         usleep(350000);
     }
+    
+    #ifdef LIDAR_TOP
     clear_lidar(lidarData);
     StopLidarTop();
+    #endif
     return NULL;
 }
 
