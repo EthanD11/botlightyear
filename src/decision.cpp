@@ -157,36 +157,36 @@ void decide_possible_actions() {
 
     // ---------- Pots TEST -----------
 
-    path = shared.graph->compute_path(x_pos, y_pos, shared.graph->pots, 6);
+    // path = shared.graph->compute_path(x_pos, y_pos, shared.graph->pots, 6);
     
-    if (path != NULL) {
-        path->thetaStart = theta_pos; 
-        path->thetaEnd = getThetaEnd(shared.graph->pots, shared.graph->potsTheta, 6, path->target);;
-    } else {
-        printf("Path is NULL\n");
-    }
-    possible_actions[0] = new ActionPots(path, 2); 
-    n_possible_actions = 1; 
-    return;
+    // if (path != NULL) {
+    //     path->thetaStart = theta_pos; 
+    //     path->thetaEnd = getThetaEnd(shared.graph->pots, shared.graph->potsTheta, 6, path->target);;
+    // } else {
+    //     printf("Path is NULL\n");
+    // }
+    // possible_actions[0] = new ActionPots(path, 2); 
+    // n_possible_actions = 1; 
+    // return;
 
 
     // ---------- Plants TEST -----------
 
-    // uint8_t target = 12;
-    // shared.graph->update_obstacle(target,0);
-    // path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+    uint8_t target = 31;
+    shared.graph->update_obstacle(target,0);
+    path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
     
-    // //shared.graph->update_obstacle(27,1);
-    // if (path != NULL) {
-    //     path->thetaStart = theta_pos; 
-    //     path->thetaEnd = 0; // Angle is recomputed in Action Plants  
-    // } else {
-    //     printf("Path is NULL\n");
-    // }
-    // shared.graph->update_obstacle(target,1);
-    // possible_actions[0] = new ActionPlants(path, 2); 
-    // n_possible_actions = 1; 
-    // return;
+    //shared.graph->update_obstacle(27,1);
+    if (path != NULL) {
+        path->thetaStart = theta_pos; 
+        path->thetaEnd = 0; // Angle is recomputed in Action Plants  
+    } else {
+        printf("Path is NULL\n");
+    }
+    shared.graph->update_obstacle(target,1);
+    possible_actions[0] = new ActionPlants(path, 2); 
+    n_possible_actions = 1; 
+    return;
     #endif
 
     #ifdef HOMOLOGATION 

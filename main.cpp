@@ -19,7 +19,7 @@
 //#define TIME_MEAS
 // #define CLEAR_POTS
 
-//#define LIDAR_BOTTOM
+#define LIDAR_BOTTOM
 // #define LIDAR_TOP
 // #define DXL
 #define ASCII_b 98
@@ -69,9 +69,15 @@ void ask_user_input_params() {
             std::cin >> s;
             if (!s.compare("bottomright")) {
                 shared.startingBaseID = shared.graph->friendlyBases[0];
+                #ifdef CLEAR_POTS
                 shared.odo->set_pos(0.035,0.165,0);
                 shared.set_robot_pos(0.035,0.165,0);
                 shared.teensy->set_position(0.035,0.165,0);
+                #else
+                shared.odo->set_pos(0.035,0.165,0);
+                shared.set_robot_pos(0.035,0.165,0);
+                shared.teensy->set_position(0.035,0.165,0);
+                #endif
                 break;
             }
             if (!s.compare("topright")) {
