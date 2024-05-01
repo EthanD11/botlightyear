@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define POSITION_TOL_IN 2e-3 // Tolerance to enter the goal reached state
+#define POSITION_TOL_IN 5e-3 // Tolerance to enter the goal reached state
 #define ANGULAR_TOL (4*M_PI/180)
 #define ANGULAR_SPEED_TOL 1e-2
 

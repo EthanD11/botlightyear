@@ -3,11 +3,11 @@
 Regulator *init_regulator() {
     Regulator *reg = (Regulator *) malloc(sizeof(Regulator));
     
-    reg->kp_l = 10.204081632653060; // Former t1_kp
-    reg->ki_l = 24.295432458697764; // Former t1_ki
+    reg->kp_l = 10.204081632653060/3; // Former t1_kp
+    reg->ki_l = 24.295432458697764/3; // Former t1_ki
 
-    reg->kp_r = 6.666666666666665; // Former t1_kp
-    reg->ki_r = 23.809523809523803; // Former t1_ki
+    reg->kp_r = 6.666666666666665/3; // Former t1_kp
+    reg->ki_r = 23.809523809523803/3; // Former t1_ki
 
     reg->imax = 1; // Anti windup [V/V]
 

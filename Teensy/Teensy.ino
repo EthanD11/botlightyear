@@ -357,6 +357,9 @@ void loop() {
       case ModePathFollowing:
         if (pf_maybe_unstable(path_follower, robot_position)) {
           nextmode = ModeIdle;
+          #ifdef SWITCH_VERBOSE
+          printf("PF unstable, abort PF\n");
+          #endif
         }
         else {
           if (path_following_goal_reached) nextmode = ModePositionControl;
