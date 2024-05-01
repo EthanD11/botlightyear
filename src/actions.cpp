@@ -188,7 +188,11 @@ int8_t path_following_to_action(graph_path_t *path)
     teensyStart = 0;
     while ((teensy->ask_mode()) != ModePositionControlOver)
     {
-        if (!shared.goingToBase && shared.update_and_get_timer() < 35) return -1;
+        // if (!shared.goingToBase && shared.update_and_get_timer() < 35) { // TODO Rework timer aborts
+        //     printf("Path follwing aborted because of timer\n");
+        //     return -1;
+        // }
+        
         // Get update on robot and adversary position
         double xr = 0, yr = 0, tr = 0;
         shared.get_robot_pos(&xr, &yr, &tr);
@@ -306,10 +310,10 @@ int8_t action_position_control(double x_end, double y_end, double theta_end)
     while ((teensy->ask_mode()) != ModePositionControlOver)
     {
 
-        if (!shared.goingToBase && shared.update_and_get_timer() < 30) {
-            printf("Path following aborted because of timer\n");
-            return -1;
-        }
+        // if (!shared.goingToBase && shared.update_and_get_timer() < 30) { // TODO Rework timer aborts
+        //     printf("Position control aborted because of timer\n");
+        //     return -1;
+        // }
 
         // Retrieve adversary current position
         double d_adv = 0, a_adv = 0;
