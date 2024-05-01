@@ -34,6 +34,7 @@ void *take_pot_kinematicChain_SecondPart(void *args ){
     steppers->slider_move(SliderStorage, CALL_BLOCKING);
     //reouvre et remonte
     holder->open_full();
+    usleep(100000); //wait 100ms
     deployer->half();
     stopBeforeMovePot = false;
     steppers->slider_move(SliderHigh,CALL_BLOCKING);
@@ -111,6 +112,7 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
     double distanceRoue = 0.28;
     double deltaApproach = 0.1;
     double rayonPot = 0.08;
+    double deltaRayonPot35 = 0.01;
 
     double posPotXApproach, posPotYApproach,posPotThetaApproach;
     double posPotXPrise, posPotYPrise ,posPotThetaPrise;
@@ -136,8 +138,8 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
         posPotThetaPrise = posPotTheta-betaPot1-M_PI;
         break;
     case 3:
-        posPotIntermediateX = posPotX+(rayonPot)*cos(posPotTheta+M_PI_2);
-        posPotIntermediateY = posPotY+(rayonPot)*sin(posPotTheta+M_PI_2);
+        posPotIntermediateX = posPotX+(rayonPot+deltaRayonPot35)*cos(posPotTheta+M_PI_2);
+        posPotIntermediateY = posPotY+(rayonPot+deltaRayonPot35)*sin(posPotTheta+M_PI_2);
         posPotXApproach = posPotIntermediateX+(distanceRoue+deltaApproach)*cos(posPotTheta);
         posPotYApproach = posPotIntermediateY+(distanceRoue+deltaApproach)*sin(posPotTheta);
         posPotThetaApproach = posPotTheta-M_PI;
@@ -146,8 +148,8 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
         posPotThetaPrise = posPotTheta-M_PI;
         break;
     case 5:
-        posPotIntermediateX = posPotX+(rayonPot)*cos(posPotTheta-M_PI_2);
-        posPotIntermediateY = posPotY+(rayonPot)*sin(posPotTheta-M_PI_2);
+        posPotIntermediateX = posPotX+(rayonPot+deltaRayonPot35)*cos(posPotTheta-M_PI_2);
+        posPotIntermediateY = posPotY+(rayonPot+deltaRayonPot35)*sin(posPotTheta-M_PI_2);
         posPotXApproach = posPotIntermediateX+(distanceRoue+deltaApproach)*cos(posPotTheta);
         posPotYApproach = posPotIntermediateY+(distanceRoue+deltaApproach)*sin(posPotTheta);
         posPotThetaApproach = posPotTheta+M_PI;
@@ -201,10 +203,15 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
     if (action_position_control(posPotXApproach,posPotYApproach,posPotThetaApproach)==-1) return; 
     if (removePot4) {
         // remove pot 4
+        servoFlaps->raise();
+        printf("starting remove pot 4\n");
         if (numeroPot == 1 || numeroPot == 3){posPotThetaPrise = posPotTheta+betaPot1-M_PI;}//approche comme pot 1
         else {posPotThetaPrise = posPotTheta-betaPot1-M_PI;}//approche comme pot 2
         posPotXPrise = posPotX+(distanceRoue+rayonPot)*cos(posPotThetaPrise+M_PI);
         posPotYPrise = posPotY+(distanceRoue+rayonPot)*sin(posPotThetaPrise+M_PI);
+        posPotThetaPrise = periodic_angle(posPotThetaPrise);
+        printf("target for remove 4 : %f,%f,%f\n",posPotXPrise,posPotYPrise,posPotThetaPrise);
+        sleep(4);
         if (action_position_control(posPotXPrise,posPotYPrise,posPotThetaPrise)==-1) return; 
         steppers->flaps_move(FlapsPot,CALL_BLOCKING);
         if (action_position_control(posPotXApproach,posPotYApproach,posPotThetaApproach)==-1) return; 
@@ -246,9 +253,9 @@ void ActionPots::do_action() {
     double xpos, ypos, theta_pos; 
     double xposInitiale, yposInitiale, theta_posInitiale;
     int pathTarget;
-    bool removePot4 = false;
+    bool removePot4KinematicChaine = false;
     if (path_following_to_action(path) == -1) return; 
-
+    
     pathTarget = path->target;
     shared.get_robot_pos(&xposInitiale, &yposInitiale, &theta_posInitiale);
     initial_pos_stepper();
@@ -258,9 +265,12 @@ void ActionPots::do_action() {
         int8_t plate_pos = get_plate_slot(nextSlot); 
         int8_t numeroPot = get_numeroPot(i);
         // If last pot is 3 or 5, remove pot 4
-        if ((numeroPot == 3 || numeroPot == 5)&& i == this->potCounter-1) {removePot4 = true;} 
-        else {removePot4 = false;}
-        take_pot_kinematicChain(plate_pos,numeroPot,pathTarget, removePot4); // Launches the kinematic chain
+        if (this->removePot4){
+            if ((numeroPot == 3 || numeroPot == 5)&& i == this->potCounter-1) {removePot4KinematicChaine = true;} 
+            else {removePot4KinematicChaine = false;}
+        }
+
+        take_pot_kinematicChain(plate_pos,numeroPot,pathTarget, removePot4KinematicChaine); // Launches the kinematic chain
         update_plate_content(nextSlot, ContainsPot); 
 
     }
