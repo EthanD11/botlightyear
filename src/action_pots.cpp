@@ -7,6 +7,7 @@
 
 static pthread_t KCID;
 static volatile bool ThreadKinematicOccuped = false;
+static volatile bool stopBeforeMovePot = false;
  
 /*
 Takes pot and puts it to the plate storage specified
@@ -21,7 +22,7 @@ void *take_pot_kinematicChain_SecondPart(void *args ){
     GripperDeployer* deployer = shared.grpDeployer; 
     Steppers* steppers = shared.steppers; 
     // Flaps* servoFlaps = shared.servoFlaps; 
-
+    stopBeforeMovePot = true;
     ThreadKinematicOccuped = true;
     //remonte
     steppers->slider_move(SliderHigh, CALL_BLOCKING);
@@ -34,6 +35,7 @@ void *take_pot_kinematicChain_SecondPart(void *args ){
     //reouvre et remonte
     holder->open_full();
     deployer->half();
+    stopBeforeMovePot = false;
     steppers->slider_move(SliderHigh,CALL_BLOCKING);
     steppers->plate_move(0, CALL_BLOCKING);
     deployer->deploy();
@@ -44,7 +46,7 @@ void *take_pot_kinematicChain_SecondPart(void *args ){
 }
 
 
-void take_pot_kinematicChain(int slotNumber, int8_t numeroPot, int8_t pathTarget,bool removePot4 = false) {
+void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget,bool removePot4 = false) {
     GripperHolder* holder = shared.grpHolder; 
     GripperDeployer* deployer = shared.grpDeployer; 
     Steppers* steppers = shared.steppers; 
@@ -110,13 +112,9 @@ void take_pot_kinematicChain(int slotNumber, int8_t numeroPot, int8_t pathTarget
     double deltaApproach = 0.1;
     double rayonPot = 0.08;
 
-    double posPotXApproach;
-    double posPotYApproach;
-    double posPotThetaApproach;
-    double posPotXPrise;
-    double posPotYPrise;
-    double posPotThetaPrise;
-
+    double posPotXApproach, posPotYApproach,posPotThetaApproach;
+    double posPotXPrise, posPotYPrise ,posPotThetaPrise;
+    double posPotIntermediateX,posPotIntermediateY;
 
 
     switch (numeroPot)
@@ -138,28 +136,31 @@ void take_pot_kinematicChain(int slotNumber, int8_t numeroPot, int8_t pathTarget
         posPotThetaPrise = posPotTheta-betaPot1-M_PI;
         break;
     case 3:
-        double posPotIntermediateX = posPotX+(rayonPot)*cos(posPotTheta+M_PI_2);
-        double posPotIntermediateY = posPotY+(rayonPot)*sin(posPotTheta+M_PI_2);
+        posPotIntermediateX = posPotX+(rayonPot)*cos(posPotTheta+M_PI_2);
+        posPotIntermediateY = posPotY+(rayonPot)*sin(posPotTheta+M_PI_2);
         posPotXApproach = posPotIntermediateX+(distanceRoue+deltaApproach)*cos(posPotTheta);
         posPotYApproach = posPotIntermediateY+(distanceRoue+deltaApproach)*sin(posPotTheta);
         posPotThetaApproach = posPotTheta-M_PI;
         posPotXPrise = posPotIntermediateX+(distanceRoue)*cos(posPotTheta);
         posPotYPrise = posPotIntermediateY+(distanceRoue)*sin(posPotTheta);
         posPotThetaPrise = posPotTheta-M_PI;
+        break;
     case 5:
-        double posPotIntermediateX = posPotX+(rayonPot)*cos(posPotTheta-M_PI_2);
-        double posPotIntermediateY = posPotY+(rayonPot)*sin(posPotTheta-M_PI_2);
+        posPotIntermediateX = posPotX+(rayonPot)*cos(posPotTheta-M_PI_2);
+        posPotIntermediateY = posPotY+(rayonPot)*sin(posPotTheta-M_PI_2);
         posPotXApproach = posPotIntermediateX+(distanceRoue+deltaApproach)*cos(posPotTheta);
         posPotYApproach = posPotIntermediateY+(distanceRoue+deltaApproach)*sin(posPotTheta);
         posPotThetaApproach = posPotTheta+M_PI;
         posPotXPrise = posPotIntermediateX+(distanceRoue)*cos(posPotTheta);
         posPotYPrise = posPotIntermediateY+(distanceRoue)*sin(posPotTheta);
         posPotThetaPrise = posPotTheta+M_PI;
+        break;
     default:
-        printf("numeroPot non reconnu comme un pot valide\n");
+        printf("numeroPot %d non reconnu comme un pot valide\n",numeroPot);
         return;
         break;
     }
+    printf("here we go for the pot %d\n",numeroPot);
     //remapping pour -PI a +PI
     posPotThetaApproach = periodic_angle(posPotThetaApproach);
     posPotThetaPrise = periodic_angle(posPotThetaPrise);
@@ -171,9 +172,7 @@ void take_pot_kinematicChain(int slotNumber, int8_t numeroPot, int8_t pathTarget
 
 
     //attend variable global de chaine cinematique fini 
-    printf("en attente de la fin du thread\n");
     while (ThreadKinematicOccuped == true) {usleep(1000);}
-    printf("thread fini\n");
     deployer->deploy();
     holder->open_full();
     servoFlaps->deploy();
@@ -197,14 +196,22 @@ void take_pot_kinematicChain(int slotNumber, int8_t numeroPot, int8_t pathTarget
     // lancement de la fin de la cinematique sur un thread
     if (pthread_create(&KCID, NULL, take_pot_kinematicChain_SecondPart, (void *)&slotNumber) != 0) return;
     //take_pot_kinematicChain_SecondPart(slotNumber);
-    if (removePot4) {
-        // remove pot 4
-        steppers->flaps_move(FlapsOpen,CALL_BLOCKING);
-    }
+
     // recule, réouvre flaps et vas au prochain pot
     if (action_position_control(posPotXApproach,posPotYApproach,posPotThetaApproach)==-1) return; 
+    if (removePot4) {
+        // remove pot 4
+        if (numeroPot == 1 || numeroPot == 3){posPotThetaPrise = posPotTheta+betaPot1-M_PI;}//approche comme pot 1
+        else {posPotThetaPrise = posPotTheta-betaPot1-M_PI;}//approche comme pot 2
+        posPotXPrise = posPotX+(distanceRoue+rayonPot)*cos(posPotThetaPrise+M_PI);
+        posPotYPrise = posPotY+(distanceRoue+rayonPot)*sin(posPotThetaPrise+M_PI);
+        if (action_position_control(posPotXPrise,posPotYPrise,posPotThetaPrise)==-1) return; 
+        steppers->flaps_move(FlapsPot,CALL_BLOCKING);
+        if (action_position_control(posPotXApproach,posPotYApproach,posPotThetaApproach)==-1) return; 
+    }
     steppers->flaps_move(FlapsOpen);
     servoFlaps->raise();
+    while (stopBeforeMovePot == true){usleep(1000);}
 }
 
 
@@ -224,18 +231,13 @@ void initial_pos_stepper(){
     deployer->idle();
 }
 
-// int8_t get_numeroPot(int8_t i){
-//     list<int> orderPot = { 1, 3, 2, 4, 5 };
-//     if (i >= orderPot.size()) return -1;
-//     return orderPot[i];
-// }
 
 int8_t get_numeroPot(int8_t i) {
     //numeroPot :
     //   _____
     //  / 1 2 \ 
     // | 3 4 5 |
-    int orderPot[5] = {1, 2, 3, 5, 4};
+    int orderPot[5] = {1, 3, 2, 5, 4};
     if (i >= 5) return -1;
     return orderPot[i];
 }

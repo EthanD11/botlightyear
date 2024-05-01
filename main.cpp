@@ -19,7 +19,7 @@
 //#define TIME_MEAS
 // #define CLEAR_POTS
 
-#define LIDAR_BOTTOM
+//#define LIDAR_BOTTOM
 // #define LIDAR_TOP
 // #define DXL
 #define ASCII_b 98
