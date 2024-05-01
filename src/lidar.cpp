@@ -88,9 +88,11 @@ void StartLidarTop(){
 
         }else{
             fprintf(stderr, "Failed to get device information from LIDAR %08x\r\n", res);
+            return;
         }
     }else{
         fprintf(stderr, "Failed to connect to LIDAR %08x\r\n", res);
+        return;
     }
         printf("Lidar Top connected\n");
 
@@ -133,9 +135,11 @@ void StartLidarBottom(){
 
         }else{
             fprintf(stderr, "Failed to get device information from LIDAR %08x\r\n", res);
+            return;
         }
     }else{
         fprintf(stderr, "Failed to connect to LIDAR %08x\r\n", res);
+        return;
     }
     printf("Lidar Bottom connected\n");
 }

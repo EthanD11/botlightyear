@@ -113,8 +113,8 @@ void Steppers::calibrate(steppers_t stepperName, uint8_t blocking, uint8_t*valid
                 printf("Error : not a stepper %d \n", stepperName); 
                 return; 
         }
-        int8_t wait_res = pins->wait_for_gpio_value(stepper_gpio, 1, 10000); 
-        if (valids != NULL) wait_res == 0; 
+        int8_t wait_res = pins->wait_for_gpio_value(stepper_gpio, 1, 20000); 
+        if (valids != NULL) valids[validityID] = (wait_res == 0); 
     }   
 }
 
@@ -126,11 +126,17 @@ void Steppers::flaps_move(flaps_pos_t pos, uint8_t blocking) {
         steps = 0; 
         break;
     case FlapsPlant :
-        steps = 3150; 
+        steps = 3250; 
+        break;
+    case FlapsApproachPlant:
+        steps = 1000;
         break;
     case FlapsPot :
-        steps = 2050; 
-        break;  
+        steps = 2920; 
+        break; 
+    case FlapsIntermediatePot:
+        steps = 1400;  //a iterer...
+        break; 
     default:
         printf("Error : not a position %d \n", pos);
         steps = 0; 
@@ -150,7 +156,7 @@ void Steppers::slider_move(slider_pos_t pos, uint8_t blocking){
     case SliderLow :
         steps = 5300;
         break;
-    case SliderIntermediateLow:
+    case SliderIntermediateLow: //position pour jardiniere
         steps = 3650;
         break;
     case SliderStorage : // Deposit plant, take plant, take pot
@@ -159,6 +165,9 @@ void Steppers::slider_move(slider_pos_t pos, uint8_t blocking){
     case SliderDepositPot : 
         steps = 1300;
         break; 
+    case SliderPreparePot :
+        steps = 3000;
+        break;
     default :
         printf("Error : not a position : %d \n", pos);
         steps = 0; 

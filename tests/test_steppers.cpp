@@ -10,8 +10,8 @@
 //#define SETUP_CUSTOM_SPEED_OLD
 //#define SETUP_CUSTOM_SPEED_NEW
 //#define DEMO_S6
-#define PLANTER
-//#define TESTS
+// #define PLANTER
+#define TESTS
 
 SPIBus spi_bus = SPIBus();
 GPIOPins pins = GPIOPins(); 
@@ -23,40 +23,40 @@ Flaps* servoFlaps = new Flaps(&spi_bus);
 
 Teensy *teensy = new Teensy(&spi_bus, &pins);
 
-// void TakePotCHAIN() {
-//     holder->idle();
-//     deployer->idle();
-//     steppers->setup_speed(StprSlider, 300,600);
-//     steppers->reset_all(); 
-//     steppers->calibrate(StprPlate, CALL_BLOCKING);
-//     steppers->calibrate(StprSlider, CALL_BLOCKING); 
+void TakePotCHAIN() {// ancienne version avec ancienne pince
+    holder->idle();
+    deployer->idle();
+    // steppers->setup_speed(StprSlider, 300,600);
+    steppers->reset_all(); 
+    steppers->calibrate(StprPlate, CALL_BLOCKING);
+    steppers->calibrate(StprSlider, CALL_BLOCKING); 
 
 
-//     steppers->plate_move(0, CALL_BLOCKING); 
-//     deployer->deploy();
+    steppers->plate_move(0, CALL_BLOCKING); 
+    deployer->deploy();
 
-//     holder->open_full();
-//     steppers->slider_move(SliderIntermediateLow, CALL_BLOCKING);
-//     holder->open();
+    holder->open_full();
+    steppers->slider_move(SliderIntermediateLow, CALL_BLOCKING);
+    holder->open();
 
 
-//     steppers->slider_move(SliderLow, CALL_BLOCKING); 
-//     sleep(2);
+    steppers->slider_move(SliderLow, CALL_BLOCKING); 
+    sleep(2);
 
-//     holder->hold_pot();
+    holder->hold_pot();
 
-//     steppers->slider_move(SliderHigh, CALL_BLOCKING);
-//     deployer->pot_deposit();
+    steppers->slider_move(SliderHigh, CALL_BLOCKING);
+    deployer->pot_deposit();
 
-//     steppers->plate_move(3, CALL_BLOCKING); 
+    steppers->plate_move(3, CALL_BLOCKING); 
 
     
-//     steppers->slider_move(SliderDepositPot, CALL_BLOCKING);
-//     deployer->deploy(); 
-//     sleep(2);
-//     holder->open();
-//     sleep(2);
-// }
+    steppers->slider_move(SliderDepositPot, CALL_BLOCKING);
+    deployer->deploy(); 
+    sleep(2);
+    holder->open();
+    sleep(2);
+}
 
 
 void TakePlantCHAIN(int slotNumber) {

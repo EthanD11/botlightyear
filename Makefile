@@ -2,7 +2,7 @@
 #Variables
 # Arguments for the compilation
 CXX = g++
-FLAGS:=-Wall -O3 -g
+FLAGS:=-O3 -g
 LIBS:=-llgpio -lm -lpthread -ldxl_sbc_c -lsl_lidar_sdk -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_videoio -lopencv_imgcodecs -lopencv_aruco
 
 # Directories 
@@ -21,6 +21,10 @@ SOURCES_OBJ_NO_SHARED = $(SOURCES_OBJ:$(OBJ_DIR)/action%=)
 SOURCES_OBJ_NO_SHARED := $(SOURCES_OBJ_NO_SHARED:$(OBJ_DIR)/shared_variables.o=)
 SOURCES_OBJ_NO_SHARED := $(SOURCES_OBJ_NO_SHARED:$(OBJ_DIR)/decision.o=)
 SOURCES_OBJ_NO_SHARED := $(SOURCES_OBJ_NO_SHARED:$(OBJ_DIR)/lidarTop.o=)
+SOURCES_OBJ_NO_SHARED += $(OBJ_DIR)/linux_i2c.o
+SOURCES_OBJ_NO_SHARED += $(OBJ_DIR)/ssd1306.o
+SOURCES_OBJ += $(OBJ_DIR)/linux_i2c.o
+SOURCES_OBJ += $(OBJ_DIR)/ssd1306.o
 
 # -----------------------------------------------------------------------------------
 # Rules
@@ -39,7 +43,7 @@ $(OBJ_DIR):
 
 # Compiling a binary file from a source file
 $(OBJ_DIR)/%.o: $(SOURCES_DIR)/%.cpp | $(OBJ_DIR)
-	@$(CXX) -I$(HEADERS_DIR) $(CFLAGS) -o $@ -c $< $(LIBS)
+	@$(CXX) -I$(HEADERS_DIR) $(FLAGS) -o $@ -c $< $(LIBS)
 
 # Compiling all the sources
 compile: $(SOURCES_OBJ)
@@ -47,6 +51,12 @@ compile: $(SOURCES_OBJ)
 #Compiling a random file that use SOURCES file
 %.o: %.cpp $(SOURCES_OBJ)
 	@$(CXX) -I$(HEADERS_DIR) $(FLAGS) $^ -o $@ $(LIBS)
+
+$(OBJ_DIR)/linux_i2c.o:
+	cp ssd1306_linux/linux_i2c.o bin/
+
+$(OBJ_DIR)/ssd1306.o:
+	cp ssd1306_linux/ssd1306.o bin/
 
 
 #Do an individual test, without shared variables

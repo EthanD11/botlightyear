@@ -83,7 +83,7 @@ static void *kinematic_chain(void *args) {
             steppers->slider_move(SliderLow, CALL_BLOCKING);
             grpHolder->open();
             stateKC = Drop;
-            if ((toDrop == ConstainsWeakPlantInPot) || (toDrop & ContainsStrongPlant == ContainsStrongPlant))
+            if ((toDrop == ConstainsWeakPlantInPot) || ((toDrop & ContainsStrongPlant) == ContainsStrongPlant))
                 shared.score += 3 + ((toDrop & ContainsPot) == ContainsPot);
             steppers->slider_move(SliderHigh);
             usleep(200000);
@@ -129,8 +129,8 @@ void ActionZone::do_action() {
     pthread_create(&KCID, NULL, kinematic_chain, NULL);
 
     double xZone, yZone, thetaZone;
-    xZone = path->x[path->nNodes];
-    yZone = path->y[path->nNodes];
+    xZone = path->x[path->nNodes-1];
+    yZone = path->y[path->nNodes-1];
     thetaZone = path->thetaEnd;
     if (path_following_to_action(path)) return leave();
     

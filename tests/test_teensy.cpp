@@ -5,8 +5,8 @@
 #include <cmath>
 #include <lgpio.h>
 
-// #define POSITION_CONTROL
-#define PATH_FOLLOWING
+#define POSITION_CONTROL
+// #define PATH_FOLLOWING
 // #define IDLE
 // #define SET_POSITION
 // #define SPEED_CONTROL
@@ -41,7 +41,7 @@ int main(int argc, char const *argv[])
     double x = 0; 
     double y = 0; 
     double t = 0;
-    double xr = 0.4; 
+    double xr = 0.8; 
     double yr = 0.0; 
     double tr = 0*deg_to_rads;
     double xpos = 0, ypos = 0, thetapos = 0;
@@ -55,7 +55,7 @@ int main(int argc, char const *argv[])
     while (true) {
         odo.get_pos(&xpos, &ypos, &thetapos);
         teensy.set_position(xpos, ypos, thetapos);
-        lguSleep(0.1);
+        lguSleep(0.5);
     }
     #endif
 

@@ -38,8 +38,8 @@ static void *kinematic_chain(void *args) {
     steppers->slider_move(SliderHigh, CALL_BLOCKING);
     grpDeployer->idle();
 
-    storage_slot_t slotID;
-    storage_content_t toDrop;
+    storage_slot_t slotID = SlotInvalid;
+    storage_content_t toDrop = ContainsNothing;
     while (1) {
         if (state == stateKC) {
             usleep(50000);
@@ -145,8 +145,8 @@ void ActionPlanter::do_action() {
     if (pthread_create(&KCID, NULL, kinematic_chain, NULL) != 0) return;
 
     double xPlanter, yPlanter, thetaPlanter;
-    xPlanter = path->x[path->nNodes];
-    yPlanter = path->y[path->nNodes];
+    xPlanter = path->x[path->nNodes-1];
+    yPlanter = path->y[path->nNodes-1];
     thetaPlanter = path->thetaEnd;
     if (path_following_to_action(path)) return leave();
 

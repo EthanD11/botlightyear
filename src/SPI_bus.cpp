@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <stdio.h>
+#include <unistd.h>
 
 //#define VERBOSE
 
@@ -64,6 +65,7 @@ void SPIBus::lock() {
 }
 
 void SPIBus::unlock() {
+    // usleep(50000);
     pthread_mutex_unlock(&mutex);
 }
 

@@ -18,8 +18,10 @@ typedef enum {
 /*The position of a flaps*/
 typedef enum {
     FlapsOpen, 
+    FlapsApproachPlant,
     FlapsPlant, 
-    FlapsPot
+    FlapsPot,
+    FlapsIntermediatePot
 } flaps_pos_t;
 
 typedef enum {
@@ -29,7 +31,8 @@ typedef enum {
     //SliderPlate, 
     //SliderTake, 
     SliderDepositPot, 
-    SliderIntermediateLow
+    SliderIntermediateLow,
+    SliderPreparePot
 } slider_pos_t;
 
 class Steppers : public SPIUser, public GPIOUser

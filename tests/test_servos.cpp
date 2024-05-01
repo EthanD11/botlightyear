@@ -42,7 +42,22 @@ int main(int argc, char const *argv[])
     // sleep(1);
     servoGripperDeployer.idle();
 
-    // servoGripperHolder.open();
+    // for (size_t i = 0; i < 5; i++)
+    // {
+    //     servoGripperHolder.open_full();
+    //     sleep(1);
+    //     servoGripperHolder.hold_pot();
+    //     sleep(1);
+    // }
+    servoGripperDeployer.deploy(); 
+    // servoGripperHolder.close();
+    servoGripperHolder.open();
+    // sleep(1);
+    // servoGripperHolder.open_full();
+
+    sleep(5); 
+    servoGripperDeployer.idle();
+    servoGripperHolder.idle();
 
     return 0;
 }

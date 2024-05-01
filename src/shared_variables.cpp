@@ -5,7 +5,7 @@
 
 //#define VERBOSE
 
-pthread_rwlock_t robotPosLock, advPosLock;
+static pthread_rwlock_t robotPosLock, advPosLock;
 
 SharedVariables::SharedVariables()
 {
@@ -23,6 +23,9 @@ SharedVariables::SharedVariables()
     }
     for (uint8_t j=0; j<5; j++) valids[j] = 0; 
     nFreeSlots = 8;
+    spBlockDone = 0; 
+    backToBaseDone = 0;
+    goingToBase = 0;
 
     xAdv = 400; yAdv = 0; dAdv = 400; aAdv = 0;
 
@@ -67,16 +70,12 @@ void SharedVariables::start_timer() {
     #endif
     usleep(1000000);
 
-    #ifdef VERBOSE
     printf("Waiting start of the game... \n");
-    #endif
 
     pins->wait_for_gpio_value(StartingCordGPIO, 1, 2000000);
     time(&tStart);
 
-    #ifdef VERBOSE
     printf("Game started! \n");
-    #endif
 }
 
 int8_t SharedVariables::update_and_get_timer() {
@@ -86,8 +85,11 @@ int8_t SharedVariables::update_and_get_timer() {
 void SharedVariables::get_robot_pos(double *x, double *y, double *theta) {
     pthread_rwlock_rdlock(&robotPosLock);
     if (x != NULL) *x = this->x;
+    // else printf("x is NULL\n");
     if (y != NULL) *y = this->y;
+    // else printf("y is NULL\n");
     if (theta != NULL) *theta = this->theta;
+    // else printf("theta is NULL\n");
     pthread_rwlock_unlock(&robotPosLock);
 }
 

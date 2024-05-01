@@ -7,10 +7,16 @@
 #include <cmath>
 
 #define VERBOSE
+//#define OPPONENT_UCL
 
 #ifdef VERBOSE
 #include <stdio.h>
 #endif
+
+#define PERIODIC(a,lb,ub) ((a)>(ub) ? ((lb)+(a)-(ub)) :    ((a)<(lb) ? (ub)+(a)-(lb) : (a)))
+#define PIPERIODIC(a) PERIODIC(a, -M_PI, M_PI)
+
+bool previous_action_is_sp_shared = false;
 
 typedef enum _state : int8_t {
     Path_Following, // Moving to destination
@@ -77,7 +83,7 @@ static void *kinematic_chain(void* argv) {
 
             case Solar_Panel: 
                 #ifdef VERBOSE
-                printf("SP Thread: Solar_Panel\n SP Thread sp_counter: %d\n SP Thread dxl_angle: %d\n", sp_counter_glob, dxl_angle); 
+                printf("SP Thread: Solar_Panel\n SP Thread sp_counter: %d\n SP Thread dxl_angle: %.3f\n", sp_counter_glob, dxl_angle); 
                 #endif
 
                 stateKC = Solar_Panel; 
@@ -158,9 +164,16 @@ void ActionSP::do_action() {
     double theta_end = path->thetaEnd;
 
     shared.steppers->flaps_move(FlapsPlant); 
+    if (!previous_action_is_sp_shared) {
+        printf("Initiating path following\n");
+        if (path_following_to_action(path) != 0) return leave();
+        previous_action_is_sp_shared = true; 
+    } else {
+        printf("Iniitating position control to reserved sp\n");
+        teensy->set_position_controller_gains(0.4, 5.0, -0.1, 3.0);
+        if (action_position_control(path->x[path->nNodes-1]-0.05, path->y[path->nNodes-1], -M_PI/2.0)) return leave();
+    }
 
-    if (path_following_to_action(path)) return leave();
-     
     // Step
     double step;
     if (sp_direction == Forward) {
@@ -170,17 +183,18 @@ void ActionSP::do_action() {
     }
 
     // Position of first shared solar panel
-    double x1 = 1.790;
+    double x1 = 1.780;
     double y1 = path->y[ncheckpoints-1]-step; 
 
     // Set position control gains
     double kp = 0.8;
-    double ka = 2.5;
-    double kb = -1.75;
+    double ka = 4.0;
+    double kb = -1.5;
     double kw = 4.0;
     teensy->set_position_controller_gains(kp, ka, kb, kw);
     
-    if (action_position_control(x1, y1, -M_PI_2)) return leave();   
+    printf("SP do_action: pos ctrl backward\n");
+    if (action_position_control(x1, y1, -M_PI_2) != 0) return leave();   
 
     #ifdef VERBOSE
     printf("SP do_action: Successfull Path Following\n"); 
@@ -193,12 +207,24 @@ void ActionSP::do_action() {
 
         state = Solar_Panel; 
         while (stateKC != Solar_Panel) usleep(50000);
-
+        printf("SP do_action: State KC == Solar_panel");
         if (reserved) {
             camera_angle = 0; 
+            #ifdef OPPONENT_UCL
+            camera_angle = 180; 
+            #endif
         }
         else {
-            camera_angle = tagSolar(); 
+            double tag; 
+            tag = tagSolar(); 
+            camera_angle = tag; 
+            #ifdef OPPONENT_UCL
+            if (team == TeamBlue) {
+                camera_angle = PIPERIODIC(90-tag); 
+            } else if (team == TeamYellow) {
+                camera_angle = PIPERIODIC(90+tag); 
+            }
+            #endif
         }
 
         #ifdef VERBOSE
@@ -222,7 +248,7 @@ void ActionSP::do_action() {
 
         if (sp_counter_glob >= 1) {
             dxl_angle = camera_angle;
-            if (action_position_control(x1, y1, -M_PI_2)) return leave();
+            if (action_position_control(x1, y1, -M_PI_2) != 0) return leave();
 
             #ifdef VERBOSE
             printf("SP do_action: Successfull Postion Control\n"); 
@@ -237,6 +263,11 @@ void ActionSP::do_action() {
     state = End;
     pthread_join(KCID, NULL);
     shared.steppers->flaps_move(FlapsOpen);
+    if (reserved) {
+        shared.SPsDone[1]=1;
+    } else {
+        shared.SPsDone[0]=1; 
+    }
 }
 
     

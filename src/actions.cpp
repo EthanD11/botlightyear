@@ -2,13 +2,13 @@
 #include <cmath>
 #include <algorithm>
 
-//#define VERBOSE
+#define VERBOSE
 #include <stdio.h>
 
 uint8_t closer_in_path(graph_path_t *path, double xr, double yr)
 {
     double distance, min_distance = 3.6;
-    uint8_t found_node_id;
+    uint8_t found_node_id = 0;
 
     for (uint8_t i = 0; i < path->nNodes; i++)
     {
@@ -30,8 +30,10 @@ uint8_t adversary_in_path(graph_path_t *path, uint8_t closer_node_id)
     shared.graph->level_rdlock();
     for (uint8_t i = closer_node_id; i < std::min(closer_node_id + 4, (int)path->nNodes); i++)
     {
-        if ((shared.graph->nodes[path->idNodes[i]].level & NODE_ADV_PRESENT) != 0)
+        if ((shared.graph->nodes[path->idNodes[i]].level & NODE_ADV_PRESENT) != 0) {
+            shared.graph->level_unlock();
             return -1;
+        }
     }
     shared.graph->level_unlock();
     return 0;
@@ -41,6 +43,7 @@ const double safety_distance_to_walls = 0.2;
 const double safety_distance_to_pami_side_wall = 0.3;
 const double dist_useless = 0.05;
 uint8_t back_manoeuvre(double backward_dist) {
+    //do {
     // 1) Initiate pos control gains
     shared.teensy->set_position_controller_gains(
         0.8, // kp
@@ -82,6 +85,7 @@ uint8_t back_manoeuvre(double backward_dist) {
         // 5.2) Wait for position control to be over
         while ((shared.teensy->ask_mode()) != ModePositionControlOver) usleep(10000);
     }
+    // } while (shared.graph->identify_pos(xpos,ypos).level & NODE_ADV_PRESENT != 0)
 
     return 1;
 }
@@ -94,20 +98,22 @@ int8_t path_following_to_action(graph_path_t *path)
     printf("Entering path following to action\n"); 
 
     Teensy *teensy = shared.teensy;
+    teensy->idle();
+    usleep(50000);
 
     // Set path following from path planning (decision)
     int ncheckpoints = (int)path->nNodes;
     double *x = path->x;
     double *y = path->y;
-    for (int i=0; i<ncheckpoints; i++) {
+    /*for (int i=0; i<ncheckpoints; i++) {
         printf("Node %d : x :%.3f and y: %.3f \n", i, x[i], y[i]);
-    }
+    }*/
     double theta_start = path->thetaStart;
     double theta_end = path->thetaEnd;
 
-    double kp = 1.5;
-    double ka = 8;
-    double kb = -1.5;
+    double kp = 1.0;
+    double ka = 6.0;
+    double kb = -1.0;
     double kw = 4.0;
     teensy->set_position_controller_gains(kp, ka, kb, kw);
 
@@ -116,15 +122,33 @@ int8_t path_following_to_action(graph_path_t *path)
 
     double first_node_theta = atan2(y[1] - yCurrent, x[1] - xCurrent);
     #ifdef VERBOSE
-    printf("First node theta : %.3f and current theta : %.3f \n", first_node_theta, theta_start);
+    //printf("First node theta : %.3f and current theta : %.3f \n", first_node_theta, theta_start);
     #endif
 
+    uint8_t teensyStart = 0;
+
     if (trigo_diff(first_node_theta, theta_start) > M_PI_4)
-    { 
+    {
+        // double towardsCenter = atan2(1.5 - yCurrent, 1 - xCurrent);
+        // teensy->pos_ctrl(xCurrent, yCurrent, towardsCenter);
+        // sleep(1);
+        
+        shared.get_robot_pos(&xCurrent, &yCurrent, NULL);
         teensy->pos_ctrl(xCurrent, yCurrent, first_node_theta);
         #ifdef VERBOSE
         printf("Position control before PF to %.3f, %.3f, %.3f\n", xCurrent, yCurrent, first_node_theta);
         #endif
+        while (teensy->ask_mode() == ModePositionControlOver || teensy->ask_mode() == ModeIdle) {
+            teensyStart++;
+            if (teensyStart > 60) {
+                printf("Relaunching pos control to theta first node\n");
+                teensy->idle();
+                usleep(50000);
+                shared.get_robot_pos(&xCurrent, &yCurrent, NULL);
+                teensy->pos_ctrl(xCurrent, yCurrent, first_node_theta);
+            }
+            usleep(50000);
+        }
         while ((teensy->ask_mode()) != ModePositionControlOver)
         {
             usleep(10000);
@@ -133,19 +157,42 @@ int8_t path_following_to_action(graph_path_t *path)
     #ifdef VERBOSE
     printf("PF\n");
     #endif
-    for (int i=0; i<ncheckpoints; i++) {
+    /*for (int i=0; i<ncheckpoints; i++) {
         printf("Node %d : x :%.3f and y: %.3f \n", i, x[i], y[i]);
-    }
+    }*/
 
-    teensy->path_following(x, y, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
+    teensy->path_following(x, y, ncheckpoints, first_node_theta, theta_end, vref, dist_goal_reached);
 
     // Check Teensy mode
     #ifdef VERBOSE
-    printf("Wait for Teensy ok\n");
+    //printf("Wait for Teensy ok\n");
     #endif
-    while (teensy->ask_mode() == ModePositionControlOver || teensy->ask_mode() == ModeIdle) usleep(30000);
+    while (teensy->ask_mode() == ModePositionControlOver || teensy->ask_mode() == ModeIdle) { 
+        teensyStart++;
+        if (teensyStart > 60) {
+            printf("Relaunching path following due to mode unchanged\n");
+            teensy->idle();
+            usleep(50000);
+            shared.get_robot_pos(&xCurrent, &yCurrent, NULL);
+            teensy->pos_ctrl(xCurrent, yCurrent, first_node_theta);
+            printf("Starting position control to (%f,%f,%f)\n", xCurrent, yCurrent, first_node_theta);
+            sleep(1);
+            teensy->path_following(x, y, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
+            for (int i = 0; i < ncheckpoints; i++) {
+                printf("Node %d; (%f,%f)\n", i, x[i], y[i]);
+            }
+            teensyStart = 0;
+        } 
+        usleep(300000);
+    }
+    teensyStart = 0;
     while ((teensy->ask_mode()) != ModePositionControlOver)
     {
+        // if (!shared.goingToBase && shared.update_and_get_timer() < 35) { // TODO Rework timer aborts
+        //     printf("Path follwing aborted because of timer\n");
+        //     return -1;
+        // }
+        
         // Get update on robot and adversary position
         double xr = 0, yr = 0, tr = 0;
         shared.get_robot_pos(&xr, &yr, &tr);
@@ -160,29 +207,45 @@ int8_t path_following_to_action(graph_path_t *path)
         {
             teensy->idle();
             #ifdef VERBOSE
-            printf("Adversary in path !!\n");
+            printf("Adversary in path !! %d %d\n", xa, ya, da, ta);
             #endif
             sleep(1);
             return -1;
         }
 
         // Security check: adversary too close
-        double tolerance = 0.7;
-        if ((da < tolerance) && (abs(ta) < M_PI_4))
+        double tolerance = 0.75;
+        //printf("da =%f, ta : %f \n", da, ta);
+        if ((da < tolerance) && (abs(ta) < M_PI/3))
         {
             #ifdef VERBOSE
             printf("Adversary too close %f %f !!\n", da, ta);
             #endif
             teensy->idle();
             usleep(300000);
-            back_manoeuvre(0.4);
+            back_manoeuvre(0.6);
             return -1;
+        }
+
+        if (hypot(xr-xCurrent,yr-yCurrent) < 0.03) {
+            teensyStart++;
+            if (teensyStart > 100) {
+                printf("Relaunching path following due to absence of movement\n");
+                teensy->idle();
+                usleep(50000);
+                teensy->path_following(x,y,ncheckpoints,theta_start,theta_end,vref, dist_goal_reached);
+                teensyStart = 0;
+            }
         }
 
         if (teensy->ask_mode() == ModeIdle) {
 
+            #ifdef VERBOSE
+            printf("Teensy unstable, restarting\n");
+            #endif
+
             if (closer_node_id >= path->nNodes-2) {
-                teensy->pos_ctrl(x[path->nNodes], y[path->nNodes], theta_end);
+                teensy->pos_ctrl(x[path->nNodes-1], y[path->nNodes-1], theta_end);
             } else {
                 closer_node_id++;
 
@@ -198,10 +261,9 @@ int8_t path_following_to_action(graph_path_t *path)
             }
         }
 
-        usleep(10000);
+        usleep(50000);
     }
 
-    usleep(3000000);
     return 0; // Adversary not found and successfull path following
 }
 
@@ -228,19 +290,36 @@ int8_t action_position_control(double x_end, double y_end, double theta_end)
     uint8_t stopped = 0;
 
     // Orientation with position control
+
+    uint8_t teensyStart = 0;
     teensy->pos_ctrl(x_end, y_end, theta_end);
-    usleep(1000);
+    while (teensy->ask_mode() == ModePositionControlOver || teensy->ask_mode() == ModeIdle) {
+        teensyStart++;
+        if (teensyStart > 60) {
+            printf("Relaunching pos control to theta first node\n");
+            teensy->idle();
+            usleep(50000);
+            shared.get_robot_pos(&x, &y, NULL);
+            teensy->pos_ctrl(x_end, y_end, theta_end);
+        }
+        usleep(50000);
+    }
 
     // Waiting end to start function turn_solar_panel
     // Check Teensy mode
     while ((teensy->ask_mode()) != ModePositionControlOver)
     {
 
+        // if (!shared.goingToBase && shared.update_and_get_timer() < 30) { // TODO Rework timer aborts
+        //     printf("Position control aborted because of timer\n");
+        //     return -1;
+        // }
+
         // Retrieve adversary current position
         double d_adv = 0, a_adv = 0;
         shared.get_adv_pos(NULL, NULL, &d_adv, &a_adv);
         #ifdef VERBOSE
-        printf("Adversary position from shared: %.3f, %.3f\n", d_adv, a_adv);
+        //printf("Adversary position from shared: %.3f, %.3f\n", d_adv, a_adv);
         #endif
 
         if ((!reverse && d_adv < 0.4 && std::abs(a_adv) < M_PI/3) || 
