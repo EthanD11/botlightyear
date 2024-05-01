@@ -112,7 +112,7 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
     double distanceRoue = 0.28;
     double deltaApproach = 0.1;
     double rayonPot = 0.08;
-    double deltaRayonPot35 = 0.01;
+    double deltaRayonPot35 = 0.015;
 
     double posPotXApproach, posPotYApproach,posPotThetaApproach;
     double posPotXPrise, posPotYPrise ,posPotThetaPrise;
