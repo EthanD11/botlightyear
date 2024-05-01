@@ -199,25 +199,36 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
     if (pthread_create(&KCID, NULL, take_pot_kinematicChain_SecondPart, (void *)&slotNumber) != 0) return;
     //take_pot_kinematicChain_SecondPart(slotNumber);
 
-    // recule, réouvre flaps et vas au prochain pot
-    if (action_position_control(posPotXApproach,posPotYApproach,posPotThetaApproach)==-1) return; 
-    if (removePot4) {
-        // remove pot 4
+    // recule, réouvre flaps et vas au prochain pot si doit pas dabord degager l'autre
+    if (removePot4 == false){
+        if (action_position_control(posPotXApproach,posPotYApproach,posPotThetaApproach)==-1) return; 
+        steppers->flaps_move(FlapsOpen);
         servoFlaps->raise();
+    }
+    if (removePot4) {
+         // se repositionne face au pot centraux
+        posPotXApproach = posPotX+(distanceRoue+deltaApproach)*cos(posPotTheta);
+        posPotYApproach = posPotY+(distanceRoue+deltaApproach)*sin(posPotTheta);
+        posPotThetaApproach = posPotTheta-M_PI;
+        posPotThetaPrise = periodic_angle(posPotThetaPrise);
+        if (action_position_control(posPotXApproach,posPotYApproach,posPotThetaApproach)==-1) return; 
+        // remove pot 4
+        //servoFlaps->raise();
         printf("starting remove pot 4\n");
-        if (numeroPot == 1 || numeroPot == 3){posPotThetaPrise = posPotTheta+betaPot1-M_PI;}//approche comme pot 1
-        else {posPotThetaPrise = posPotTheta-betaPot1-M_PI;}//approche comme pot 2
-        posPotXPrise = posPotX+(distanceRoue+rayonPot)*cos(posPotThetaPrise+M_PI);
-        posPotYPrise = posPotY+(distanceRoue+rayonPot)*sin(posPotThetaPrise+M_PI);
+        posPotXPrise = posPotX+(distanceRoue)*cos(posPotTheta);
+        posPotYPrise = posPotY+(distanceRoue)*sin(posPotTheta);
+        posPotThetaApproach = posPotTheta-M_PI;
         posPotThetaPrise = periodic_angle(posPotThetaPrise);
         printf("target for remove 4 : %f,%f,%f\n",posPotXPrise,posPotYPrise,posPotThetaPrise);
-        sleep(4);
         if (action_position_control(posPotXPrise,posPotYPrise,posPotThetaPrise)==-1) return; 
         steppers->flaps_move(FlapsPot,CALL_BLOCKING);
         if (action_position_control(posPotXApproach,posPotYApproach,posPotThetaApproach)==-1) return; 
+        steppers->flaps_move(FlapsOpen);
+        usleep(400000);
+        servoFlaps->raise();
     }
-    steppers->flaps_move(FlapsOpen);
-    servoFlaps->raise();
+   
+    
     while (stopBeforeMovePot == true){usleep(1000);}
 }
 
@@ -275,7 +286,7 @@ void ActionPots::do_action() {
 
     }
     printf("come back pos initial: %f, %f, %f\n", xposInitiale, yposInitiale, theta_posInitiale);
-    sleep(10);
+
     if (action_position_control(xposInitiale,yposInitiale,periodic_angle(theta_posInitiale+M_PI))==-1) return; 
 
     while(ThreadKinematicOccuped == true) {usleep(1000);};

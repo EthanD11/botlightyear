@@ -53,7 +53,7 @@ void GripperDeployer::half() {
 }
 
 void GripperDeployer::pot_deposit() {
-    this->send_dutyCycle(500); 
+    this->send_dutyCycle(480); 
 }
 
 void GripperDeployer::raise() {
