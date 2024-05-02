@@ -317,7 +317,7 @@ void ActionPots::do_action() {
             if ((numeroPot == 3 || numeroPot == 5)&& i == this->potCounter-1) {removePot4KinematicChaine = true;} 
             else {removePot4KinematicChaine = false;}
         }
-        if ((i == this->potCounter-1)) {freeTheGardenLastTurn = this->freeThGarden;}
+        if (this->freeTheGarden && i == this->potCounter-1) {freeTheGardenLastTurn = true;} 
         else {freeTheGardenLastTurn = false;}
 
         take_pot_kinematicChain(plate_pos,numeroPot,pathTarget, removePot4KinematicChaine,freeTheGardenLastTurn); // Launches the kinematic chain
