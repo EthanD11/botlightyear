@@ -165,7 +165,7 @@ void decide_possible_actions() {
     } else {
         printf("Path is NULL\n");
     }
-    possible_actions[0] = new ActionPots(path, 4,true); 
+    possible_actions[0] = new ActionPots(path, 2,false,true); 
     n_possible_actions = 1; 
     return;
 

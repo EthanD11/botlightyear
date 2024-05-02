@@ -47,7 +47,7 @@ void *take_pot_kinematicChain_SecondPart(void *args ){
 }
 
 
-void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget,bool removePot4 = false) {
+void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget,bool removePot4 = false,bool freeTheGarden = false) {
     GripperHolder* holder = shared.grpHolder; 
     GripperDeployer* deployer = shared.grpDeployer; 
     Steppers* steppers = shared.steppers; 
@@ -62,6 +62,7 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
     double posPotX ; 
     double posPotY ;
     double posPotTheta;
+    int clearanceAngle;
     switch (pathTarget)
     {
     case 44:
@@ -69,36 +70,42 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
         posPotX = 0.6125;
         posPotY = 0.035;
         posPotTheta = M_PI_2;
+        clearanceAngle = -M_PI_2;
         break;
     case 42:
         //cote droit a gauche
         posPotX = 1.3875;
         posPotY = 0.035;
         posPotTheta = M_PI_2;
+        clearanceAngle = -M_PI_2;
         break;
     case 37:
         //dessus cote droit
         posPotX = 1.965;
         posPotY = 1.0;
         posPotTheta = M_PI;
+        freeTheGarden = false
         break;
     case 15:
         //dessus cote gauche
         posPotX = 1.965;
         posPotY = 2.0;
         posPotTheta = M_PI;
+        freeTheGarden = false
         break;
     case 3:
         //cote gauche en haut
         posPotX = 1.3875;
         posPotY = 2.965;
         posPotTheta = -M_PI_2;
+        clearanceAngle = M_PI_2;
         break;
     case 1:
         //cote gauche en bas
         posPotX = 0.6125;
         posPotY = 2.965;
         posPotTheta = -M_PI_2;
+        clearanceAngle = M_PI_2;
         break;
     default:
         printf("pathTarget non reconnu comme une prise de pot\n");
@@ -200,6 +207,18 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
     //take_pot_kinematicChain_SecondPart(slotNumber);
 
     // recule, réouvre flaps et vas au prochain pot si doit pas dabord degager l'autre
+    switch (numeroPot){ // recule plus pour pot 1 et 2
+    case 1:
+        posPotXApproach = posPotX+(distanceRoue+2*deltaApproach+rayonPot)*cos(betaPot1+posPotTheta);
+        posPotYApproach = posPotY+(distanceRoue+2*deltaApproach+rayonPot)*sin(betaPot1+posPotTheta);
+        break;
+    case 2:
+        posPotXApproach = posPotX+(distanceRoue+2*deltaApproach+rayonPot)*cos(-betaPot1+posPotTheta);
+        posPotYApproach = posPotY+(distanceRoue+2*deltaApproach+rayonPot)*sin(-betaPot1+posPotTheta);
+        break;  
+    default:
+        break;
+    }
     if (removePot4 == false){
         if (action_position_control(posPotXApproach,posPotYApproach,posPotThetaApproach)==-1) return; 
         steppers->flaps_move(FlapsOpen);
@@ -227,8 +246,25 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
         usleep(400000);
         servoFlaps->raise();
     }
-   
-    
+    // si doit degager TOUT les autres pots
+    if (freeTheGarden){
+        printf("starting rempve all pots\n");
+        steppers->flaps_move(FlapsOpen);
+        servoFlaps->raise();
+        // se repositionne face au pot centraux
+        double posPotXThrow1 = posPotX+(0.030)*cos(posPotTheta +(M_PI/6)*(-clearanceAngle/abs(clearanceAngle)));
+        double posPotYThrow1 = posPotY+(0.030)*sin(posPotTheta +(M_PI/6)*(-clearanceAngle/abs(clearanceAngle)));
+        double posPotThetaThrow1 = posPotTheta+ (2*M_PI/6)*(-clearanceAngle/abs(clearanceAngle));
+        double posPotXThrow2 = posPotX+(0.021)*cos(posPotTheta);
+        double posPotYThrow2 = posPotY;
+        double posPotThetaThrow2 = posPotTheta+clearanceAngle;
+        posPotThetaThrow1 = periodic_angle(posPotThetaThrow1);
+        posPotThetaThrow2 = periodic_angle(posPotThetaThrow2);
+        printf("target 1 for remove all pots : %f,%f,%f\n",posPotXThrow1,posPotYThrow1,posPotThetaThrow1);
+        if (action_position_control(posPotXThrow1,posPotYThrow1,posPotThetaThrow1)==-1) return;
+        printf("target 2 for remove all pots : %f,%f,%f\n",posPotXThrow2,posPotYThrow2,posPotThetaThrow2);
+        if (action_position_control(posPotXThrow2,posPotYThrow2,posPotThetaThrow2)==-1) return;
+    }   
     while (stopBeforeMovePot == true){usleep(1000);}
 }
 
@@ -265,6 +301,7 @@ void ActionPots::do_action() {
     double xposInitiale, yposInitiale, theta_posInitiale;
     int pathTarget;
     bool removePot4KinematicChaine = false;
+    bool freeTheGardenLastTurn;
     if (path_following_to_action(path) == -1) return; 
     
     pathTarget = path->target;
@@ -280,8 +317,10 @@ void ActionPots::do_action() {
             if ((numeroPot == 3 || numeroPot == 5)&& i == this->potCounter-1) {removePot4KinematicChaine = true;} 
             else {removePot4KinematicChaine = false;}
         }
+        if ((i == this->potCounter-1)) {freeTheGardenLastTurn = this->freeThGarden;}
+        else {freeTheGardenLastTurn = false;}
 
-        take_pot_kinematicChain(plate_pos,numeroPot,pathTarget, removePot4KinematicChaine); // Launches the kinematic chain
+        take_pot_kinematicChain(plate_pos,numeroPot,pathTarget, removePot4KinematicChaine,freeTheGardenLastTurn); // Launches the kinematic chain
         update_plate_content(nextSlot, ContainsPot); 
 
     }

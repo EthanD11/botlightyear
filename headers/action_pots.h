@@ -11,8 +11,14 @@ class ActionPots : public Action
 private: 
     uint8_t potCounter; 
     bool removePot4;
+    bool freeThGarden;
 public:
-    ActionPots(graph_path_t *path, uint8_t potNumber,bool removeDoublePot) : Action(TakePots, true, path) {
+    // remove pot 
+    // potNumber: 1, 2, 3, 4 is the number of the pot to take
+    // removeDoublePot: true if you want to withdraw the double pot after taking either pot 3 or 5 
+    //                  (won't happen if you don't take one of the neighboring pots!!)
+    // freeTheGarden: true if you want to completely free the planter from all remaining pots after taking the pot
+    ActionPots(graph_path_t *path, uint8_t potNumber,bool removeDoublePot = false,bool freeTheGarden= false) : Action(TakePots, true, path) {
         this->potCounter = potNumber;
         this->removePot4 = removeDoublePot;
         this->needs[0] = 1;  // SptrPlate
