@@ -273,10 +273,10 @@ int8_t action_position_control(double x_end, double y_end, double theta_end)
     Teensy *teensy = shared.teensy;
 
     // Set position control gains (see with Ethan?)
-    double kp = 0.8;
-    double ka = 2.5;
-    double kb = -1.0;
-    double kw = 4.0;
+    // double kp = 0.8;
+    // double ka = 2.5;
+    // double kb = -0.5;
+    // double kw = 4.0;
     // teensy->set_position_controller_gains(kp, ka, kb, kw);
 
     // Retrieve robot current position
@@ -330,7 +330,7 @@ int8_t action_position_control(double x_end, double y_end, double theta_end)
                 printf("Adversary too close for position control !!\n");
             }
             if (stopped >= 300) {
-                teensy->set_position_controller_gains(kp, ka, kb, kw);
+                // teensy->set_position_controller_gains(kp, ka, kb, kw);
                 return -1;
             } 
         } else if (stopped) {
@@ -340,7 +340,7 @@ int8_t action_position_control(double x_end, double y_end, double theta_end)
 
         usleep(10000);
     }
-    teensy->set_position_controller_gains(kp, ka, kb, kw);
+    // teensy->set_position_controller_gains(kp, ka, kb, kw);
     return 0;
 }
 

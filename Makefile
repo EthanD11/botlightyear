@@ -37,6 +37,8 @@ run: all
 valgrind: all
 	@valgrind --leak-check=yes --track-origins=yes ./exe_botlightyear
 
+idle: test_idle
+
 #Create the OBJ_DIR directory
 $(OBJ_DIR):
 	@mkdir -p $(OBJ_DIR)

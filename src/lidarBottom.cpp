@@ -1,14 +1,14 @@
 #include "lidarBottom.h"
 #include "lidar.h"
 #include <cmath>
-//TODO ADAPT POUR YELLOW
 static double sizePlant = 0.051;
 int arraysize = 8000;
 bool printplotpy = false;
 
-bool debug = true;
+bool debug = false;
 
-double rayonZone = 0.3;
+double rayonZone = 0.17;
+double rayonPlante = 0.018;
 
 /// distance between the ref and the bottomLidar
 double dLidarCentre = 0.055;
@@ -93,7 +93,7 @@ void lidarGetPlantPosition(Point *robot, double *angles, double *distances, doub
         ///Modulo
         plantZone[i]->startAngle = moduloLidarZero2PI(plantZone[i]->startAngle);
         plantZone[i]->endAngle = moduloLidarZero2PI(plantZone[i]->endAngle);
-        printf("%d start stop %f %f \n",i, plantZone[i]->startAngle*180.0/M_PI, plantZone[i]->endAngle*180/M_PI);
+        //printf("%d start stop %f %f \n",i, plantZone[i]->startAngle*180.0/M_PI, plantZone[i]->endAngle*180/M_PI);
         if (plantZone[i]->angle < M_PI / 4.0 || plantZone[i]->angle > 7.0 * M_PI / 4.0) {
             plantZone[i]->isVisible = true;
         } else {
@@ -106,6 +106,7 @@ void lidarGetPlantPosition(Point *robot, double *angles, double *distances, doub
     int start, stop, i;
     int countGap = 0;
     double size, a1, a2, d1, d2;
+    d2 = 5.0;
     for (int zp = 0; zp < 6; ++zp) {
         printf("\n");
         if (plantZone[zp]->isVisible) {
@@ -130,34 +131,42 @@ void lidarGetPlantPosition(Point *robot, double *angles, double *distances, doub
                         objet = true;
                         a1 = angles[i];
                         d1 = distances[i];
+                        d2 = 5.0;//pour init la comparaison
                     } else {
                         // object present before: if distance small enough it's the same (delta<3cm) -> nothing to do
                         // delta >3cm : new object
 
                         if (std::abs(d2 - distances[i]) > 0.03) {
                             //what we detect is a new object
-                            plantZone[zp]->aPlant[plantZone[zp]->numberPlant] = moduloLidarMPIPI(a1 + a2) / 2.0;
-                            plantZone[zp]->dPlant[plantZone[zp]->numberPlant] = (d1 + d2) / 2.0;
-                            double gamma = robot->theta + plantZone[zp]->aPlant[plantZone[zp]->numberPlant];
+                            plantZone[zp]->aPlant[plantZone[zp]->numberPlant] = a2;
+                            plantZone[zp]->dPlant[plantZone[zp]->numberPlant] = d2+rayonPlante;
+                            printf("debug d et a : %f %f\n", d2,a2*180.0/M_PI);
+                            double gamma = robot->theta + plantZone[zp]->aPlant[plantZone[zp]->numberPlant] +1.8/180.0*M_PI;
                             double dist = plantZone[zp]->dPlant[plantZone[zp]->numberPlant];
                             plantZone[zp]->xPlant[plantZone[zp]->numberPlant] = robot->x + dist*std::cos(gamma);
                             plantZone[zp]->yPlant[plantZone[zp]->numberPlant] = robot->y + dist*std::sin(gamma);
                             if (debug){
-                            // printf("\nindice1 %d %d", i,j);
-                            printf("plant x = %f y = %f \n",plantZone[zp]->xPlant[plantZone[zp]->numberPlant], plantZone[zp]->yPlant[plantZone[zp]->numberPlant]);
-                            printf("detect d= %f a=%f\n",plantZone[zp]->dPlant[plantZone[zp]->numberPlant],plantZone[zp]->aPlant[plantZone[zp]->numberPlant] );
-                            printf("calcul gamma %f \n", gamma);}
+                                // printf("\nindice1 %d %d", i,j);
+                                printf("plant x = %f y = %f \n",plantZone[zp]->xPlant[plantZone[zp]->numberPlant], plantZone[zp]->yPlant[plantZone[zp]->numberPlant]);
+                                printf("detect d= %f a=%f\n",plantZone[zp]->dPlant[plantZone[zp]->numberPlant],plantZone[zp]->aPlant[plantZone[zp]->numberPlant] );
+                                printf("calcul gamma %f \n", gamma);
+                            }
 
 
                             plantZone[zp]->numberPlant++;
                             /// new object : initial values are stored
                             d1 = distances[i];
                             a1 = angles[i];
+                            d2 = 5.0;//pour init la comparaison
+
                         }
                     }
                     /// distance ok -> next object: update current end values
-                    d2 = distances[i];
-                    a2 = angles[i];
+                    if (d2>distances[i]){
+                        d2 = distances[i];
+                        a2 = angles[i];
+                    }
+                    
 
                     /// we have an element so there are no data gaps
                     countGap = 1;
@@ -166,9 +175,11 @@ void lidarGetPlantPosition(Point *robot, double *angles, double *distances, doub
                     countGap++;
                     if (objet && countGap / d2 > 10) {
                         objet = false;
-                        plantZone[zp]->aPlant[plantZone[zp]->numberPlant] = moduloLidarMPIPI(a1 + a2) / 2.0;
-                        plantZone[zp]->dPlant[plantZone[zp]->numberPlant] = (d1 + d2) / 2.0;
-                        double gamma = robot->theta + plantZone[zp]->aPlant[plantZone[zp]->numberPlant];
+                        plantZone[zp]->aPlant[plantZone[zp]->numberPlant] = a2;
+                        plantZone[zp]->dPlant[plantZone[zp]->numberPlant] = d2+rayonPlante;
+                        printf("debug d et a : %f %f\n", d2,a2*180.0/M_PI);
+
+                        double gamma = robot->theta + plantZone[zp]->aPlant[plantZone[zp]->numberPlant]+1.8/180.0*M_PI;
                         double dist = plantZone[zp]->dPlant[plantZone[zp]->numberPlant];
                         plantZone[zp]->xPlant[plantZone[zp]->numberPlant] = robot->x + dist*std::cos(gamma);
                         plantZone[zp]->yPlant[plantZone[zp]->numberPlant] = robot->y + dist*std::sin(gamma);
@@ -183,9 +194,11 @@ void lidarGetPlantPosition(Point *robot, double *angles, double *distances, doub
                 }
             }
             if (objet) {
-                plantZone[zp]->aPlant[plantZone[zp]->numberPlant] = moduloLidarMPIPI(a1 + a2) / 2.0;
-                plantZone[zp]->dPlant[plantZone[zp]->numberPlant] = (d1 + d2) / 2.0;
-                double gamma = robot->theta + plantZone[zp]->aPlant[plantZone[zp]->numberPlant];
+                plantZone[zp]->aPlant[plantZone[zp]->numberPlant] = a2;
+                plantZone[zp]->dPlant[plantZone[zp]->numberPlant] = d2+rayonPlante;
+                printf("debug d et a : %f %f\n", d2,a2*180.0/M_PI);
+
+                double gamma = robot->theta + plantZone[zp]->aPlant[plantZone[zp]->numberPlant]+1.8/180.0*M_PI;
                 double dist = plantZone[zp]->dPlant[plantZone[zp]->numberPlant];
                 plantZone[zp]->xPlant[plantZone[zp]->numberPlant] = robot->x + dist*std::cos(gamma);
                 plantZone[zp]->yPlant[plantZone[zp]->numberPlant] = robot->y + dist*std::sin(gamma);
@@ -236,6 +249,8 @@ int getNumberOfPlantInAllZone(double x_robot, double y_robot, double theta_robot
     robot->x = x_robot + dLidarCentre * cos(theta_robot);
     robot->y = y_robot + dLidarCentre * sin(theta_robot);
     robot->theta = theta_robot;
+    printf("position odo %f %f %f\nposition lid %f %f\n", x_robot, y_robot,theta_robot*180.0/M_PI, robot->x, robot->y);
+    
     size_t *asize = new size_t[2]{8000, 8000};
     updateDataBottom(angles, distances, quality, asize);
     //updateDataFile(angles, distances, quality, "DataTest/DataP/J-1/testBottom2.txt", asize);
@@ -305,10 +320,10 @@ void initBottomLidar(PlantZone **polarCoord) {
         polarCoord[i]->isVisible = true;
         polarCoord[i]->empty = false;
         polarCoord[i]->numberPlant = 0;
-        polarCoord[i]->aPlant = new double[6];
-        polarCoord[i]->dPlant = new double[6];
-        polarCoord[i]->xPlant = new double[6];
-        polarCoord[i]->yPlant = new double[6];
+        polarCoord[i]->aPlant = new double[20];
+        polarCoord[i]->dPlant = new double[20];
+        polarCoord[i]->xPlant = new double[20];
+        polarCoord[i]->yPlant = new double[20];
         polarCoord[i]->xClosestPlant = 10;
         polarCoord[i]->yClosestPlant = 10;
     }
@@ -475,7 +490,6 @@ void calibrationYellowR1(double* angles, double* distances,size_t arraySize, dou
         //trouver les deux angles,
         //calcule la distance
         //trouver la position du robot et son orientation
-        double dLidarCentre = 0.055;
         int pos2 = (int) (300.0 / (360.0) * arraySize);
         int pos1 = (int) (280.0 / (360.0) * arraySize);
         int back = (int) (1.0/2.0*arraySize);

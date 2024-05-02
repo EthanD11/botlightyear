@@ -19,7 +19,7 @@
 //#define TIME_MEAS
 // #define CLEAR_POTS
 
-//#define LIDAR_BOTTOM
+#define LIDAR_BOTTOM
 // #define LIDAR_TOP
 // #define DXL
 #define ASCII_b 98
@@ -69,15 +69,15 @@ void ask_user_input_params() {
             std::cin >> s;
             if (!s.compare("bottomright")) {
                 shared.startingBaseID = shared.graph->friendlyBases[0];
-                #ifdef CLEAR_POTS
-                shared.odo->set_pos(0.035,0.165,0);
-                shared.set_robot_pos(0.035,0.165,0);
-                shared.teensy->set_position(0.035,0.165,0);
-                #else
-                shared.odo->set_pos(0.035,0.165,0);
-                shared.set_robot_pos(0.035,0.165,0);
-                shared.teensy->set_position(0.035,0.165,0);
-                #endif
+                // #ifdef CLEAR_POTS
+                // shared.odo->set_pos(0.035,0.165,0);
+                // shared.set_robot_pos(0.035,0.165,0);
+                // shared.teensy->set_position(0.035,0.165,0);
+                // #else
+                shared.odo->set_pos(0.035,0.155,0);
+                shared.set_robot_pos(0.035,0.155,0);
+                shared.teensy->set_position(0.035,0.155,0);
+                // #endif
                 break;
             }
             if (!s.compare("topright")) {
@@ -103,15 +103,15 @@ void ask_user_input_params() {
             std::cin >> s;
             if (!s.compare("bottomleft")) {
                 shared.startingBaseID = shared.graph->friendlyBases[0];
-                #ifdef CLEAR_POTS
-                shared.odo->set_pos(0.035,2.835,0);
-                shared.set_robot_pos(0.035,2.835,0);
-                shared.teensy->set_position(0.035,2.835,0);
-                #else
-                shared.odo->set_pos(0.225,2.965,-M_PI_2);
-                shared.set_robot_pos(0.225,2.965,-M_PI_2);
-                shared.teensy->set_position(0.225,2.965,-M_PI_2);
-                #endif
+                // #ifdef CLEAR_POTS
+                // shared.odo->set_pos(0.035,2.835,0);
+                // shared.set_robot_pos(0.035,2.835,0);
+                // shared.teensy->set_position(0.035,2.835,0);
+                // #else
+                shared.odo->set_pos(0.035,2.845,0);
+                shared.set_robot_pos(0.035,2.845,0);
+                shared.teensy->set_position(0.035,2.845,0);
+                // #endif
                 break;
             }
             if (!s.compare("topleft")) {
@@ -168,7 +168,7 @@ void init_and_wait_for_start() {
     double wn = 0.2; // Command filter discrete cutoff frequency
     double kv_en = 0.;
     shared.teensy->set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
-    shared.teensy->set_position_controller_gains(1.0,6.0,-1.0,4.0);
+    shared.teensy->set_position_controller_gains(0.4,2.5,-1.5,1.0);
     
     if (pthread_create(&localizerID, NULL, localizer, NULL) != 0) exit(4);
     #ifdef LIDAR_BOTTOM
@@ -284,7 +284,7 @@ void *localizer(void* arg) {
         printf("Odometry took %ld clock cycles to update.\n\tCumulated time since iteration start : %ld\n", odoClock - lidarClock, odoClock - start);
         printf("Teensy took %ld clock cycles to update.\n\tCumulated time since iteration start : %ld\n", teensyClock - odoClock, teensyClock - start);
         #endif
-        usleep(350000);
+        usleep(500000);
     }
     
     #ifdef LIDAR_TOP
