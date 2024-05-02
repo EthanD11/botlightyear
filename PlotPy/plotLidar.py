@@ -19,8 +19,9 @@ def plotpolar(filename):
 
     for j in range(1, len(fichier)):
         tempo = fichier[j].split()
-        angles.append(float(tempo[0])*2*np.pi/360)
-        dist.append(float(tempo[1]))
+        if (float(tempo[1])<1.0):
+            angles.append(float(tempo[0])*2*np.pi/360)
+            dist.append(float(tempo[1]))
     plt.polar(angles, dist, ".", color ="green")
     plt.show()
 
@@ -60,6 +61,5 @@ def plotAngle(filename):
 
 
 if __name__ == '__main__':
-    for i in range(102,106) :
-        plotpolar("./PlotPy/TestMartinLidarBottom/testBottom"+str(i)+".txt")
+    plotpolar("PlotPy/testBottom.txt")
 
