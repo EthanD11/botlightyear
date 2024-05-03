@@ -62,7 +62,7 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
     double posPotX ; 
     double posPotY ;
     double posPotTheta;
-    int clearanceAngle;
+    double clearanceAngle;
     switch (pathTarget)
     {
     case 44:
@@ -84,14 +84,14 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
         posPotX = 1.965;
         posPotY = 1.0;
         posPotTheta = M_PI;
-        freeTheGarden = false
+        freeTheGarden = false;
         break;
     case 15:
         //dessus cote gauche
         posPotX = 1.965;
         posPotY = 2.0;
         posPotTheta = M_PI;
-        freeTheGarden = false
+        freeTheGarden = false;
         break;
     case 3:
         //cote gauche en haut
@@ -252,14 +252,15 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
         steppers->flaps_move(FlapsOpen);
         servoFlaps->raise();
         // se repositionne face au pot centraux
-        double posPotXThrow1 = posPotX+(0.030)*cos(posPotTheta +(M_PI/6)*(-clearanceAngle/abs(clearanceAngle)));
-        double posPotYThrow1 = posPotY+(0.030)*sin(posPotTheta +(M_PI/6)*(-clearanceAngle/abs(clearanceAngle)));
-        double posPotThetaThrow1 = posPotTheta+ (2*M_PI/6)*(-clearanceAngle/abs(clearanceAngle));
-        double posPotXThrow2 = posPotX+(0.021)*cos(posPotTheta);
-        double posPotYThrow2 = posPotY;
+        double posPotXThrow1 = posPotX+(0.35)*cos(posPotTheta +(M_PI/6)*(-clearanceAngle/abs(clearanceAngle)));
+        double posPotYThrow1 = posPotY+(0.35)*sin(posPotTheta +(M_PI/6)*(-clearanceAngle/abs(clearanceAngle)));
+        double posPotThetaThrow1 = posPotTheta+ (2*M_PI/6)*(clearanceAngle/abs(clearanceAngle));
+        double posPotXThrow2 = posPotX;
+        double posPotYThrow2 = posPotY+(0.21)*sin(posPotTheta);
         double posPotThetaThrow2 = posPotTheta+clearanceAngle;
         posPotThetaThrow1 = periodic_angle(posPotThetaThrow1);
         posPotThetaThrow2 = periodic_angle(posPotThetaThrow2);
+        //printf("posPotTheta : %f, clearanceAngle : %f\n",posPotTheta,clearanceAngle);
         printf("target 1 for remove all pots : %f,%f,%f\n",posPotXThrow1,posPotYThrow1,posPotThetaThrow1);
         if (action_position_control(posPotXThrow1,posPotYThrow1,posPotThetaThrow1)==-1) return;
         printf("target 2 for remove all pots : %f,%f,%f\n",posPotXThrow2,posPotYThrow2,posPotThetaThrow2);
@@ -324,9 +325,8 @@ void ActionPots::do_action() {
         update_plate_content(nextSlot, ContainsPot); 
 
     }
-    printf("come back pos initial: %f, %f, %f\n", xposInitiale, yposInitiale, theta_posInitiale);
-
-    if (action_position_control(xposInitiale,yposInitiale,periodic_angle(theta_posInitiale+M_PI))==-1) return; 
+    //printf("come back pos initial: %f, %f, %f\n", xposInitiale, yposInitiale, theta_posInitiale);
+    //if (action_position_control(xposInitiale,yposInitiale,periodic_angle(theta_posInitiale+M_PI))==-1) return; 
 
     while(ThreadKinematicOccuped == true) {usleep(1000);};
     initial_pos_stepper();
