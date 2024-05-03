@@ -126,7 +126,7 @@ void Steppers::flaps_move(flaps_pos_t pos, uint8_t blocking) {
         steps = 0; 
         break;
     case FlapsPlant :
-        steps = 3250; 
+        steps = 3300;  //3250
         break;
     case FlapsApproachPlant:
         steps = 1400;
@@ -151,7 +151,7 @@ void Steppers::slider_move(slider_pos_t pos, uint8_t blocking){
     switch(pos)
     {
     case SliderHigh :
-        steps = 100;
+        steps = 0;
         break;
     case SliderLow :
         steps = 5300;
@@ -162,8 +162,14 @@ void Steppers::slider_move(slider_pos_t pos, uint8_t blocking){
     case SliderStorage : // Deposit plant, take plant, take pot
         steps = 1800;
         break;     
+    case SliderStorageInPot:
+        steps = 800;
+        break;
     case SliderIntermediatePlant : //position deploy pince avant de poser
-        steps = 1200;
+        steps = 1100;
+        break;
+    case SliderIntermediatePlantInPot : //position deploy pince avant de poser
+        steps = 900;
         break;
     case SliderDepositPot : 
         steps = 1300;
@@ -172,7 +178,7 @@ void Steppers::slider_move(slider_pos_t pos, uint8_t blocking){
         steps = 3000;
         break;
     case SliderPreparePlant :
-        steps = 3000;
+        steps = 2300;
         break;
     default :
         printf("Error : not a position : %d \n", pos);
@@ -187,14 +193,14 @@ void Steppers::slider_move(slider_pos_t pos, uint8_t blocking){
 void Steppers::plate_move(int8_t pot, uint8_t blocking){
     //pot est une variable allant de -3 a 3 avec 0 la position de repos
     int direction = 0;
-    int offset = 70;
+    int offset = 90; //70
     if (pot == 0){
-        move(StprPlate, 0, 0,blocking);   
+        move(StprPlate, offset, 1,blocking);   
     } else {
         if (pot < 0) {
             pot = -pot;
             direction = 1;
-            offset = -70;
+            offset = -100; //-70;
         }
         pot = pot - 1;
         double anglePlateau = (PLATEAU_ANGLE_OUVERTURE)/2 + (pot)* (360-PLATEAU_ANGLE_OUVERTURE)/5;

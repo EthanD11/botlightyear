@@ -10,6 +10,7 @@ HEADERS_DIR:=headers
 SOURCES_DIR:=src
 TESTS_DIR:=tests
 OBJ_DIR:=bin
+LOG:=log.txt
 
 # List of cpp files
 SOURCES = $(wildcard $(SOURCES_DIR)/*.cpp)
@@ -32,7 +33,7 @@ all: main.cpp $(SOURCES_OBJ)
 	@$(CXX) -I$(HEADERS_DIR) $(FLAGS) $^ -o exe_botlightyear $(LIBS)
 
 run: all
-	@./exe_botlightyear
+	@./exe_botlightyear > $(LOG)
 
 valgrind: all
 	@valgrind --leak-check=yes --track-origins=yes ./exe_botlightyear

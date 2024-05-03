@@ -157,35 +157,35 @@ void decide_possible_actions() {
 
     // ---------- Pots TEST -----------
 
-    path = shared.graph->compute_path(x_pos, y_pos, shared.graph->pots, 6);
+    // path = shared.graph->compute_path(x_pos, y_pos, shared.graph->pots, 6);
     
-    if (path != NULL) {
-        path->thetaStart = theta_pos; 
-        path->thetaEnd = getThetaEnd(shared.graph->pots, shared.graph->potsTheta, 6, path->target);;
-    } else {
-        printf("Path is NULL\n");
-    }
-    possible_actions[0] = new ActionPots(path, 2,false,true); 
-    n_possible_actions = 1; 
-    return;
-
-    // ---------- Plants TEST -----------
-
-    // uint8_t target = 31;
-    // shared.graph->update_obstacle(target,0);
-    // path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
-    
-    // //shared.graph->update_obstacle(27,1);
     // if (path != NULL) {
     //     path->thetaStart = theta_pos; 
-    //     path->thetaEnd = 0; // Angle is recomputed in Action Plants  
+    //     path->thetaEnd = getThetaEnd(shared.graph->pots, shared.graph->potsTheta, 6, path->target);;
     // } else {
     //     printf("Path is NULL\n");
     // }
-    // shared.graph->update_obstacle(target,1);
-    // possible_actions[0] = new ActionPlants(path, 3); 
+    // possible_actions[0] = new ActionPots(path, 2,false,true); 
     // n_possible_actions = 1; 
     // return;
+
+    // ---------- Plants TEST -----------
+
+    uint8_t target = 31;
+    shared.graph->update_obstacle(target,0);
+    path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+    
+    //shared.graph->update_obstacle(27,1);
+    if (path != NULL) {
+        path->thetaStart = theta_pos; 
+        path->thetaEnd = 0; // Angle is recomputed in Action Plants  
+    } else {
+        printf("Path is NULL\n");
+    }
+    shared.graph->update_obstacle(target,1);
+    possible_actions[0] = new ActionPlants(path, 3); 
+    n_possible_actions = 1; 
+    return;
     #endif
 
     #ifdef HOMOLOGATION 
@@ -484,7 +484,7 @@ bool check_validity(Action* action) {
 
         return false; 
     }
-    // printf("Validities = "); 
+    printf("Validities = "); 
     for (uint8_t i=0; i<5; i++) {
         printf("%d ", shared.valids[i]);
         if (action->needs[i]==1 && shared.valids[i]==0) {
@@ -492,7 +492,7 @@ bool check_validity(Action* action) {
             return false; 
         }
     }
-    // printf("\n");
+    printf("\n");
     return true; 
 }
     

@@ -300,12 +300,14 @@ void initial_pos_stepper(){
 }
 
 
-int8_t get_numeroPot(int8_t i) {
+int8_t get_numeroPot(int8_t i, int8_t pathTarget) {
     //numeroPot :
     //   _____
     //  / 1 2 \ 
     // | 3 4 5 |
-    int orderPot[5] = {1, 3, 2, 5, 4};
+    int orderPotL[5] = {2, 5, 1, 3, 4};
+    int orderPotR[5] = {1, 3, 2, 5, 4};
+    int *orderPot = (pathTarget == 1 || pathTarget == 3 || pathTarget == 15) ? orderPotL : orderPotR;
     if (i >= 5) return -1;
     return orderPot[i];
 }
@@ -331,7 +333,7 @@ void ActionPots::do_action() {
         shared.get_robot_pos(&xpos, &ypos, &theta_pos);
         storage_slot_t nextSlot = get_next_free_slot_ID(ContainsStrongPlantInPot); // Completely empty slot (no pot, no plants)
         int8_t plate_pos = get_plate_slot(nextSlot); 
-        int8_t numeroPot = get_numeroPot(i);
+        int8_t numeroPot = get_numeroPot(i,pathTarget);
         // If last pot is 3 or 5, remove pot 4
         if (this->removePot4){
             if ((numeroPot == 3 || numeroPot == 5)&& i == this->potCounter-1) {removePot4KinematicChaine = true;} 

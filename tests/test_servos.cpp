@@ -32,14 +32,14 @@ int main(int argc, char const *argv[])
     // sleep(3);
     // servoGripperHolder.hold_pot(); 
     // sleep(1);
-    servoGripperHolder.idle();
+    // servoGripperHolder.idle();
 
     // servoGripperDeployer.deploy();
     // sleep(3);
     // servoGripperDeployer.half(); 
     // sleep(3);
     // servoGripperDeployer.raise();
-    // sleep(1);
+    // sleep(3);
     servoGripperDeployer.idle();
 
     // for (size_t i = 0; i < 5; i++)
@@ -55,7 +55,7 @@ int main(int argc, char const *argv[])
     // sleep(1);
     // servoGripperHolder.open_full();
 
-    // sleep(5); 
+    // sleep(2); 
     servoGripperDeployer.idle();
     servoGripperHolder.idle();
 

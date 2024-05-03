@@ -21,6 +21,13 @@ void take_plant_kinematicChain(int8_t slotNumber) {
     double x_pos_init = 0, y_pos_init = 0, theta_pos_init = 0; 
     shared.get_robot_pos(&x_pos_init, &y_pos_init, &theta_pos_init);
 
+    // Raise gripper
+    steppers->slider_move(SliderHigh, CALL_BLOCKING);
+    deployer->half(); 
+    steppers->plate_move(0, CALL_BLOCKING);
+    // Deploy gripper
+    deployer->deploy();
+    holder->open_full();
     // Align plant
     steppers->slider_move(SliderPreparePlant);
     steppers->flaps_move(FlapsApproachPlant, CALL_BLOCKING);
@@ -38,19 +45,15 @@ void take_plant_kinematicChain(int8_t slotNumber) {
     // usleep(500000);
     // servoFlaps->raise();
 
-    // Raise gripper
-    steppers->slider_move(SliderHigh, CALL_BLOCKING);
-    deployer->half(); 
-    steppers->plate_move(0, CALL_BLOCKING); 
+    
 
-    // Deploy gripper
-    deployer->deploy();
-    holder->open_full();
+    
 
+    usleep(300000);
 
     // Lower gripper to low position and go forward to position
     steppers->slider_move(SliderLow, CALL_BLOCKING);
-    usleep(300000);
+    usleep(200000);
     // teensy->set_position_controller_gains(0.8,2.5,-1.5,1.0);
     // action_position_control(x_pos_init, y_pos_init, theta_pos_init);
     holder->hold_plant();
@@ -72,7 +75,7 @@ void take_plant_kinematicChain(int8_t slotNumber) {
     usleep(450000);
     deployer->deploy(); 
     usleep(300000);
-    holder->open();
+    holder->open_full();
     usleep(200000);
 
     deployer->half();
@@ -82,7 +85,7 @@ void take_plant_kinematicChain(int8_t slotNumber) {
     steppers->plate_move(0, CALL_BLOCKING); 
 
     deployer->idle();
-    teensy->set_position_controller_gains(0.8,2.5,-1.5,1.0);
+    teensy->set_position_controller_gains(0.4,2.5,-1.5,1.0);
 }
 
 /**

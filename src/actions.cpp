@@ -132,7 +132,7 @@ int8_t path_following_to_action(graph_path_t *path)
         // double towardsCenter = atan2(1.5 - yCurrent, 1 - xCurrent);
         // teensy->pos_ctrl(xCurrent, yCurrent, towardsCenter);
         // sleep(1);
-        
+        shared.teensy_reset_pos();
         shared.get_robot_pos(&xCurrent, &yCurrent, NULL);
         teensy->pos_ctrl(xCurrent, yCurrent, first_node_theta);
         #ifdef VERBOSE
@@ -160,7 +160,7 @@ int8_t path_following_to_action(graph_path_t *path)
     /*for (int i=0; i<ncheckpoints; i++) {
         printf("Node %d : x :%.3f and y: %.3f \n", i, x[i], y[i]);
     }*/
-
+    shared.teensy_reset_pos();
     teensy->path_following(x, y, ncheckpoints, first_node_theta, theta_end, vref, dist_goal_reached);
 
     // Check Teensy mode
@@ -186,6 +186,7 @@ int8_t path_following_to_action(graph_path_t *path)
         usleep(300000);
     }
     teensyStart = 0;
+    int16_t teensyReset = 0;
     while ((teensy->ask_mode()) != ModePositionControlOver)
     {
         // if (!shared.goingToBase && shared.update_and_get_timer() < 35) { // TODO Rework timer aborts
@@ -209,7 +210,8 @@ int8_t path_following_to_action(graph_path_t *path)
             #ifdef VERBOSE
             printf("Adversary in path !! %d %d\n", xa, ya, da, ta);
             #endif
-            sleep(1);
+            usleep(200000);
+            shared.teensy_reset_pos();
             return -1;
         }
 
@@ -223,6 +225,7 @@ int8_t path_following_to_action(graph_path_t *path)
             #endif
             teensy->idle();
             usleep(300000);
+            shared.teensy_reset_pos();
             back_manoeuvre(0.6);
             return -1;
         }
@@ -243,6 +246,7 @@ int8_t path_following_to_action(graph_path_t *path)
             #ifdef VERBOSE
             printf("Teensy unstable, restarting\n");
             #endif
+            shared.teensy_reset_pos();
 
             if (closer_node_id >= path->nNodes-2) {
                 teensy->pos_ctrl(x[path->nNodes-1], y[path->nNodes-1], theta_end);
@@ -261,15 +265,21 @@ int8_t path_following_to_action(graph_path_t *path)
             }
         }
 
+
+        if (++teensyReset >= 20) {
+            shared.teensy_reset_pos();
+            teensyReset = 0;
+        }
         usleep(50000);
     }
 
+    shared.teensy_reset_pos();
     return 0; // Adversary not found and successfull path following
 }
 
 int8_t action_position_control(double x_end, double y_end, double theta_end)
 {
-
+    shared.teensy_reset_pos();
     Teensy *teensy = shared.teensy;
 
     // Set position control gains (see with Ethan?)
@@ -331,6 +341,7 @@ int8_t action_position_control(double x_end, double y_end, double theta_end)
             }
             if (stopped >= 300) {
                 // teensy->set_position_controller_gains(kp, ka, kb, kw);
+                shared.teensy_reset_pos();
                 return -1;
             } 
         } else if (stopped) {
@@ -341,6 +352,7 @@ int8_t action_position_control(double x_end, double y_end, double theta_end)
         usleep(10000);
     }
     // teensy->set_position_controller_gains(kp, ka, kb, kw);
+    shared.teensy_reset_pos();
     return 0;
 }
 

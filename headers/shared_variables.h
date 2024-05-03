@@ -60,6 +60,9 @@ public:
     void get_adv_pos(double *xAdv, double *yAdv, double *dAdv, double *aAdv);
     void set_adv_pos(double xAdv, double yAdv, double dAdv, double aAdv);
 
+    // Get position from odo and reset teensy with it
+    void teensy_reset_pos();
+
     // Starts game timer on starting cord pull detection
     void start_timer();
     // Updates and returns the remaining game time
