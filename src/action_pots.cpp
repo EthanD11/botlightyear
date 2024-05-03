@@ -320,7 +320,7 @@ void ActionPots::do_action() {
     bool freeTheGardenLastTurn = false;
     pathTarget = path->target;
 
-    shared.teensy->set_position_controller_gains(0.4,1.5,-0.5,0.5);
+    // shared.teensy->set_position_controller_gains(0.4,1.5,-0.5,0.5);
     get_posPot(pathTarget, freeTheGardenLastTurn); 
     shared.get_robot_pos(&xpos, &ypos, &theta_pos);
     if (hypot(xpos-posPotX, ypos-posPotY) > 0.7) {

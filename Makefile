@@ -33,7 +33,8 @@ all: main.cpp $(SOURCES_OBJ)
 	@$(CXX) -I$(HEADERS_DIR) $(FLAGS) $^ -o exe_botlightyear $(LIBS)
 
 run: all
-	@./exe_botlightyear > $(LOG)
+	@./exe_botlightyear 
+#> $(LOG)
 
 valgrind: all
 	@valgrind --leak-check=yes --track-origins=yes ./exe_botlightyear
