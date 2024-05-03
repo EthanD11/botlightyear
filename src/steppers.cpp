@@ -58,7 +58,7 @@ void Steppers::move(steppers_t stepperName, uint32_t steps, uint8_t neg, uint8_t
                 printf("Error : not a stepper %d \n", stepperName); 
                 return; 
         }
-        pins->wait_for_gpio_value(stepper_gpio, 1, 10000); 
+        if (pins->wait_for_gpio_value(stepper_gpio, 1, 10000) == -1) printf ("Blocking time fail ! \n"); 
     }
 }
 
