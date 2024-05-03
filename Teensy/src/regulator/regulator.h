@@ -10,8 +10,8 @@
 
 #define ADZ_ENABLE
 #ifdef ADZ_ENABLE
-#define ADZ_L 50
-#define ADZ_R 35
+#define ADZ_L 60
+#define ADZ_R 45
 #endif
 
 typedef struct Regulator {

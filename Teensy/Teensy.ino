@@ -1,4 +1,7 @@
 // #include <Arduino.h>
+#include "./shared_variables.h"
+#include "utils.h"
+
 #include "src/inout_interface/SPISlave_T4.h"
 #include "src/inout_interface/output_interface.h"
 #include "src/inout_interface/SPIInterface.h"
@@ -6,41 +9,42 @@
 #include "src/path_follower/path_follower.h"
 #include "src/position_control/position_control.h"
 #include "src/regulator/regulator.h"
-#include "utils.h"
 
 // #define VERBOSE
 // #define SWITCH_VERBOSE
 // #define SPI_VERBOSE
 
-typedef enum {
-  ModeIdle, // No input from RPi, default is to remain still
-  ModePositionControl,
-  ModePathFollowingInit,
-  ModePathFollowing,
-  ModeSpeedControl,
-  ModeConstantDC,
-  ModePositionControlOver
-} controlmode_t; // Control modes type
+// typedef enum {
+//   ModeIdle, // No input from RPi, default is to remain still
+//   ModePositionControl,
+//   ModePathFollowingInit,
+//   ModePathFollowing,
+//   ModeSpeedControl,
+//   ModeConstantDC,
+//   ModePositionControlOver
+// } controlmode_t; // Control modes type
 // Note : Left = 1, Right = 2
 
 // ----- GENERALS -----
 // Current and reference x, y and theta
-OutputInterface *outputs;
-RobotPosition *robot_position;
-PositionController *position_controller;
-PathFollower *path_follower;
-Regulator *speed_regulator;
+// OutputInterface *outputs;
+// RobotPosition *robot_position;
+// PositionController *position_controller;
+// PathFollower *path_follower;
+// Regulator *speed_regulator;
 // double spi_speed_refl = 0.0;
 // double spi_speed_refr = 0.0;
 
-controlmode_t mode = ModeIdle;
-controlmode_t nextmode = mode;
-controlmode_t prevmode = mode;
+// controlmode_t mode = ModeIdle;
+// controlmode_t nextmode = mode;
+// controlmode_t prevmode = mode;
 
-// ----- TIME -----
-int control_time;
+// // ----- TIME -----
+// int control_time;
 
 // --------------------------------------------------------------
+
+SharedVariables shared;
 
 void setup() {
   Serial.begin(115200);
@@ -48,31 +52,44 @@ void setup() {
   // ----- SPI -----
   init_spi_interface();
   // ----- OUTPUTS -----
-  outputs = init_outputs();
+  shared.outputs = init_outputs();
   // ----- POSITION -----
-  robot_position = init_robot_position(0, 0, 0);
+  shared.robot_position = init_robot_position(0, 0, 0);
   // ----- SPEED REGULATOR -----
-  speed_regulator = init_regulator();
+  shared.speed_regulator = init_regulator();
   // ----- POSITION CONTROLLER -----
-  position_controller = init_position_controller();
-  set_ref(position_controller, 0.5, 0, 0);
+  shared.position_controller = init_position_controller();
+  set_ref(shared.position_controller, 0.5, 0, 0);
   // ----- PATH FOLLOWER -----
-  path_follower = init_path_follower();
+  shared.path_follower = init_path_follower();
   // ----- GENERAL -----
-  control_time = micros();
+  shared.control_time = micros();
 
-  if (mode == ModePathFollowingInit) {
+  if (shared.mode == ModePathFollowingInit) {
     printf("In setup: ModePathFollowingInit\n");
   }
 
-  set_apins(outputs, (int8_t) mode);
+  set_apins(shared.outputs, (int8_t) shared.mode);
 }
 
 void loop() {
+  OutputInterface *outputs = shared.outputs;
+  RobotPosition *robot_position = shared.robot_position;
+  PositionController *position_controller = shared.position_controller;
+  PathFollower *path_follower = shared.path_follower;
+  Regulator *speed_regulator = shared.speed_regulator;
+
+  controlmode_t mode = shared.mode;
+  controlmode_t prevmode = shared.prevmode;
+  controlmode_t nextmode = shared.nextmode;
+
+  int control_time = shared.control_time;
+
   int current_time = micros();
   int switch_mode = FALSE;
   robot_position->dt = 1e-6*((double)(current_time - control_time));
-  prevmode = mode;
+  prevmode = shared.mode;
+  
   if (spi_valid_transmission()) {
     spi_reset_transmission(); 
     #ifdef SPI_VERBOSE

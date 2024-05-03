@@ -1,5 +1,6 @@
 #include "SPIInterface.h"
 #include "SPISlave_T4.h"
+#include "../../shared_variables.h"
 
 // #define VERBOSE
 typedef struct SPIInterface {
@@ -45,6 +46,14 @@ void __spi_receive_event() {
     SPISlave_T4 *mySPI = __spi_interface->spi_slave;
 	uint32_t data;
 	uint32_t *data_buffer = __spi_interface->data_buffer;
+
+    controlmode_t mode = shared.mode;
+    PositionController *position_controller = shared.position_controller;
+    PathFollower *path_follower = shared.path_follower;
+    RobotPosition *robot_position = shared.robot_position;
+    Regulator *speed_regulator = shared.speed_regulator;
+    OutputInterface *outputs = shared.outputs;
+    
 
 	while (mySPI->available()) {
 		int i = __spi_interface->i;
@@ -133,7 +142,72 @@ void __spi_receive_event() {
 		}
 		i += 1;
 		__spi_interface->i = (uint32_t) i;
-	}
+	
+        switch (mode) {
+
+            case ModeIdle:
+                #ifdef VERBOSE
+                printf("\nMode idle\n");
+                #endif
+                set_motors_duty_cycle(outputs, 0, 0);
+                break;
+
+            case ModePositionControl:
+                #ifdef VERBOSE
+                printf("\nMode position control\n");
+                #endif
+                control_position(position_controller, robot_position);
+                control_speed(speed_regulator, robot_position,
+                get_speed_refl(position_controller), 
+                get_speed_refr(position_controller));
+                set_motors_duty_cycle(outputs, 
+                get_duty_cycle_refl(speed_regulator), 
+                get_duty_cycle_refr(speed_regulator));
+                break;
+
+            case ModePositionControlOver:
+                #ifdef VERBOSE
+                printf("\nMode position control over\n");
+                #endif
+                control_speed(speed_regulator, robot_position, 0, 0);
+                set_motors_duty_cycle(outputs,  
+                get_duty_cycle_refl(speed_regulator), 
+                get_duty_cycle_refr(speed_regulator));
+                break;
+
+            case ModePathFollowing:
+                #ifdef VERBOSE
+                printf("\nMode path following\n");
+                #endif
+                update_path_follower_ref_speed(path_follower, 
+                robot_position);
+                control_speed(speed_regulator, 
+                robot_position,
+                get_speed_refl(path_follower),
+                get_speed_refr(path_follower));
+                set_motors_duty_cycle(outputs,  
+                get_duty_cycle_refl(speed_regulator), 
+                get_duty_cycle_refr(speed_regulator));
+                // if (path_following_goal_reached) {
+                // set_ref(position_controller, 
+                //     path_follower->last_x, 
+                //     path_follower->last_y, 
+                //     path_follower->last_theta);
+                // }
+                break;
+
+            default: // ModeIdle
+                #ifdef VERBOSE
+                printf("Default in output logic\n");
+                #endif
+                set_motors_duty_cycle(outputs, 0, 0);
+                break;
+            }
+    
+    }
+
+    // Output logic
+    
 }
 
 int spi_valid_transmission() {

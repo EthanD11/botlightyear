@@ -1,5 +1,6 @@
 #include "output_interface.h"
 
+
 OutputInterface *init_outputs() {
     OutputInterface *outputs = (OutputInterface *) malloc(sizeof(OutputInterface));
     outputs->duty_cycle_l = 0.0;
