@@ -162,10 +162,16 @@ void Steppers::slider_move(slider_pos_t pos, uint8_t blocking){
     case SliderStorage : // Deposit plant, take plant, take pot
         steps = 1800;
         break;     
+    case SliderIntermediatePlant : //position deploy pince avant de poser
+        steps = 1200;
+        break;
     case SliderDepositPot : 
         steps = 1300;
         break; 
     case SliderPreparePot :
+        steps = 3000;
+        break;
+    case SliderPreparePlant :
         steps = 3000;
         break;
     default :

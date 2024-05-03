@@ -22,6 +22,8 @@ void take_plant_kinematicChain(int8_t slotNumber) {
     shared.get_robot_pos(&x_pos_init, &y_pos_init, &theta_pos_init);
 
     // Align plant
+    steppers->slider_move(SliderPreparePlant);
+    steppers->flaps_move(FlapsApproachPlant, CALL_BLOCKING);
     servoFlaps->deploy();
     steppers->flaps_move(FlapsPlant, CALL_BLOCKING); 
     steppers->flaps_move(FlapsApproachPlant);

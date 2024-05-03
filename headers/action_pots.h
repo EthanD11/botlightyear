@@ -11,7 +11,7 @@ class ActionPots : public Action
 private: 
     uint8_t potCounter; 
     bool removePot4;
-    bool freeThGarden;
+    bool freeTheGarden;
 public:
     // remove pot 
     // potNumber: 1, 2, 3, 4 is the number of the pot to take
@@ -21,6 +21,7 @@ public:
     ActionPots(graph_path_t *path, uint8_t potNumber,bool removeDoublePot = false,bool freeTheGarden= false) : Action(TakePots, true, path) {
         this->potCounter = potNumber;
         this->removePot4 = removeDoublePot;
+        this->freeTheGarden = freeTheGarden;
         this->needs[0] = 1;  // SptrPlate
         this->needs[1] = 1;  // StprSlider
         this->needs[2] = 1;  // StprFlaps
