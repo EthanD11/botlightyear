@@ -61,8 +61,8 @@ void take_plant_kinematicChain(int8_t slotNumber, bool hasPot=false) {
         deployer->deploy(); 
         steppers->slider_move(SliderStorage, CALL_BLOCKING);    
     }
-        holder->open_full();
-        usleep(100000);
+    holder->open_full();
+    usleep(100000);
     
 
     //remonte et remise en place

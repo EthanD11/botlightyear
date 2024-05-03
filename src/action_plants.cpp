@@ -2,7 +2,13 @@
 #include "lidarBottom.h"
 #include <unistd.h>
 #include <cmath>
+#include <pthread.h>
+#include <stdio.h>
 
+
+static pthread_t KCID;
+static volatile bool ThreadKinematicOccuped = false;
+static volatile bool hasPot = false;
 
 double plant_approach_dist = 0.4; //0.35 MAX
 double plant_grab_dist = 0.28; // 0.22 MIN
@@ -11,6 +17,67 @@ double away_distance = 0.1;
 /*
 Takes plant and puts it to the plate storage specified
 */
+
+void PrepareApproachTakePlant(){
+    GripperHolder* holder = shared.grpHolder; 
+    GripperDeployer* deployer = shared.grpDeployer; 
+    Steppers* steppers = shared.steppers; 
+    Teensy* teensy = shared.teensy; 
+    Flaps* servoFlaps = shared.servoFlaps; 
+
+    //attend thread kinematic termine
+    while(ThreadKinematicOccuped == true){usleep(1000);}
+    printf("Start approach\n");
+    deployer->deploy(); 
+    holder->open_full();
+    //approach
+    steppers->slider_move(SliderPreparePlant);
+    steppers->flaps_move(FlapsApproachPlant);
+    servoFlaps->deploy();
+}
+
+void *take_plant_kinematicChain_SecondPart(void *args ){
+    printf("Start thread kinematic plant\n")
+    // /!\ NO FLAPS HERE
+    GripperHolder* holder = shared.grpHolder; 
+    GripperDeployer* deployer = shared.grpDeployer; 
+    Steppers* steppers = shared.steppers; 
+    Teensy* teensy = shared.teensy; 
+    Flaps* servoFlaps = shared.servoFlaps; 
+    int slotNumber = *((int*) args);
+    ThreadKinematicOccuped = true;
+    //remonte
+    steppers->slider_move(SliderHigh);//tricks pour replier servo au milieu
+    usleep(100000);
+    deployer->plantLift();
+    shared.pins->wait_for_gpio_value(StprSliderGPIO, 1, 10000);
+
+    //mise dans plateau
+    steppers->plate_move(slotNumber, CALL_BLOCKING); 
+    if (hasPot == true){
+        //steppers->slider_move(SliderIntermediatePlantInPot,CALL_BLOCKING);
+        deployer->deploy();  
+        steppers->slider_move(SliderStorageInPot, CALL_BLOCKING);  
+    }else {
+        steppers->slider_move(SliderIntermediatePlant,CALL_BLOCKING);
+        deployer->deploy(); 
+        steppers->slider_move(SliderStorage, CALL_BLOCKING);    
+    }
+    holder->open_full();
+    usleep(100000);
+
+    //remonte et remise en place
+    deployer->half();
+    steppers->slider_move(SliderHigh, CALL_BLOCKING); 
+    steppers->plate_move(0, CALL_BLOCKING); 
+    holder->idle();
+    deployer->idle();
+    ThreadKinematicOccuped = false;
+    printf("End thread kinematic plant\n");
+    return NULL;    
+}
+
+
 void take_plant_kinematicChain(int8_t slotNumber) {
     GripperHolder* holder = shared.grpHolder; 
     GripperDeployer* deployer = shared.grpDeployer; 
@@ -21,70 +88,21 @@ void take_plant_kinematicChain(int8_t slotNumber) {
     double x_pos_init = 0, y_pos_init = 0, theta_pos_init = 0; 
     shared.get_robot_pos(&x_pos_init, &y_pos_init, &theta_pos_init);
 
-    // Raise gripper
-    steppers->slider_move(SliderHigh, CALL_BLOCKING);
-    deployer->half(); 
-    steppers->plate_move(0, CALL_BLOCKING);
-    // Deploy gripper
-    deployer->deploy();
-    holder->open_full();
     // Align plant
-    steppers->slider_move(SliderPreparePlant);
-    steppers->flaps_move(FlapsApproachPlant, CALL_BLOCKING);
-    servoFlaps->deploy();
     steppers->flaps_move(FlapsPlant, CALL_BLOCKING); 
     steppers->flaps_move(FlapsApproachPlant);
 
-    usleep(300000);
-
+    // take de plant
     // Move backward
     // teensy->pos_ctrl(x_pos_init-0.06*cos(theta_pos_init), y_pos_init-0.06*sin(theta_pos_init), theta_pos_init);
     // teensy->set_position_controller_gains(0.4,2.5,-1.5,1.0);
     // action_position_control(x_pos_init-0.06*cos(theta_pos_init), y_pos_init-0.06*sin(theta_pos_init), theta_pos_init);
-    servoFlaps->raise();
-    // usleep(500000);
-    // servoFlaps->raise();
-
-    
-
-    
-
-    usleep(300000);
-
-    // Lower gripper to low position and go forward to position
     steppers->slider_move(SliderLow, CALL_BLOCKING);
-    usleep(200000);
+    // Move forward
     // teensy->set_position_controller_gains(0.8,2.5,-1.5,1.0);
     // action_position_control(x_pos_init, y_pos_init, theta_pos_init);
-    holder->hold_plant();
-    usleep(300000);
-    // teensy->pos_ctrl(x_pos_init-0.04*cos(theta_pos_init), y_pos_init-0.04*sin(theta_pos_init), theta_pos_init);
-    // action_position_control(x_pos_init-0.04*cos(theta_pos_init), y_pos_init-0.04*sin(theta_pos_init), theta_pos_init);
-    // usleep(250000);
-
-
-    
-    steppers->slider_move(SliderHigh);
-    usleep(100000);
-    deployer->half();
-    shared.pins->wait_for_gpio_value(StprSliderGPIO, 1, 10000); 
-    steppers->plate_move(slotNumber, CALL_BLOCKING); 
-
-    
-    steppers->slider_move(SliderStorage);
-    usleep(450000);
-    deployer->deploy(); 
-    usleep(300000);
-    holder->open_full();
-    usleep(200000);
-
-    deployer->half();
-    holder->idle();
-    // holder->open();
-    steppers->slider_move(SliderHigh, CALL_BLOCKING); 
-    steppers->plate_move(0, CALL_BLOCKING); 
-
-    deployer->idle();
+    holder->hold_plant();  
+    if (pthread_create(&KCID, NULL, take_plant_kinematicChain_SecondPart, (void *)&slotNumber) != 0) return;
     teensy->set_position_controller_gains(0.4,2.5,-1.5,1.0);
 }
 
@@ -281,28 +299,31 @@ void ActionPlants::do_action() {
     for (uint8_t plant_i = 0; plant_i < plantCounter; plant_i++) {
         // Get closest plant from lidar pov
         printf("Scanning with lidar...\n");
-
         shared.get_robot_pos(&xpos, &ypos, &theta_pos);
         if (get_closest_plant_from_lidar(xpos, ypos, theta_pos, plantsNode, &x_plant, &y_plant) == -1) return;
         //get_closest_plant_from_kakoo(xpos, ypos, plantsNode, &x_plant, &y_plant, plants_taken); 
-        printf("Scan lidar over\n");
+        printf("Scan lidar over\n");S
         theta_plant = atan2(y_plant-ypos, x_plant-xpos); 
         printf("Got plant at %f, %f, %f, beginning the approach\n", x_plant, y_plant, theta_plant);
         
         // Position robot in front of plant
+        PrepareApproachTakePlant();
         if (position_to_plant(x_plant, y_plant, shared.graph->nodes[plantsNode].x, shared.graph->nodes[plantsNode].y, trigo_diff(theta_plant, theta_pos)>0, plant_i==0)) return; 
-        usleep(500000);
         
         // Get next storage slot and put the plant
         storage_slot_t nextSlot = get_next_free_slot_ID(ContainsStrongPlant); 
         int8_t plate_pos = get_plate_slot(nextSlot); 
+        hasPot = shared.storage[nextSlot] && ContainsPot;
         printf("Activating the kinematic chain\n");//, x_plant, y_plant, theta_plant);
         take_plant_kinematicChain(plate_pos); 
         update_plate_content(nextSlot, ContainsWeakPlant); 
         move_back(x_plant, y_plant); 
+        //une fois reculé, remet flaps a position initiale
+        servoFlaps->raise();
+        steppers->flaps_move(FlapsOpen);
     }
 
     // Position control to the initial location with opposed theta for departure
-    if (action_position_control(xpos_initial, ypos_initial, periodic_angle(theta_pos_initial-M_PI)) == -1) return; 
-    
+    //if (action_position_control(xpos_initial, ypos_initial, periodic_angle(theta_pos_initial-M_PI)) == -1) return; 
+    while(ThreadKinematicOccuped == true){usleep(1000);}
 }
