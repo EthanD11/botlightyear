@@ -26,7 +26,7 @@ ILidarDriver *lidarBottom;
 //Sleep
 #include <unistd.h>
 
-
+int debugfile = 0;
 
 /**
  * utile pour avoir un angle entre 2 angles predef
@@ -56,7 +56,7 @@ double moduloLidarMPIPI(double angle) {
 
 void StartLidarTop(){
     ///  Create a communication channel instance
-    Result<IChannel*> _channel = createSerialPortChannel("/dev/ttyUSB1", 115200); //port série spécifié est "/dev/ttyUSB0" avec un débit de 115200 bps.
+    Result<IChannel*> _channel = createSerialPortChannel("/dev/ttyUSB_LIDARTOP", 115200); //port série spécifié est "/dev/ttyUSB0" avec un débit de 115200 bps.
 
     if (_channel.err) {
         fprintf(stderr, "Failed to create communication channel\r\n");
@@ -102,7 +102,7 @@ void StartLidarBottom(){
     //TODO change en USB1
     ///  Create a communication channel instance
     //TODO USB1
-    Result<IChannel*> _channel = createSerialPortChannel("/dev/ttyUSB2", 256000); //port série spécifié est "/dev/ttyUSB0" avec un débit de 115200 bps.
+    Result<IChannel*> _channel = createSerialPortChannel("/dev/ttyUSB_LIDARBOTTOM", 256000); //port série spécifié est "/dev/ttyUSB0" avec un débit de 115200 bps.
     
 
     if (_channel.err) {
@@ -145,6 +145,7 @@ void StartLidarBottom(){
 }
 
 void updateDataTop(double* angles, double* distances, double* quality, size_t* arraySize){
+    
     sl_lidar_response_measurement_node_hq_t nodes[arraySize[1]];
     size_t nodeCount = sizeof(nodes)/sizeof(sl_lidar_response_measurement_node_hq_t);
     u_result res = lidarTop->grabScanDataHq(nodes, nodeCount);
@@ -163,6 +164,8 @@ void updateDataTop(double* angles, double* distances, double* quality, size_t* a
 }
 
 void updateDataBottom(double* angles, double* distances, double* quality, size_t* arraySize){
+    DataToFileBottom("testPlante"+std::to_string(debugfile)+".txt");
+    debugfile++;
     sl_lidar_response_measurement_node_hq_t nodes[arraySize[1]];
     size_t nodeCount = sizeof(nodes)/sizeof(sl_lidar_response_measurement_node_hq_t);
     u_result res = lidarBottom->grabScanDataHq(nodes, nodeCount);

@@ -58,7 +58,7 @@ void Steppers::move(steppers_t stepperName, uint32_t steps, uint8_t neg, uint8_t
                 printf("Error : not a stepper %d \n", stepperName); 
                 return; 
         }
-        pins->wait_for_gpio_value(stepper_gpio, 1, 10000); 
+        if (pins->wait_for_gpio_value(stepper_gpio, 1, 10000) == -1) printf ("Blocking time fail ! \n"); 
     }
 }
 
@@ -129,7 +129,7 @@ void Steppers::flaps_move(flaps_pos_t pos, uint8_t blocking) {
         steps = 3250; 
         break;
     case FlapsApproachPlant:
-        steps = 1000;
+        steps = 1400;
         break;
     case FlapsPot :
         steps = 2920; 
@@ -162,10 +162,16 @@ void Steppers::slider_move(slider_pos_t pos, uint8_t blocking){
     case SliderStorage : // Deposit plant, take plant, take pot
         steps = 1800;
         break;     
+    case SliderIntermediatePlant : //position deploy pince avant de poser
+        steps = 1200;
+        break;
     case SliderDepositPot : 
         steps = 1300;
         break; 
     case SliderPreparePot :
+        steps = 3000;
+        break;
+    case SliderPreparePlant :
         steps = 3000;
         break;
     default :

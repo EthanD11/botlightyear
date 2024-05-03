@@ -29,7 +29,7 @@
 
 // Default setting
 #define BAUDRATE                        57600
-#define DEVICENAME                      "/dev/ttyUSB0"      
+#define DEVICENAME                      "/dev/ttyUSB_U2D2"      
 
 #define TORQUE_ENABLE                   1                   // Value for enabling the torque
 #define TORQUE_DISABLE                  0                   // Value for disabling the torque

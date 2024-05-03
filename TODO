@@ -1,7 +1,3 @@
-Dynamixels : cleanup code
-Lidar + position control + actuators = actions
-Strategy (soon)
-Homologation constraints implem + verif
-Fun stuff (eg, live control with keyboard, OLED screen)
-
-Path planning: Check if first node is in front of robot,
+Lidar timing
+servo
+bases

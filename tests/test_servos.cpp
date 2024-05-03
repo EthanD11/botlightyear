@@ -49,13 +49,13 @@ int main(int argc, char const *argv[])
     //     servoGripperHolder.hold_pot();
     //     sleep(1);
     // }
-    servoGripperDeployer.deploy(); 
+    // servoGripperDeployer.deploy(); 
     // servoGripperHolder.close();
-    servoGripperHolder.open();
+    // servoGripperHolder.open();
     // sleep(1);
     // servoGripperHolder.open_full();
 
-    sleep(5); 
+    // sleep(5); 
     servoGripperDeployer.idle();
     servoGripperHolder.idle();
 

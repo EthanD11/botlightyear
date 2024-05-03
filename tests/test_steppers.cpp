@@ -194,13 +194,13 @@ void demoPlate(){
 int main(int argc, char const *argv[])
 {
     printf("Test is running\n");
-    steppers->setup_all_speeds(); 
+    // steppers->setup_all_speeds(); 
     steppers->reset_all(); 
 
-    // steppers->calibrate(StprPlate, CALL_BLOCKING, NULL); 
+    steppers->calibrate(StprPlate, CALL_BLOCKING, NULL); 
 
-    steppers->calibrate_all(CALL_BLOCKING, NULL);
-    steppers->plate_move(0,CALL_BLOCKING);
+    // steppers->calibrate_all(CALL_BLOCKING, NULL);
+    // steppers->plate_move(0,CALL_BLOCKING);
     #ifdef TESTS
 
     // holder->idle();
@@ -231,8 +231,10 @@ int main(int argc, char const *argv[])
     // steppers->slider_move(SliderLow, CALL_BLOCKING); 
     // steppers->slider_move(SliderDepositPot, CALL_BLOCKING);
     // steppers->slider_move(SliderHigh, CALL_BLOCKING); 
-    printf("Go ! \n");
-    teensy->set_position(1.0,1.0,0);
+
+    // printf("Go ! \n");
+    // teensy->set_position(1.0,1.0,0);
+    // TakePlantCHAIN(2); 
     
 
     // deployer->deploy();
@@ -243,9 +245,11 @@ int main(int argc, char const *argv[])
     // steppers->flaps_move(FlapsOpen, CALL_BLOCKING); 
 
 
-
     
-    TakePlantCHAIN(2); 
+    // steppers->plate_move(1, CALL_BLOCKING);
+    // demoPlate();  
+    steppers->move(StprPlate, 100, 1, CALL_BLOCKING); 
+    
     #endif 
 
     #ifdef PLANTER

@@ -165,10 +165,9 @@ void decide_possible_actions() {
     } else {
         printf("Path is NULL\n");
     }
-    possible_actions[0] = new ActionPots(path, 4,true); 
+    possible_actions[0] = new ActionPots(path, 2,false,true); 
     n_possible_actions = 1; 
     return;
-
 
     // ---------- Plants TEST -----------
 
@@ -184,7 +183,7 @@ void decide_possible_actions() {
     //     printf("Path is NULL\n");
     // }
     // shared.graph->update_obstacle(target,1);
-    // possible_actions[0] = new ActionPlants(path, 2); 
+    // possible_actions[0] = new ActionPlants(path, 3); 
     // n_possible_actions = 1; 
     // return;
     #endif
@@ -227,9 +226,10 @@ void decide_possible_actions() {
         printf("GOES TO BASE \n");
 
         // Get the closest base from the robot pov
-        printf("Searching for bases %d %d %d\n", shared.graph->friendlyBases[0], shared.graph->friendlyBases[1], shared.graph->friendlyBases[2]);
-        printf("Bases levels %d %d %d\n", shared.graph->nodes[shared.graph->friendlyBases[0]].level, shared.graph->nodes[shared.graph->friendlyBases[1]].level, shared.graph->nodes[shared.graph->friendlyBases[2]].level);
-        path = shared.graph->compute_path(x_pos, y_pos, shared.graph->friendlyBases+1, 1);
+        // printf("Searching for bases %d %d %d\n", shared.graph->friendlyBases[0], shared.graph->friendlyBases[1], shared.graph->friendlyBases[2]);
+        // printf("Bases levels %d %d %d\n", shared.graph->nodes[shared.graph->friendlyBases[0]].level, shared.graph->nodes[shared.graph->friendlyBases[1]].level, shared.graph->nodes[shared.graph->friendlyBases[2]].level);
+        shared.graph->level = 1;
+        path = shared.graph->compute_path(x_pos, y_pos, shared.graph->friendlyBases+1, 2);
         if (path != NULL) {
             path->thetaStart = theta_pos;  
             #ifdef SP_STRATEGY
@@ -480,7 +480,7 @@ void decide_possible_actions() {
 bool check_validity(Action* action) {
 
     if (action->needs_path && action->path == NULL) {
-        printf("Invalid path !\n "); 
+        printf("Invalid path for action : %d\n", action->action_type); 
 
         return false; 
     }
