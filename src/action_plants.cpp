@@ -165,41 +165,31 @@ void initial_pos_stepper(){
 // }
 
 
-int8_t position_to_plant(double x_plant, double y_plant, double x_plant_center, double y_plant_center, bool isLeft, bool isFirst = false) {
-    double plant_to_center_dist = hypot(y_plant_center-y_plant, x_plant_center-x_plant); 
+int8_t position_to_plant(double x_plant, double y_plant, double x_plant_center, double y_plant_center, bool isFirst = false) {
     //hypot donne l'hypoténuse
-    double alpha; 
+    double plant_to_center_dist = hypot(y_plant_center-y_plant, x_plant_center-x_plant); 
+    double x_approach=0, y_approach=0, theta_approach=0;
+    shared.get_robot_pos(&x_approach, &y_approach, &theta_approach);
+    double dx = (x_plant - x_plant_center)/plant_to_center_dist;
+    double dy= (y_plant - y_plant_center)/plant_to_center_dist;
     if (isFirst) {
-        alpha = 0; 
+        x_approach = x_plant + dx * plant_approach_dist;
+        y_approach = y_plant + dy * plant_approach_dist;
+        theta_approach = atan2(y_plant_center-y_plant, x_plant_center-x_plant);
     } else {
-        if (isLeft) {
-            alpha = -plant_approach_angle;
-        } else {
-            alpha = plant_approach_angle;
-        }
+        //si pas premier, garde la meme position et change juste l angle 
+        theta_approach = atan2(y_approach-y_plant, x_approach-x_plant);
     }
-    printf("Plant approach distance = %.3f, isFirst = %d and alpha = %.3f \n", plant_approach_dist, isFirst, alpha); 
-    // First, position control to the approach point
-    double dx = (x_plant - x_plant_center)/plant_to_center_dist; 
-    double dy= (y_plant - y_plant_center)/plant_to_center_dist; 
-    double x_approach = x_plant + (dx*cos(alpha) + dy*sin(alpha))* plant_approach_dist; 
-    double y_approach = y_plant + (-dx*sin(alpha) + dy*cos(alpha))* plant_approach_dist; 
-    double theta_approach = periodic_angle(atan2(y_plant_center-y_plant, x_plant_center-x_plant)-alpha);
+    printf("Plant approach distance = %.3f, isFirst = %d\n", plant_approach_dist, isFirst); 
     printf("Position control to approach to x = %.3f, y = %.3f and theta = %.3f \n", x_approach, y_approach, theta_approach);
-    
-    
-
     shared.teensy->set_position_controller_gains(0.5,2.5,-1.5,1.0);
-    if (action_position_control(x_approach, y_approach, theta_approach) == -1) return -1; 
+    if (action_position_control(x_approach, y_approach, periodic_angle(theta_approach)) == -1) return -1; 
 
     // Then, position control to the plant distance
-
-    double x_grab = x_plant + (dx*cos(alpha) + dy*sin(alpha)) * plant_grab_dist; 
-    double y_grab = y_plant + (-dx*sin(alpha) + dy*cos(alpha)) * plant_grab_dist; 
+    double x_grab = x_plant - cos(theta_approach) * plant_grab_dist; 
+    double y_grab = y_plant - sin(theta_approach) * plant_grab_dist; 
     shared.teensy->set_position_controller_gains(0.4,2.5,-1.5,1.0);
     printf("Position control to grab to x = %.3f, y = %.3f and theta = %.3f \n", x_grab, y_grab, theta_approach);
-    // shared.servoFlaps->deploy();
-    // shared.steppers->flaps_move(FlapsApproachPlant);
     PrepareApproachTakePlant();
     if (action_position_control(x_grab, y_grab, theta_approach) == -1) return -1; 
     return 0; 
