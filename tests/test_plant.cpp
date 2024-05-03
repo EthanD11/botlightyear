@@ -44,7 +44,9 @@ void take_plant_kinematicChain(int8_t slotNumber) {
     steppers->slider_move(SliderHigh);//tricks pour replier servo au milieu
     usleep(100000);
     deployer->half();
-    shared.pins->wait_for_gpio_value(StprSliderGPIO, 1, 10000); 
+    pins.wait_for_gpio_value(StprSliderGPIO, 1, 10000);
+    //shared.pins->wait_for_gpio_value(StprSliderGPIO, 1, 10000); 
+    //sleep(5);
 
     //mise dans plateau
     steppers->plate_move(slotNumber, CALL_BLOCKING); 
@@ -59,6 +61,7 @@ void take_plant_kinematicChain(int8_t slotNumber) {
     steppers->slider_move(SliderHigh, CALL_BLOCKING); 
     steppers->plate_move(0, CALL_BLOCKING); 
     servoFlaps->raise();
+    steppers->flaps_move(FlapsOpen);
     holder->idle();
     deployer->idle();
     // teensy->set_position_controller_gains(0.8,2.5,-1.5,1.0);
