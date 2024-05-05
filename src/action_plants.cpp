@@ -349,6 +349,7 @@ void ActionPlants::do_action() {
         usleep(50000);
     }
     
+    shared.teensy->set_position_controller_gains(0.9,2.5,-1.0,1.2);
 
     for (uint8_t plant_i = 0; plant_i < plantCounter; plant_i++) {
         // Get closest plant from lidar pov
