@@ -11,7 +11,7 @@ static volatile bool ThreadKinematicOccuped = false;
 static volatile bool hasPot = false;
 
 double plant_approach_dist = 0.4; //0.35 MAX
-double plant_grab_dist = 0.28; // 0.22 MIN
+double plant_grab_dist = 0.27; // 0.22 MIN
 double plant_approach_angle = M_PI/6; 
 double away_distance = 0.1; 
 /*
@@ -88,26 +88,31 @@ void take_plant_kinematicChain(int8_t slotNumber) {
     double x_pos_init = 0, y_pos_init = 0, theta_pos_init = 0; 
     shared.get_robot_pos(&x_pos_init, &y_pos_init, &theta_pos_init);
 
+    deployer->deploy();
+    holder->open_full();
+
     // Align plant
     steppers->flaps_move(FlapsPlant, CALL_BLOCKING); 
     steppers->flaps_move(FlapsApproachPlant);
 
     // take de plant
     // Move backward
-    // teensy->pos_ctrl(x_pos_init-0.06*cos(theta_pos_init), y_pos_init-0.06*sin(theta_pos_init), theta_pos_init);
-    // teensy->set_position_controller_gains(0.4,2.5,-1.5,1.0);
-    // action_position_control(x_pos_init-0.06*cos(theta_pos_init), y_pos_init-0.06*sin(theta_pos_init), theta_pos_init);
+    //teensy->pos_ctrl(x_pos_init-0.06*cos(theta_pos_init), y_pos_init-0.06*sin(theta_pos_init), theta_pos_init);
+    // descent
+    steppers->slider_move(SliderIntermediateLow,CALL_BLOCKING);
+    deployer->half();
     steppers->slider_move(SliderLow, CALL_BLOCKING);
+    deployer->deploy();
     // Move forward
-    // teensy->set_position_controller_gains(0.8,2.5,-1.5,1.0);
-    // action_position_control(x_pos_init, y_pos_init, theta_pos_init);
+    //action_position_control(x_pos_init, y_pos_init, theta_pos_init);
+
     holder->hold_plant();  
     if (pthread_create(&KCID, NULL, take_plant_kinematicChain_SecondPart, (void *)&slotNumber) != 0) return;
     teensy->set_position_controller_gains(0.4,2.5,-1.5,1.0);
 }
 
 
-void initial_pos_stepper(){
+void initial_pos_stepper_forPlant(){
     Steppers* steppers = shared.steppers; 
     GripperHolder* holder = shared.grpHolder; 
     GripperDeployer* deployer = shared.grpDeployer; 
@@ -178,7 +183,7 @@ int8_t position_to_plant(double x_plant, double y_plant, double x_plant_center, 
         theta_approach = atan2(y_plant_center-y_plant, x_plant_center-x_plant);
     } else {
         //si pas premier, garde la meme position et change juste l angle 
-        theta_approach = atan2(y_approach-y_plant, x_approach-x_plant);
+        theta_approach = atan2(y_plant-y_approach, x_plant-x_approach);
     }
     printf("Plant approach distance = %.3f, isFirst = %d\n", plant_approach_dist, isFirst); 
     printf("Position control to approach to x = %.3f, y = %.3f and theta = %.3f \n", x_approach, y_approach, theta_approach);
@@ -322,7 +327,7 @@ void ActionPlants::do_action() {
     double x_plant, y_plant, theta_plant; 
 
     printf("Start action plant\n");
-    initial_pos_stepper();
+    initial_pos_stepper_forPlant();
     shared.get_robot_pos(&xpos_initial, &ypos_initial, &theta_pos_initial);
     
     // Positions itself in front of the plant node, without going in
@@ -362,8 +367,9 @@ void ActionPlants::do_action() {
         printf("Got plant at %f, %f, %f, beginning the approach\n", x_plant, y_plant, theta_plant);
         
         // Position robot in front of plant
-        if (position_to_plant(x_plant, y_plant, shared.graph->nodes[plantsNode].x, shared.graph->nodes[plantsNode].y, trigo_diff(theta_plant, theta_pos)>0, plant_i==0)) return; 
-        
+        // if (position_to_plant(x_plant, y_plant, shared.graph->nodes[plantsNode].x, shared.graph->nodes[plantsNode].y, trigo_diff(theta_plant, theta_pos)>0, plant_i==0)) return; 
+        if (position_to_plant(x_plant, y_plant, shared.graph->nodes[plantsNode].x, shared.graph->nodes[plantsNode].y, plant_i==0)) return; 
+
         // Get next storage slot and put the plant
         storage_slot_t nextSlot = get_next_free_slot_ID(ContainsStrongPlant); 
         int8_t plate_pos = get_plate_slot(nextSlot); 
