@@ -14,9 +14,15 @@ GripperHolder servoGripperHolder = GripperHolder(&spi_bus);
 
 int main(int argc, char const *argv[])
 {
-
-    // servoFlaps.deploy(); 
-    // sleep(3);
+    for (size_t i = 0; i < 6; i++)
+    {
+        servoFlaps.deploy(); 
+        sleep(1);
+        servoFlaps.raise();
+        sleep(1);
+    }
+    
+   
     // servoFlaps.raise();
     // sleep(1);
 

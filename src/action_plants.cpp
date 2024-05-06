@@ -99,22 +99,23 @@ void take_plant_kinematicChain(int8_t slotNumber) {
     // take de plant
     // Move backward
     // /!\ a verifier si zone jaune
-    //if (action_position_control(x_pos_init-0.02*cos(theta_pos_init), y_pos_init-0.02*sin(theta_pos_init), theta_pos_init) == -1) return; 
+    shared.teensy->set_position_controller_gains(2.0,2.5,-1.0,1.8); 
+    if (action_position_control(x_pos_init-0.02*cos(theta_pos_init), y_pos_init-0.02*sin(theta_pos_init), theta_pos_init) == -1) return; 
     //teensy->pos_ctrl(x_pos_init-0.02*cos(theta_pos_init), y_pos_init-0.02*sin(theta_pos_init), theta_pos_init);
     // descent
-    steppers->slider_move(SliderIntermediateLow,CALL_BLOCKING);
-    deployer->half();
+    // steppers->slider_move(SliderIntermediateLow,CALL_BLOCKING);
+    // deployer->half();
     steppers->slider_move(SliderLow, CALL_BLOCKING);
     deployer->deploy();
-    usleep(100000);
     // Move forward
-    //if (action_position_control(x_pos_init, y_pos_init, theta_pos_init) == -1) return; 
+    if (action_position_control(x_pos_init, y_pos_init, theta_pos_init) == -1) return; 
     //action_position_control(x_pos_init, y_pos_init, theta_pos_init);
-
+    usleep(100000);
     holder->hold_plant();
     int8_t args = slotNumber;  
     // printf("slotNumber in kine1 %d\n",args);
     if (pthread_create(&KCID, NULL, take_plant_kinematicChain_SecondPart, (void *)&args) != 0) return;
+    usleep(300000);//wait avant de repartir direct
     //teensy->set_position_controller_gains(0.4,2.5,-1.5,1.0);
 }
 
@@ -194,13 +195,13 @@ int8_t position_to_plant(double x_plant, double y_plant, double x_plant_center, 
     }
     printf("Plant approach distance = %.3f, isFirst = %d\n", plant_approach_dist, isFirst); 
     printf("Position control to approach to x = %.3f, y = %.3f and theta = %.3f \n", x_approach, y_approach, theta_approach);
-    shared.teensy->set_position_controller_gains(0.5,2.5,-1.5,1.0);
+    // shared.teensy->set_position_controller_gains(0.5,2.5,-1.5,1.0);
     if (action_position_control(x_approach, y_approach, periodic_angle(theta_approach)) == -1) return -1; 
 
     // Then, position control to the plant distance
     double x_grab = x_plant - cos(theta_approach) * plant_grab_dist; 
     double y_grab = y_plant - sin(theta_approach) * plant_grab_dist; 
-    shared.teensy->set_position_controller_gains(0.4,2.5,-1.5,1.0);
+    // shared.teensy->set_position_controller_gains(0.4,2.5,-1.5,1.0);
     printf("Position control to grab to x = %.3f, y = %.3f and theta = %.3f \n", x_grab, y_grab, theta_approach);
     PrepareApproachTakePlant();
     if (action_position_control(x_grab, y_grab, theta_approach) == -1) return -1; 
@@ -208,30 +209,56 @@ int8_t position_to_plant(double x_plant, double y_plant, double x_plant_center, 
 }
 
 
+// int8_t move_back(double x_plant, double y_plant) {
+//     Steppers* steppers = shared.steppers; 
+//     Flaps* servoFlaps = shared.servoFlaps;
+
+//     double x_pos = 0, y_pos = 0, theta_pos = 0; 
+//     shared.get_robot_pos(&x_pos, &y_pos, &theta_pos);
+//     double plant_to_bot_dist = hypot(x_plant-x_pos, y_plant-y_pos); 
+
+//     double dx = (x_pos-x_plant)/plant_to_bot_dist; 
+//     double dy = (y_pos-y_plant)/plant_to_bot_dist; 
+
+//     double x_away = x_pos+dx*away_distance; 
+//     double y_away = y_pos+dy*away_distance; 
+
+//     printf("Position control to go back to x = %.3f, y = %.3f and theta = %.3f \n", x_away, y_away, theta_pos);
+//     // shared.teensy->set_position_controller_gains(2.0,5.0,-0.8,4.0);
+
+//     if (action_position_control(x_away, y_away, theta_pos) == -1) return -1; 
+
+//     //une fois reculé, remet flaps a position initiale
+//     steppers->flaps_move(FlapsOpen);
+//     servoFlaps->raise();
+//     return 0; 
+// }
+
+
 int8_t move_back(double x_plant, double y_plant) {
     Steppers* steppers = shared.steppers; 
     Flaps* servoFlaps = shared.servoFlaps;
 
-    double x_pos = 0, y_pos = 0, theta_pos = 0; 
-    shared.get_robot_pos(&x_pos, &y_pos, &theta_pos);
-    double plant_to_bot_dist = hypot(x_plant-x_pos, y_plant-y_pos); 
-
-    double dx = (x_pos-x_plant)/plant_to_bot_dist; 
-    double dy = (y_pos-y_plant)/plant_to_bot_dist; 
-
-    double x_away = x_pos+dx*away_distance; 
-    double y_away = y_pos+dy*away_distance; 
-
-    printf("Position control to go back to x = %.3f, y = %.3f and theta = %.3f \n", x_away, y_away, theta_pos);
+    //hypot donne l'hypoténuse
+    double x_approach=0, y_approach=0, theta_approach=0;
+    shared.get_robot_pos(&x_approach, &y_approach, &theta_approach);
+    double dx = plant_approach_dist * cos(theta_approach);
+    double dy = plant_approach_dist * sin(theta_approach);
+    
+    x_approach = x_plant - dx ;
+    y_approach = y_plant - dy ;
+ 
+    printf("Position control to go back to x = %.3f, y = %.3f and theta = %.3f \n", x_approach, y_approach, theta_approach);
     // shared.teensy->set_position_controller_gains(2.0,5.0,-0.8,4.0);
 
-    if (action_position_control(x_away, y_away, theta_pos) == -1) return -1; 
+    if (action_position_control(x_approach, y_approach, theta_approach) == -1) return -1; 
 
     //une fois reculé, remet flaps a position initiale
     steppers->flaps_move(FlapsOpen);
     servoFlaps->raise();
     return 0; 
 }
+
 
 void get_closest_plant_from_kakoo(double x_pos, double y_pos, uint8_t plantNode, double* x_plant, double* y_plant, uint8_t* plants_collected, int8_t isFirst = 0) {
     double x_center = shared.graph->nodes[plantNode].x;
@@ -262,6 +289,13 @@ void get_closest_plant_from_kakoo(double x_pos, double y_pos, uint8_t plantNode,
 
 
 int8_t get_closest_plant_from_lidar(double x_pos, double y_pos, double theta_pos, uint8_t plantNode, double* x_plant, double* y_plant) {
+
+    Steppers* steppers = shared.steppers; 
+    Flaps* servoFlaps = shared.servoFlaps;
+
+    steppers->flaps_move(FlapsOpen,CALL_BLOCKING);
+    servoFlaps->raise();
+
     PlantZone** plantZone = new PlantZone *[6]; 
     initBottomLidar(plantZone);
     printf("Plant zone init\n");
@@ -325,6 +359,11 @@ int8_t get_closest_plant_from_lidar(double x_pos, double y_pos, double theta_pos
     return 0; 
 }
 
+void gainDeBasePlante(){
+    double gainDesGain = 1.0;
+    shared.teensy->set_position_controller_gains(1.0*gainDesGain,2.5*gainDesGain,-1.0*gainDesGain,1.8*gainDesGain);
+        
+}
 
 void ActionPlants::do_action() {
 
@@ -361,8 +400,6 @@ void ActionPlants::do_action() {
         usleep(50000);
     }
     
-    // shared.teensy->set_position_controller_gains(0.9,2.5,-1.0,1.2);
-    shared.teensy->set_position_controller_gains(0.9,2.5,-1.0,1.8);
 
     for (uint8_t plant_i = 0; plant_i < plantCounter; plant_i++) {
         // Get closest plant from lidar pov
@@ -376,6 +413,9 @@ void ActionPlants::do_action() {
         
         // Position robot in front of plant
         // if (position_to_plant(x_plant, y_plant, shared.graph->nodes[plantsNode].x, shared.graph->nodes[plantsNode].y, trigo_diff(theta_plant, theta_pos)>0, plant_i==0)) return; 
+        // shared.teensy->set_position_controller_gains(0.9,2.5,-1.0,1.2);
+        // shared.teensy->set_position_controller_gains(0.9,2.5,-1.0,1.8);
+        gainDeBasePlante();
         if (position_to_plant(x_plant, y_plant, shared.graph->nodes[plantsNode].x, shared.graph->nodes[plantsNode].y, plant_i==0)) return; 
 
         // Get next storage slot and put the plant
@@ -386,10 +426,12 @@ void ActionPlants::do_action() {
         printf("Activating the kinematic chain\n");//, x_plant, y_plant, theta_plant);
         take_plant_kinematicChain(plate_pos); 
         update_plate_content(nextSlot, ContainsWeakPlant); 
+        gainDeBasePlante();
         move_back(x_plant, y_plant); 
     }
 
     // Position control to the initial location with opposed theta for departure
     //if (action_position_control(xpos_initial, ypos_initial, periodic_angle(theta_pos_initial-M_PI)) == -1) return; 
     while(ThreadKinematicOccuped == true){usleep(1000);}
+    printf("End of plant action \n"); 
 }

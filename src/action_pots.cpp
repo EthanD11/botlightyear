@@ -131,7 +131,7 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
     double distanceRoue = 0.27;
     double deltaApproach = 0.1;
     double rayonPot = 0.08;
-    double deltaRayonPot35 = 0.015;
+    double deltaRayonPot35 = 0.02;
 
     double posPotXApproach, posPotYApproach,posPotThetaApproach;
     double posPotXPrise, posPotYPrise ,posPotThetaPrise;
@@ -264,6 +264,7 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
         if (action_position_control(posPotXApproach,posPotYApproach,posPotThetaApproach)==-1) return; 
         steppers->flaps_move(FlapsOpen);
         servoFlaps->raise();
+        printf("start for remove all pots\n");
         // se repositionne face au pot centraux
         double posPotXThrow1 = posPotX+(0.30)*cos(posPotTheta +(M_PI/6)*(-sign(clearanceAngle)));
         double posPotYThrow1 = posPotY+(0.30)*sin(posPotTheta +(M_PI/6)*(-sign(clearanceAngle)));
@@ -278,6 +279,7 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
         if (action_position_control(posPotXThrow1,posPotYThrow1,posPotThetaThrow1)==-1) return;
         printf("target 2 for remove all pots : %f,%f,%f\n",posPotXThrow2,posPotYThrow2,posPotThetaThrow2);
         if (action_position_control(posPotXThrow2,posPotYThrow2,posPotThetaThrow2)==-1) return;
+        printf("remove all pot is done\n");
     }   
     while (stopBeforeMovePot == true){usleep(1000);}
 }
@@ -321,6 +323,7 @@ void ActionPots::do_action() {
     pathTarget = path->target;
 
     // shared.teensy->set_position_controller_gains(0.4,1.5,-0.5,0.5);
+    shared.teensy->set_position_controller_gains(0.9,2.5,-2.0,1.2);
     get_posPot(pathTarget, freeTheGardenLastTurn); 
     shared.get_robot_pos(&xpos, &ypos, &theta_pos);
     if (hypot(xpos-posPotX, ypos-posPotY) > 0.7) {
@@ -351,5 +354,5 @@ void ActionPots::do_action() {
 
     while(ThreadKinematicOccuped == true) {usleep(1000);};
     initial_pos_stepper();
-    sleep(1000);
+    printf("action pot is finish\n");
 }

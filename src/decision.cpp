@@ -1,4 +1,5 @@
 #include "decision.h"
+#include "actions.h"
 #include "action_displacement.h"
 #include "action_planter.h"
 #include "action_plants.h"
@@ -92,6 +93,9 @@ int8_t time_sp = 101;
 #endif 
 int8_t time_sp_reserved = 25;
 
+#ifdef TESTS
+static bool hasTakenPots = false; 
+#endif
 
 // ------------ UTILS --------------
 
@@ -156,22 +160,25 @@ void decide_possible_actions() {
     // return;
 
     // ---------- Pots TEST -----------
-
-    // path = shared.graph->compute_path(x_pos, y_pos, shared.graph->pots, 6);
+    if (!hasTakenPots) {
+        path = shared.graph->compute_path(x_pos, y_pos, shared.graph->pots, 6);
     
-    // if (path != NULL) {
-    //     path->thetaStart = theta_pos; 
-    //     path->thetaEnd = getThetaEnd(shared.graph->pots, shared.graph->potsTheta, 6, path->target);;
-    // } else {
-    //     printf("Path is NULL\n");
-    // }
-    // possible_actions[0] = new ActionPots(path, 2,false,true); 
-    // n_possible_actions = 1; 
-    // return;
+        if (path != NULL) {
+            path->thetaStart = theta_pos; 
+            path->thetaEnd = getThetaEnd(shared.graph->pots, shared.graph->potsTheta, 6, path->target);;
+        } else {
+            printf("Path is NULL\n");
+        }
+        possible_actions[0] = new ActionPots(path, 2,false,true); 
+        n_possible_actions = 1; 
+        hasTakenPots = true; 
+        return;
 
+    }
     // ---------- Plants TEST -----------
 
     uint8_t target = 31;
+    
     shared.graph->update_obstacle(target,0);
     path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
     
@@ -182,7 +189,7 @@ void decide_possible_actions() {
     } else {
         printf("Path is NULL\n");
     }
-    shared.graph->update_obstacle(target,1);
+    // shared.graph->update_obstacle(target,1);
     possible_actions[0] = new ActionPlants(path, 3); 
     n_possible_actions = 1; 
     return;
