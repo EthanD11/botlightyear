@@ -11,7 +11,7 @@ static volatile bool ThreadKinematicOccuped = false;
 static volatile bool hasPot = false;
 
 double plant_approach_dist = 0.4; //0.35 MAX
-double plant_grab_dist = 0.27; // 0.22 MIN
+double plant_grab_dist = 0.26; // 0.22 MIN
 double plant_approach_angle = M_PI/6; 
 double away_distance = 0.1; 
 /*
@@ -44,7 +44,7 @@ void *take_plant_kinematicChain_SecondPart(void *args ){
     Steppers* steppers = shared.steppers; 
     Teensy* teensy = shared.teensy; 
     Flaps* servoFlaps = shared.servoFlaps; 
-    int slotNumber = *((int*) args);
+    int8_t slotNumber = *((int8_t*) args);
     ThreadKinematicOccuped = true;
     //remonte
     steppers->slider_move(SliderHigh);//tricks pour replier servo au milieu
@@ -53,6 +53,7 @@ void *take_plant_kinematicChain_SecondPart(void *args ){
     shared.pins->wait_for_gpio_value(StprSliderGPIO, 1, 10000);
 
     //mise dans plateau
+    // printf("slotNumber : %d\n",slotNumber);
     steppers->plate_move(slotNumber, CALL_BLOCKING); 
     if (hasPot == true){
         //steppers->slider_move(SliderIntermediatePlantInPot,CALL_BLOCKING);
@@ -97,18 +98,24 @@ void take_plant_kinematicChain(int8_t slotNumber) {
 
     // take de plant
     // Move backward
-    //teensy->pos_ctrl(x_pos_init-0.06*cos(theta_pos_init), y_pos_init-0.06*sin(theta_pos_init), theta_pos_init);
+    // /!\ a verifier si zone jaune
+    //if (action_position_control(x_pos_init-0.02*cos(theta_pos_init), y_pos_init-0.02*sin(theta_pos_init), theta_pos_init) == -1) return; 
+    //teensy->pos_ctrl(x_pos_init-0.02*cos(theta_pos_init), y_pos_init-0.02*sin(theta_pos_init), theta_pos_init);
     // descent
     steppers->slider_move(SliderIntermediateLow,CALL_BLOCKING);
     deployer->half();
     steppers->slider_move(SliderLow, CALL_BLOCKING);
     deployer->deploy();
+    usleep(100000);
     // Move forward
+    //if (action_position_control(x_pos_init, y_pos_init, theta_pos_init) == -1) return; 
     //action_position_control(x_pos_init, y_pos_init, theta_pos_init);
 
-    holder->hold_plant();  
-    if (pthread_create(&KCID, NULL, take_plant_kinematicChain_SecondPart, (void *)&slotNumber) != 0) return;
-    teensy->set_position_controller_gains(0.4,2.5,-1.5,1.0);
+    holder->hold_plant();
+    int8_t args = slotNumber;  
+    // printf("slotNumber in kine1 %d\n",args);
+    if (pthread_create(&KCID, NULL, take_plant_kinematicChain_SecondPart, (void *)&args) != 0) return;
+    //teensy->set_position_controller_gains(0.4,2.5,-1.5,1.0);
 }
 
 
@@ -354,7 +361,8 @@ void ActionPlants::do_action() {
         usleep(50000);
     }
     
-    shared.teensy->set_position_controller_gains(0.9,2.5,-1.0,1.2);
+    // shared.teensy->set_position_controller_gains(0.9,2.5,-1.0,1.2);
+    shared.teensy->set_position_controller_gains(0.9,2.5,-1.0,1.8);
 
     for (uint8_t plant_i = 0; plant_i < plantCounter; plant_i++) {
         // Get closest plant from lidar pov
@@ -374,7 +382,7 @@ void ActionPlants::do_action() {
         storage_slot_t nextSlot = get_next_free_slot_ID(ContainsStrongPlant); 
         int8_t plate_pos = get_plate_slot(nextSlot); 
         hasPot = shared.storage[nextSlot] && ContainsPot;
-
+        // printf("nextSlot %d plate_pos %d\n",nextSlot, plate_pos);
         printf("Activating the kinematic chain\n");//, x_plant, y_plant, theta_plant);
         take_plant_kinematicChain(plate_pos); 
         update_plate_content(nextSlot, ContainsWeakPlant); 

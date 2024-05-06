@@ -178,6 +178,7 @@ void init_and_wait_for_start() {
 
     shared.steppers->reset_all();
     shared.steppers->calibrate_all(CALL_BLOCKING, shared.valids);
+    shared.steppers->plate_move(0, CALL_BLOCKING); 
     shared.servoFlaps->raise();
     
     shared.start_timer();
@@ -212,6 +213,13 @@ void *localizer(void* arg) {
     shared.graph->update_adversary_pos(4,0);
     #endif
 
+    int8_t teensyI = 0;
+    #ifdef LIDAR_TOP
+    int8_t teensyN = 100;
+    #else
+    int8_t teensyN = 40;
+    #endif
+
     while (!localizerEnd) {
 
         // teensy_mode_t teensyMode = shared.teensy->ask_mode();
@@ -243,7 +251,10 @@ void *localizer(void* arg) {
         odoClock = clock();
         #endif
         //}
-        // shared.teensy->set_position(x,y,theta);
+        if (++teensyI == teensyN) {
+            shared.teensy->set_position(x,y,theta);
+            teensyI = 0;
+        }
 
         #ifdef TIME_MEAS
         clock_t teensyClock = clock();

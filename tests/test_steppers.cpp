@@ -247,8 +247,8 @@ int main(int argc, char const *argv[])
 
     
     // steppers->plate_move(1, CALL_BLOCKING);
-    // demoPlate();  
-    steppers->move(StprPlate, 100, 1, CALL_BLOCKING); 
+    demoPlate();  
+    // steppers->move(StprPlate, 100, 1, CALL_BLOCKING); 
     
     #endif 
 
