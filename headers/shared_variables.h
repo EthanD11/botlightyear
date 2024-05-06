@@ -38,7 +38,7 @@ typedef enum _storage_content : uint8_t
     ContainsStrongPlant = 0b010,
     ContainsWeakPlant = 0b110,
     ContainsStrongPlantInPot = 0b011,
-    ConstainsWeakPlantInPot = 0b111
+    ContainsWeakPlantInPot = 0b111
 } storage_content_t;
 
 class SharedVariables

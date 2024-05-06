@@ -78,7 +78,10 @@ static void *kinematic_chain(void *args) {
             // Grab plant
             grpHolder->open_full();
             steppers->slider_move(SliderStorage, CALL_BLOCKING);
-            if (toDrop & ContainsPot) printf("Warning : Pot not implemented  !! \n");
+            if (toDrop & ContainsPot) {
+                grpHolder->hold_pot();
+                //printf("Warning : Pot not implemented  !! \n");
+            }
             else grpHolder->hold_plant();
             update_plate_content(slotID, ContainsNothing);
             usleep(400000);
@@ -139,6 +142,7 @@ static void *kinematic_chain(void *args) {
 }
 
 void ActionPlanter::do_action() {
+    printf("Start of action planter\n");
     if (nbPlants > 3) nbPlants = 3;
     state = PF;
     stateKC = PF;
@@ -172,13 +176,27 @@ void ActionPlanter::do_action() {
         state = Get;
         while (stateKC != Get) usleep(50000);
 
-        if (action_position_control(xPlanter+0.15*cos(thetaPlanter)-0.08*nextSpot*sin(thetaPlanter),
-                                    yPlanter+0.15*sin(thetaPlanter)+0.08*nextSpot*cos(thetaPlanter),
+        if (action_position_control(xPlanter+0.05*cos(thetaPlanter)-0.08*nextSpot*sin(thetaPlanter),
+                                    yPlanter+0.05*sin(thetaPlanter)+0.08*nextSpot*cos(thetaPlanter),
                                     thetaPlanter)) return leave();
 
-        shared.teensy->constant_dc(65,65);
-        while (shared.pins->read(BpSwitchFlapsLeftGPIO) != 1 && shared.pins->read(BpSwitchFlapsRightGPIO) != 1) 
-            usleep(10000);
+        //shared.teensy->constant_dc(65,65);
+        double valueConstantDC = 80;
+        shared.teensy->constant_dc(valueConstantDC,valueConstantDC);
+        int8_t pins_state = 0;
+        while (shared.pins->read(BpSwitchFlapsLeftGPIO) != 1 || shared.pins->read(BpSwitchFlapsRightGPIO) != 1) {
+            usleep(200000);
+            if ( shared.pins->read(BpSwitchFlapsRightGPIO) ==1 && pins_state !=2) {
+                pins_state = 2; 
+                shared.teensy->constant_dc(0,valueConstantDC*3/2);
+            } else if (shared.pins->read(BpSwitchFlapsRightGPIO) ==1 && pins_state!=1){
+                pins_state = 1;
+                shared.teensy->constant_dc(valueConstantDC*3/2,0);
+            } else if (pins_state != 0) {
+                pins_state = 0;
+                shared.teensy->constant_dc(valueConstantDC,valueConstantDC);
+            }
+        }
         shared.teensy->idle();
 
         state = Drop;
@@ -207,5 +225,6 @@ void ActionPlanter::do_action() {
        
     state = End;
     pthread_join(KCID, NULL);
+    printf("End of action planter\n");
 
 }
