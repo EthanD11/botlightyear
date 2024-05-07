@@ -52,7 +52,7 @@ static void *kinematic_chain(void *args) {
 
         case Get: // Get next plant in plate
             stateKC = Get;
-            slotID = get_next_unloaded_slot_ID(ConstainsWeakPlantInPot);
+            slotID = get_next_unloaded_slot_ID(ContainsWeakPlantInPot);
             if (slotID == SlotInvalid) slotID = get_next_unloaded_slot_ID(ContainsStrongPlant);
             toDrop = shared.storage[slotID];
             grpDeployer->half();
@@ -83,7 +83,7 @@ static void *kinematic_chain(void *args) {
             steppers->slider_move(SliderLow, CALL_BLOCKING);
             grpHolder->open();
             stateKC = Drop;
-            if ((toDrop == ConstainsWeakPlantInPot) || ((toDrop & ContainsStrongPlant) == ContainsStrongPlant))
+            if ((toDrop == ContainsWeakPlantInPot) || ((toDrop & ContainsStrongPlant) == ContainsStrongPlant))
                 shared.score += 3 + ((toDrop & ContainsPot) == ContainsPot);
             steppers->slider_move(SliderHigh);
             usleep(200000);

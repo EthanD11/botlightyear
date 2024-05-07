@@ -12,5 +12,5 @@
 
 
 void oled_init(); 
-
+void oled_ready_to_start(); 
 void oled_score_update(uint8_t score); 

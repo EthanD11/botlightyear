@@ -19,6 +19,16 @@ int8_t sign(double a) {
     return (a>=0) ? 1 : -1; 
 }
  
+
+void gainNormal(){
+    shared.teensy->set_position_controller_gains(0.9,2.5,-1.0,1.2);
+}
+
+void gainPrecis(){
+    shared.teensy->set_position_controller_gains(0.9,2.5,-0.2,1.2);
+}
+
+
 /*
 Takes pot and puts it to the plate storage specified
 */
@@ -181,13 +191,14 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
         return;
         break;
     }
-    printf("here we go for the pot %d\n",numeroPot);
+    printf("-----here we go for the pot %d------\n\n",numeroPot);
     //remapping pour -PI a +PI
     posPotThetaApproach = periodic_angle(posPotThetaApproach);
     posPotThetaPrise = periodic_angle(posPotThetaPrise);
     //-----approche grossiere-----
     printf("approche grossiere : %f, %f, %f ,distance :%f\n", posPotXApproach, posPotYApproach, posPotThetaApproach,distanceRoue+deltaApproach+rayonPot);
     //teensy->pos_ctrl(posPotXApproach,posPotYApproach,posPotThetaApproach); 
+    gainNormal();
     if (action_position_control(posPotXApproach,posPotYApproach,posPotThetaApproach)==-1) return; 
     // sleep(10);
 
@@ -204,7 +215,9 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
     printf("approche précise : %f, %f, %f, distance :%f\n", posPotXPrise, posPotYPrise, posPotThetaPrise,distanceRoue+rayonPot);
     //teensy->pos_ctrl(posPotX+(distanceRoue)*(betaPot1),posPotY+(distanceRoue)*(betaPot1),posPotTheta+betaPot1-M_PI);
     // teensy->pos_ctrl(posPotXPrise,posPotYPrise,posPotThetaPrise);
+    gainPrecis();
     if (action_position_control(posPotXPrise,posPotYPrise,posPotThetaPrise)==-1) return; 
+    gainNormal();
     // sleep(10);    
     //-----prise pot-----
     printf("debut chaine cinématique\n");
@@ -231,9 +244,10 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
     default:
         break;
     }
-    if (removePot4 == false){
-        if (action_position_control(posPotXApproach,posPotYApproach,posPotThetaApproach)==-1) return; 
-        steppers->flaps_move(FlapsOpen);
+    if (removePot4 == false && freeTheGarden == false){
+        printf("retour a la position d'approche (en anglais evidemment) : %f, %f, %f\n", posPotXApproach,posPotYApproach,posPotThetaApproach);
+        if (action_position_control(posPotXApproach,posPotYApproach,posPotThetaApproach, 0.005, 100)==-1) return; //
+       steppers->flaps_move(FlapsOpen);
         servoFlaps->raise();
     }
     if (removePot4) {
@@ -242,7 +256,7 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
         posPotYApproach = posPotY+(distanceRoue+deltaApproach)*sin(posPotTheta);
         posPotThetaApproach = posPotTheta-M_PI;
         posPotThetaPrise = periodic_angle(posPotThetaPrise);
-        if (action_position_control(posPotXApproach,posPotYApproach,posPotThetaApproach)==-1) return; 
+        if (action_position_control(posPotXApproach,posPotYApproach,posPotThetaApproach,0.005,100)==-1) return; 
         // remove pot 4
         //servoFlaps->raise();
         printf("starting remove pot 4\n");
@@ -261,7 +275,8 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
     // si doit degager TOUT les autres pots
     if (freeTheGarden){
         printf("come back Aproach and then starting remove all pots\n");
-        if (action_position_control(posPotXApproach,posPotYApproach,posPotThetaApproach)==-1) return; 
+        printf("retour a la position d'approche (en anglais evidemment) : %f, %f, %f\n", posPotXApproach,posPotYApproach,posPotThetaApproach);
+        if (action_position_control(posPotXApproach,posPotYApproach,posPotThetaApproach,0.005,100)==-1) return; 
         steppers->flaps_move(FlapsOpen);
         servoFlaps->raise();
         printf("start for remove all pots\n");
@@ -323,13 +338,13 @@ void ActionPots::do_action() {
     pathTarget = path->target;
 
     // shared.teensy->set_position_controller_gains(0.4,1.5,-0.5,0.5);
-    shared.teensy->set_position_controller_gains(0.9,2.5,-2.0,1.2);
+
     get_posPot(pathTarget, freeTheGardenLastTurn); 
     shared.get_robot_pos(&xpos, &ypos, &theta_pos);
     if (hypot(xpos-posPotX, ypos-posPotY) > 0.7) {
         if (path_following_to_action(path) == -1) return; 
     }
-    
+    gainNormal();
     shared.get_robot_pos(&xposInitiale, &yposInitiale, &theta_posInitiale);
     initial_pos_stepper();
     for (uint8_t i=0; i<this->potCounter; i++) {

@@ -8,6 +8,8 @@
 #define vref 0.25                 // [m/s] Speed reference for path following
 #define dist_goal_reached 0.40    // [m] Distance tolerance to goal for path following
 
+#define DEFAULT_DIST_TOL 0.005     // [m] default distance tolerance of position control
+#define DEFAULT_ANGLE_TOL 2       // [°] default angle tolerance of position control
 typedef enum _action : uint8_t
 {
     GameFinished,
@@ -44,7 +46,7 @@ class Action {
 int8_t path_following_to_action(graph_path_t *path); 
 
 /* UTILS: POSITION_CONTROL */
-int8_t action_position_control(double x_end, double y_end, double theta_end); 
+int8_t action_position_control(double x_end, double y_end, double theta_end, double pos_tol = DEFAULT_DIST_TOL, double angle_tol = DEFAULT_ANGLE_TOL); 
 
 /* UTILS: BACK MANOEUVER*/
 uint8_t back_manoeuvre(double backward_dist);

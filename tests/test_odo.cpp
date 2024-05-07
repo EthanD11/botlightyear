@@ -35,7 +35,7 @@ int main(int argc, char const *argv[])
     {
         odo.get_pos(&x,&y,&theta);
         printf("%.3f,%.3f,%.3f\n", x, y, theta*180/3.1416);
-        usleep(50000);
+        usleep(200000);
     }
     #endif
 

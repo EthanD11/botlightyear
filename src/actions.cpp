@@ -277,7 +277,7 @@ int8_t path_following_to_action(graph_path_t *path)
     return 0; // Adversary not found and successfull path following
 }
 
-int8_t action_position_control(double x_end, double y_end, double theta_end)
+int8_t action_position_control(double x_end, double y_end, double theta_end, double pos_tol, double angle_tol)
 {
     shared.teensy_reset_pos();
     Teensy *teensy = shared.teensy;
@@ -347,6 +347,15 @@ int8_t action_position_control(double x_end, double y_end, double theta_end)
         } else if (stopped) {
             stopped = 0;
             teensy->pos_ctrl(x_end, y_end, theta_end);
+        }
+        if (pos_tol != DEFAULT_DIST_TOL || angle_tol != DEFAULT_ANGLE_TOL) {
+            shared.get_robot_pos(&x, &y, &theta);
+            if (hypot(x_end-x, y_end-y)< pos_tol && fabs(trigo_diff(theta_end, theta))<angle_tol*M_PI/180.0) {
+                printf("Checking non-defult tolerances succeded with robot in %.3f, %.3f, %.3f\n",x,y,theta); 
+                shared.teensy->idle(); 
+                shared.teensy_reset_pos();
+                return 0; 
+            }
         }
 
         usleep(10000);

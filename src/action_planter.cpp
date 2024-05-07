@@ -89,11 +89,13 @@ static void *kinematic_chain(void *args) {
             // Ready to drop
             steppers->slider_move(SliderHigh);
             usleep(700000);
-            grpDeployer->idle();
+            grpDeployer->half();
             steppers->plate_move(0, CALL_BLOCKING);
+            grpDeployer->idle();
             break;
 
         case Drop:
+            grpDeployer->deploy();
             steppers->slider_move(SliderIntermediateLow, CALL_BLOCKING);
             grpHolder->open();
             stateKC = Drop;
@@ -101,7 +103,7 @@ static void *kinematic_chain(void *args) {
             steppers->slider_move(SliderHigh);
             usleep(200000);
             grpHolder->idle();
-
+            grpDeployer->idle();
             break;
         
         case End:
@@ -181,20 +183,26 @@ void ActionPlanter::do_action() {
                                     thetaPlanter)) return leave();
 
         //shared.teensy->constant_dc(65,65);
-        double valueConstantDC = 80;
-        shared.teensy->constant_dc(valueConstantDC,valueConstantDC);
+        // double valueConstantDC = 80;
+        // shared.teensy->constant_dc(valueConstantDC,valueConstantDC);
+        double speedValue = 0.1;
+        shared.teensy->spd_ctrl(speedValue,speedValue);
         int8_t pins_state = 0;
         while (shared.pins->read(BpSwitchFlapsLeftGPIO) != 1 || shared.pins->read(BpSwitchFlapsRightGPIO) != 1) {
             usleep(200000);
+            printf("pin_state : %d \n",pins_state);
             if ( shared.pins->read(BpSwitchFlapsRightGPIO) ==1 && pins_state !=2) {
                 pins_state = 2; 
-                shared.teensy->constant_dc(0,valueConstantDC*3/2);
-            } else if (shared.pins->read(BpSwitchFlapsRightGPIO) ==1 && pins_state!=1){
+                shared.teensy->spd_ctrl(speedValue,0);
+                //shared.teensy->constant_dc(0,valueConstantDC*3/2);
+            } else if (shared.pins->read(BpSwitchFlapsLeftGPIO) ==1 && pins_state!=1){
                 pins_state = 1;
-                shared.teensy->constant_dc(valueConstantDC*3/2,0);
+                shared.teensy->spd_ctrl(0,speedValue);
+                // shared.teensy->constant_dc(valueConstantDC*3/2,0);
             } else if (pins_state != 0) {
                 pins_state = 0;
-                shared.teensy->constant_dc(valueConstantDC,valueConstantDC);
+                shared.teensy->spd_ctrl(speedValue,speedValue);
+                // shared.teensy->constant_dc(valueConstantDC,valueConstantDC);
             }
         }
         shared.teensy->idle();

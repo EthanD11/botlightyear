@@ -180,6 +180,8 @@ void init_and_wait_for_start() {
     shared.steppers->calibrate_all(CALL_BLOCKING, shared.valids);
     shared.steppers->plate_move(0, CALL_BLOCKING); 
     shared.servoFlaps->raise();
+
+    oled_ready_to_start(); 
     
     shared.start_timer();
     // Generate random seed

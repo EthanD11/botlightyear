@@ -120,4 +120,4 @@ clean:
 clean_obj:
 	@rm -f $(OBJ_DIR)/*
 
-.PHONY: clean clean_obj tests test_%
+.PHONY: idle clean clean_obj tests test_%
