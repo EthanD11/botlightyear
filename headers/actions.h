@@ -9,7 +9,7 @@
 #define dist_goal_reached 0.40    // [m] Distance tolerance to goal for path following
 
 #define DEFAULT_DIST_TOL 0.005     // [m] default distance tolerance of position control
-#define DEFAULT_ANGLE_TOL 2       // [°] default angle tolerance of position control
+#define DEFAULT_ANGLE_TOL 2.0       // [°] default angle tolerance of position control
 typedef enum _action : uint8_t
 {
     GameFinished,

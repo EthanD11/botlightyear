@@ -85,10 +85,12 @@ class ActionBlockSps : public Action {
 Action* possible_actions[10]; 
 uint8_t n_possible_actions;
 
-int8_t time_gotobase = 30;
+
 #ifdef FINAL_STRATEGY
+int8_t time_gotobase = 30;
 int8_t time_sp = 40; 
 #else
+int8_t time_gotobase = -10;
 int8_t time_sp = 101;
 #endif 
 int8_t time_sp_reserved = 25;
@@ -130,7 +132,7 @@ void decide_possible_actions() {
     x_pos += 0.15*cos(theta_pos);
     y_pos += 0.15*sin(theta_pos);
     uint8_t currentNode = shared.graph->identify_pos(x_pos, y_pos, &dist_from_currentNode);
-
+    printf("Deciding action : post robpos\n");
     #ifdef TESTS
     /*static uint8_t base = 0;
     uint8_t target;
@@ -160,21 +162,20 @@ void decide_possible_actions() {
     // return;
 
     // ---------- Pots TEST -----------
-    if (!hasTakenPots) {
-        path = shared.graph->compute_path(x_pos, y_pos, shared.graph->pots, 6);
+    // if (!hasTakenPots) {
+    //     path = shared.graph->compute_path(x_pos, y_pos, shared.graph->pots, 6);
     
-        if (path != NULL) {
-            path->thetaStart = theta_pos; 
-            path->thetaEnd = getThetaEnd(shared.graph->pots, shared.graph->potsTheta, 6, path->target);
-        } else {
-            printf("Path is NULL\n");
-        }
-        possible_actions[0] = new ActionPots(path, 2,false,true); 
-        n_possible_actions = 1; 
-        hasTakenPots = true; 
-        return;
-
-    }
+    //     if (path != NULL) {
+    //         path->thetaStart = theta_pos; 
+    //         path->thetaEnd = getThetaEnd(shared.graph->pots, shared.graph->potsTheta, 6, path->target);
+    //     } else {
+    //         printf("Path is NULL\n");
+    //     }
+    //     possible_actions[0] = new ActionPots(path, 2,false,true); 
+    //     n_possible_actions = 1; 
+    //     hasTakenPots = true; 
+    //     return;
+    // }
     // ---------- Plants TEST -----------
 
     // uint8_t target = 31;
@@ -197,19 +198,22 @@ void decide_possible_actions() {
     // ---------- Planters TEST -----------
     
     
-    // path = shared.graph->compute_path(x_pos, y_pos, shared.graph->friendlyPlanters, 3);
-    // update_plate_content(SlotM3, ContainsWeakPlant); 
-    // update_plate_content(Slot3, ContainsWeakPlant); 
-    // if (path != NULL) {
-    //     path->thetaStart = theta_pos; 
-    //     path->thetaEnd = getThetaEnd(shared.graph->friendlyPlanters, shared.graph->friendlyPlantersTheta, 3, path->target);  
-    // } else {
-    //     printf("Path is NULL\n");
-    // }
-    // // shared.graph->update_obstacle(target,1);
-    // possible_actions[0] = new ActionPlanter(path, 1, SideMiddle); 
-    // n_possible_actions = 1; 
-    // return;
+    path = shared.graph->compute_path(x_pos, y_pos, shared.graph->friendlyPlanters, 3);
+    printf("Deciding action : pre platecontent\n");
+    update_plate_content(SlotM3, ContainsWeakPlant); 
+    update_plate_content(Slot3, ContainsWeakPlant); 
+    printf("Deciding action : post platecontent\n");
+
+    if (path != NULL) {
+        path->thetaStart = theta_pos; 
+        path->thetaEnd = getThetaEnd(shared.graph->friendlyPlanters, shared.graph->friendlyPlantersTheta, 3, path->target);  
+    } else {
+        printf("Path is NULL\n");
+    }
+    // shared.graph->update_obstacle(target,1);
+    possible_actions[0] = new ActionPlanter(path, 3, SideRight); 
+    n_possible_actions = 1; 
+    return;
     #endif
 
     #ifdef HOMOLOGATION 

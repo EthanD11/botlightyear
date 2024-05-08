@@ -63,9 +63,9 @@ int main(int argc, char const *argv[])
         printf("%d\n\n", graphNodes[i].neighbors[graphNodes[i].nNeighbors-1]->id);
     }*/
     
-    double xFrom = 0.435, yFrom = 1.860; // 20
-    uint8_t tos[] = {41,45};
-    uint8_t len_tos = 2;
+    double xFrom = 0.435, yFrom = 1.861; // 20
+    uint8_t tos[] = {20};
+    uint8_t len_tos = 1;
     graph.level = 0;
     /*graph.update_obstacle(10,1);
     graph.update_obstacle(15,1);

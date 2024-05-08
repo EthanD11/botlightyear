@@ -15,17 +15,19 @@ static double posPotY ;
 static double posPotTheta;
 static double clearanceAngle;
 
+static bool firstPot = false; 
+
 int8_t sign(double a) {
     return (a>=0) ? 1 : -1; 
 }
  
 
 void gainNormal(){
-    shared.teensy->set_position_controller_gains(0.9,2.5,-1.0,1.2);
+    shared.teensy->set_position_controller_gains(0.9,2.5,-0.4,1.0);
 }
 
 void gainPrecis(){
-    shared.teensy->set_position_controller_gains(0.9,2.5,-0.2,1.2);
+    shared.teensy->set_position_controller_gains(0.9,2.5,0.0,1);
 }
 
 
@@ -198,7 +200,11 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
     //-----approche grossiere-----
     printf("approche grossiere : %f, %f, %f ,distance :%f\n", posPotXApproach, posPotYApproach, posPotThetaApproach,distanceRoue+deltaApproach+rayonPot);
     //teensy->pos_ctrl(posPotXApproach,posPotYApproach,posPotThetaApproach); 
-    gainNormal();
+    if (firstPot) {
+        shared.teensy->set_position_controller_gains(0.9,2.5,-0.4,1.1);
+    } else {
+        gainNormal();
+    }
     if (action_position_control(posPotXApproach,posPotYApproach,posPotThetaApproach)==-1) return; 
     // sleep(10);
 
@@ -247,7 +253,7 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
     if (removePot4 == false && freeTheGarden == false){
         printf("retour a la position d'approche (en anglais evidemment) : %f, %f, %f\n", posPotXApproach,posPotYApproach,posPotThetaApproach);
         if (action_position_control(posPotXApproach,posPotYApproach,posPotThetaApproach, 0.005, 100)==-1) return; //
-       steppers->flaps_move(FlapsOpen);
+        steppers->flaps_move(FlapsOpen);
         servoFlaps->raise();
     }
     if (removePot4) {
@@ -276,13 +282,15 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
     if (freeTheGarden){
         printf("come back Aproach and then starting remove all pots\n");
         printf("retour a la position d'approche (en anglais evidemment) : %f, %f, %f\n", posPotXApproach,posPotYApproach,posPotThetaApproach);
+        shared.teensy->set_position_controller_gains(0.9,2.5,-0.6,1);
+
         if (action_position_control(posPotXApproach,posPotYApproach,posPotThetaApproach,0.005,100)==-1) return; 
         steppers->flaps_move(FlapsOpen);
         servoFlaps->raise();
         printf("start for remove all pots\n");
         // se repositionne face au pot centraux
-        double posPotXThrow1 = posPotX+(0.30)*cos(posPotTheta +(M_PI/6)*(-sign(clearanceAngle)));
-        double posPotYThrow1 = posPotY+(0.30)*sin(posPotTheta +(M_PI/6)*(-sign(clearanceAngle)));
+        double posPotXThrow1 = posPotX+(0.32)*cos(posPotTheta +(M_PI/6)*(-sign(clearanceAngle)));
+        double posPotYThrow1 = posPotY+(0.32)*sin(posPotTheta +(M_PI/6)*(-sign(clearanceAngle)));
         double posPotThetaThrow1 = posPotTheta+ ((M_PI/6)+M_PI_2)*(sign(clearanceAngle));
         double posPotXThrow2 = posPotX;
         double posPotYThrow2 = posPotY+(0.18)*sin(posPotTheta);
@@ -296,7 +304,7 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
         if (action_position_control(posPotXThrow2,posPotYThrow2,posPotThetaThrow2)==-1) return;
         printf("remove all pot is done\n");
     }   
-    while (stopBeforeMovePot == true){usleep(1000);}
+    // while (stopBeforeMovePot == true){usleep(1000);}
 }
 
 
@@ -330,6 +338,8 @@ int8_t get_numeroPot(int8_t i, int8_t pathTarget) {
 }
 
 void ActionPots::do_action() {
+    printf("\n------ Beginning action pot ------\n\n");
+    firstPot = true;
     double xpos, ypos, theta_pos; 
     double xposInitiale, yposInitiale, theta_posInitiale;
     int pathTarget;
@@ -362,7 +372,7 @@ void ActionPots::do_action() {
         
         take_pot_kinematicChain(plate_pos,numeroPot,pathTarget, removePot4KinematicChaine,freeTheGardenLastTurn); // Launches the kinematic chain
         update_plate_content(nextSlot, ContainsPot); 
-
+        if (i==0) firstPot = false; 
     }
     //printf("come back pos initial: %f, %f, %f\n", xposInitiale, yposInitiale, theta_posInitiale);
     //if (action_position_control(xposInitiale,yposInitiale,periodic_angle(theta_posInitiale+M_PI))==-1) return; 

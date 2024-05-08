@@ -105,6 +105,11 @@ int8_t path_following_to_action(graph_path_t *path)
     int ncheckpoints = (int)path->nNodes;
     double *x = path->x;
     double *y = path->y;
+
+    if (ncheckpoints == 1) {
+        return action_position_control(*x,*y,path->thetaEnd);
+    }
+
     /*for (int i=0; i<ncheckpoints; i++) {
         printf("Node %d : x :%.3f and y: %.3f \n", i, x[i], y[i]);
     }*/
@@ -292,8 +297,13 @@ int8_t action_position_control(double x_end, double y_end, double theta_end, dou
     // Retrieve robot current position
     double x = 0, y = 0, theta = 0;
     shared.get_robot_pos(&x, &y, &theta);
+
+    if (hypot(x_end-x, y_end-y) < std::max(pos_tol, DEFAULT_DIST_TOL) 
+        && fabs(trigo_diff(theta_end, theta)) < std::max(angle_tol , DEFAULT_ANGLE_TOL)*M_PI/180.0)
+        return 0;
+
     #ifdef VERBOSE
-    printf("Robot position from shared: %.3f, %.3f, %.3f \n", x, y, theta);
+    // printf("Robot position from shared: %.3f, %.3f, %.3f \n", x, y, theta);
     #endif
     double alpha = std::abs(atan2(y_end - y, x_end - x) - theta);
     uint8_t reverse = (alpha > M_PI_2 && alpha < 3*M_PI_2);
@@ -348,12 +358,13 @@ int8_t action_position_control(double x_end, double y_end, double theta_end, dou
             stopped = 0;
             teensy->pos_ctrl(x_end, y_end, theta_end);
         }
-        if (pos_tol != DEFAULT_DIST_TOL || angle_tol != DEFAULT_ANGLE_TOL) {
+        if (pos_tol > DEFAULT_DIST_TOL || angle_tol > DEFAULT_ANGLE_TOL) {
             shared.get_robot_pos(&x, &y, &theta);
             if (hypot(x_end-x, y_end-y)< pos_tol && fabs(trigo_diff(theta_end, theta))<angle_tol*M_PI/180.0) {
-                printf("Checking non-defult tolerances succeded with robot in %.3f, %.3f, %.3f\n",x,y,theta); 
+                printf("Checking non-default tolerances succeded with robot in %.3f, %.3f, %.3f\n",x,y,theta); 
                 shared.teensy->idle(); 
                 shared.teensy_reset_pos();
+                usleep(10000);
                 return 0; 
             }
         }
@@ -361,6 +372,10 @@ int8_t action_position_control(double x_end, double y_end, double theta_end, dou
         usleep(10000);
     }
     // teensy->set_position_controller_gains(kp, ka, kb, kw);
+    shared.get_robot_pos(&x, &y, &theta);
+
+    printf("Position control succeded with robot in %.3f, %.3f, %.3f\n",x,y,theta); 
+
     shared.teensy_reset_pos();
     return 0;
 }
