@@ -16,9 +16,18 @@ typedef enum _state : int8_t
     Abort // End thread with failure
 } state_t;
 
+
 static pthread_t KCID;
 static volatile state_t state;
 static volatile state_t stateKC;
+static volatile bool lastPlantInPlanter = false;
+
+
+void gainNormalPlanter(){
+    shared.teensy->set_position_controller_gains(0.9,2.5,-1.0,1.0);
+}
+
+
 
 static void leave() {
     state = Abort;
@@ -100,10 +109,11 @@ static void *kinematic_chain(void *args) {
             grpHolder->open();
             stateKC = Drop;
             shared.score += 4 + ((toDrop & ContainsPot) == ContainsPot);
-            steppers->slider_move(SliderHigh);
-            usleep(200000);
+            steppers->slider_move(SliderHigh,CALL_BLOCKING);
+            //usleep(200000);
             grpHolder->idle();
             grpDeployer->idle();
+            if(lastPlantInPlanter == true){state = Get;}
             break;
 
         case End:
@@ -145,6 +155,7 @@ static void *kinematic_chain(void *args) {
 
 void ActionPlanter::do_action() {
     printf("Start of action planter\n");
+    gainNormalPlanter();
     if (nbPlants > 3) nbPlants = 3;
     state = PF;
     stateKC = PF;
@@ -180,8 +191,8 @@ void ActionPlanter::do_action() {
         while (stateKC != Get) usleep(50000);
         printf("nextSpot : ,%d\n",nextSpot);
         // /!\ planter est pas la jardiniere mais le point de PF de la jardiniere!!!
-        if (action_position_control(xPlanter+0.3*cos(thetaPlanter)-0.1*nextSpot*sin(thetaPlanter),
-                                    yPlanter+0.3*sin(thetaPlanter)+0.1*nextSpot*cos(thetaPlanter),
+        if (action_position_control(xPlanter+0.28*cos(thetaPlanter)-0.1*nextSpot*sin(thetaPlanter),
+                                    yPlanter+0.28*sin(thetaPlanter)+0.1*nextSpot*cos(thetaPlanter),
                                     thetaPlanter)) return leave();
 
         //shared.teensy->constant_dc(65,65);
@@ -215,8 +226,9 @@ void ActionPlanter::do_action() {
             usleep(50000);
         printf("Plant dropped \n");
         //si pas derniere plante, vas deja la cherché apres avoir fini drop
-        if (i != nbPlants - 1){state = Get;}
-        if (action_position_control(xPlanter,yPlanter,thetaPlanter)) return leave();
+        if (i != nbPlants - 1){lastPlantInPlanter = true;} 
+        else  {lastPlantInPlanter =false;}
+        if (action_position_control(xPlanter,yPlanter,thetaPlanter,0.02,30)) return leave();
 
         switch (preference)
         {

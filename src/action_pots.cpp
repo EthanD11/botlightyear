@@ -218,7 +218,7 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
     steppers->slider_move(SliderPreparePot);
 
     //-----approche précise-----
-    printf("approche précise : %f, %f, %f, distance :%f\n", posPotXPrise, posPotYPrise, posPotThetaPrise,distanceRoue+rayonPot);
+    printf("approche précise : %f, %f, %f, distance :%f\n", posPotXPrise, posPotYPrise, posPotThetaPrise,distanceRoue+rayonPot,0.05,5);
     //teensy->pos_ctrl(posPotX+(distanceRoue)*(betaPot1),posPotY+(distanceRoue)*(betaPot1),posPotTheta+betaPot1-M_PI);
     // teensy->pos_ctrl(posPotXPrise,posPotYPrise,posPotThetaPrise);
     gainPrecis();
@@ -289,8 +289,9 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
         servoFlaps->raise();
         printf("start for remove all pots\n");
         // se repositionne face au pot centraux
-        double posPotXThrow1 = posPotX+(0.32)*cos(posPotTheta +(M_PI/6)*(-sign(clearanceAngle)));
-        double posPotYThrow1 = posPotY+(0.32)*sin(posPotTheta +(M_PI/6)*(-sign(clearanceAngle)));
+        gainNormal();
+        double posPotXThrow1 = posPotX+(0.34)*cos(posPotTheta +(M_PI/6)*(-sign(clearanceAngle)));
+        double posPotYThrow1 = posPotY+(0.34)*sin(posPotTheta +(M_PI/6)*(-sign(clearanceAngle)));
         double posPotThetaThrow1 = posPotTheta+ ((M_PI/6)+M_PI_2)*(sign(clearanceAngle));
         double posPotXThrow2 = posPotX;
         double posPotYThrow2 = posPotY+(0.18)*sin(posPotTheta);

@@ -79,8 +79,8 @@ void SharedVariables::start_timer() {
 }
 
 int8_t SharedVariables::update_and_get_timer() {
-    return (int8_t) (100 - (time(NULL) - tStart));
-}
+    return (int8_t) (126 - (time(NULL) - tStart));
+}   
 
 void SharedVariables::get_robot_pos(double *x, double *y, double *theta) {
     pthread_rwlock_rdlock(&robotPosLock);

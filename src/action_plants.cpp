@@ -455,5 +455,5 @@ void ActionPlants::do_action() {
     //if (action_position_control(xpos_initial, ypos_initial, periodic_angle(theta_pos_initial-M_PI)) == -1) return; 
     while(ThreadKinematicOccuped == true){usleep(1000);}
     printf("End of plant action \n"); 
-    sleep(1000);
+    
 }
