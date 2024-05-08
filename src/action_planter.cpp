@@ -105,7 +105,7 @@ static void *kinematic_chain(void *args) {
             grpHolder->idle();
             grpDeployer->idle();
             break;
-        
+
         case End:
             return NULL;
 
@@ -214,7 +214,8 @@ void ActionPlanter::do_action() {
         while (stateKC != Drop) 
             usleep(50000);
         printf("Plant dropped \n");
-
+        //si pas derniere plante, vas deja la cherché apres avoir fini drop
+        if (i != nbPlants - 1){state = Get;}
         if (action_position_control(xPlanter,yPlanter,thetaPlanter)) return leave();
 
         switch (preference)
