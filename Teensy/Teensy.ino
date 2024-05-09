@@ -10,7 +10,7 @@
 
 // #define VERBOSE
 // #define SWITCH_VERBOSE
-// #define SPI_VERBOSE
+#define SPI_VERBOSE
 
 typedef enum {
   ModeIdle, // No input from RPi, default is to remain still

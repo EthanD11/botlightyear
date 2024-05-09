@@ -1,11 +1,11 @@
 #include "SPIInterface.h"
 #include "SPISlave_T4.h"
 
-// #define VERBOSE
+#define VERBOSE
 typedef struct SPIInterface {
     SPISlave_T4 *spi_slave;
     uint32_t i, n; // Number of bytes received, expected and actual
-    uint32_t data_buffer[2*(2*256+2)+2]; // Max is obtained when 256 points are sent for path following (plus 2 angles and 2 starting bytes)
+    uint32_t data_buffer[2*(2*256+2)+2+1000]; // Max is obtained when 256 points are sent for path following (plus 2 angles and 2 starting bytes)
     query_t query;
 
 	char mode;
@@ -31,6 +31,7 @@ void init_spi_interface() {
     __spi_interface->spi_slave->begin(MSBFIRST, SPI_MODE0);
     __spi_interface->spi_slave->swapPins();
     __spi_interface->spi_slave->onReceive(__spi_receive_event);
+    printf("Initializing SPI interface\n");
 }
 
 query_t spi_get_query() {
@@ -42,16 +43,17 @@ void spi_set_state(uint32_t state_id) {
 }
 
 void __spi_receive_event() {
+    printf("\nSPI receive event\n");
     SPISlave_T4 *mySPI = __spi_interface->spi_slave;
 	uint32_t data;
 	uint32_t *data_buffer = __spi_interface->data_buffer;
-
+    uint32_t i;
 	while (mySPI->available()) {
-		int i = __spi_interface->i;
+		i = __spi_interface->i;
 		data = mySPI->popr();
 		data_buffer[i] = data;
         #ifdef VERBOSE
-        printf("i = %d\n", i);
+        printf("i = %u\n", i);
         #endif
 		if (i == 0) {
 			__spi_interface->query = (query_t) data;
@@ -107,10 +109,13 @@ void __spi_receive_event() {
                     break;
 
 				default:
+                    #ifdef VERBOSE
+                    printf("Bad communication\n");
+                    #endif
 					break;
 			}
 		}
-		else {
+		else { /// i != 0
 			switch(__spi_interface->query) {				
 				case QueryAskState:
 					break;
@@ -191,7 +196,12 @@ void spi_handle_position_control(PositionController *pc)
     two_bytes[0] = data[4];
     two_bytes[1] = data[5];
     double_byte = *((uint16_t *) two_bytes);
-    pc->theta_ref = (((double) double_byte)/UINT16_MAX)*2*M_PI - M_PI;
+    pc->theta_ref = PIPERIODIC((((double) double_byte)/UINT16_MAX)*2*M_PI - M_PI);
+
+    // two_bytes[0] = data[0];
+    // two_bytes[1] = data[1];
+    // double_byte = *((uint16_t *) two_bytes);
+    // pc->xref      = 2.0*((double) two_bytes[0])/UINT8_MAX;
 
     #ifdef VERBOSE
 	printf("xref = %f\nyref = %f\ntheta_ref = %f\n", pc->xref, pc->yref, pc->theta_ref);

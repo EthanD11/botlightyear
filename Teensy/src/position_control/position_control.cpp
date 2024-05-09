@@ -12,7 +12,7 @@ PositionController *init_position_controller() {
     pc->kw =  3.0; // Propoortional coefficient for orientation error when position is reached
     // pc->position_tol = POSITION_TOL_IN;      // Acceptable static error on position (m)
     // pc->drift_tol    = 2e-1;      // Acceptable drift from reference position when reorienting (m)
-    pc->angular_tol  = 1*M_PI/180; // Acceptable static error on orientation (rad, eq to 5 degrees)
+    // pc->angular_tol  = 1*M_PI/180; // Acceptable static error on orientation (rad, eq to 5 degrees)
 
     pc->omega_ref = 0;
     pc->vref = 0;
@@ -41,9 +41,10 @@ void control_position(
 
     double x_ref, y_ref, theta_ref;
     double x, y, theta;
-    double dx, dy, dxR, dyR;
+    double dx, dy;//, dxR, dyR;
     double p, a, b, kp, ka, kb, kw;
     double vref, omega_ref;
+    double phi;
 
     x_ref = pc->xref;
     y_ref = pc->yref;
@@ -79,11 +80,14 @@ void control_position(
     {
         case FALSE:
         {   
-            dxR =  cos(theta_ref)*dx + sin(theta_ref)*dy;
-            dyR = -sin(theta_ref)*dx + cos(theta_ref)*dy;
+            // dxR =  cos(theta_ref)*dx + sin(theta_ref)*dy;
+            // dyR = -sin(theta_ref)*dx + cos(theta_ref)*dy;
             
-            a = PIPERIODIC(-(theta-theta_ref) + atan2(dyR, dxR));
-            b = PIPERIODIC(theta_ref - theta - a);
+            // a = PIPERIODIC(-(theta-theta_ref) + atan2(dyR, dxR));
+            // b = PIPERIODIC(theta_ref - theta - a);
+            phi = atan2(dy, dx);
+            a = PIPERIODIC(phi - theta);
+            b = PIPERIODIC(theta_ref - phi);  // beta = theta_r - theta - alpha
             // printf("a = %f\n", a);
             if (fabs(a) > M_PI_2) {
                 // printf("a bigger than PI/2\n");
@@ -91,6 +95,7 @@ void control_position(
                 a += (a > 0) ? -PI : PI;
                 b += (b > 0) ? -PI : PI;
             }
+
             #ifdef VERBOSE
             printf("Goal not reached\n");
             #endif

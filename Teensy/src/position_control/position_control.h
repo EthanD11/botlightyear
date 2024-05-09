@@ -21,7 +21,8 @@ typedef struct PositionController {
     double kw; // Propoortional coefficient for orientation error when position is reached
     // double position_tol;     // Acceptable static error on position (m)
     // double drift_tol;   // Acceptable drift from reference position when reorienting (m)
-    double angular_tol;     // Acceptable static error on orientation
+    
+    // double angular_tol;     // Acceptable static error on orientation
 
     int flag_position_reached;
     int flag_angular_position_reached;
