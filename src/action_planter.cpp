@@ -16,9 +16,18 @@ typedef enum _state : int8_t
     Abort // End thread with failure
 } state_t;
 
+
 static pthread_t KCID;
 static volatile state_t state;
 static volatile state_t stateKC;
+static volatile bool lastPlantInPlanter = false;
+
+
+void gainNormalPlanter(){
+    shared.teensy->set_position_controller_gains(0.9,2.5,-1.0,1.0);
+}
+
+
 
 static void leave() {
     state = Abort;
@@ -78,7 +87,10 @@ static void *kinematic_chain(void *args) {
             // Grab plant
             grpHolder->open_full();
             steppers->slider_move(SliderStorage, CALL_BLOCKING);
-            if (toDrop & ContainsPot) printf("Warning : Pot not implemented  !! \n");
+            if (toDrop & ContainsPot) {
+                grpHolder->hold_pot();
+                //printf("Warning : Pot not implemented  !! \n");
+            }
             else grpHolder->hold_plant();
             update_plate_content(slotID, ContainsNothing);
             usleep(400000);
@@ -86,21 +98,24 @@ static void *kinematic_chain(void *args) {
             // Ready to drop
             steppers->slider_move(SliderHigh);
             usleep(700000);
-            grpDeployer->idle();
+            grpDeployer->half();
             steppers->plate_move(0, CALL_BLOCKING);
+            grpDeployer->idle();
             break;
 
         case Drop:
+            grpDeployer->deploy();
             steppers->slider_move(SliderIntermediateLow, CALL_BLOCKING);
             grpHolder->open();
             stateKC = Drop;
             shared.score += 4 + ((toDrop & ContainsPot) == ContainsPot);
-            steppers->slider_move(SliderHigh);
-            usleep(200000);
+            steppers->slider_move(SliderHigh,CALL_BLOCKING);
+            //usleep(200000);
             grpHolder->idle();
-
+            grpDeployer->idle();
+            if(lastPlantInPlanter == true){state = Get;}
             break;
-        
+
         case End:
             return NULL;
 
@@ -139,6 +154,8 @@ static void *kinematic_chain(void *args) {
 }
 
 void ActionPlanter::do_action() {
+    printf("Start of action planter\n");
+    gainNormalPlanter();
     if (nbPlants > 3) nbPlants = 3;
     state = PF;
     stateKC = PF;
@@ -148,6 +165,7 @@ void ActionPlanter::do_action() {
     xPlanter = path->x[path->nNodes-1];
     yPlanter = path->y[path->nNodes-1];
     thetaPlanter = path->thetaEnd;
+    printf("Xplanter : %f, Yplanter : %f, thetaPlanter : %f \n",xPlanter,yPlanter,thetaPlanter);
     if (path_following_to_action(path)) return leave();
 
     if (needsPotClear) {
@@ -171,21 +189,46 @@ void ActionPlanter::do_action() {
 
         state = Get;
         while (stateKC != Get) usleep(50000);
-
-        if (action_position_control(xPlanter+0.15*cos(thetaPlanter)-0.08*nextSpot*sin(thetaPlanter),
-                                    yPlanter+0.15*sin(thetaPlanter)+0.08*nextSpot*cos(thetaPlanter),
+        printf("nextSpot : ,%d\n",nextSpot);
+        // /!\ planter est pas la jardiniere mais le point de PF de la jardiniere!!!
+        if (action_position_control(xPlanter+0.28*cos(thetaPlanter)-0.1*nextSpot*sin(thetaPlanter),
+                                    yPlanter+0.28*sin(thetaPlanter)+0.1*nextSpot*cos(thetaPlanter),
                                     thetaPlanter)) return leave();
 
-        shared.teensy->constant_dc(65,65);
-        while (shared.pins->read(BpSwitchFlapsLeftGPIO) != 1 && shared.pins->read(BpSwitchFlapsRightGPIO) != 1) 
-            usleep(10000);
+        //shared.teensy->constant_dc(65,65);
+        // double valueConstantDC = 80;
+        // shared.teensy->constant_dc(valueConstantDC,valueConstantDC);
+        double speedValue = 0.1;
+        printf("speed Control to planter\n");
+        shared.teensy->spd_ctrl(speedValue,speedValue);
+        int8_t pins_state = 0;
+        while (shared.pins->read(BpSwitchFlapsLeftGPIO) != 1 || shared.pins->read(BpSwitchFlapsRightGPIO) != 1) {
+            usleep(200000);
+            //printf("pin_state : %d \n",pins_state);
+            if ( shared.pins->read(BpSwitchFlapsRightGPIO) ==1 && pins_state !=2) {
+                pins_state = 2; 
+                shared.teensy->spd_ctrl(speedValue,0);
+                //shared.teensy->constant_dc(0,valueConstantDC*3/2);
+            } else if (shared.pins->read(BpSwitchFlapsLeftGPIO) ==1 && pins_state!=1){
+                pins_state = 1;
+                shared.teensy->spd_ctrl(0,speedValue);
+                // shared.teensy->constant_dc(valueConstantDC*3/2,0);
+            } else if (pins_state != 0) {
+                pins_state = 0;
+                shared.teensy->spd_ctrl(speedValue,speedValue);
+                // shared.teensy->constant_dc(valueConstantDC,valueConstantDC);
+            }
+        }
         shared.teensy->idle();
 
         state = Drop;
         while (stateKC != Drop) 
             usleep(50000);
-
-        if (action_position_control(xPlanter,yPlanter,thetaPlanter)) return leave();
+        printf("Plant dropped \n");
+        //si pas derniere plante, vas deja la cherché apres avoir fini drop
+        if (i != nbPlants - 1){lastPlantInPlanter = true;} 
+        else  {lastPlantInPlanter =false;}
+        if (action_position_control(xPlanter,yPlanter,thetaPlanter,0.02,30)) return leave();
 
         switch (preference)
         {
@@ -207,5 +250,6 @@ void ActionPlanter::do_action() {
        
     state = End;
     pthread_join(KCID, NULL);
+    printf("End of action planter\n");
 
 }

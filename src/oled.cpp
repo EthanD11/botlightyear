@@ -29,6 +29,13 @@ void oled_init() {
     ssd1306_oled_write_string(0x01, "BLY Init");
 }
 
+void oled_ready_to_start(){
+    ssd1306_oled_clear_screen();
+    ssd1306_oled_set_XY(40, 1);
+    ssd1306_oled_write_string(0x01, "Waiting");
+    ssd1306_oled_set_XY(40, 4);
+    ssd1306_oled_write_string(0x01, "for start");
+}
 void oled_score_update(uint8_t score) {
     ssd1306_oled_clear_screen();
     char str[10];

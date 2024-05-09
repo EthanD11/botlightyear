@@ -21,7 +21,7 @@ private:
     // no clearing if needsPotClear == SideMiddle (0)
     planter_side_t needsPotClear;
 public:
-    ActionPlanter(graph_path_t *path, uint8_t nbPlants, planter_side_t preference, planter_side_t needsPotClear) : Action(DepositPlanter, true, path) {
+    ActionPlanter(graph_path_t *path, uint8_t nbPlants, planter_side_t preference, planter_side_t needsPotClear = SideMiddle) : Action(DepositPlanter, true, path) {
         this->nbPlants = nbPlants;
         this->preference = preference;
         this->needsPotClear = needsPotClear;

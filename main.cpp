@@ -51,20 +51,20 @@ int getch()
 }
 
 void ask_user_input_params() {
-    printf("Which team do I play for ? Enter 'b' for team blue, 'y' for team yellow\n");
+    fprintf(stderr,"Which team do I play for ? Enter 'b' for team blue, 'y' for team yellow\n");
     string s; 
     do {
         std::cin >> s;
         char keyboard_input = s.at(0);
         if (keyboard_input == ASCII_b || keyboard_input == ASCII_B) { shared.color = TeamBlue; break; }
         else if (keyboard_input == ASCII_y || keyboard_input == ASCII_Y ) { shared.color = TeamYellow; break; }
-        printf("Invalid input color : %c\n", keyboard_input);
+        fprintf(stderr,"Invalid input color : %c\n", keyboard_input);
     } while (1);
 
-    printf("Please enter a starting base from the following : \n");
+    fprintf(stderr,"Please enter a starting base from the following : \n");
     if (shared.color == TeamBlue) {
 
-        printf("'bottomright' (reserved), 'topright', 'middleleft'\n");
+        fprintf(stderr,"'bottomright' (reserved), 'topright', 'middleleft'\n");
         do {
             std::cin >> s;
             if (!s.compare("bottomright")) {
@@ -94,11 +94,11 @@ void ask_user_input_params() {
                 shared.teensy->set_position(1.0,2.965,-M_PI_2);
                 break;
             }
-            std::cout << "Invalid input base : " << s << "\n";
+            fprintf(stderr,"Invalid input base : %s\n",s);
         } while (1);
 
     } else {
-        printf("'bottomleft' (reserved), 'topleft', 'middleright'\n");
+        fprintf(stderr,"'bottomleft' (reserved), 'topleft', 'middleright'\n");
         do {
             std::cin >> s;
             if (!s.compare("bottomleft")) {
@@ -128,7 +128,7 @@ void ask_user_input_params() {
                 shared.teensy->set_position(1.0,0.035,M_PI_2);
                 break;
             }
-            std::cout << "Invalid input base : " << s << "\n";
+            fprintf(stderr,"Invalid input base : %s\n",s);
         } while (1);
     }
 }
@@ -168,7 +168,7 @@ void init_and_wait_for_start() {
     double wn = 0.2; // Command filter discrete cutoff frequency
     double kv_en = 0.;
     shared.teensy->set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
-    shared.teensy->set_position_controller_gains(0.4,2.5,-1.5,1.0);
+    shared.teensy->set_position_controller_gains(0.9,2.5,-1.0,1.2);
     
     if (pthread_create(&localizerID, NULL, localizer, NULL) != 0) exit(4);
     #ifdef LIDAR_BOTTOM
@@ -178,7 +178,10 @@ void init_and_wait_for_start() {
 
     shared.steppers->reset_all();
     shared.steppers->calibrate_all(CALL_BLOCKING, shared.valids);
+    shared.steppers->plate_move(0, CALL_BLOCKING); 
     shared.servoFlaps->raise();
+
+    oled_ready_to_start(); 
     
     shared.start_timer();
     // Generate random seed
@@ -212,6 +215,13 @@ void *localizer(void* arg) {
     shared.graph->update_adversary_pos(4,0);
     #endif
 
+    int8_t teensyI = 0;
+    #ifdef LIDAR_TOP
+    int8_t teensyN = 100;
+    #else
+    int8_t teensyN = 20;
+    #endif
+
     while (!localizerEnd) {
 
         // teensy_mode_t teensyMode = shared.teensy->ask_mode();
@@ -243,7 +253,10 @@ void *localizer(void* arg) {
         odoClock = clock();
         #endif
         //}
-        shared.teensy->set_position(x,y,theta);
+        if (++teensyI == teensyN) {
+            shared.teensy->set_position(x,y,theta);
+            teensyI = 0;
+        }
 
         #ifdef TIME_MEAS
         clock_t teensyClock = clock();
@@ -284,7 +297,7 @@ void *localizer(void* arg) {
         printf("Odometry took %ld clock cycles to update.\n\tCumulated time since iteration start : %ld\n", odoClock - lidarClock, odoClock - start);
         printf("Teensy took %ld clock cycles to update.\n\tCumulated time since iteration start : %ld\n", teensyClock - odoClock, teensyClock - start);
         #endif
-        usleep(500000);
+        usleep(50000);
     }
     
     #ifdef LIDAR_TOP

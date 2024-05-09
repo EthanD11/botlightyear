@@ -10,8 +10,8 @@
 //#define SETUP_CUSTOM_SPEED_OLD
 //#define SETUP_CUSTOM_SPEED_NEW
 //#define DEMO_S6
-// #define PLANTER
-#define TESTS
+#define PLANTER
+// #define TESTS
 
 SPIBus spi_bus = SPIBus();
 GPIOPins pins = GPIOPins(); 
@@ -247,12 +247,14 @@ int main(int argc, char const *argv[])
 
     
     // steppers->plate_move(1, CALL_BLOCKING);
-    // demoPlate();  
-    steppers->move(StprPlate, 100, 1, CALL_BLOCKING); 
+    demoPlate();  
+    // steppers->move(StprPlate, 100, 1, CALL_BLOCKING); 
     
     #endif 
 
     #ifdef PLANTER
+    steppers->reset_all();
+    steppers->calibrate_all(CALL_BLOCKING);
 
     steppers->flaps_move(FlapsOpen);
     servoFlaps->raise();
@@ -283,9 +285,11 @@ int main(int argc, char const *argv[])
     //usleep(100000);
     deployer->idle();
 
+    sleep(4);
     getchar();
 
     steppers->slider_move(SliderIntermediateLow, CALL_BLOCKING);
+    sleep(2);
     holder->open();
     steppers->slider_move(SliderHigh);
     usleep(200000);

@@ -38,7 +38,7 @@ typedef enum _storage_content : uint8_t
     ContainsStrongPlant = 0b010,
     ContainsWeakPlant = 0b110,
     ContainsStrongPlantInPot = 0b011,
-    ConstainsWeakPlantInPot = 0b111
+    ContainsWeakPlantInPot = 0b111
 } storage_content_t;
 
 class SharedVariables
@@ -59,6 +59,9 @@ public:
     // If any of the three pointer is NULL, it will not be filled
     void get_adv_pos(double *xAdv, double *yAdv, double *dAdv, double *aAdv);
     void set_adv_pos(double xAdv, double yAdv, double dAdv, double aAdv);
+
+    // Get position from odo and reset teensy with it
+    void teensy_reset_pos();
 
     // Starts game timer on starting cord pull detection
     void start_timer();

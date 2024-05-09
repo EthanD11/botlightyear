@@ -1,28 +1,34 @@
 #include "teensy.h"
 #include "odometry.h"
+#include "SPI_bus.h"
+#include "servos.h"
+#include "steppers.h"
+
 #include <stdio.h>
 #include <unistd.h>
 #include <cmath>
 #include <lgpio.h>
 
-#define POSITION_CONTROL
+// #define POSITION_CONTROL
 // #define PATH_FOLLOWING
 // #define IDLE
 // #define SET_POSITION
 // #define SPEED_CONTROL
-// #define DC_CONTROL
+#define DC_CONTROL
 // #define ASK_STATE
 // #define SET_POS_CTRL_GAINS
 // #define SET_PATH_FOLLOWER_GAINS
 
 #ifdef DC_CONTROL
     #define DC_LEFT 60
-    #define DC_RIGHT 60
+    #define DC_RIGHT -56
 #endif
-
+// Calib adz left: 90
+// Calib adz left: 86
 SPIBus spiBus = SPIBus();
 GPIOPins pins = GPIOPins(); 
 Teensy teensy = Teensy(&spiBus, &pins);
+Flaps servoFlaps = Flaps(&spiBus);
 Odometry odo = Odometry(&spiBus);
 
 const double deg_to_rads = M_PI/180;
@@ -130,6 +136,7 @@ int main(int argc, char const *argv[])
 
     #ifdef DC_CONTROL
     teensy.set_position(0, 0, 0);
+    servoFlaps.raise();
     teensy.constant_dc(DC_LEFT,DC_RIGHT);
     #endif
 

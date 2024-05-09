@@ -26,6 +26,7 @@ public:
     void pot_deposit();
     void deploy();
     void raise();
+    void plantLift();
 };
 
 class GripperHolder : public SPIUser

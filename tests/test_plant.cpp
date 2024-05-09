@@ -24,7 +24,7 @@ Flaps* servoFlaps = new Flaps(&spi_bus);
 Teensy *teensy = new Teensy(&spi_bus, &pins);
 
 
-void take_plant_kinematicChain(int8_t slotNumber) {
+void take_plant_kinematicChain(int8_t slotNumber, bool hasPot=false) {
 
     deployer->deploy(); 
     holder->open_full();
@@ -41,20 +41,29 @@ void take_plant_kinematicChain(int8_t slotNumber) {
     // take de plant
     steppers->slider_move(SliderLow, CALL_BLOCKING);
     holder->hold_plant();    
+    
     steppers->slider_move(SliderHigh);//tricks pour replier servo au milieu
     usleep(100000);
-    deployer->half();
+    deployer->plantLift();
     pins.wait_for_gpio_value(StprSliderGPIO, 1, 10000);
+    // deployer->deploy();
     //shared.pins->wait_for_gpio_value(StprSliderGPIO, 1, 10000); 
     //sleep(5);
 
     //mise dans plateau
     steppers->plate_move(slotNumber, CALL_BLOCKING); 
-    steppers->slider_move(SliderIntermediatePlant,CALL_BLOCKING);
-    deployer->deploy(); 
-    steppers->slider_move(SliderStorage, CALL_BLOCKING);
+    if (hasPot == true){
+        //steppers->slider_move(SliderIntermediatePlantInPot,CALL_BLOCKING);
+        deployer->deploy();  
+        steppers->slider_move(SliderStorageInPot, CALL_BLOCKING);  
+    }else {
+        steppers->slider_move(SliderIntermediatePlant,CALL_BLOCKING);
+        deployer->deploy(); 
+        steppers->slider_move(SliderStorage, CALL_BLOCKING);    
+    }
     holder->open_full();
     usleep(100000);
+    
 
     //remonte et remise en place
     deployer->half();
@@ -71,18 +80,23 @@ void take_plant_kinematicChain(int8_t slotNumber) {
 int main(int argc, char const *argv[])
 {
     printf("Test is running\n");
-    //steppers->setup_all_speeds(); 
+    steppers->setup_all_speeds(); 
     steppers->reset_all(); 
 
     // steppers->calibrate(StprPlate, CALL_BLOCKING, NULL); 
-
+    // steppers->plate_move(0,CALL_BLOCKING);
     steppers->calibrate_all(CALL_BLOCKING, NULL);
     steppers->plate_move(0,CALL_BLOCKING);
     printf("Go ! \n");
-
+    // deployer->deploy();
+    // holder->hold_plant();
+    // servoFlaps->deploy();
+    // steppers->slider_move(SliderDepositPot,CALL_BLOCKING);
+    // steppers->plate_move(-1);
     #ifdef PLANT
-    take_plant_kinematicChain(1);
+    take_plant_kinematicChain(1,true);
     #endif
+
 
     sleep(1);
     holder->idle();

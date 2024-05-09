@@ -164,7 +164,7 @@ void updateDataTop(double* angles, double* distances, double* quality, size_t* a
 }
 
 void updateDataBottom(double* angles, double* distances, double* quality, size_t* arraySize){
-    DataToFileBottom("testPlante"+std::to_string(debugfile)+".txt");
+    DataToFileBottom("PlotPy/testPlante/testPlante"+std::to_string(debugfile)+".txt");
     debugfile++;
     sl_lidar_response_measurement_node_hq_t nodes[arraySize[1]];
     size_t nodeCount = sizeof(nodes)/sizeof(sl_lidar_response_measurement_node_hq_t);

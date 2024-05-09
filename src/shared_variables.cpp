@@ -70,7 +70,7 @@ void SharedVariables::start_timer() {
     #endif
     usleep(1000000);
 
-    printf("Waiting start of the game... \n");
+    fprintf(stderr,"Waiting start of the game... \n");
 
     pins->wait_for_gpio_value(StartingCordGPIO, 1, 2000000);
     time(&tStart);
@@ -79,8 +79,8 @@ void SharedVariables::start_timer() {
 }
 
 int8_t SharedVariables::update_and_get_timer() {
-    return (int8_t) (100 - (time(NULL) - tStart));
-}
+    return (int8_t) (126 - (time(NULL) - tStart));
+}   
 
 void SharedVariables::get_robot_pos(double *x, double *y, double *theta) {
     pthread_rwlock_rdlock(&robotPosLock);
@@ -112,4 +112,11 @@ void SharedVariables::set_adv_pos(double xAdv, double yAdv, double dAdv, double 
     pthread_rwlock_wrlock(&advPosLock);
     this->xAdv = xAdv; this->yAdv = yAdv; this->dAdv = dAdv; this->aAdv = aAdv;
     pthread_rwlock_unlock(&advPosLock);
+}
+
+void SharedVariables::teensy_reset_pos() {
+    double x, y, theta;
+    this->odo->get_pos(&x, &y, &theta);
+    this->teensy->set_position(x, y, theta);
+
 }

@@ -15,10 +15,22 @@ static double posPotY ;
 static double posPotTheta;
 static double clearanceAngle;
 
+static bool firstPot = false; 
+
 int8_t sign(double a) {
     return (a>=0) ? 1 : -1; 
 }
  
+
+void gainNormal(){
+    shared.teensy->set_position_controller_gains(0.9,2.5,-0.4,1.0);
+}
+
+void gainPrecis(){
+    shared.teensy->set_position_controller_gains(0.9,2.5,0.0,1);
+}
+
+
 /*
 Takes pot and puts it to the plate storage specified
 */
@@ -131,7 +143,7 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
     double distanceRoue = 0.27;
     double deltaApproach = 0.1;
     double rayonPot = 0.08;
-    double deltaRayonPot35 = 0.015;
+    double deltaRayonPot35 = 0.02;
 
     double posPotXApproach, posPotYApproach,posPotThetaApproach;
     double posPotXPrise, posPotYPrise ,posPotThetaPrise;
@@ -181,13 +193,18 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
         return;
         break;
     }
-    printf("here we go for the pot %d\n",numeroPot);
+    printf("-----here we go for the pot %d------\n\n",numeroPot);
     //remapping pour -PI a +PI
     posPotThetaApproach = periodic_angle(posPotThetaApproach);
     posPotThetaPrise = periodic_angle(posPotThetaPrise);
     //-----approche grossiere-----
     printf("approche grossiere : %f, %f, %f ,distance :%f\n", posPotXApproach, posPotYApproach, posPotThetaApproach,distanceRoue+deltaApproach+rayonPot);
     //teensy->pos_ctrl(posPotXApproach,posPotYApproach,posPotThetaApproach); 
+    if (firstPot) {
+        shared.teensy->set_position_controller_gains(0.9,2.5,-0.4,1.1);
+    } else {
+        gainNormal();
+    }
     if (action_position_control(posPotXApproach,posPotYApproach,posPotThetaApproach)==-1) return; 
     // sleep(10);
 
@@ -201,10 +218,12 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
     steppers->slider_move(SliderPreparePot);
 
     //-----approche précise-----
-    printf("approche précise : %f, %f, %f, distance :%f\n", posPotXPrise, posPotYPrise, posPotThetaPrise,distanceRoue+rayonPot);
+    printf("approche précise : %f, %f, %f, distance :%f\n", posPotXPrise, posPotYPrise, posPotThetaPrise,distanceRoue+rayonPot,0.05,5);
     //teensy->pos_ctrl(posPotX+(distanceRoue)*(betaPot1),posPotY+(distanceRoue)*(betaPot1),posPotTheta+betaPot1-M_PI);
     // teensy->pos_ctrl(posPotXPrise,posPotYPrise,posPotThetaPrise);
+    gainPrecis();
     if (action_position_control(posPotXPrise,posPotYPrise,posPotThetaPrise)==-1) return; 
+    gainNormal();
     // sleep(10);    
     //-----prise pot-----
     printf("debut chaine cinématique\n");
@@ -231,8 +250,9 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
     default:
         break;
     }
-    if (removePot4 == false){
-        if (action_position_control(posPotXApproach,posPotYApproach,posPotThetaApproach)==-1) return; 
+    if (removePot4 == false && freeTheGarden == false){
+        printf("retour a la position d'approche (en anglais evidemment) : %f, %f, %f\n", posPotXApproach,posPotYApproach,posPotThetaApproach);
+        if (action_position_control(posPotXApproach,posPotYApproach,posPotThetaApproach, 0.005, 100)==-1) return; //
         steppers->flaps_move(FlapsOpen);
         servoFlaps->raise();
     }
@@ -242,7 +262,7 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
         posPotYApproach = posPotY+(distanceRoue+deltaApproach)*sin(posPotTheta);
         posPotThetaApproach = posPotTheta-M_PI;
         posPotThetaPrise = periodic_angle(posPotThetaPrise);
-        if (action_position_control(posPotXApproach,posPotYApproach,posPotThetaApproach)==-1) return; 
+        if (action_position_control(posPotXApproach,posPotYApproach,posPotThetaApproach,0.005,100)==-1) return; 
         // remove pot 4
         //servoFlaps->raise();
         printf("starting remove pot 4\n");
@@ -261,12 +281,17 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
     // si doit degager TOUT les autres pots
     if (freeTheGarden){
         printf("come back Aproach and then starting remove all pots\n");
-        if (action_position_control(posPotXApproach,posPotYApproach,posPotThetaApproach)==-1) return; 
+        printf("retour a la position d'approche (en anglais evidemment) : %f, %f, %f\n", posPotXApproach,posPotYApproach,posPotThetaApproach);
+        shared.teensy->set_position_controller_gains(0.9,2.5,-0.6,1);
+
+        if (action_position_control(posPotXApproach,posPotYApproach,posPotThetaApproach,0.005,100)==-1) return; 
         steppers->flaps_move(FlapsOpen);
         servoFlaps->raise();
+        printf("start for remove all pots\n");
         // se repositionne face au pot centraux
-        double posPotXThrow1 = posPotX+(0.30)*cos(posPotTheta +(M_PI/6)*(-sign(clearanceAngle)));
-        double posPotYThrow1 = posPotY+(0.30)*sin(posPotTheta +(M_PI/6)*(-sign(clearanceAngle)));
+        gainNormal();
+        double posPotXThrow1 = posPotX+(0.34)*cos(posPotTheta +(M_PI/6)*(-sign(clearanceAngle)));
+        double posPotYThrow1 = posPotY+(0.34)*sin(posPotTheta +(M_PI/6)*(-sign(clearanceAngle)));
         double posPotThetaThrow1 = posPotTheta+ ((M_PI/6)+M_PI_2)*(sign(clearanceAngle));
         double posPotXThrow2 = posPotX;
         double posPotYThrow2 = posPotY+(0.18)*sin(posPotTheta);
@@ -278,8 +303,9 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
         if (action_position_control(posPotXThrow1,posPotYThrow1,posPotThetaThrow1)==-1) return;
         printf("target 2 for remove all pots : %f,%f,%f\n",posPotXThrow2,posPotYThrow2,posPotThetaThrow2);
         if (action_position_control(posPotXThrow2,posPotYThrow2,posPotThetaThrow2)==-1) return;
+        printf("remove all pot is done\n");
     }   
-    while (stopBeforeMovePot == true){usleep(1000);}
+    // while (stopBeforeMovePot == true){usleep(1000);}
 }
 
 
@@ -300,17 +326,21 @@ void initial_pos_stepper(){
 }
 
 
-int8_t get_numeroPot(int8_t i) {
+int8_t get_numeroPot(int8_t i, int8_t pathTarget) {
     //numeroPot :
     //   _____
     //  / 1 2 \ 
     // | 3 4 5 |
-    int orderPot[5] = {1, 3, 2, 5, 4};
+    int orderPotL[5] = {2, 5, 1, 3, 4};
+    int orderPotR[5] = {1, 3, 2, 5, 4};
+    int *orderPot = (pathTarget == 1 || pathTarget == 3 || pathTarget == 15) ? orderPotL : orderPotR;
     if (i >= 5) return -1;
     return orderPot[i];
 }
 
 void ActionPots::do_action() {
+    printf("\n------ Beginning action pot ------\n\n");
+    firstPot = true;
     double xpos, ypos, theta_pos; 
     double xposInitiale, yposInitiale, theta_posInitiale;
     int pathTarget;
@@ -318,20 +348,21 @@ void ActionPots::do_action() {
     bool freeTheGardenLastTurn = false;
     pathTarget = path->target;
 
-    shared.teensy->set_position_controller_gains(0.4,1.5,-0.5,0.5);
+    // shared.teensy->set_position_controller_gains(0.4,1.5,-0.5,0.5);
+
     get_posPot(pathTarget, freeTheGardenLastTurn); 
     shared.get_robot_pos(&xpos, &ypos, &theta_pos);
     if (hypot(xpos-posPotX, ypos-posPotY) > 0.7) {
         if (path_following_to_action(path) == -1) return; 
     }
-    
+    gainNormal();
     shared.get_robot_pos(&xposInitiale, &yposInitiale, &theta_posInitiale);
     initial_pos_stepper();
     for (uint8_t i=0; i<this->potCounter; i++) {
         shared.get_robot_pos(&xpos, &ypos, &theta_pos);
         storage_slot_t nextSlot = get_next_free_slot_ID(ContainsStrongPlantInPot); // Completely empty slot (no pot, no plants)
         int8_t plate_pos = get_plate_slot(nextSlot); 
-        int8_t numeroPot = get_numeroPot(i);
+        int8_t numeroPot = get_numeroPot(i,pathTarget);
         // If last pot is 3 or 5, remove pot 4
         if (this->removePot4){
             if ((numeroPot == 3 || numeroPot == 5)&& i == this->potCounter-1) {removePot4KinematicChaine = true;} 
@@ -342,12 +373,12 @@ void ActionPots::do_action() {
         
         take_pot_kinematicChain(plate_pos,numeroPot,pathTarget, removePot4KinematicChaine,freeTheGardenLastTurn); // Launches the kinematic chain
         update_plate_content(nextSlot, ContainsPot); 
-
+        if (i==0) firstPot = false; 
     }
     //printf("come back pos initial: %f, %f, %f\n", xposInitiale, yposInitiale, theta_posInitiale);
     //if (action_position_control(xposInitiale,yposInitiale,periodic_angle(theta_posInitiale+M_PI))==-1) return; 
 
     while(ThreadKinematicOccuped == true) {usleep(1000);};
     initial_pos_stepper();
-    sleep(1000);
+    printf("action pot is finish\n");
 }

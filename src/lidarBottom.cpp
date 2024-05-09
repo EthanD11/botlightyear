@@ -267,13 +267,14 @@ int getNumberOfPlantInAllZone(double x_robot, double y_robot, double theta_robot
             }
         }
     }
-    /*for (int i = 0; i < 6; ++i) {
-        printf("%d \n", plantZonePolar[i]->numberPlant);
-        for (int j = 0; j < plantZonePolar[i]->numberPlant; ++j) {
-            printf("%f %f\n", plantZonePolar[i]->dPlant[j],plantZonePolar[i]->aPlant[j]);
-            printf("%f %f\n", plantZonePolar[i]->xPlant[j],plantZonePolar[i]->yPlant[j]);
-        }
-    }*/
+    // for (int i = 0; i < 6; ++i) {
+    //     printf("%d \n", plantZonePolar[i]->numberPlant);
+    //     for (int j = 0; j < plantZonePolar[i]->numberPlant; ++j) {
+    //         printf("%f %f\n", plantZonePolar[i]->dPlant[j],plantZonePolar[i]->aPlant[j]);
+    //         printf("%f %f\n\n", plantZonePolar[i]->xPlant[j],plantZonePolar[i]->yPlant[j]);
+    //     }
+    //     printf("\n");
+    // }
     // printf("Here 3\n");
     delete[] (angles);
     delete[] (distances);

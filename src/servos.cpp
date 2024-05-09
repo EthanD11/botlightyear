@@ -17,11 +17,13 @@ void Flaps::send_flaps_dutyCycle(uint16_t servo_flaps1_duty_cycle, uint16_t serv
 
 
 void Flaps::deploy() {
-    this->send_flaps_dutyCycle(680,620);
+    // this->send_flaps_dutyCycle(680,610);
+    //this->send_flaps_dutyCycle(614,614); // mid-position
+    this->send_flaps_dutyCycle(730,580); // True one
 }
 
 void Flaps::raise() {
-    this->send_flaps_dutyCycle(500,800);
+    this->send_flaps_dutyCycle(500,750);
 }
 
 void Flaps::idle() {
@@ -50,6 +52,10 @@ void GripperDeployer::deploy() {
 
 void GripperDeployer::half() {
     this->send_dutyCycle(650); 
+}
+
+void GripperDeployer::plantLift() {
+    this->send_dutyCycle(550);
 }
 
 void GripperDeployer::pot_deposit() {
@@ -90,5 +96,5 @@ void GripperHolder::hold_pot() {
     this->send_dutyCycle(385); // Old : 725
 } 
 void GripperHolder::hold_plant() {
-    this->send_dutyCycle(300); // Old : 645
+    this->send_dutyCycle(200); // Old : 645
 }
