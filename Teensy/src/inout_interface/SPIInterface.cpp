@@ -43,102 +43,107 @@ void spi_set_state(uint32_t state_id) {
 }
 
 void __spi_receive_event() {
-    printf("\nSPI receive event\n");
+    // printf("\nSPI receive event\n");
     SPISlave_T4 *mySPI = __spi_interface->spi_slave;
 	uint32_t data;
 	uint32_t *data_buffer = __spi_interface->data_buffer;
     uint32_t i;
-	while (mySPI->available()) {
-		i = __spi_interface->i;
-		data = mySPI->popr();
-		data_buffer[i] = data;
-        #ifdef VERBOSE
-        printf("i = %u\n", i);
-        #endif
-		if (i == 0) {
-			__spi_interface->query = (query_t) data;
+    if(mySPI->active()) {
+        while (mySPI->available()) {
+            i = __spi_interface->i;
+            data = mySPI->popr();
+            data_buffer[i] = data;
+            // char data_print = data;
             #ifdef VERBOSE
-			printf("query = %d\n", (int) data);
+            // printf("i = %u\n", i);
+            // printf("data = %x\n", data);
             #endif
-			switch(__spi_interface->query) {
-				case QueryIdle:
-					__spi_interface->n = 1; // 1 of query
-                    mySPI->pushr(data);
-					break;
-					
-				case QueryDoPositionControl:
-					__spi_interface->n = 7; // 1 of query, 6 of data
-                    mySPI->pushr(data);
-					break;
+            if (i == 0) {
+                __spi_interface->query = (query_t) data;
+                #ifdef VERBOSE
+                printf("query = %d\n", (int) data);
+                #endif
+                switch(__spi_interface->query) {
+                    case QueryIdle:
+                        __spi_interface->n = 1; // 1 of query
+                        mySPI->pushr(data);
+                        break;
+                        
+                    case QueryDoPositionControl:
+                        __spi_interface->n = 7; // 1 of query, 6 of data
+                        mySPI->pushr(data);
+                        break;
 
-                case QueryDoSpeedControl:
-                    __spi_interface->n = 5;
-                    mySPI->pushr(data);
-                    break;
+                    case QueryDoSpeedControl:
+                        __spi_interface->n = 5;
+                        mySPI->pushr(data);
+                        break;
 
-				case QuerySetPosition:
-					__spi_interface->n = 7; // 1 of query, 6 of data
-                    mySPI->pushr(data);
-					break;
+                    case QuerySetPosition:
+                        __spi_interface->n = 7; // 1 of query, 6 of data
+                        mySPI->pushr(data);
+                        break;
 
-                case QueryDoConstantDutyCycle:
-                    __spi_interface->n = 5; // 1 of query, 2 of data
-                    mySPI->pushr(data);
-                    break;
+                    case QueryDoConstantDutyCycle:
+                        __spi_interface->n = 5; // 1 of query, 2 of data
+                        mySPI->pushr(data);
+                        break;
 
-				case QueryAskState:
-                    #ifdef VERBOSE
-                    printf("state is %d\n", (int) __spi_interface->state);
-                    #endif
-                    mySPI->pushr(__spi_interface->state);
-                    __spi_interface->n = 4;
-					break;
+                    case QueryAskState:
+                        #ifdef VERBOSE
+                        printf("state is %d\n", (int) __spi_interface->state);
+                        #endif
+                        mySPI->pushr(__spi_interface->state);
+                        __spi_interface->n = 4;
+                        break;
 
-				case QueryDoPathFollowing:
-                    mySPI->pushr(data);
-					break;
+                    case QueryDoPathFollowing:
+                        mySPI->pushr(data);
+                        break;
 
-                case QuerySetPositionControlGains:
-                    mySPI->pushr(data);
-                    __spi_interface->n = 9;
-                    break;
-                
-                case QuerySetPathFollowerGains:
-                    mySPI->pushr(data);
-                    __spi_interface->n = 17;
-                    break;
+                    case QuerySetPositionControlGains:
+                        mySPI->pushr(data);
+                        __spi_interface->n = 9;
+                        break;
+                    
+                    case QuerySetPathFollowerGains:
+                        mySPI->pushr(data);
+                        __spi_interface->n = 17;
+                        break;
 
-				default:
-                    #ifdef VERBOSE
-                    printf("Bad communication\n");
-                    #endif
-					break;
-			}
-		}
-		else { /// i != 0
-			switch(__spi_interface->query) {				
-				case QueryAskState:
-					break;
+                    default:
+                        #ifdef VERBOSE
+                        printf("Bad communication\n");
+                        #endif
+                        break;
+                }
+            }
+            else { /// i != 0
+                switch(__spi_interface->query) {				
+                    case QueryAskState:
+                        break;
 
-				case QueryDoPathFollowing:
-					if (i == 1) {
-						int ncheckpoints = (int) data;
-						data = mySPI->popr(); 
-						__spi_interface->n = 2*(2*ncheckpoints+4) + 2; // 1 of query, 1 of npoints, 2*npoints of 2 bytes, 2 theta of 2 bytes
-					}
-					#ifdef VERBOSE
-					printf("QueryDoPathFollowing\n");
-					printf("message expected size=%d\n", (int) __spi_interface->n);
-					#endif
-					break;            
+                    case QueryDoPathFollowing:
+                        if (i == 1) {
+                            int ncheckpoints = (int) data;
+                            data = mySPI->popr(); 
+                            __spi_interface->n = 2*(2*ncheckpoints+4) + 2; // 1 of query, 1 of npoints, 2*npoints of 2 bytes, 2 theta of 2 bytes
+                        }
+                        #ifdef VERBOSE
+                        printf("QueryDoPathFollowing\n");
+                        printf("message expected size=%d\n", (int) __spi_interface->n);
+                        #endif
+                        break;            
 
-				default:
-					break;
-			}
-		}
-		i += 1;
-		__spi_interface->i = (uint32_t) i;
-	}
+                    default:
+                        break;
+                }
+            }
+            i += 1;
+            __spi_interface->i = (uint32_t) i;
+        }
+    }
+    // printf("Leaving SPI receive event\n");
 }
 
 int spi_valid_transmission() {
