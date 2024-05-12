@@ -41,6 +41,12 @@ valgrind: all
 
 idle: test_idle
 
+blue: all
+	@./exe_botlightyear < blue
+
+yellow: all
+	@./exe_botlightyear < yellow
+
 #Create the OBJ_DIR directory
 $(OBJ_DIR):
 	@mkdir -p $(OBJ_DIR)
@@ -120,4 +126,4 @@ clean:
 clean_obj:
 	@rm -f $(OBJ_DIR)/*
 
-.PHONY: idle clean clean_obj tests test_%
+.PHONY: idle blue yellow clean clean_obj tests test_%

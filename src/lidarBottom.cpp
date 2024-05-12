@@ -135,8 +135,9 @@ void lidarGetPlantPosition(Point *robot, double *angles, double *distances, doub
                     } else {
                         // object present before: if distance small enough it's the same (delta<3cm) -> nothing to do
                         // delta >3cm : new object
+                        //size = std::sqrt(d2 * d2 + d1 * d1 - 2 * d2 * d1 * std::cos(a2 - a1));
 
-                        if (std::abs(d2 - distances[i]) > 0.03) {
+                        if (std::abs(d2 - distances[i]) > 0.03  ) {
                             //what we detect is a new object
                             plantZone[zp]->aPlant[plantZone[zp]->numberPlant] = a2;
                             plantZone[zp]->dPlant[plantZone[zp]->numberPlant] = d2+rayonPlante;
@@ -253,6 +254,7 @@ int getNumberOfPlantInAllZone(double x_robot, double y_robot, double theta_robot
     
     size_t *asize = new size_t[2]{8000, 8000};
     updateDataBottom(angles, distances, quality, asize);
+    DataToFileBottom("test.txt");//TODO PAULINE
     //updateDataFile(angles, distances, quality, "DataTest/DataP/J-1/testBottom2.txt", asize);
     arraysize = asize[0];
     lidarGetPlantPosition(robot, angles, distances, obj, asize[0], plantZonePolar);

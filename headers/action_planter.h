@@ -20,11 +20,13 @@ private:
     // from right to left if needsPotClear == SideRight
     // no clearing if needsPotClear == SideMiddle (0)
     planter_side_t needsPotClear;
+    uint8_t planterIdx; 
 public:
-    ActionPlanter(graph_path_t *path, uint8_t nbPlants, planter_side_t preference, planter_side_t needsPotClear = SideMiddle) : Action(DepositPlanter, true, path) {
+    ActionPlanter(graph_path_t *path, uint8_t nbPlants, planter_side_t preference, uint8_t planterIdx, planter_side_t needsPotClear = SideMiddle) : Action(DepositPlanter, true, path) {
         this->nbPlants = nbPlants;
         this->preference = preference;
         this->needsPotClear = needsPotClear;
+        this->planterIdx = planterIdx; 
         this->needs[0] = 1;  // SptrPlate
         this->needs[1] = 1;  // StprSlider
         this->needs[2] = 1;  // StprFlaps

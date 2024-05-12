@@ -21,12 +21,12 @@ static pthread_t KCID;
 static volatile state_t state;
 static volatile state_t stateKC;
 static volatile bool lastPlantInPlanter = false;
-
+static uint8_t planterId = 0;
 
 void gainNormalPlanter(){
-    shared.teensy->set_position_controller_gains(0.9,2.5,-1.0,1.0);
+    // shared.teensy->set_position_controller_gains(0.9,2.5,-1.0,1.0);
+    shared.teensy->set_position_controller_gains(0.7,3.0,-1.0,4.0);
 }
-
 
 
 static void leave() {
@@ -100,7 +100,7 @@ static void *kinematic_chain(void *args) {
             usleep(700000);
             grpDeployer->half();
             steppers->plate_move(0, CALL_BLOCKING);
-            grpDeployer->idle();
+            // grpDeployer->idle();
             break;
 
         case Drop:
@@ -108,15 +108,19 @@ static void *kinematic_chain(void *args) {
             steppers->slider_move(SliderIntermediateLow, CALL_BLOCKING);
             grpHolder->open();
             stateKC = Drop;
+            shared.plantersDone[planterId] +=1; // Updates the plant count on the given planter
             shared.score += 4 + ((toDrop & ContainsPot) == ContainsPot);
             steppers->slider_move(SliderHigh,CALL_BLOCKING);
+            printf("Drop Finish\n");
             //usleep(200000);
-            grpHolder->idle();
-            grpDeployer->idle();
-            if(lastPlantInPlanter == true){state = Get;}
+            // grpHolder->idle();
+            // grpDeployer->idle();
+            if(lastPlantInPlanter == false){state = Get;}
             break;
 
         case End:
+            grpDeployer->idle();
+            grpDeployer->idle();
             return NULL;
 
         default: // Abort or End
@@ -154,7 +158,8 @@ static void *kinematic_chain(void *args) {
 }
 
 void ActionPlanter::do_action() {
-    printf("Start of action planter\n");
+    printf("----- Start of action planter ----- \n\n");
+    planterId = this->planterIdx; 
     gainNormalPlanter();
     if (nbPlants > 3) nbPlants = 3;
     state = PF;
@@ -191,8 +196,8 @@ void ActionPlanter::do_action() {
         while (stateKC != Get) usleep(50000);
         printf("nextSpot : ,%d\n",nextSpot);
         // /!\ planter est pas la jardiniere mais le point de PF de la jardiniere!!!
-        if (action_position_control(xPlanter+0.28*cos(thetaPlanter)-0.1*nextSpot*sin(thetaPlanter),
-                                    yPlanter+0.28*sin(thetaPlanter)+0.1*nextSpot*cos(thetaPlanter),
+        if (action_position_control(xPlanter+0.25*cos(thetaPlanter)-0.1*nextSpot*sin(thetaPlanter),
+                                    yPlanter+0.25*sin(thetaPlanter)+0.1*nextSpot*cos(thetaPlanter),
                                     thetaPlanter)) return leave();
 
         //shared.teensy->constant_dc(65,65);
@@ -207,11 +212,11 @@ void ActionPlanter::do_action() {
             //printf("pin_state : %d \n",pins_state);
             if ( shared.pins->read(BpSwitchFlapsRightGPIO) ==1 && pins_state !=2) {
                 pins_state = 2; 
-                shared.teensy->spd_ctrl(speedValue,0);
+                shared.teensy->spd_ctrl(speedValue*1.8,0);
                 //shared.teensy->constant_dc(0,valueConstantDC*3/2);
             } else if (shared.pins->read(BpSwitchFlapsLeftGPIO) ==1 && pins_state!=1){
                 pins_state = 1;
-                shared.teensy->spd_ctrl(0,speedValue);
+                shared.teensy->spd_ctrl(0,speedValue*1.8);
                 // shared.teensy->constant_dc(valueConstantDC*3/2,0);
             } else if (pins_state != 0) {
                 pins_state = 0;
@@ -226,9 +231,15 @@ void ActionPlanter::do_action() {
             usleep(50000);
         printf("Plant dropped \n");
         //si pas derniere plante, vas deja la cherché apres avoir fini drop
-        if (i != nbPlants - 1){lastPlantInPlanter = true;} 
-        else  {lastPlantInPlanter =false;}
-        if (action_position_control(xPlanter,yPlanter,thetaPlanter,0.02,30)) return leave();
+        if (i != nbPlants - 1){
+            lastPlantInPlanter = true;
+            if (action_position_control(xPlanter,yPlanter,periodic_angle( thetaPlanter+M_PI) ,0.02,30)) return leave();
+        } 
+        else  {
+            lastPlantInPlanter =false;
+             if (action_position_control(xPlanter,yPlanter,thetaPlanter,0.02,30)) return leave();
+        }
+       
 
         switch (preference)
         {
@@ -250,6 +261,6 @@ void ActionPlanter::do_action() {
        
     state = End;
     pthread_join(KCID, NULL);
-    printf("End of action planter\n");
+    printf("End of action planter\n\n");
 
 }

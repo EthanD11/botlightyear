@@ -37,94 +37,129 @@ double mappingOnPi(double angle){
 }
 
 void TakePotCHAIN(int slotNumber, int numeroPot = 1) {
-    //numeroPot :
-    //   _____
-    //  / 1 2 \ 
-    // | 3 4 5 |
-    //position des pot de la premiere zone bleu
-    double posPotX = 0.6125;
-    double posPotY = 0.035;
-    double posPotTheta = M_PI_2;
-    //teensy->set_position(posPotX,posPotY,mappingOnPi(posPotTheta-M_PI));
-    //printf("Starting angle : %f \n", mappingOnPi(posPotTheta-M_PI)); 
-    //parametre approach/prise pot 
-    double betaPot1 = M_PI_2/3;
-    double distanceRoue = 0.3;
-    double deltaApproach = 0.2;
-    double rayonPot = 0.08;
+    // //numeroPot :
+    // //   _____
+    // //  / 1 2 \ 
+    // // | 3 4 5 |
+    // //position des pot de la premiere zone bleu
+    // double posPotX = 0.6125;
+    // double posPotY = 0.035;
+    // double posPotTheta = M_PI_2;
+    // //teensy->set_position(posPotX,posPotY,mappingOnPi(posPotTheta-M_PI));
+    // //printf("Starting angle : %f \n", mappingOnPi(posPotTheta-M_PI)); 
+    // //parametre approach/prise pot 
+    // double betaPot1 = M_PI_2/3;
+    // double distanceRoue = 0.3;
+    // double deltaApproach = 0.2;
+    // double rayonPot = 0.08;
 
-    double posPotXApproach;
-    double posPotYApproach;
-    double posPotThetaApproach;
-    double posPotXPrise;
-    double posPotYPrise;
-    double posPotThetaPrise;
+    // double posPotXApproach;
+    // double posPotYApproach;
+    // double posPotThetaApproach;
+    // double posPotXPrise;
+    // double posPotYPrise;
+    // double posPotThetaPrise;
+
+    // deployer->deploy();
+    // holder->open();
+    // //steppers->setup_speed(StprSlider, 300,600);
+    // //steppers->reset_all(); 
+    // //steppers->calibrate(StprPlate, CALL_BLOCKING);
+    // //steppers->calibrate(StprSlider, CALL_BLOCKING); 
+    // switch (numeroPot)
+    // {
+    // case 1 :
+    //     posPotXApproach = posPotX+(distanceRoue+deltaApproach+rayonPot)*cos(betaPot1+posPotTheta);
+    //     posPotYApproach = posPotY+(distanceRoue+deltaApproach+rayonPot)*sin(betaPot1+posPotTheta);
+    //     posPotThetaApproach = posPotTheta+betaPot1-M_PI;
+    //     posPotXPrise = posPotX+(distanceRoue+rayonPot)*cos(betaPot1+posPotTheta);
+    //     posPotYPrise = posPotY+(distanceRoue+rayonPot)*sin(betaPot1+posPotTheta);
+    //     posPotThetaPrise = posPotTheta+betaPot1-M_PI;
+    //     break;
+    // case 2 :
+    //     posPotXApproach = posPotX+(distanceRoue+deltaApproach+rayonPot)*cos(-betaPot1+posPotTheta);
+    //     posPotYApproach = posPotY+(distanceRoue+deltaApproach+rayonPot)*sin(-betaPot1+posPotTheta);
+    //     posPotThetaApproach = posPotTheta-betaPot1-M_PI;
+    //     posPotXPrise = posPotX+(distanceRoue+rayonPot)*cos(-betaPot1+posPotTheta);
+    //     posPotYPrise = posPotY+(distanceRoue+rayonPot)*sin(-betaPot1+posPotTheta);
+    //     posPotThetaPrise = posPotTheta-betaPot1-M_PI;
+    //     break;
+    // default:
+    //     break;
+    // }
+    // //remapping pour -PI a +PI
+    // posPotThetaApproach = mappingOnPi(posPotThetaApproach);
+    // posPotThetaPrise = mappingOnPi(posPotThetaPrise);
+    // //-----approche grossiere-----
+    // printf("approche grossiere : %f, %f, %f ,distance :%f\n", posPotXApproach, posPotYApproach, posPotThetaApproach,distanceRoue+deltaApproach+rayonPot);
+    // // teensy->pos_ctrl(posPotXApproach,posPotYApproach,posPotThetaApproach); 
+    // // sleep(10);
+    // servoFlaps->deploy();
+    // steppers->flaps_move(FlapsIntermediatePot); 
+    // steppers->slider_move(SliderPreparePot);
+    // //-----approche précise-----
+    // printf("approche précise : %f, %f, %f, distance :%f\n", posPotXPrise, posPotYPrise, posPotThetaPrise,distanceRoue+rayonPot);
+    // //teensy->pos_ctrl(posPotX+(distanceRoue)*(betaPot1),posPotY+(distanceRoue)*(betaPot1),posPotTheta+betaPot1-M_PI);
+    // // teensy->pos_ctrl(posPotXPrise,posPotYPrise,posPotThetaPrise);
+    // // sleep(10);    
+    // //-----prise pot-----
+    // printf("debut chaine cinématique\n");
+    // steppers->flaps_move(FlapsPot,CALL_BLOCKING);
+    // steppers->flaps_move(FlapsIntermediatePot,CALL_BLOCKING);
+    // steppers->flaps_move(FlapsOpen);
+    // holder->open_full();
+    // steppers->slider_move(SliderLow,CALL_BLOCKING);
+    // holder->hold_pot();//fermeture pot
+
+    // //remonte
+    // steppers->slider_move(SliderHigh, CALL_BLOCKING);
+    // steppers->plate_move(slotNumber, CALL_BLOCKING); 
+
+    // deployer->pot_deposit();
+    // steppers->slider_move(SliderDepositPot, CALL_BLOCKING);
+    // deployer->deploy();
+    // steppers->slider_move(SliderStorage, CALL_BLOCKING);
+    // holder->open_full();
+    // deployer->half();
+    // steppers->slider_move(SliderHigh,CALL_BLOCKING);
+    // steppers->plate_move(0, CALL_BLOCKING);
+    // holder->idle();
+    // deployer->idle();
+
 
     deployer->deploy();
-    holder->open();
-    //steppers->setup_speed(StprSlider, 300,600);
-    //steppers->reset_all(); 
-    //steppers->calibrate(StprPlate, CALL_BLOCKING);
-    //steppers->calibrate(StprSlider, CALL_BLOCKING); 
-    switch (numeroPot)
-    {
-    case 1 :
-        posPotXApproach = posPotX+(distanceRoue+deltaApproach+rayonPot)*cos(betaPot1+posPotTheta);
-        posPotYApproach = posPotY+(distanceRoue+deltaApproach+rayonPot)*sin(betaPot1+posPotTheta);
-        posPotThetaApproach = posPotTheta+betaPot1-M_PI;
-        posPotXPrise = posPotX+(distanceRoue+rayonPot)*cos(betaPot1+posPotTheta);
-        posPotYPrise = posPotY+(distanceRoue+rayonPot)*sin(betaPot1+posPotTheta);
-        posPotThetaPrise = posPotTheta+betaPot1-M_PI;
-        break;
-    case 2 :
-        posPotXApproach = posPotX+(distanceRoue+deltaApproach+rayonPot)*cos(-betaPot1+posPotTheta);
-        posPotYApproach = posPotY+(distanceRoue+deltaApproach+rayonPot)*sin(-betaPot1+posPotTheta);
-        posPotThetaApproach = posPotTheta-betaPot1-M_PI;
-        posPotXPrise = posPotX+(distanceRoue+rayonPot)*cos(-betaPot1+posPotTheta);
-        posPotYPrise = posPotY+(distanceRoue+rayonPot)*sin(-betaPot1+posPotTheta);
-        posPotThetaPrise = posPotTheta-betaPot1-M_PI;
-        break;
-    default:
-        break;
-    }
-    //remapping pour -PI a +PI
-    posPotThetaApproach = mappingOnPi(posPotThetaApproach);
-    posPotThetaPrise = mappingOnPi(posPotThetaPrise);
-    //-----approche grossiere-----
-    printf("approche grossiere : %f, %f, %f ,distance :%f\n", posPotXApproach, posPotYApproach, posPotThetaApproach,distanceRoue+deltaApproach+rayonPot);
-    teensy->pos_ctrl(posPotXApproach,posPotYApproach,posPotThetaApproach); 
-    sleep(10);
+    holder->open_full();
     servoFlaps->deploy();
     steppers->flaps_move(FlapsIntermediatePot); 
     steppers->slider_move(SliderPreparePot);
-    //-----approche précise-----
-    printf("approche précise : %f, %f, %f, distance :%f\n", posPotXPrise, posPotYPrise, posPotThetaPrise,distanceRoue+rayonPot);
-    //teensy->pos_ctrl(posPotX+(distanceRoue)*(betaPot1),posPotY+(distanceRoue)*(betaPot1),posPotTheta+betaPot1-M_PI);
-    teensy->pos_ctrl(posPotXPrise,posPotYPrise,posPotThetaPrise);
-    sleep(10);    
-    //-----prise pot-----
+    sleep(3);
+
     printf("debut chaine cinématique\n");
     steppers->flaps_move(FlapsPot,CALL_BLOCKING);
     steppers->flaps_move(FlapsIntermediatePot,CALL_BLOCKING);
-    steppers->flaps_move(FlapsOpen);
     holder->open_full();
     steppers->slider_move(SliderLow,CALL_BLOCKING);
     holder->hold_pot();//fermeture pot
 
+    printf("start thread kinematic\n");
     //remonte
     steppers->slider_move(SliderHigh, CALL_BLOCKING);
+    //depose pot en plateau
     steppers->plate_move(slotNumber, CALL_BLOCKING); 
-
     deployer->pot_deposit();
     steppers->slider_move(SliderDepositPot, CALL_BLOCKING);
     deployer->deploy();
     steppers->slider_move(SliderStorage, CALL_BLOCKING);
+    //reouvre et remonte
     holder->open_full();
+    usleep(100000); //wait 100ms
     deployer->half();
     steppers->slider_move(SliderHigh,CALL_BLOCKING);
     steppers->plate_move(0, CALL_BLOCKING);
-    holder->idle();
-    deployer->idle();
+    deployer->deploy();
+
+    printf("end thread kinematic\n");
+
 }
 
 
@@ -140,7 +175,7 @@ int main(int argc, char const *argv[])
     steppers->calibrate_all(CALL_BLOCKING, NULL);
     steppers->plate_move(0,CALL_BLOCKING);
     printf("Go ! \n");
-    teensy->set_position(0.612,0.60,-M_PI_2); //position des pot de la premiere zone bleu
+    // teensy->set_position(0.612,0.60,-M_PI_2); //position des pot de la premiere zone bleu
     //steppers->flaps_move(FlapsIntermediatePot,CALL_BLOCKING);
     // holder->hold_pot();
     // steppers->slider_move(SliderHigh, CALL_BLOCKING);
@@ -151,7 +186,7 @@ int main(int argc, char const *argv[])
     // deployer->deploy();
     // holder->open();
     #ifdef POT
-    TakePotCHAIN(2,1);
+    TakePotCHAIN(-3,1);
     #endif
 
     sleep(1);
