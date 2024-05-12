@@ -66,7 +66,7 @@ public:
     // Starts game timer on starting cord pull detection
     void start_timer();
     // Updates and returns the remaining game time
-    int8_t update_and_get_timer();
+    int16_t update_and_get_timer();
 
     team_color_t color; // Team color (blue vs yellow)
     uint8_t score; // Current score
@@ -75,6 +75,7 @@ public:
     uint8_t nFreeSlots; // Number of free storage slots
     uint8_t plantersDone[3]; 
     uint8_t zonesDone[3]; 
+    uint8_t plantCounts[6]; 
     uint8_t SPsDone[2]; // Common, Reserved
     uint8_t spBlockDone; 
     uint8_t backToBaseDone;

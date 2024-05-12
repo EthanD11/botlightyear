@@ -7,7 +7,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h> 
-#include <time.h>
+#include <chrono>
 #include <unistd.h>  
 #include <pthread.h> 
 #include <termios.h>
@@ -16,11 +16,11 @@
 #include "oled.h"
 
 #define VERBOSE
-//#define TIME_MEAS
+// #define TIME_MEAS
 // #define CLEAR_POTS
 
 #define LIDAR_BOTTOM
-// #define LIDAR_TOP
+#define LIDAR_TOP
 // #define DXL
 #define ASCII_b 98
 #define ASCII_B 66
@@ -205,6 +205,12 @@ void *localizer(void* arg) {
     double x = 0, y = 0, theta = 0;
     // double odoWeight = 1.0;
 
+    #ifdef TIME_MEAS
+    std::chrono::_V2::system_clock::time_point start, lidarClock, odoClock, teensyClock, sharedClock;
+    double totalDur;
+    std::chrono::duration<double> lidarDur, odoDur, teensyDur, sharedDur;
+    #endif
+
     #ifdef LIDAR_TOP
     LidarData *lidarData = new LidarData();
     init_lidar(lidarData);
@@ -217,7 +223,7 @@ void *localizer(void* arg) {
 
     int8_t teensyI = 0;
     #ifdef LIDAR_TOP
-    int8_t teensyN = 100;
+    int8_t teensyN = 20;
     #else
     int8_t teensyN = 20;
     #endif
@@ -227,8 +233,7 @@ void *localizer(void* arg) {
         // teensy_mode_t teensyMode = shared.teensy->ask_mode();
 
         #ifdef TIME_MEAS
-        clock_t odoClock;
-        clock_t start = clock();
+        start = std::chrono::high_resolution_clock::now();
         #endif
 
         #ifdef LIDAR_TOP
@@ -236,7 +241,7 @@ void *localizer(void* arg) {
         #endif
 
         #ifdef TIME_MEAS
-        clock_t lidarClock = clock();
+        lidarClock = std::chrono::high_resolution_clock::now();
         #endif
 
         // if ((teensyMode == ModePositionControlOver || teensyMode == ModeIdle) && !lidarData->readLidar_lost) {
@@ -250,17 +255,16 @@ void *localizer(void* arg) {
         // } else {
         shared.odo->get_pos(&x, &y, &theta);
         #ifdef TIME_MEAS
-        odoClock = clock();
+        odoClock = std::chrono::high_resolution_clock::now();
         #endif
         //}
         if (++teensyI == teensyN) {
             shared.teensy->set_position(x,y,theta);
+            #ifdef TIME_MEAS
+            teensyClock = std::chrono::high_resolution_clock::now();
+            #endif
             teensyI = 0;
         }
-
-        #ifdef TIME_MEAS
-        clock_t teensyClock = clock();
-        #endif
 
         shared.set_robot_pos(x,y,theta);
         #ifdef LIDAR_TOP
@@ -280,6 +284,9 @@ void *localizer(void* arg) {
         //}
         lidarData->x_odo = x; lidarData->y_odo = y; lidarData->theta_odo = theta;
         #endif
+        #ifdef TIME_MEAS
+        sharedClock = std::chrono::high_resolution_clock::now();
+        #endif
 
         #ifdef VERBOSE
         //TODO TODO
@@ -292,10 +299,25 @@ void *localizer(void* arg) {
 
 
         #ifdef TIME_MEAS
+        totalDur = 0;
         printf("Timing results : \n");
-        printf("Lidar took %ld clock cycles to update.\n\tCumulated time since iteration start : %ld\n", lidarClock - start, lidarClock - start);
-        printf("Odometry took %ld clock cycles to update.\n\tCumulated time since iteration start : %ld\n", odoClock - lidarClock, odoClock - start);
-        printf("Teensy took %ld clock cycles to update.\n\tCumulated time since iteration start : %ld\n", teensyClock - odoClock, teensyClock - start);
+
+        lidarDur = lidarClock - start; totalDur += lidarDur.count();
+        printf("Lidar took %.3f microseconds to update.\n\tCumulated time since iteration start : %.3f\n", 1e6*lidarDur.count(), 1e6*totalDur);
+
+        odoDur = odoClock - lidarClock; totalDur += odoDur.count();
+        printf("Odometry took %.3f microseconds to update.\n\tCumulated time since iteration start : %.3f\n", 1e6*odoDur.count(), 1e6*totalDur);
+
+        if (!teensyI) {
+            teensyDur = teensyClock - odoClock; totalDur += teensyDur.count();
+            printf("Teensy took %.3f microseconds to update.\n\tCumulated time since iteration start : %.3f\n", 1e6*teensyDur.count(), 1e6*totalDur);
+
+            sharedDur = sharedClock - teensyClock; totalDur += lidarDur.count();
+            printf("Shared variables took %.3f microseconds to update.\n\tCumulated time since iteration start : %.3f\n", 1e6*sharedDur.count(), 1e6*totalDur);
+        } else {
+            sharedDur = sharedClock - odoClock; totalDur += lidarDur.count();
+            printf("Shared variables took %.3f microseconds to update.\n\tCumulated time since iteration start : %.3f\n", 1e6*sharedDur.count(), 1e6*totalDur);
+        }
         #endif
         usleep(50000);
     }
@@ -353,14 +375,27 @@ int main(int argc, char const *argv[])
 
     uint8_t gameFinished = 0;
     do {
+        #ifdef TIME_MEAS
+        std::chrono::_V2::system_clock::time_point start, decisionClock;
 
+        start = std::chrono::high_resolution_clock::now();
+        Action *decided_action = make_decision();
+        decisionClock = std::chrono::high_resolution_clock::now();
+
+        std::chrono::duration<double> decisionDur = decisionClock - start;
+        printf("Execution time of decision : %.1f\n", 1e9*decisionDur.count());
+
+        #else
         Action* decided_action = make_decision();
+        #endif
         printf("Action type : %d\n", decided_action->action_type);
         #ifndef CLEAR_POTS
         double x = 0, y = 0, theta = 0;
         #endif
         shared.get_robot_pos(&x,&y,&theta);
+        #ifdef VERBOSE
         printf("Current pos : (%.3f,%.3f,%.3f)\n",x,y,theta);
+        #endif
 
         gameFinished = (decided_action->action_type == GameFinished);
         decided_action->do_action();

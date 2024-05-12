@@ -9,12 +9,12 @@
 #include <cmath>
 #include <lgpio.h>
 
-// #define POSITION_CONTROL
+#define POSITION_CONTROL
 // #define PATH_FOLLOWING
 // #define IDLE
 // #define SET_POSITION
 // #define SPEED_CONTROL
-#define DC_CONTROL
+// #define DC_CONTROL
 // #define ASK_STATE
 // #define SET_POS_CTRL_GAINS
 // #define SET_PATH_FOLLOWER_GAINS
@@ -38,31 +38,34 @@ int main(int argc, char const *argv[])
     usleep(500000);
 
     #ifdef POSITION_CONTROL
-    double kp = 0.5;
+    double kp = 0.7;
     double ka = 3.0;
-    double kb = -1.0;
-    double kw = 5.0;
+    double kb = -0.6;
+    double kw = 4.0;
+    // printf("Set posit")
     teensy.set_position_controller_gains(kp, ka, kb, kw);
 
     double x = 0; 
     double y = 0; 
     double t = 0;
-    double xr = 0.8; 
-    double yr = 0.0; 
-    double tr = 0*deg_to_rads;
+    double xr = 0.4; 
+    double yr = 0.2; 
+    double tr = -30*deg_to_rads;
     double xpos = 0, ypos = 0, thetapos = 0;
-
+    lguSleep(0.1);
     teensy.set_position(x, y, t);
     odo.set_pos(x, y, t);
     lguSleep(0.1);
     teensy.pos_ctrl(xr, yr, tr);
 
     lguSleep(0.1);
-    while (true) {
+    while (teensy.ask_mode() == ModePositionControl) {
         odo.get_pos(&xpos, &ypos, &thetapos);
         teensy.set_position(xpos, ypos, thetapos);
-        lguSleep(0.5);
+        lguSleep(0.04);
+        // break;
     }
+    teensy.idle();
     #endif
 
     #ifdef PATH_FOLLOWING

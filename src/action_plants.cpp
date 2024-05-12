@@ -10,8 +10,10 @@ static pthread_t KCID;
 static volatile bool ThreadKinematicOccuped = false;
 static volatile bool hasPot = false;
 
+static uint8_t plantZoneId = 0; 
+
 double plant_approach_dist = 0.4; //0.35 MAX
-double plant_grab_dist = 0.26; // 0.22 MIN
+double plant_grab_dist = 0.25; // 0.22 MIN
 double plant_approach_angle = M_PI/6; 
 double away_distance = 0.1; 
 /*
@@ -21,11 +23,15 @@ Takes plant and puts it to the plate storage specified
 
 void gainDeBasePlante(){
     double gainDesGain = 1.0;
-    shared.teensy->set_position_controller_gains(1.0*gainDesGain,2.5*gainDesGain,-1.0*gainDesGain,1.8*gainDesGain);    
+    // shared.teensy->set_position_controller_gains(1.0*gainDesGain,2.5*gainDesGain,-1.0*gainDesGain,1.8*gainDesGain);
+    shared.teensy->set_position_controller_gains(0.7,3.0,-1.0,4.0);
+        
 }
 
 void gainPrecisPlante(){
-    shared.teensy->set_position_controller_gains(0.9,2.5,0.0,1);
+    // shared.teensy->set_position_controller_gains(0.9,2.5,0.0,1);
+    shared.teensy->set_position_controller_gains(0.9,2.5,0.0,4.0);
+
 
 }
 
@@ -70,7 +76,7 @@ void *take_plant_kinematicChain_SecondPart(void *args ){
     ThreadKinematicOccuped = true;
     //remonte
     steppers->slider_move(SliderHigh);//tricks pour replier servo au milieu
-    usleep(100000);
+    usleep(300000);
     deployer->plantLift();
     shared.pins->wait_for_gpio_value(StprSliderGPIO, 1, 10000);
 
@@ -319,7 +325,6 @@ int8_t get_closest_plant_from_lidar(double x_pos, double y_pos, double theta_pos
 
     steppers->flaps_move(FlapsOpen,CALL_BLOCKING);
     servoFlaps->raise();
-
     PlantZone** plantZone = new PlantZone *[6]; 
     initBottomLidar(plantZone);
     printf("Plant zone init\n");
@@ -352,6 +357,7 @@ int8_t get_closest_plant_from_lidar(double x_pos, double y_pos, double theta_pos
             return -1; 
     }
     uint8_t plantCount = plantZone[zoneIdx]->numberPlant; 
+    shared.plantCounts[plantZoneId] = plantCount; 
     printf("plantcounts : %d \n", plantCount);
     if (plantCount==0) {
         deleteBottomLidar(plantZone); 
@@ -385,7 +391,7 @@ int8_t get_closest_plant_from_lidar(double x_pos, double y_pos, double theta_pos
 
 
 void ActionPlants::do_action() {
-
+    plantZoneId = this->plantZoneIdx;
     uint8_t plants_taken[6] = {0,0,0,0,0,0};
     double xpos = 0, ypos = 0, theta_pos = 0; 
     double xpos_initial = 0, ypos_initial = 0, theta_pos_initial = 0; 
@@ -425,10 +431,13 @@ void ActionPlants::do_action() {
         // Get closest plant from lidar pov
         printf("Scanning with lidar...\n");
         teensyIdle();
+        usleep(250000);
         shared.get_robot_pos(&xpos, &ypos, &theta_pos);
         if (get_closest_plant_from_lidar(xpos, ypos, theta_pos, plantsNode, &x_plant, &y_plant) == -1) return;
         //get_closest_plant_from_kakoo(xpos, ypos, plantsNode, &x_plant, &y_plant, plants_taken); 
+        // usleep(200000);
         printf("Scan lidar over\n");
+
         theta_plant = atan2(y_plant-ypos, x_plant-xpos); 
         printf("Got plant at %f, %f, %f, beginning the approach\n", x_plant, y_plant, theta_plant,0.01,10);
         
@@ -454,6 +463,6 @@ void ActionPlants::do_action() {
     // Position control to the initial location with opposed theta for departure
     //if (action_position_control(xpos_initial, ypos_initial, periodic_angle(theta_pos_initial-M_PI)) == -1) return; 
     while(ThreadKinematicOccuped == true){usleep(1000);}
-    printf("End of plant action \n"); 
+    printf("End of plant action \n\n"); 
     
 }

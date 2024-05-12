@@ -14,8 +14,8 @@
 #include <cmath>
 #include <algorithm>
 
-// #define TESTS
-#define PLANT_STRATEGY
+#define TESTS
+// #define PLANT_STRATEGY
 // #define RANDOM
 // #define SP_STRATEGY
 //#define FINAL_STRATEGY
@@ -31,7 +31,9 @@ class ActionGameFinished : public Action {
             this->needs[3] = 0;  // Dxls
             this->needs[4] = 0;  // LidarBottom
         }
-        void do_action () {} 
+        void do_action () {
+            shared.teensy->idle(); 
+        } 
 };
 
 class ActionWait: public Action {
@@ -82,8 +84,13 @@ class ActionBlockSps : public Action {
 };
 
 
+
+
 Action* possible_actions[10]; 
 uint8_t n_possible_actions;
+
+uint8_t plantZonesValid[6]; 
+uint8_t plantZonesCount = 0;
 
 
 #ifdef FINAL_STRATEGY
@@ -96,7 +103,7 @@ int8_t time_sp = 40;
 int8_t time_sp_reserved = 25;
 
 #ifdef PLANT_STRATEGY
-static bool hasTakenPots = true; 
+static bool hasTakenPots = false; 
 int8_t time_gotobase = -100;
 #endif
 #ifdef TESTS
@@ -123,21 +130,39 @@ double getThetaEnd(uint8_t * arrNodes, double * arrThetas , uint8_t len, uint8_t
     }
     return 0; 
 }
+
+void update_valid_plant_zones() {
+    plantZonesCount = 0; 
+    for (uint8_t i = 0; i<6; i++) {
+        if (shared.plantCounts[i] != 0) {
+            plantZonesValid[plantZonesCount] = shared.graph->plants[i]; 
+            plantZonesCount +=1; 
+        }
+    }
+}
+uint8_t get_plantZoneIdx(uint8_t targetPlantZone) {
+    for (uint8_t i = 0; i<6; i++) {
+        if (shared.graph->plants[i] == targetPlantZone) {
+            return i; 
+        }
+    }
+    printf("Error : invalid plant zone target node !\n"); 
+    return 0;
+}
 // void make_decision(decision_t *decision) {
 
 
 // Create the different actions that can be taken (in order !) with respect to the strategy
 void decide_possible_actions() {
-    printf("Deciding action\n");
+    printf("----- Deciding action -----\n\n");
     n_possible_actions = 0; 
-    int8_t remaining_time = shared.update_and_get_timer();
+    int16_t remaining_time = shared.update_and_get_timer();
     double x_pos = 0, y_pos = 0, theta_pos = 0, dist_from_currentNode = 0; 
     shared.get_robot_pos(&x_pos, &y_pos, &theta_pos); 
     graph_path_t* path;
     x_pos += 0.15*cos(theta_pos);
     y_pos += 0.15*sin(theta_pos);
     uint8_t currentNode = shared.graph->identify_pos(x_pos, y_pos, &dist_from_currentNode);
-    printf("Deciding action : post robpos\n");
     #ifdef TESTS
     /*static uint8_t base = 0;
     uint8_t target;
@@ -176,49 +201,49 @@ void decide_possible_actions() {
     //     } else {
     //         printf("Path is NULL\n");
     //     }
-    //     possible_actions[0] = new ActionPots(path, 2,false,true); 
+    //     possible_actions[0] = new ActionPots(path, 4,false,false); 
     //     n_possible_actions = 1; 
     //     hasTakenPots = true; 
     //     return;
     // }
     // ---------- Plants TEST -----------
 
-    // uint8_t target = 31;
+    uint8_t target = 31;
     
-    // shared.graph->update_obstacle(target,0);
-    // path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
-    
-    // //shared.graph->update_obstacle(27,1);
-    // if (path != NULL) {
-    //     path->thetaStart = theta_pos; 
-    //     path->thetaEnd = 0; // Angle is recomputed in Action Plants  
-    // } else {
-    //     printf("Path is NULL\n");
-    // }
-    // // shared.graph->update_obstacle(target,1);
-    // possible_actions[0] = new ActionPlants(path, 3); 
-    // n_possible_actions = 1; 
-    // return;
-
-    // ---------- Planters TEST -----------
-    
-    
-    path = shared.graph->compute_path(x_pos, y_pos, shared.graph->friendlyPlanters, 3);
-    printf("Deciding action : pre platecontent\n");
-    update_plate_content(SlotM3, ContainsWeakPlant); 
-    update_plate_content(Slot3, ContainsWeakPlant); 
-    printf("Deciding action : post platecontent\n");
-
+    shared.graph->update_obstacle(target,0);
+    path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+    int whichZone = 0;
+    //shared.graph->update_obstacle(27,1);
     if (path != NULL) {
         path->thetaStart = theta_pos; 
-        path->thetaEnd = getThetaEnd(shared.graph->friendlyPlanters, shared.graph->friendlyPlantersTheta, 3, path->target);  
+        path->thetaEnd = 0; // Angle is recomputed in Action Plants  
+        whichZone = get_plantZoneIdx(path->target);
     } else {
         printf("Path is NULL\n");
     }
     // shared.graph->update_obstacle(target,1);
-    possible_actions[0] = new ActionPlanter(path, 3, SideRight); 
+
+    possible_actions[0] = new ActionPlants(path, 6, whichZone); 
     n_possible_actions = 1; 
     return;
+
+    // ---------- Planters TEST -----------
+    
+    
+    // path = shared.graph->compute_path(x_pos, y_pos, shared.graph->friendlyPlanters, 3);
+    // update_plate_content(SlotM3, ContainsWeakPlant); 
+    // update_plate_content(Slot3, ContainsWeakPlant); 
+
+    // if (path != NULL) {
+    //     path->thetaStart = theta_pos; 
+    //     path->thetaEnd = getThetaEnd(shared.graph->friendlyPlanters, shared.graph->friendlyPlantersTheta, 3, path->target);  
+    // } else {
+    //     printf("Path is NULL\n");
+    // }
+    // // shared.graph->update_obstacle(target,1);
+    // possible_actions[0] = new ActionPlanter(path, 3, SideRight, 0, SideMiddle); 
+    // n_possible_actions = 1; 
+    // return;
     #endif
 
     #ifdef HOMOLOGATION 
@@ -243,7 +268,7 @@ void decide_possible_actions() {
     return;
     #endif
 
-    if (remaining_time < 0) {
+    if (remaining_time <= 1) {
         possible_actions[0] = new ActionGameFinished(); 
         n_possible_actions = 1; 
         return; 
@@ -390,6 +415,9 @@ void decide_possible_actions() {
     #ifdef PLANT_STRATEGY
    
     // --------- EARLY GAME -------------
+    if (!hasTakenPots && get_content_count(ContainsPot) !=0) {
+        hasTakenPots = true; 
+    }
     
     if (!hasTakenPots) {
         path = shared.graph->compute_path(x_pos, y_pos, shared.graph->pots, 6);
@@ -400,24 +428,36 @@ void decide_possible_actions() {
             printf("Path is NULL\n");
         }
         possible_actions[n_possible_actions] = new ActionPots(path, 2,false,true); 
-        n_possible_actions ++;; 
-        hasTakenPots = true; 
+        n_possible_actions ++;
     }
+
     int8_t current_plant_count = get_content_count(ContainsWeakPlant); 
     if (current_plant_count ==0) { // Go take plants quicc
+        uint8_t plantZoneIdx=0; 
+        update_valid_plant_zones(); 
         for(uint8_t i = 0; i<6; i++) {
             shared.graph->update_obstacle(shared.graph->plants[i], 0); 
         }
-        path = shared.graph->compute_path(x_pos, y_pos, shared.graph->plants, 6); 
-        if (path != NULL) {
-            path->thetaStart = theta_pos; 
-            path->thetaEnd = 0; // gets updated within ActionPlants anyways, no need to worry about it :)
+
+        path = shared.graph->compute_path(shared.graph->nodes[shared.graph->friendlyBases[0]].x, 
+                                            shared.graph->nodes[shared.graph->friendlyBases[0]].y, 
+                                            plantZonesValid, plantZonesCount);
+        if (path !=NULL) {
+            uint8_t target = path->target;
+            free(path); 
+            path = shared.graph->compute_path(x_pos, y_pos, &target, 1); 
+            if (path != NULL) {
+                path->thetaStart = theta_pos; 
+                path->thetaEnd = 0; // gets updated within ActionPlants anyways, no need to worry about it :)
+                plantZoneIdx = get_plantZoneIdx(path->target); 
+            }
         }
-        possible_actions[n_possible_actions] = new ActionPlants(path,2); // Plant number "could" be modulated with time 
+        
+        possible_actions[n_possible_actions] = new ActionPlants(path,3, plantZoneIdx); // Plant number "could" be modulated with time 
         n_possible_actions++; 
 
-        for(uint8_t i = 0; i<6; i++) {
-            shared.graph->update_obstacle(shared.graph->plants[i], 1); 
+        for(uint8_t i = 0; i<plantZonesCount; i++) {
+            shared.graph->update_obstacle(plantZonesValid[i], 1); 
         }
         return; 
     } else {
@@ -430,7 +470,7 @@ void decide_possible_actions() {
                 path->thetaEnd = shared.graph->friendlyPlantersTheta[0];
             }
             // possible_actions[n_possible_actions] = new ActionPlanter(path, std::max((current_plant_count-2)/2,1), SideMiddle, SideMiddle);
-            possible_actions[n_possible_actions] = new ActionPlanter(path, 1, SideMiddle, SideMiddle);
+            possible_actions[n_possible_actions] = new ActionPlanter(path, 1, SideMiddle, 0, SideMiddle);
             
             n_possible_actions++;
         }
@@ -442,9 +482,9 @@ void decide_possible_actions() {
                 path->thetaEnd = shared.graph->friendlyPlantersTheta[1];
             }
             planter_side_t planter_side = (shared.color==TeamBlue) ? SideRight : SideLeft; 
-            planter_side_t pot_clear_side = (shared.color==TeamBlue) ? SideRight : SideLeft; 
+            planter_side_t pot_clear_side = SideMiddle; //(shared.color==TeamBlue) ? SideRight : SideLeft; 
             // possible_actions[n_possible_actions] = new ActionPlanter(path, std::max((current_plant_count-2)/2,1), planter_side, pot_clear_side);
-            possible_actions[n_possible_actions] = new ActionPlanter(path, 1, planter_side, pot_clear_side);
+            possible_actions[n_possible_actions] = new ActionPlanter(path, 1, planter_side, 1, pot_clear_side);
             n_possible_actions++;
         }
         if (shared.zonesDone[0] == 0) {
@@ -454,7 +494,7 @@ void decide_possible_actions() {
                 path->thetaStart = theta_pos; 
                 path->thetaEnd = shared.graph->friendlyBases[0]; 
             }
-            possible_actions[n_possible_actions] = new ActionZone(path, 1);
+            possible_actions[n_possible_actions] = new ActionZone(path, 1, 0);
             n_possible_actions++;
         }
     }

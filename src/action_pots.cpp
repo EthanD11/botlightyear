@@ -23,11 +23,16 @@ int8_t sign(double a) {
  
 
 void gainNormal(){
-    shared.teensy->set_position_controller_gains(0.9,2.5,-0.4,1.0);
+    // shared.teensy->set_position_controller_gains(0.9,2.5,-0.4,1.0);
+    shared.teensy->set_position_controller_gains(0.7,3.0,-0.7,4.0);
 }
 
 void gainPrecis(){
-    shared.teensy->set_position_controller_gains(0.9,2.5,0.0,1);
+    shared.teensy->set_position_controller_gains(0.7,2.5,0.0,2.0);
+}
+
+void gainDegament(){
+    shared.teensy->set_position_controller_gains(0.7,2.5,-1.5,1.0);
 }
 
 
@@ -200,17 +205,20 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
     //-----approche grossiere-----
     printf("approche grossiere : %f, %f, %f ,distance :%f\n", posPotXApproach, posPotYApproach, posPotThetaApproach,distanceRoue+deltaApproach+rayonPot);
     //teensy->pos_ctrl(posPotXApproach,posPotYApproach,posPotThetaApproach); 
+    // printf("1\n");
     if (firstPot) {
-        shared.teensy->set_position_controller_gains(0.9,2.5,-0.4,1.1);
+        shared.teensy->set_position_controller_gains(0.7,2.5,-0.4,4.0);
     } else {
         gainNormal();
     }
+    // printf("2\n");
     if (action_position_control(posPotXApproach,posPotYApproach,posPotThetaApproach)==-1) return; 
     // sleep(10);
 
-
+    // printf("3\n");
     //attend variable global de chaine cinematique fini 
     while (ThreadKinematicOccuped == true) {usleep(1000);}
+    // printf("4\n");
     deployer->deploy();
     holder->open_full();
     servoFlaps->deploy();
@@ -289,7 +297,7 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
         servoFlaps->raise();
         printf("start for remove all pots\n");
         // se repositionne face au pot centraux
-        gainNormal();
+        gainDegament();
         double posPotXThrow1 = posPotX+(0.34)*cos(posPotTheta +(M_PI/6)*(-sign(clearanceAngle)));
         double posPotYThrow1 = posPotY+(0.34)*sin(posPotTheta +(M_PI/6)*(-sign(clearanceAngle)));
         double posPotThetaThrow1 = posPotTheta+ ((M_PI/6)+M_PI_2)*(sign(clearanceAngle));
@@ -347,15 +355,19 @@ void ActionPots::do_action() {
     bool removePot4KinematicChaine = false;
     bool freeTheGardenLastTurn = false;
     pathTarget = path->target;
-
+    // printf("1\n");
     // shared.teensy->set_position_controller_gains(0.4,1.5,-0.5,0.5);
 
     get_posPot(pathTarget, freeTheGardenLastTurn); 
     shared.get_robot_pos(&xpos, &ypos, &theta_pos);
+    // printf("2\n");
     if (hypot(xpos-posPotX, ypos-posPotY) > 0.7) {
+        printf("Before PF to action \n");
         if (path_following_to_action(path) == -1) return; 
     }
+    printf("Before gain normal \n"); 
     gainNormal();
+    // printf("3\n");
     shared.get_robot_pos(&xposInitiale, &yposInitiale, &theta_posInitiale);
     initial_pos_stepper();
     for (uint8_t i=0; i<this->potCounter; i++) {
@@ -380,5 +392,5 @@ void ActionPots::do_action() {
 
     while(ThreadKinematicOccuped == true) {usleep(1000);};
     initial_pos_stepper();
-    printf("action pot is finish\n");
+    printf("End of action pots\n\n");
 }

@@ -126,7 +126,7 @@ void Steppers::flaps_move(flaps_pos_t pos, uint8_t blocking) {
         steps = 0; 
         break;
     case FlapsPlant :
-        steps = 3300;  //3250
+        steps = 3210;  //3250
         break;
     case FlapsApproachPlant:
         steps = 1400;
@@ -193,14 +193,15 @@ void Steppers::slider_move(slider_pos_t pos, uint8_t blocking){
 void Steppers::plate_move(int8_t pot, uint8_t blocking){
     //pot est une variable allant de -3 a 3 avec 0 la position de repos
     int direction = 0;
-    int offset = 90; //70
+    int offset = 140; //70
+    int offsetPos0 = 70;
     if (pot == 0){
-        move(StprPlate, offset, 1,blocking);   
+        move(StprPlate, offsetPos0, 1,blocking);   
     } else {
         if (pot < 0) {
             pot = -pot;
             direction = 1;
-            offset = -100; //-70;
+            offset = -140; //-70;
         }
         pot = pot - 1;
         double anglePlateau = (PLATEAU_ANGLE_OUVERTURE)/2 + (pot)* (360-PLATEAU_ANGLE_OUVERTURE)/5;

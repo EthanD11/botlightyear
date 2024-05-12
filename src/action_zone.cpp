@@ -18,6 +18,7 @@ typedef enum _state : int8_t
 static pthread_t KCID;
 static volatile state_t state;
 static volatile state_t stateKC;
+static uint8_t zoneId = 0; 
 
 static void leave() {
     state = Abort;
@@ -85,6 +86,7 @@ static void *kinematic_chain(void *args) {
             stateKC = Drop;
             if ((toDrop == ContainsWeakPlantInPot) || ((toDrop & ContainsStrongPlant) == ContainsStrongPlant))
                 shared.score += 3 + ((toDrop & ContainsPot) == ContainsPot);
+            shared.zonesDone[zoneId] +=1; 
             steppers->slider_move(SliderHigh);
             usleep(200000);
             grpHolder->idle();
@@ -127,7 +129,7 @@ void ActionZone::do_action() {
     state = PF;
     stateKC = PF;
     pthread_create(&KCID, NULL, kinematic_chain, NULL);
-
+    zoneId = this->zoneIdx;
     double xZone, yZone, thetaZone;
     xZone = path->x[path->nNodes-1];
     yZone = path->y[path->nNodes-1];

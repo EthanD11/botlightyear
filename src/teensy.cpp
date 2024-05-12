@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <cmath>
 
-//#define VERBOSE
+// #define VERBOSE
 
 #define SATURATE(a,lb,ub) ((a) > (ub) ? (ub) : ((a) < (lb) ? (lb) : (a)))
 
@@ -193,7 +193,7 @@ teensy_mode_t Teensy::ask_mode() {
     }
     #endif
     return (int) receive[2];*/
-    for (size_t i = 0; i < 5; i++) {
+    for (size_t i = 0; i < 10; i++) {
         int8_t mode = (int8_t) (pins->read(TeensyA1) | (pins->read(TeensyA2) << 1) | (pins->read(TeensyA3) << 2));
         switch ((teensy_mode_t) mode)
         {
@@ -233,10 +233,10 @@ void Teensy::set_position_controller_gains(double kp, double ka, double kb, doub
     bus->lock();
     bus->Teensy_xfer(send, receive, 9);
     bus->unlock();
-    printf("Sending Speed ctrl \n");
+    printf("Setting position controller gains\n");
     for (int i = 0; i < 9; i++)
     {
-        printf("%d, %d\n",send[i], receive[i]);
+        printf("%x, %x\n",send[i], receive[i]);
     }
     #else
     bus->lock();
