@@ -68,7 +68,9 @@ void init_path_following(PathFollower *path_follower, double *x, double *y, int 
     path_follower->last_q = n-1;
     path_follower->last_x = x[n-1];
     path_follower->last_y = y[n-1];
-    path_follower->last_theta = theta_stop; 
+    path_follower->last_theta = theta_stop;
+    printf("pf->n = %d\n", path_follower->n); 
+    printf("last_q = %f\n", path_follower->last_q);
 
     path_follower->x_splines = compute_splines(q_checkpoints, path_follower->checkpoints_x, n);
     path_follower->y_splines = compute_splines(q_checkpoints, path_follower->checkpoints_y, n);
@@ -336,7 +338,7 @@ int update_path_follower_ref_speed(
     #endif
     
     if ((dist <= dist_goal_reached) && (pf->qref > pf->last_q - 5e-1)) {
-        //printf("Switch mode\n");
+        printf("PF: Switch mode\n");
         return 1;
     }
 

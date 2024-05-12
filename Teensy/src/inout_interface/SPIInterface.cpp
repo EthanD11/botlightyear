@@ -1,7 +1,7 @@
 #include "SPIInterface.h"
 #include "SPISlave_T4.h"
 
-#define VERBOSE
+// #define VERBOSE
 typedef struct SPIInterface {
     SPISlave_T4 *spi_slave;
     uint32_t i, n; // Number of bytes received, expected and actual
@@ -49,7 +49,7 @@ void __spi_receive_event() {
 	uint32_t *data_buffer = __spi_interface->data_buffer;
     uint32_t i;
     if(mySPI->active()) {
-        while (mySPI->available()) {
+        if (mySPI->available()) {
             i = __spi_interface->i;
             data = mySPI->popr();
             data_buffer[i] = data;
@@ -202,6 +202,9 @@ void spi_handle_position_control(PositionController *pc)
     two_bytes[1] = data[5];
     double_byte = *((uint16_t *) two_bytes);
     pc->theta_ref = PIPERIODIC((((double) double_byte)/UINT16_MAX)*2*M_PI - M_PI);
+
+    pc->flag_position_reached = FALSE;
+    pc->flag_angular_position_reached = FALSE;
 
     // two_bytes[0] = data[0];
     // two_bytes[1] = data[1];

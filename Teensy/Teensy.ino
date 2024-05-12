@@ -9,8 +9,9 @@
 #include "utils.h"
 
 // #define VERBOSE
-// #define SWITCH_VERBOSE
+#define SWITCH_VERBOSE
 #define SPI_VERBOSE
+#define NO_SET_POSITION_VERBOSE
 
 typedef enum {
   ModeIdle, // No input from RPi, default is to remain still
@@ -119,9 +120,17 @@ void loop() {
 
       case QuerySetPosition:
         #ifdef SPI_VERBOSE
+        #ifndef NO_SET_POSITION_VERBOSE
         printf("SPI QuerySetPosition\n");
         #endif
-        spi_handle_set_position(robot_position);
+        #endif
+        if (mode == ModePositionControl) {
+          if (!position_controller->flag_position_reached) {
+            spi_handle_set_position(robot_position);
+          }
+        } else {
+          spi_handle_set_position(robot_position);
+        }
         nextmode = mode;
         break;
 
@@ -392,10 +401,16 @@ void loop() {
     set_apins(outputs, (int8_t) mode);
     switch (prevmode) {
       case ModePathFollowing:
+
         close_path_following(path_follower);
         break;
 
       case ModePositionControlOver:
+        position_controller->flag_angular_position_reached = FALSE;
+        position_controller->flag_position_reached = FALSE;
+        break;
+
+      case ModePositionControl:
         position_controller->flag_angular_position_reached = FALSE;
         position_controller->flag_position_reached = FALSE;
         break;
