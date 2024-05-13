@@ -46,12 +46,24 @@ void control_speed(
     double speed_r, speed_l;
     double dt;
     double alpha;
+    double speed;
+    double gain_factor;
 
     speed_l = rob_pos->speed_left;
     speed_r = rob_pos->speed_right;
+    speed = hypot(speed_l, speed_r);
     speed_refl = SAT(speed_refl, REF_SPEED_LIMIT);
     speed_refr = SAT(speed_refr, REF_SPEED_LIMIT);
     dt = rob_pos->dt;
+
+    if (speed < 0.05) gain_factor = 5;
+    else if (speed < 0.1) gain_factor = 3;
+    else gain_factor = 1;
+
+    double kp_l = gain_factor*reg->kp_l;
+    double kp_r = gain_factor*reg->kp_r;
+    double ki_l = gain_factor*reg->ki_l;
+    double ki_r = gain_factor*reg->ki_r;
 
     // Compute error
     esl = speed_refl - speed_l;
@@ -62,8 +74,8 @@ void control_speed(
     reg->er_filtered = alpha * reg->er_filtered + (1 - alpha) * esr;
 
     // Compute integral
-    reg->isl = SAT(reg->isl + reg->ki_l*reg->el_filtered*dt, reg->imax);
-    reg->isr = SAT(reg->isr + reg->ki_r*reg->er_filtered*dt, reg->imax);
+    reg->isl = SAT(reg->isl + ki_l*reg->el_filtered*dt, reg->imax);
+    reg->isr = SAT(reg->isr + ki_r*reg->er_filtered*dt, reg->imax);
 
     #ifdef VERBOSE
     printf("Left Integral  : %.4f\n", isl);
@@ -71,8 +83,9 @@ void control_speed(
     #endif
 
     // Compute voltages
-    vl = reg->kp_l * reg->el_filtered + reg->isl;
-    vr = reg->kp_r * reg->er_filtered + reg->isr;
+    
+    vl = kp_l * reg->el_filtered + reg->isl;
+    vr = kp_r * reg->er_filtered + reg->isr;
 
     // update duty cycle, assuming duty cycle changes average voltage linearly
     #ifdef ADZ_ENABLE
