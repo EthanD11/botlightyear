@@ -21,7 +21,7 @@
 
 #define LIDAR_BOTTOM
 #define LIDAR_TOP
-// #define DXL
+#define DXL
 #define ASCII_b 98
 #define ASCII_B 66
 #define ASCII_y 121

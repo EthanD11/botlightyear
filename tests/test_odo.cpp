@@ -3,8 +3,8 @@
 #include <unistd.h>
 #include <cmath>
 
-//#define TEST_TICKS
-#define TEST_POS_TRACK
+#define TEST_TICKS
+// #define TEST_POS_TRACK
 
 SPIBus spiBus = SPIBus();
 Odometry odo = Odometry(&spiBus);
@@ -21,9 +21,9 @@ int main(int argc, char const *argv[])
         printf("left : %d right : %d\r\n", left, right);
         usleep(5000);
         fflush(stdout);
-        usleep(5000);
+        usleep(500000);
         
-        if (left > 10000 && left < 100000 && right > 10000 && right < 100000) break;
+        //if (left > 10000 && left < 100000 && right > 10000 && right < 100000) break;
 
     }
     #endif

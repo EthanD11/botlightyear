@@ -3,11 +3,12 @@
 
 
 int main(int argc, char *argv[]) {
-    //double *beaconAdv = new double[8]{11.4*M_PI/180, 2.88, 78/180*M_PI, 0.68, 104*M_PI/180, 1.63, 221*M_PI/180, 0.45};
-    //StartLidarTop();
+    double *beaconAdv = new double[8]{11.4*M_PI/180, 2.88, 78/180*M_PI, 0.68, 104*M_PI/180, 1.63, 221*M_PI/180, 0.45};
+    StartLidarTop();
     auto started = std::chrono::high_resolution_clock::now();
-    LidarData *lidarData = new LidarData[sizeof(LidarData)];
+    LidarData *lidarData = new LidarData();
     init_lidar(lidarData);
+    lidarData->x_odo = 0, lidarData->y_odo = 0, lidarData->theta_odo = 0;
 
 
     //test from xy robot
