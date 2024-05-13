@@ -9,6 +9,7 @@
 #include <lgpio.h>
 
 #define NLAPS 5
+#define N1LAP 20
 
 // enum __teensy_mode_t : int8_t {
 //     ModeIdle,
@@ -55,11 +56,14 @@ int main() {
     teensy.set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
 
     lguSleep(0.1);
-    int ncheckpoints = 1+6*NLAPS;
-    double x1lap[6] = {1.0,0.4,0.4,1.2,1.6,1.6};
-    double y1lap[6] = {0.4,1.0,2.0,2.5,2.0,1.0};
-    double x[NLAPS*6+1];
-    double y[NLAPS*6+1];
+    int ncheckpoints = 1+N1LAP*NLAPS;
+    // double x1lap[6] = {1.0,0.4,0.4,1.2,1.6,1.6};
+    // double y1lap[6] = {0.4,1.0,2.0,2.5,2.0,1.0};
+    double x1lap[6] = {1.0, 0.75, 0.4, 0.4, 0.75, 0.75, 0.4, 0.4, 0.75, 1.0,  0.8, 0.4, 0.75, 1.25, 1.6, 1.2,  1.0, 1.25, 1.6, 1.5};
+    double y1lap[6] = {0.4, 0.8, 0.85, 1.2, 1.25, 1.6, 1.65, 2.0, 2.05, 2.15, 2.4, 2.4, 2.05, 2.05, 2.4, 2.4, 2.15, 2.05, 1.5, 0.5};
+    
+    double x[NLAPS*N1LAP+1];
+    double y[NLAPS*N1LAP+1];
     int j = 0;
     for (int i = 0; i < ncheckpoints; i++) {
         x[i] = x1lap[j];
