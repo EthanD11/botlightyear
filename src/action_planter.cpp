@@ -28,6 +28,10 @@ void gainNormalPlanter(){
     shared.teensy->set_position_controller_gains(0.7,3.0,-1.0,4.0);
 }
 
+void gainReculPlanter(){
+    shared.teensy->set_position_controller_gains(1.5,3.0,-1.0,4);
+}
+
 
 static void leave() {
     state = Abort;
@@ -104,18 +108,20 @@ static void *kinematic_chain(void *args) {
             break;
 
         case Drop:
+            printf("Drop Begins\n");
             grpDeployer->deploy();
             steppers->slider_move(SliderIntermediateLow, CALL_BLOCKING);
             grpHolder->open();
             stateKC = Drop;
             shared.plantersDone[planterId] +=1; // Updates the plant count on the given planter
             shared.score += 4 + ((toDrop & ContainsPot) == ContainsPot);
+            printf("Moves slider high\n");
             steppers->slider_move(SliderHigh,CALL_BLOCKING);
             printf("Drop Finish\n");
             //usleep(200000);
             // grpHolder->idle();
             // grpDeployer->idle();
-            if(lastPlantInPlanter == false){state = Get;}
+            // if(lastPlantInPlanter == true){state = Get;}
             break;
 
         case End:
@@ -191,7 +197,7 @@ void ActionPlanter::do_action() {
 
     planter_side_t nextSpot = preference;
     for (uint8_t i = 0; i < nbPlants; i++) {
-
+        printf("Plante %d / %d\n", i, nbPlants);
         state = Get;
         while (stateKC != Get) usleep(50000);
         printf("nextSpot : ,%d\n",nextSpot);
@@ -231,13 +237,15 @@ void ActionPlanter::do_action() {
             usleep(50000);
         printf("Plant dropped \n");
         //si pas derniere plante, vas deja la cherché apres avoir fini drop
-        if (i != nbPlants - 1){
+        if (i == nbPlants - 1){
             lastPlantInPlanter = true;
             if (action_position_control(xPlanter,yPlanter,periodic_angle( thetaPlanter+M_PI) ,0.02,30)) return leave();
         } 
         else  {
+            gainReculPlanter();
             lastPlantInPlanter =false;
-             if (action_position_control(xPlanter,yPlanter,thetaPlanter,0.02,30)) return leave();
+            if (action_position_control(xPlanter,yPlanter,thetaPlanter,0.2,30)) return leave();
+            gainNormalPlanter();
         }
        
 

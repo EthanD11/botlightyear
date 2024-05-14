@@ -14,8 +14,8 @@
 #include <cmath>
 #include <algorithm>
 
-#define TESTS
-// #define PLANT_STRATEGY
+// #define TESTS
+#define PLANT_STRATEGY
 // #define RANDOM
 //#define SP_STRATEGY
 //#define FINAL_STRATEGY
@@ -178,18 +178,18 @@ void decide_possible_actions() {
     possible_actions[0] = new ActionDisplacement(path); */
 
     // ---------- SP TEST -----------
-    uint8_t target = 26;
-    shared.graph->update_obstacle(27,1);
-    path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
-    shared.graph->update_obstacle(27,0);
-    if (path != NULL) {
-        path->thetaStart = theta_pos; 
-        path->thetaEnd = -M_PI_2;  
-    }
+    // uint8_t target = 26;
+    // shared.graph->update_obstacle(27,1);
+    // path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+    // shared.graph->update_obstacle(27,0);
+    // if (path != NULL) {
+    //     path->thetaStart = theta_pos; 
+    //     path->thetaEnd = -M_PI_2;  
+    // }
     
-    possible_actions[0] = new ActionSP(path, 3, false, Forward); 
-    n_possible_actions = 1; 
-    return;
+    // possible_actions[0] = new ActionSP(path, 3, false, Forward); 
+    // n_possible_actions = 1; 
+    // return;
 
     // ---------- Pots TEST -----------
     // if (!hasTakenPots) {
@@ -230,20 +230,20 @@ void decide_possible_actions() {
     // ---------- Planters TEST -----------
     
     
-    // path = shared.graph->compute_path(x_pos, y_pos, shared.graph->friendlyPlanters, 3);
-    // update_plate_content(SlotM3, ContainsWeakPlant); 
-    // update_plate_content(Slot3, ContainsWeakPlant); 
+    path = shared.graph->compute_path(x_pos, y_pos, shared.graph->friendlyPlanters, 3);
+    update_plate_content(SlotM3, ContainsWeakPlant); 
+    update_plate_content(Slot3, ContainsWeakPlant); 
 
-    // if (path != NULL) {
-    //     path->thetaStart = theta_pos; 
-    //     path->thetaEnd = getThetaEnd(shared.graph->friendlyPlanters, shared.graph->friendlyPlantersTheta, 3, path->target);  
-    // } else {
-    //     printf("Path is NULL\n");
-    // }
-    // // shared.graph->update_obstacle(target,1);
-    // possible_actions[0] = new ActionPlanter(path, 3, SideRight, 0, SideMiddle); 
-    // n_possible_actions = 1; 
-    // return;
+    if (path != NULL) {
+        path->thetaStart = theta_pos; 
+        path->thetaEnd = getThetaEnd(shared.graph->friendlyPlanters, shared.graph->friendlyPlantersTheta, 3, path->target);  
+    } else {
+        printf("Path is NULL\n");
+    }
+    // shared.graph->update_obstacle(target,1);
+    possible_actions[0] = new ActionPlanter(path, 3, SideRight, 0, SideMiddle); 
+    n_possible_actions = 1; 
+    return;
     #endif
 
     #ifdef HOMOLOGATION 
@@ -413,7 +413,7 @@ void decide_possible_actions() {
     #endif
 
     #ifdef PLANT_STRATEGY
-   
+
     // --------- EARLY GAME -------------
     if (!hasTakenPots && get_content_count(ContainsPot) !=0) {
         hasTakenPots = true; 
