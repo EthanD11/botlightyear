@@ -9,6 +9,7 @@
 static pthread_t KCID;
 static volatile bool ThreadKinematicOccuped = false;
 static volatile bool hasPot = false;
+static volatile bool PrepareSlider = false;
 
 static uint8_t plantZoneId = 0; 
 
@@ -44,7 +45,13 @@ void teensyIdle(){
     teensy->idle();
 }
 
-
+void *SliderPrepareApprochTakePlant(void *args){
+    Steppers* steppers = shared.steppers; 
+    PrepareSlider = true;
+    while(ThreadKinematicOccuped == true){usleep(1000);}
+    steppers->slider_move(SliderPreparePlant);
+    return NULL;
+}
 
 void PrepareApproachTakePlant(){
     GripperHolder* holder = shared.grpHolder; 
@@ -54,14 +61,16 @@ void PrepareApproachTakePlant(){
     Flaps* servoFlaps = shared.servoFlaps; 
 
     //attend thread kinematic termine
-    while(ThreadKinematicOccuped == true){usleep(1000);}
+    
     printf("preparation pince et flaps pour approche\n");
     deployer->deploy(); 
     holder->open_full();
     //approach
-    steppers->slider_move(SliderPreparePlant);
     steppers->flaps_move(FlapsApproachPlant);
     servoFlaps->deploy();
+    if (pthread_create(&KCID, NULL, SliderPrepareApprochTakePlant, NULL) != 0) return;
+    // while(ThreadKinematicOccuped == true){usleep(1000);}
+    // steppers->slider_move(SliderPreparePlant);
 }
 
 void *take_plant_kinematicChain_SecondPart(void *args ){
@@ -135,6 +144,7 @@ void take_plant_kinematicChain(int8_t slotNumber) {
     // descent
     // steppers->slider_move(SliderIntermediateLow,CALL_BLOCKING);
     // deployer->half();
+    while (PrepareSlider == true){usleep(1000);}//wait for slider to be ready
     steppers->slider_move(SliderLow, CALL_BLOCKING);
     deployer->deploy();
     // Move forward
