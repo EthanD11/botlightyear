@@ -38,19 +38,19 @@ int main(int argc, char const *argv[])
     usleep(500000);
 
     #ifdef POSITION_CONTROL
-    double kp = 0.7;
-    double ka = 3.0;
-    double kb = -0.6;
-    double kw = 4.0;
+    double kp = 1.5;
+    double ka = 4.0;
+    double kb = -3.0;
+    double kw = 2.5;
     // printf("Set posit")
     teensy.set_position_controller_gains(kp, ka, kb, kw);
 
     double x = 0; 
     double y = 0; 
     double t = 0;
-    double xr = 0.4; 
+    double xr = 0.; 
     double yr = 0.2; 
-    double tr = -30*deg_to_rads;
+    double tr = 0*deg_to_rads;
     double xpos = 0, ypos = 0, thetapos = 0;
     lguSleep(0.1);
     teensy.set_position(x, y, t);
@@ -58,11 +58,11 @@ int main(int argc, char const *argv[])
     lguSleep(0.1);
     teensy.pos_ctrl(xr, yr, tr);
 
-    lguSleep(0.1);
+    lguSleep(0.2);
     while (teensy.ask_mode() == ModePositionControl) {
         odo.get_pos(&xpos, &ypos, &thetapos);
         teensy.set_position(xpos, ypos, thetapos);
-        lguSleep(0.04);
+        lguSleep(0.2);
         // break;
     }
     teensy.idle();

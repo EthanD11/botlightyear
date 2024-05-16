@@ -192,40 +192,40 @@ void decide_possible_actions() {
     // return;
 
     // ---------- Pots TEST -----------
-    if (!hasTakenPots) {
-        path = shared.graph->compute_path(x_pos, y_pos, shared.graph->pots, 6);
+    // if (!hasTakenPots) {
+    //     path = shared.graph->compute_path(x_pos, y_pos, shared.graph->pots, 6);
     
-        if (path != NULL) {
-            path->thetaStart = theta_pos; 
-            path->thetaEnd = getThetaEnd(shared.graph->pots, shared.graph->potsTheta, 6, path->target);
-        } else {
-            printf("Path is NULL\n");
-        }
-        possible_actions[0] = new ActionPots(path, 1,false,true); 
-        n_possible_actions = 1; 
-        hasTakenPots = true; 
-        return;
-    }
+    //     if (path != NULL) {
+    //         path->thetaStart = theta_pos; 
+    //         path->thetaEnd = getThetaEnd(shared.graph->pots, shared.graph->potsTheta, 6, path->target);
+    //     } else {
+    //         printf("Path is NULL\n");
+    //     }
+    //     possible_actions[0] = new ActionPots(path, 2,false,true); 
+    //     n_possible_actions = 1; 
+    //     hasTakenPots = true; 
+    //     return;
+    // }
     // ---------- Plants TEST -----------
 
-    // uint8_t target = 31;
+    uint8_t target = 31;
     
-    // shared.graph->update_obstacle(target,0);
-    // path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
-    // int whichZone = 0;
-    // //shared.graph->update_obstacle(27,1);
-    // if (path != NULL) {
-    //     path->thetaStart = theta_pos; 
-    //     path->thetaEnd = 0; // Angle is recomputed in Action Plants  
-    //     whichZone = get_plantZoneIdx(path->target);
-    // } else {
-    //     printf("Path is NULL\n");
-    // }
-    // // shared.graph->update_obstacle(target,1);
+    shared.graph->update_obstacle(target,0);
+    path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+    int whichZone = 0;
+    //shared.graph->update_obstacle(27,1);
+    if (path != NULL) {
+        path->thetaStart = theta_pos; 
+        path->thetaEnd = 0; // Angle is recomputed in Action Plants  
+        whichZone = get_plantZoneIdx(path->target);
+    } else {
+        printf("Path is NULL\n");
+    }
+    // shared.graph->update_obstacle(target,1);
 
-    // possible_actions[0] = new ActionPlants(path, 6, whichZone); 
-    // n_possible_actions = 1; 
-    // return;
+    possible_actions[0] = new ActionPlants(path, 6, whichZone); 
+    n_possible_actions = 1; 
+    return;
 
     // ---------- Planters TEST -----------
     

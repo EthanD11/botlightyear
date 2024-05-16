@@ -8,7 +8,7 @@
 #include <cmath>
 #include <lgpio.h>
 
-#define NLAPS 1
+#define NLAPS 5
 #define N1LAP 8
 
 using namespace std::chrono;
@@ -29,9 +29,9 @@ int main() {
     servoFlaps.idle();
 
     double kp = 1.2;
-    double ka = 5.0;
-    double kb = -1.0;
-    double kw = 3.0;
+    double ka = 4.0;
+    double kb = -2.0;
+    double kw = 2.2;
     teensy.set_position_controller_gains(kp, ka, kb, kw);
 
     double kt = 0.1;
@@ -65,11 +65,11 @@ int main() {
         printf("%d: (%.3f, %.3f)\n", i, x[i], y[i]);
         if (i % N1LAP == N1LAP-1) printf("\n");
     }
-
+    
     double theta_start = M_PI/2;
     double theta_end = M_PI/2;
     double vref = 0.25;
-    double dist_goal_reached = 0.4;
+    double dist_goal_reached = 2.0;
 
     double xpos = 0, ypos = 0, thetapos = 0;
     odo.set_pos(x[0], y[0], theta_start);
@@ -79,8 +79,8 @@ int main() {
 
     teensy.pos_ctrl(x[0], y[0], atan2(y[1]-y[0], x[1]-x[0]));
     lguSleep(1);
-
     teensy.path_following(x, y, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
+    lguSleep(0.1);
     microseconds start_us = duration_cast< microseconds >(system_clock::now().time_since_epoch());
     microseconds current_us =  start_us; 
     microseconds last_save_us = start_us;
@@ -95,7 +95,7 @@ int main() {
 
         current_us =  duration_cast< microseconds >(system_clock::now().time_since_epoch());
         delta_pos_us = (int64_t) (current_us - last_pos_us).count();  
-        if (delta_pos_us > 1000000) { // Reset teensy pos every 500ms
+        if (delta_pos_us > 200000) { // Reset teensy pos every 500ms
             last_pos_us = duration_cast< microseconds >(system_clock::now().time_since_epoch());    
             odo.get_pos(&xpos, &ypos, &thetapos);
             teensy.set_position(xpos, ypos, thetapos);

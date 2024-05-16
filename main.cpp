@@ -225,7 +225,7 @@ void *localizer(void* arg) {
     #ifdef LIDAR_TOP
     int8_t teensyN = 1;
     #else
-    int8_t teensyN = 10;
+    int8_t teensyN = 4;
     #endif
 
     while (!localizerEnd) {

@@ -24,7 +24,9 @@ int8_t sign(double a) {
 
 void gainNormal(){
     // shared.teensy->set_position_controller_gains(0.9,2.5,-0.4,1.0);
-    shared.teensy->set_position_controller_gains(0.7,3.0,-0.7,4.0);
+    // shared.teensy->set_position_controller_gains(0.7,3.0,-0.7,4.0);
+    shared.teensy->set_position_controller_gains(1.5,4.0,-2.0,2.5);
+
 }
 
 void gainPrecis(){
@@ -32,7 +34,8 @@ void gainPrecis(){
 }
 
 void gainDegament(){
-    shared.teensy->set_position_controller_gains(0.7,2.5,-1.5,1.0);
+    shared.teensy->set_position_controller_gains(1.0,3.0,-0.5,1.0);
+    // shared.teensy->set_position_controller_gains(1.5,4.0,-1.5,2.5);
 }
 
 
@@ -206,11 +209,11 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
     printf("approche grossiere : %f, %f, %f ,distance :%f\n", posPotXApproach, posPotYApproach, posPotThetaApproach,distanceRoue+deltaApproach+rayonPot);
     //teensy->pos_ctrl(posPotXApproach,posPotYApproach,posPotThetaApproach); 
     // printf("1\n");
-    if (firstPot) {
-        shared.teensy->set_position_controller_gains(0.7,2.5,-0.4,4.0);
-    } else {
-        gainNormal();
-    }
+    // if (firstPot) {
+    //     shared.teensy->set_position_controller_gains(0.7,2.5,-0.4,4.0);
+    // } else {
+    //     gainNormal();
+    // }
     // printf("2\n");
     if (action_position_control(posPotXApproach,posPotYApproach,posPotThetaApproach)==-1) return; 
     // sleep(10);
@@ -229,7 +232,7 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
     printf("approche précise : %f, %f, %f, distance :%f\n", posPotXPrise, posPotYPrise, posPotThetaPrise,distanceRoue+rayonPot,0.05,5);
     //teensy->pos_ctrl(posPotX+(distanceRoue)*(betaPot1),posPotY+(distanceRoue)*(betaPot1),posPotTheta+betaPot1-M_PI);
     // teensy->pos_ctrl(posPotXPrise,posPotYPrise,posPotThetaPrise);
-    gainPrecis();
+    // gainPrecis();
     if (action_position_control(posPotXPrise,posPotYPrise,posPotThetaPrise)==-1) return; 
     gainNormal();
     // sleep(10);    
