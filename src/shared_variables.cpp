@@ -80,7 +80,7 @@ void SharedVariables::start_timer() {
 }
 
 int16_t SharedVariables::update_and_get_timer() {
-    return (int16_t) (600 - (time(NULL) - tStart));
+    return (int16_t) (TOTAL_GAME_TIME - (time(NULL) - tStart));
 }   
 
 void SharedVariables::get_robot_pos(double *x, double *y, double *theta) {

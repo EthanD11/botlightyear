@@ -92,6 +92,12 @@ uint8_t n_possible_actions;
 uint8_t plantZonesValid[6]; 
 uint8_t plantZonesCount = 0;
 
+#ifdef SP_STRATEGY
+int8_t time_gotobase = 20;
+int8_t time_sp_reserved = 50;
+int8_t time_sp = 1000; 
+
+#endif
 
 #ifdef FINAL_STRATEGY
 int8_t time_gotobase = 30;
@@ -100,12 +106,16 @@ int8_t time_sp = 40;
 // int8_t time_gotobase = -10;
 // int8_t time_sp = 101;
 #endif 
-int8_t time_sp_reserved = 25;
 
 #ifdef PLANT_STRATEGY
 static bool hasTakenPots = false; 
-int8_t time_gotobase = -100;
+static bool hasDonePlanters = false; 
+int8_t time_gotobase = 15;
+int8_t time_sp = 40;
+int8_t time_sp_reserved = 20;
+int8_t time_pot = 20; 
 #endif
+
 #ifdef TESTS
 static bool hasTakenPots = false; 
 int8_t time_gotobase = -100;
@@ -163,6 +173,12 @@ void decide_possible_actions() {
     x_pos += 0.15*cos(theta_pos);
     y_pos += 0.15*sin(theta_pos);
     uint8_t currentNode = shared.graph->identify_pos(x_pos, y_pos, &dist_from_currentNode);
+
+    // -----------------------------------------------------------------------------------------
+    // --------------------------------- TESTS -------------------------------------------------
+    // -----------------------------------------------------------------------------------------
+
+
     #ifdef TESTS
     /*static uint8_t base = 0;
     uint8_t target;
@@ -244,7 +260,7 @@ void decide_possible_actions() {
     // possible_actions[0] = new ActionPlanter(path, 3, SideRight, 0, SideMiddle); 
     // n_possible_actions = 1; 
     // return;
-    #endif
+    #endif   
 
     #ifdef HOMOLOGATION 
     uint8_t target = shared.graph->friendlyBases[2];
@@ -300,6 +316,10 @@ void decide_possible_actions() {
         n_possible_actions = 1; 
         return; 
     }
+
+    // -----------------------------------------------------------------------------------------
+    // --------------------------------- SP STRATEGY ----------------------------------------
+    // -----------------------------------------------------------------------------------------
 
     #ifdef SP_STRATEGY
     // ----------- ENDGAME -----------------
@@ -377,9 +397,6 @@ void decide_possible_actions() {
         n_possible_actions++;
     }
         
-        
-
-    // return;
 
 
 
@@ -411,15 +428,86 @@ void decide_possible_actions() {
     }
     return; 
     #endif
+    // -----------------------------------------------------------------------------------------
+    // --------------------------------- PLANT STRATEGY ----------------------------------------
+    // -----------------------------------------------------------------------------------------
 
     #ifdef PLANT_STRATEGY
+
+    if (!hasDonePlanters && (shared.plantersDone[0] !=0) && (shared.plantersDone[1] !=0)) {
+        hasDonePlanters = true; 
+    }
+
+    if ((remaining_time < time_sp) || hasDonePlanters) { //Time to switch to solar panels OR everything with plants is already done
+        
+        if ((remaining_time < time_sp_reserved) && (shared.SPsDone[1]==0)) {
+            if (shared.color == TeamBlue) {
+                shared.graph->update_obstacle(41,1);
+                uint8_t target = 39;
+                path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+                shared.graph->update_obstacle(41,0);
+            } else {
+                shared.graph->update_obstacle(7,1);
+                uint8_t target = 6;
+                path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+                
+                shared.graph->update_obstacle(7,0);
+            }
+            if (path != NULL) {
+                path->thetaStart = theta_pos; 
+                path->thetaEnd = -M_PI_2; 
+            }
+            possible_actions[n_possible_actions] = new ActionSP(path, 3, true, Forward); //(shared.color == TeamBlue) ? Forward : Backward 
+            n_possible_actions++;
+
+        } else {
+            if(shared.SPsDone[0]==0) {
+                shared.graph->update_obstacle(27,1);
+                uint8_t target = 26;
+                path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+                if (path != NULL) {
+                    path->thetaStart = theta_pos; 
+                    path->thetaEnd = -M_PI_2; 
+                }
+                shared.graph->update_obstacle(27,0);
+        
+                possible_actions[n_possible_actions] = new ActionSP(path, 3, false, Forward); 
+                n_possible_actions++;
+            }
+            
+
+            if (shared.SPsDone[1]==0) {
+                if (shared.color == TeamBlue) {
+                    shared.graph->update_obstacle(41,1);
+                    uint8_t target = 39;
+                    path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+                    shared.graph->update_obstacle(41,0);
+                } else {
+                    shared.graph->update_obstacle(7,1);
+                    uint8_t target = 6;
+                    path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+                    shared.graph->update_obstacle(7,0);
+                }
+                if (path != NULL) {
+                    path->thetaStart = theta_pos; 
+                    path->thetaEnd = -M_PI_2; 
+                }
+                possible_actions[n_possible_actions] = new ActionSP(path, 3, true, Forward); //(shared.color == TeamBlue) ? Forward : Backward
+                n_possible_actions++;
+            }
+            
+        }
+        return;
+    }
+
+
 
     // --------- EARLY GAME -------------
     if (!hasTakenPots && get_content_count(ContainsPot) !=0) {
         hasTakenPots = true; 
     }
     
-    if (!hasTakenPots) {
+    if (!hasTakenPots && remaining_time > TOTAL_GAME_TIME-time_pot) {
         path = shared.graph->compute_path(x_pos, y_pos, shared.graph->pots, 6);
         if (path != NULL) {
             path->thetaStart = theta_pos; 
@@ -461,7 +549,7 @@ void decide_possible_actions() {
         }
         return; 
     } else {
-        uint8_t i=0; 
+
         if (shared.plantersDone[0] == 0) {
             // Reserved planter action if not done yet
             path = shared.graph->compute_path(x_pos, y_pos, &shared.graph->friendlyPlanters[0], 1); 
@@ -487,19 +575,15 @@ void decide_possible_actions() {
             possible_actions[n_possible_actions] = new ActionPlanter(path, 1, planter_side, 1, pot_clear_side);
             n_possible_actions++;
         }
-        if (shared.zonesDone[0] == 0) {
-            // Reserved zone action if not done yet
-            path = shared.graph->compute_path(x_pos, y_pos, &shared.graph->friendlyBases[0], 1); 
-            if (path != NULL) {
-                path->thetaStart = theta_pos; 
-                path->thetaEnd = shared.graph->friendlyBases[0]; 
-            }
-            possible_actions[n_possible_actions] = new ActionZone(path, 1, 0);
-            n_possible_actions++;
-        }
     }
+
     return;
     #endif
+
+    // -----------------------------------------------------------------------------------------
+    // --------------------------------- FINAL STRATEGY ----------------------------------------
+    // -----------------------------------------------------------------------------------------
+
     #ifdef FINAL_STRATEGY 
     // ----------- ENDGAME -----------------
     if (remaining_time < time_sp) { //Time to switch to solar panels
@@ -608,16 +692,6 @@ void decide_possible_actions() {
             planter_side_t planter_side = (shared.color==TeamBlue) ? SideRight : SideLeft; 
             planter_side_t pot_clear_side = (shared.color==TeamBlue) ? SideRight : SideLeft; 
             possible_actions[n_possible_actions] = new ActionPlanter(path, std::max((current_plant_count-2)/2,1), planter_side, pot_clear_side);
-            n_possible_actions++;
-        }
-        if (shared.zonesDone[0] == 0) {
-            // Reserved zone action if not done yet
-            path = shared.graph->compute_path(x_pos, y_pos, &shared.graph->friendlyBases[0], 1); 
-            if (path != NULL) {
-                path->thetaStart = theta_pos; 
-                path->thetaEnd = shared.graph->friendlyBases[0]; 
-            }
-            possible_actions[n_possible_actions] = new ActionZone(path, 1);
             n_possible_actions++;
         }
     }
