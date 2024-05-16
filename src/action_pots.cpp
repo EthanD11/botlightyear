@@ -305,8 +305,8 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
         printf("start for remove all pots\n");
         // se repositionne face au pot centraux
         gainDegament();
-        double posPotXThrow1 = posPotX+(0.31)*cos(posPotTheta +(2*M_PI/7)*(-sign(clearanceAngle)));
-        double posPotYThrow1 = posPotY+(0.31)*sin(posPotTheta +(2*M_PI/7)*(-sign(clearanceAngle)));
+        double posPotXThrow1 = posPotX+(0.38)*cos(posPotTheta +(2*M_PI/7)*(-sign(clearanceAngle)));
+        double posPotYThrow1 = posPotY+(0.38)*sin(posPotTheta +(2*M_PI/7)*(-sign(clearanceAngle)));
         double posPotThetaThrow1 = posPotTheta+ ((M_PI/8)+M_PI_2)*(sign(clearanceAngle));
         double posPotXThrow2 = posPotX;
         double posPotYThrow2 = posPotY+(0.18)*sin(posPotTheta);
