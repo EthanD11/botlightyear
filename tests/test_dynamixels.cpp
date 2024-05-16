@@ -2,8 +2,8 @@
 #include <unistd.h>
 #include <cstdio>
 
-//#define FINAL_SP
-#define SOLAR_PANELS
+#define FINAL_SP
+//#define SOLAR_PANELS
 //#define EXTENDED_SOLAR_PANELS
 
 
@@ -29,7 +29,7 @@ int main(int argc, char const *argv[])
     #ifdef SOLAR_PANELS
     dxl_deploy(Down);
     sleep(0.5);
-    dxl_position(700);
+    dxl_position(780);
     sleep(1);
     // dxl_deploy(Mid);
     // sleep(0.5);

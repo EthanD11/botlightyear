@@ -25,7 +25,7 @@ int8_t sign(double a) {
 void gainNormal(){
     // shared.teensy->set_position_controller_gains(0.9,2.5,-0.4,1.0);
     // shared.teensy->set_position_controller_gains(0.7,3.0,-0.7,4.0);
-    shared.teensy->set_position_controller_gains(1.5,4.0,-2.0,2.5);
+    shared.teensy->set_position_controller_gains(1.2,4.0,-2.5,2.5);
 
 }
 
@@ -318,6 +318,7 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
         if (action_position_control(posPotXThrow1,posPotYThrow1,posPotThetaThrow1)==-1) return;
         printf("target 2 for remove all pots : %f,%f,%f\n",posPotXThrow2,posPotYThrow2,posPotThetaThrow2);
         if (action_position_control(posPotXThrow2,posPotYThrow2,posPotThetaThrow2,0.01,10)==-1) return;
+        gainNormal();
         printf("remove all pot is done\n");
     }   
     // while (stopBeforeMovePot == true){usleep(1000);}

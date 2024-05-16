@@ -1,7 +1,7 @@
 #ifndef BLY_SHARED_H
 #define BLY_SHARED_H
 
-#define TOTAL_GAME_TIME 100
+#define TOTAL_GAME_TIME 600
 
 #include "colors.h"
 #include "SPI_bus.h"

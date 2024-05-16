@@ -116,10 +116,10 @@ int8_t path_following_to_action(graph_path_t *path)
     double theta_start = path->thetaStart;
     double theta_end = path->thetaEnd;
 
-    double kp = 0.7;
-    double ka = 3.0;
-    double kb = -1.0;
-    double kw = 2.0;
+    double kp = 1.2;
+    double ka = 4.5;
+    double kb = -2.5;
+    double kw = 2.5;
     teensy->set_position_controller_gains(kp, ka, kb, kw);
 
     double xCurrent = 0, yCurrent = 0;
@@ -298,9 +298,9 @@ int8_t action_position_control(double x_end, double y_end, double theta_end, dou
     double x = 0, y = 0, theta = 0;
     shared.get_robot_pos(&x, &y, &theta);
 
-    if (hypot(x_end-x, y_end-y) < std::max(pos_tol, DEFAULT_DIST_TOL) 
-        && fabs(trigo_diff(theta_end, theta)) < std::max(angle_tol , DEFAULT_ANGLE_TOL)*M_PI/180.0)
-        return 0;
+    // if (hypot(x_end-x, y_end-y) < std::max(pos_tol, DEFAULT_DIST_TOL) 
+    //     && fabs(trigo_diff(theta_end, theta)) < std::max(angle_tol , DEFAULT_ANGLE_TOL)*M_PI/180.0)
+    //     return 0;
 
     #ifdef VERBOSE
     // printf("Robot position from shared: %.3f, %.3f, %.3f \n", x, y, theta);

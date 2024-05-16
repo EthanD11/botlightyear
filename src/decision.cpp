@@ -15,8 +15,8 @@
 #include <cmath>
 #include <algorithm>
 
-#define TESTS
-// #define PLANT_STRATEGY
+// #define TESTS
+#define PLANT_STRATEGY
 // #define RANDOM
 // #define SP_STRATEGY
 // #define FINAL_STRATEGY
@@ -94,32 +94,32 @@ uint8_t plantZonesValid[6];
 uint8_t plantZonesCount = 0;
 
 #ifdef SP_STRATEGY
-int8_t time_gotobase = 20;
-int8_t time_sp_reserved = 50;
-int8_t time_sp = 1000; 
+int16_t time_gotobase = 20;
+int16_t time_sp_reserved = 50;
+int16_t time_sp = 1000; 
 
 #endif
 
 #ifdef FINAL_STRATEGY
 static bool hasClearedPots = false; 
 static bool hasDonePlanters = false; 
-int8_t time_gotobase = 20;
-int8_t time_sp_reserved = 30;
-int8_t time_sp = 50; 
+int16_t time_gotobase = 20;
+int16_t time_sp_reserved = 30;
+int16_t time_sp = 50; 
 #endif 
 
 #ifdef PLANT_STRATEGY
 static bool hasTakenPots = false; 
 static bool hasDonePlanters = false; 
-int8_t time_gotobase = 15;
-int8_t time_sp = 40;
-int8_t time_sp_reserved = 20;
-int8_t time_pot = 20; 
+int16_t time_gotobase = 15;
+int16_t time_sp = -1;
+int16_t time_sp_reserved = -1;
+int16_t time_pot = 20; 
 #endif
 
 #ifdef TESTS
 static bool hasTakenPots = false; 
-int8_t time_gotobase = -100;
+int16_t time_gotobase = -100;
 #endif
 
 // ------------ UTILS --------------
@@ -168,6 +168,7 @@ void decide_possible_actions() {
     printf("----- Deciding action -----\n\n");
     n_possible_actions = 0; 
     int16_t remaining_time = shared.update_and_get_timer();
+    printf("remaining_time = %d\n", remaining_time);
     double x_pos = 0, y_pos = 0, theta_pos = 0, dist_from_currentNode = 0; 
     shared.get_robot_pos(&x_pos, &y_pos, &theta_pos); 
     graph_path_t* path;
@@ -261,6 +262,7 @@ void decide_possible_actions() {
     // possible_actions[0] = new ActionPlanter(path, 3, SideRight, 0, SideMiddle); 
     // n_possible_actions = 1; 
     // return;
+    
     #endif   
 
     #ifdef HOMOLOGATION 
@@ -434,12 +436,12 @@ void decide_possible_actions() {
     // -----------------------------------------------------------------------------------------
 
     #ifdef PLANT_STRATEGY
-
+    printf("Remaining time %d\n", remaining_time);
     if (!hasDonePlanters && (shared.plantersDone[0] !=0) && (shared.plantersDone[1] !=0)) {
         hasDonePlanters = true; 
     }
 
-    if ((remaining_time < time_sp) || hasDonePlanters) { //Time to switch to solar panels OR everything with plants is already done
+    if ((remaining_time < time_sp) && hasDonePlanters) { //Time to switch to solar panels OR everything with plants is already done
         
         if ((remaining_time < time_sp_reserved) && (shared.SPsDone[1]==0)) {
             if (shared.color == TeamBlue) {
@@ -508,7 +510,7 @@ void decide_possible_actions() {
         hasTakenPots = true; 
     }
     
-    if (!hasTakenPots && remaining_time > TOTAL_GAME_TIME-time_pot) {
+    if (!hasTakenPots) {
         path = shared.graph->compute_path(x_pos, y_pos, shared.graph->pots, 6);
         if (path != NULL) {
             path->thetaStart = theta_pos; 
@@ -576,6 +578,10 @@ void decide_possible_actions() {
             possible_actions[n_possible_actions] = new ActionPlanter(path, 1, planter_side, 1, pot_clear_side);
             n_possible_actions++;
         }
+    }
+
+    for (int i=0; i < 2; i++) {
+        printf("plantersDone[%d] = %d\n", i, shared.plantersDone[i]);
     }
 
     return;

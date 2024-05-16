@@ -56,7 +56,7 @@ void GripperDeployer::half() {
 }
 
 void GripperDeployer::plantLift() {
-    this->send_dutyCycle(550);
+    this->send_dutyCycle(550); //550
 }
 
 void GripperDeployer::pot_deposit() {

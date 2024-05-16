@@ -23,15 +23,20 @@ int main(int argc, char const *argv[])
     //     sleep(4);
     // }
     // servoFlaps.idle();
+    servoGripperHolder.hold_plant();
+    servoGripperDeployer.deploy();
+    sleep(1);
+    servoGripperDeployer.plantLift();
+    sleep(4);
 
-    for (size_t i = 0; i < 60; i++)
-    {
-        servoGripperHolder.hold_pot();
-        sleep(1);
-        servoGripperHolder.open_full();
-        sleep(1);
-    }
-    servoGripperHolder.idle();   
+    // for (size_t i = 0; i < 60; i++)
+    // {
+    //     servoGripperHolder.hold_pot();
+    //     sleep(1);
+    //     servoGripperHolder.open_full();
+    //     sleep(1);
+    // }
+    // servoGripperHolder.idle();   
 
     // servoGripperHolder.open_full();
     // for (size_t i = 0; i < 4; i++)
@@ -82,7 +87,7 @@ int main(int argc, char const *argv[])
 
     // sleep(2); 
     // servoGripperDeployer.idle();
-    servoGripperHolder.idle();
+    // servoGripperHolder.idle();
 
     return 0;
 }

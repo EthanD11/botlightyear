@@ -25,11 +25,13 @@ static uint8_t planterId = 0;
 
 void gainNormalPlanter(){
     // shared.teensy->set_position_controller_gains(0.9,2.5,-1.0,1.0);
-    shared.teensy->set_position_controller_gains(0.7,3.0,-1.0,4.0);
+    // shared.teensy->set_position_controller_gains(0.7,3.0,-1.0,4.0);
+    shared.teensy->set_position_controller_gains(1.5,4.0,-2.5,2.5);
 }
 
 void gainReculPlanter(){
-    shared.teensy->set_position_controller_gains(1.5,3.0,-1.0,4);
+    // shared.teensy->set_position_controller_gains(1.5,3.0,-1.0,4);
+    shared.teensy->set_position_controller_gains(2.0,4.0,-2.5,2.5);
 }
 
 
@@ -55,13 +57,14 @@ static void *kinematic_chain(void *args) {
     storage_content_t toDrop = ContainsNothing;
     while (1) {
         if (state == stateKC) {
-            usleep(50000);
+            usleep(5000);
             continue;
         }
         switch (state)
         {
         case PF: // Moving to destination
-            usleep(50000);
+            usleep(5000);
+            stateKC = PF;
             break;
 
         case Clear: // Clearing pots away
@@ -75,6 +78,7 @@ static void *kinematic_chain(void *args) {
                 steppers->flaps_move(FlapsOpen, CALL_BLOCKING);
                 servoFlaps->raise();
             }
+            printf("KC is in Get mode\n");
             stateKC = Get;
             slotID = get_next_unloaded_slot_ID(ContainsWeakPlant);
             if (slotID == SlotInvalid) slotID = get_next_unloaded_slot_ID(ContainsStrongPlant);
@@ -93,7 +97,6 @@ static void *kinematic_chain(void *args) {
             steppers->slider_move(SliderStorage, CALL_BLOCKING);
             if (toDrop & ContainsPot) {
                 grpHolder->hold_pot();
-                //printf("Warning : Pot not implemented  !! \n");
             }
             else grpHolder->hold_plant();
             update_plate_content(slotID, ContainsNothing);
@@ -112,9 +115,10 @@ static void *kinematic_chain(void *args) {
             grpDeployer->deploy();
             steppers->slider_move(SliderIntermediateLow, CALL_BLOCKING);
             grpHolder->open();
-            stateKC = Drop;
             shared.plantersDone[planterId] +=1; // Updates the plant count on the given planter
             shared.score += 4 + ((toDrop & ContainsPot) == ContainsPot);
+            usleep(100000);
+            stateKC = Drop;
             printf("Moves slider high\n");
             steppers->slider_move(SliderHigh,CALL_BLOCKING);
             printf("Drop Finish\n");
@@ -199,9 +203,12 @@ void ActionPlanter::do_action() {
     for (uint8_t i = 0; i < nbPlants; i++) {
         printf("Plante %d / %d\n", i, nbPlants);
         state = Get;
-        while (stateKC != Get) usleep(50000);
-        printf("nextSpot : ,%d\n",nextSpot);
+        double i_ = 0;
+        while (stateKC != Get) {usleep(50000); i_++;}
+        printf("Got stuck for %d loops waiting for Get\n", i_);
+        printf("nextSpot : %d\n",nextSpot);
         // /!\ planter est pas la jardiniere mais le point de PF de la jardiniere!!!
+        shared.teensy->set_position_controller_gains(0.9,4.0,-2.5,2.5);
         if (action_position_control(xPlanter+0.25*cos(thetaPlanter)-0.1*nextSpot*sin(thetaPlanter),
                                     yPlanter+0.25*sin(thetaPlanter)+0.1*nextSpot*cos(thetaPlanter),
                                     thetaPlanter)) return leave();
@@ -239,6 +246,11 @@ void ActionPlanter::do_action() {
         //si pas derniere plante, vas deja la cherché apres avoir fini drop
         if (i == nbPlants - 1){
             lastPlantInPlanter = true;
+            //revient d'abord a position d approche
+            if (action_position_control(xPlanter+0.25*cos(thetaPlanter)-0.1*nextSpot*sin(thetaPlanter),
+                                    yPlanter+0.25*sin(thetaPlanter)+0.1*nextSpot*cos(thetaPlanter),
+                                    thetaPlanter)) return leave();
+            //puis retour au pts du PF
             if (action_position_control(xPlanter,yPlanter,periodic_angle( thetaPlanter+M_PI) ,0.02,30)) return leave();
         } 
         else  {

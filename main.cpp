@@ -167,7 +167,7 @@ void init_and_wait_for_start() {
     double wn = 0.2; // Command filter discrete cutoff frequency
     double kv_en = 0.;
     shared.teensy->set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
-    shared.teensy->set_position_controller_gains(0.9,2.5,-1.0,1.2);
+    shared.teensy->set_position_controller_gains(1.2,4.0,-2.5,2.5);
     
     if (pthread_create(&localizerID, NULL, localizer, NULL) != 0) exit(4);
     #ifdef LIDAR_BOTTOM

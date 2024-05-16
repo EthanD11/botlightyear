@@ -170,27 +170,27 @@ void ActionSP::do_action() {
         previous_action_is_sp_shared = true; 
     } else {
         printf("Iniitating position control to reserved sp\n");
-        teensy->set_position_controller_gains(0.4, 5.0, -0.1, 3.0);
+        teensy->set_position_controller_gains(1.2, 4.5, -2.5, 2.5);
         if (action_position_control(path->x[path->nNodes-1]-0.05, path->y[path->nNodes-1], -M_PI/2.0)) return leave();
     }
 
     // Step
     double step;
     if (sp_direction == Forward) {
-        step = -22.5e-2; 
+        step = -24e-2; 
     } else if (sp_direction == Backward) {
-        step = 22.5e-2; 
+        step = 24e-2; 
     }
 
     // Position of first shared solar panel
-    double x1 = 1.780;
+    double x1 = 1.788;
     double y1 = path->y[ncheckpoints-1]-step; 
 
     // Set position control gains
-    double kp = 0.8;
-    double ka = 4.0;
-    double kb = -1.5;
-    double kw = 4.0;
+    double kp = 1.2;
+    double ka = 4.5;
+    double kb = -2.5;
+    double kw = 2.5;
     teensy->set_position_controller_gains(kp, ka, kb, kw);
     
     printf("SP do_action: pos ctrl backward\n");

@@ -110,10 +110,10 @@ void dxl_deploy(position_t position) {
 
     switch(position) {
         case Up: 
-            dxl_goal_position = 215;
+            dxl_goal_position = 210;
             break;
         case Down:
-            dxl_goal_position = 520;
+            dxl_goal_position = 510;
             break;
         case Mid:
             dxl_goal_position = 365;
@@ -124,11 +124,11 @@ void dxl_deploy(position_t position) {
     write1ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_TORQUE_ENABLE, TORQUE_ENABLE);
 
     // Write CW/CCW position
-    write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_CW_ANGLE_LIMIT, 215); 
-    write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_CCW_ANGLE_LIMIT, 520);
+    write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_CW_ANGLE_LIMIT, 200); 
+    write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_CCW_ANGLE_LIMIT, 530);
 
     // Write speed
-    write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_MOVING_SPEED, 200);
+    write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_MOVING_SPEED, 300);
 
     // Max Dynamixel Torque
     write1ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_AX_TORQUE, 255);
@@ -177,17 +177,17 @@ void dxl_multiturn(direction_t direction) {
 void dxl_position(double goal_pos) {
     uint16_t dxl_goal_position = goal_pos;
     uint16_t dxl_present_position = 0;
-    dxl_present_position = read2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_AX_PRESENT_POSITION);
+    dxl_present_position = read2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_AX_PRESENT_POSITION);
 
     // Enable Dynamixel Torque
     write1ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_TORQUE_ENABLE, TORQUE_ENABLE);
 
     // Write CW/CCW position
-    write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_CW_ANGLE_LIMIT, 0); 
-    write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_CCW_ANGLE_LIMIT, 1023);
+    write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_CW_ANGLE_LIMIT, 0); 
+    write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_CCW_ANGLE_LIMIT, 1023);
 
     // Write speed
-    write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_MOVING_SPEED, 200);
+    write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_MOVING_SPEED, 200);
 
     // Write goal position
     write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_GOAL_POSITION, dxl_goal_position);
