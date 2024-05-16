@@ -10,6 +10,7 @@ static pthread_t KCID;
 static volatile bool ThreadKinematicOccuped = false;
 static volatile bool hasPot = false;
 static volatile bool PrepareSlider = false;
+static volatile bool PlateToTake = false;
 
 static uint8_t plantZoneId = 0; 
 
@@ -49,7 +50,8 @@ void *SliderPrepareApprochTakePlant(void *args){
     Steppers* steppers = shared.steppers; 
     PrepareSlider = true;
     while(ThreadKinematicOccuped == true){usleep(1000);}
-    steppers->slider_move(SliderPreparePlant);
+    steppers->slider_move(SliderPreparePlant,CALL_BLOCKING);
+    PrepareSlider = false;
     return NULL;
 }
 
@@ -83,6 +85,7 @@ void *take_plant_kinematicChain_SecondPart(void *args ){
     Flaps* servoFlaps = shared.servoFlaps; 
     int8_t slotNumber = *((int8_t*) args);
     ThreadKinematicOccuped = true;
+    PlateToTake = true;
     //remonte
     steppers->slider_move(SliderHigh);//tricks pour replier servo au milieu
     usleep(300000);
@@ -108,6 +111,7 @@ void *take_plant_kinematicChain_SecondPart(void *args ){
     deployer->half();
     steppers->slider_move(SliderHigh, CALL_BLOCKING); 
     steppers->plate_move(0, CALL_BLOCKING); 
+    PlateToTake = false;
     holder->idle();
     deployer->idle();
     ThreadKinematicOccuped = false;
@@ -246,6 +250,7 @@ int8_t position_to_plant(double x_plant, double y_plant, double x_plant_center, 
     double y_grab = y_plant - sin(theta_approach) * plant_grab_dist; 
     // shared.teensy->set_position_controller_gains(0.4,2.5,-1.5,1.0);
     PrepareApproachTakePlant();
+    while(PlateToTake == true){usleep(1000);}
     printf("Position control to grab to x = %.3f, y = %.3f and theta = %.3f \n", x_grab, y_grab, theta_approach);
     gainPrecisPlante();
     if (action_position_control(x_grab, y_grab, theta_approach) == -1) return -1; 
@@ -444,6 +449,7 @@ void ActionPlants::do_action() {
         usleep(250000);
         shared.get_robot_pos(&xpos, &ypos, &theta_pos);
         if (get_closest_plant_from_lidar(xpos, ypos, theta_pos, plantsNode, &x_plant, &y_plant) == -1) return;
+        
         //get_closest_plant_from_kakoo(xpos, ypos, plantsNode, &x_plant, &y_plant, plants_taken); 
         // usleep(200000);
         printf("Scan lidar over\n");

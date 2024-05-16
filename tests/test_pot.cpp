@@ -136,7 +136,7 @@ void TakePotCHAIN(int slotNumber, int numeroPot = 1) {
 
     printf("debut chaine cinématique\n");
     steppers->flaps_move(FlapsPot,CALL_BLOCKING);
-    sleep(20);
+    // sleep(20);
     steppers->flaps_move(FlapsIntermediatePot,CALL_BLOCKING);
     holder->open_full();
     steppers->slider_move(SliderLow,CALL_BLOCKING);
@@ -154,6 +154,7 @@ void TakePotCHAIN(int slotNumber, int numeroPot = 1) {
     //reouvre et remonte
     holder->open_full();
     usleep(100000); //wait 100ms
+    // sleep(2);
     deployer->half();
     steppers->slider_move(SliderHigh,CALL_BLOCKING);
     steppers->plate_move(0, CALL_BLOCKING);
