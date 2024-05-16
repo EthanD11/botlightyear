@@ -132,7 +132,7 @@ void Steppers::flaps_move(flaps_pos_t pos, uint8_t blocking) {
         steps = 1400;
         break;
     case FlapsPot :
-        steps = 2920; 
+        steps = 3000; //2920
         break; 
     case FlapsIntermediatePot:
         steps = 1400;  //a iterer...

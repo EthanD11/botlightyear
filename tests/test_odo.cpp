@@ -3,8 +3,8 @@
 #include <unistd.h>
 #include <cmath>
 
-#define TEST_TICKS
-// #define TEST_POS_TRACK
+// #define TEST_TICKS
+#define TEST_POS_TRACK
 
 SPIBus spiBus = SPIBus();
 Odometry odo = Odometry(&spiBus);
@@ -29,7 +29,7 @@ int main(int argc, char const *argv[])
     #endif
 
     #ifdef TEST_POS_TRACK
-    double x = 0, y = 0, theta = 0;
+    double x = 0.035, y = 0.155, theta = 0;
     odo.set_pos(x, y, theta);
     while (1)
     {
@@ -40,5 +40,4 @@ int main(int argc, char const *argv[])
     #endif
 
     return 0;
-    // 2.794, -0.075, 2.670, -0.162, 2.647, -0.007, 2.816
 }

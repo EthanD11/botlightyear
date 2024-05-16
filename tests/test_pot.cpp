@@ -136,11 +136,12 @@ void TakePotCHAIN(int slotNumber, int numeroPot = 1) {
 
     printf("debut chaine cinématique\n");
     steppers->flaps_move(FlapsPot,CALL_BLOCKING);
+    sleep(20);
     steppers->flaps_move(FlapsIntermediatePot,CALL_BLOCKING);
     holder->open_full();
     steppers->slider_move(SliderLow,CALL_BLOCKING);
     holder->hold_pot();//fermeture pot
-
+    // sleep(1);
     printf("start thread kinematic\n");
     //remonte
     steppers->slider_move(SliderHigh, CALL_BLOCKING);

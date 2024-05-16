@@ -18,12 +18,13 @@ void Flaps::send_flaps_dutyCycle(uint16_t servo_flaps1_duty_cycle, uint16_t serv
 
 void Flaps::deploy() {
     // this->send_flaps_dutyCycle(680,610);
-    //this->send_flaps_dutyCycle(614,614); // mid-position
-    this->send_flaps_dutyCycle(730,580); // True one
+    // this->send_flaps_dutyCycle(614,614); // mid-position
+    this->send_flaps_dutyCycle(720,550); // True one
 }
 
 void Flaps::raise() {
-    this->send_flaps_dutyCycle(500,750);
+    // this->send_flaps_dutyCycle(500,750);
+    this->send_flaps_dutyCycle(500,800);
 }
 
 void Flaps::idle() {

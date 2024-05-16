@@ -20,8 +20,8 @@
 // #define CLEAR_POTS
 
 #define LIDAR_BOTTOM
-#define LIDAR_TOP
-#define DXL
+// #define LIDAR_TOP
+// #define DXL
 #define ASCII_b 98
 #define ASCII_B 66
 #define ASCII_y 121
@@ -223,9 +223,9 @@ void *localizer(void* arg) {
 
     int8_t teensyI = 0;
     #ifdef LIDAR_TOP
-    int8_t teensyN = 20;
+    int8_t teensyN = 1;
     #else
-    int8_t teensyN = 20;
+    int8_t teensyN = 10;
     #endif
 
     while (!localizerEnd) {

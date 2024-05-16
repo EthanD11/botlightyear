@@ -239,7 +239,11 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
     steppers->flaps_move(FlapsIntermediatePot,CALL_BLOCKING);
     holder->open_full();
     steppers->slider_move(SliderLow,CALL_BLOCKING);
+    // sleep(3);
+    // printf("start tentative fermeture pince \n");
     holder->hold_pot();//fermeture pot
+    // printf("Pince refermé \n");
+    // sleep(3);
 
     // lancement de la fin de la cinematique sur un thread
     if (pthread_create(&KCID, NULL, take_pot_kinematicChain_SecondPart, (void *)&slotNumber) != 0) return;
@@ -298,9 +302,9 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
         printf("start for remove all pots\n");
         // se repositionne face au pot centraux
         gainDegament();
-        double posPotXThrow1 = posPotX+(0.34)*cos(posPotTheta +(M_PI/6)*(-sign(clearanceAngle)));
-        double posPotYThrow1 = posPotY+(0.34)*sin(posPotTheta +(M_PI/6)*(-sign(clearanceAngle)));
-        double posPotThetaThrow1 = posPotTheta+ ((M_PI/6)+M_PI_2)*(sign(clearanceAngle));
+        double posPotXThrow1 = posPotX+(0.31)*cos(posPotTheta +(2*M_PI/7)*(-sign(clearanceAngle)));
+        double posPotYThrow1 = posPotY+(0.31)*sin(posPotTheta +(2*M_PI/7)*(-sign(clearanceAngle)));
+        double posPotThetaThrow1 = posPotTheta+ ((M_PI/8)+M_PI_2)*(sign(clearanceAngle));
         double posPotXThrow2 = posPotX;
         double posPotYThrow2 = posPotY+(0.18)*sin(posPotTheta);
         double posPotThetaThrow2 = posPotTheta+clearanceAngle;
@@ -310,7 +314,7 @@ void take_pot_kinematicChain(int8_t slotNumber, int numeroPot, int8_t pathTarget
         printf("target 1 for remove all pots : %f,%f,%f\n",posPotXThrow1,posPotYThrow1,posPotThetaThrow1);
         if (action_position_control(posPotXThrow1,posPotYThrow1,posPotThetaThrow1)==-1) return;
         printf("target 2 for remove all pots : %f,%f,%f\n",posPotXThrow2,posPotYThrow2,posPotThetaThrow2);
-        if (action_position_control(posPotXThrow2,posPotYThrow2,posPotThetaThrow2)==-1) return;
+        if (action_position_control(posPotXThrow2,posPotYThrow2,posPotThetaThrow2,0.01,10)==-1) return;
         printf("remove all pot is done\n");
     }   
     // while (stopBeforeMovePot == true){usleep(1000);}

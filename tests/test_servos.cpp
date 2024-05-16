@@ -2,6 +2,7 @@
 #include "servos.h"
 #include "steppers.h"
 #include <unistd.h>
+#include <stdio.h>
 
 SPIBus spi_bus = SPIBus(); 
 GPIOPins pins = GPIOPins(); 
@@ -17,16 +18,32 @@ int main(int argc, char const *argv[])
     // for (size_t i = 0; i < 6; i++)
     // {
     //     servoFlaps.deploy(); 
-    //     sleep(1);
+    //     sleep(4);
     //     servoFlaps.raise();
+    //     sleep(4);
+    // }
+    // servoFlaps.idle();
+
+    for (size_t i = 0; i < 60; i++)
+    {
+        servoGripperHolder.hold_pot();
+        sleep(1);
+        servoGripperHolder.open_full();
+        sleep(1);
+    }
+    servoGripperHolder.idle();   
+
+    // servoGripperHolder.open_full();
+    // for (size_t i = 0; i < 4; i++)
+    // {
+    //     printf("%d \n",3-i);
     //     sleep(1);
     // }
+    // printf("now!\n");
+    // servoGripperHolder.hold_pot();
+    // sleep(2);
+    // servoGripperHolder.idle();
     
-   
-    // servoFlaps.raise();
-    // sleep(1);
-
-    // servoFlaps.idle();
     
     // servoGripperHolder.close(); 
     // sleep(3);
@@ -40,16 +57,15 @@ int main(int argc, char const *argv[])
     // sleep(1);
     // servoGripperHolder.idle();
 
-    servoGripperDeployer.deploy();
-    
-    sleep(3);
-    // servoGripperDeployer.half(); 
+    // servoGripperDeployer.deploy();
     // sleep(3);
-    // servoGripperDeployer.plantLift();
+    // // servoGripperDeployer.half(); 
+    // // sleep(3);
+    // // servoGripperDeployer.plantLift();
+    // // sleep(3);
+    // servoGripperDeployer.half();
     // sleep(3);
-    servoGripperDeployer.half();
-    sleep(3);
-    servoGripperDeployer.idle();
+    // servoGripperDeployer.idle();
 
     // for (size_t i = 0; i < 5; i++)
     // {

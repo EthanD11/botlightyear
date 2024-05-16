@@ -199,12 +199,13 @@ int main(int argc, char const *argv[])
 
     // steppers->calibrate(StprPlate, CALL_BLOCKING, NULL); 
 
-    // steppers->calibrate_all(CALL_BLOCKING, NULL);
+    steppers->calibrate_all(CALL_BLOCKING, NULL);
     // steppers->plate_move(0,CALL_BLOCKING);
     #ifdef TESTS
-    deployer->deploy();
-    holder->open();
-    sleep(4);
+    steppers->flaps_move(FlapsPot,CALL_BLOCKING);
+    // deployer->deploy();
+    // holder->open();
+    // sleep(4);
     // deployer->deploy();
     // holder->hold_pot();
     // steppers->plate_move(-3,CALL_BLOCKING);
