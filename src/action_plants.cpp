@@ -24,19 +24,19 @@ Takes plant and puts it to the plate storage specified
 void gainDeBasePlante(){
     double gainDesGain = 1.0;
     // shared.teensy->set_position_controller_gains(1.0*gainDesGain,2.5*gainDesGain,-1.0*gainDesGain,1.8*gainDesGain);
-    shared.teensy->set_position_controller_gains(0.7,3.0,-1.0,4.0);
+    shared.teensy->set_position_controller_gains(1.5,4.0,-2.0,2.5);
         
 }
 
 void gainPrecisPlante(){
     // shared.teensy->set_position_controller_gains(0.9,2.5,0.0,1);
-    shared.teensy->set_position_controller_gains(0.9,2.5,0.0,4.0);
+    shared.teensy->set_position_controller_gains(1.5,2.5,-1.0,3.0);
 
 
 }
 
 void gainReculePlante(){
-    shared.teensy->set_position_controller_gains(3.0,2.5,0.0,1); 
+    shared.teensy->set_position_controller_gains(3.0,2.5,-1.0,1); 
 }
 
 void teensyIdle(){
