@@ -8,10 +8,10 @@
 
 class ActionBackToBase : public Action {
     public: 
-        ActionBackToBase(graph_path_t* graph_path) : Action(ReturnToBase, true, graph_path) {
-            this->needs[0] = 0;  // SptrPlate
-            this->needs[1] = 0;  // StprSlider
-            this->needs[2] = 0;  // StprFlaps
+        ActionBackToBase(graph_path_t* graph_path, bool posePlant = false) : Action(ReturnToBase, true, graph_path) {
+            this->needs[0] = (uint8_t)posePlant;  // SptrPlate
+            this->needs[1] = (uint8_t)posePlant;  // StprSlider
+            this->needs[2] = (uint8_t)posePlant;  // StprFlaps
             this->needs[3] = 0;  // Dxl1
             this->needs[4] = 0;  // LidarBottom
         }
