@@ -29,7 +29,7 @@ ILidarDriver *lidarBottom;
 int debugfile = 0;
 
 /**
- * utile pour avoir un angle entre 2 angles predef
+ * Modulo for angles, useful for many functions
  * @param angle
  * @return
  */
@@ -56,7 +56,7 @@ double moduloLidarMPIPI(double angle) {
 
 void StartLidarTop(){
     ///  Create a communication channel instance
-    Result<IChannel*> _channel = createSerialPortChannel("/dev/ttyUSB_LIDARTOP", 115200); //port série spécifié est "/dev/ttyUSB0" avec un débit de 115200 bps.
+    Result<IChannel*> _channel = createSerialPortChannel("/dev/ttyUSB_LIDARTOP", 115200);
 
     if (_channel.err) {
         fprintf(stderr, "Failed to create communication channel\r\n");
@@ -99,10 +99,7 @@ void StartLidarTop(){
 }
 
 void StartLidarBottom(){
-    //TODO change en USB1
-    ///  Create a communication channel instance
-    //TODO USB1
-    Result<IChannel*> _channel = createSerialPortChannel("/dev/ttyUSB_LIDARBOTTOM", 256000); //port série spécifié est "/dev/ttyUSB0" avec un débit de 115200 bps.
+    Result<IChannel*> _channel = createSerialPortChannel("/dev/ttyUSB_LIDARBOTTOM", 256000); //port série spécifié est "/dev/ttyUSB0" avec un débit de 256000 bps.
     
 
     if (_channel.err) {
@@ -210,7 +207,7 @@ void updateDataFile(double* angles, double* distances, double* quality, string f
         if (iss >> col1 >> col2) {
             angles[index] = col1 / 180 * M_PI;
             distances[index] = col2;
-            quality[index] = 0.0; // TODO : to be modified if quality is recorded
+            quality[index] = 0.0; //to be modified if quality is recorded
             ++index;
         } else {
             std::cerr << "Error: Invalid line format in file" << filename << std::endl;
