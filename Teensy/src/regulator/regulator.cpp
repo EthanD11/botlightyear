@@ -3,11 +3,11 @@
 Regulator *init_regulator() {
     Regulator *reg = (Regulator *) malloc(sizeof(Regulator));
     
-    reg->kp_l = 10.204081632653060/3; // Former t1_kp
-    reg->ki_l = 24.295432458697764/3; // Former t1_ki
+    reg->kp_l = 10.204081632653060*2; // Former t1_kp
+    reg->ki_l = 24.295432458697764*2; // Former t1_ki
 
-    reg->kp_r = 6.666666666666665/3; // Former t1_kp
-    reg->ki_r = 23.809523809523803/3; // Former t1_ki
+    reg->kp_r = 6.666666666666665*2; // Former t1_kp
+    reg->ki_r = 23.809523809523803*2; // Former t1_ki
 
     reg->imax = 1; // Anti windup [V/V]
 
@@ -18,7 +18,7 @@ Regulator *init_regulator() {
     reg->duty_cycle_refl = 0.0; // left duty cycle command
     reg->duty_cycle_refr = 0.0; // right duty cycle command
 
-    reg->wc = 50*2*M_PI; // [rad/s]
+    reg->wc = 150*2*M_PI; // [rad/s]
 
     return reg;
 }
@@ -56,8 +56,8 @@ void control_speed(
     speed_refr = SAT(speed_refr, REF_SPEED_LIMIT);
     dt = rob_pos->dt;
 
-    if (speed < 0.05) gain_factor = 5;
-    else if (speed < 0.1) gain_factor = 3;
+    if (speed < 0.05) gain_factor = 4;
+    else if (speed < 0.1) gain_factor = 2;
     else gain_factor = 1;
 
     double kp_l = gain_factor*reg->kp_l;
