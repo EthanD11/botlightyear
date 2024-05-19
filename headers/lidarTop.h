@@ -14,7 +14,6 @@ typedef struct LidarData{
     double readLidar_a_opponent;
     bool readLidar_lost;
 
-    ///toutes les données dans les coordonées tq balise en 0,0
     double x_robot;
     double y_robot;
     double orientation_robot;
@@ -62,6 +61,7 @@ typedef struct LidarData{
  * @param i : int to find out the number of times we call the function
  * @param fullScan : does not take previous data into account 
  * @param fromOdo : it is based on the position of the robot according to the odometers to find the beacons, lidraData->x_odo, ->y_odo, ->theta_odo must be up to date
+ * Please note that the function no longer calculates our position, only that of our opponent. 
  */
 void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan = false,  bool fromOdo =false);
 
