@@ -8,6 +8,12 @@
 
 class ActionBackToBase : public Action {
     public: 
+        /**
+        * @brief Action to return to base (at the end of the match)
+        * @param path The path structure to get to the homebase
+        * @param posePlant true if the robot drops a plant when arrived. At least one plant has to be in the storage. 
+        * Defaults to false - feature not yet implemented
+        */
         ActionBackToBase(graph_path_t* graph_path, bool posePlant = false) : Action(ReturnToBase, true, graph_path) {
             this->needs[0] = (uint8_t)posePlant;  // SptrPlate
             this->needs[1] = (uint8_t)posePlant;  // StprSlider

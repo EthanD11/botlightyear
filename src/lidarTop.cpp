@@ -12,7 +12,7 @@ int debuglidardemerde = 0;
 ///taille balise
 double largeurMatAdvers = 0.17;
 
-///utile pour des prints
+///useful for print
 bool analyseDetail = false;
 bool analyseDetail_objet = false;
 bool analyseRotationBalise = false;
@@ -136,7 +136,7 @@ void rotationPosition(double *db, double *x, double *y, LidarData *lidarData, do
  */
 
 int foundAdvWithOdo(double *anglesAdv, double *distancesAdv, LidarData *lidarData) {
-    //recalcule des transformations pour trouver l'adversaire
+    //recalculates transformations to find the opponent
     ///transfo contains 4 elem : deltaX, deltaY, angle of rotation, the number of elements in possible opponents (number of elements in *anglesAdv)
     int size = lidarData->countObj_adv;
 
@@ -318,8 +318,6 @@ void checkBeacon(double *angles, double *distances, double *quality, LidarData *
 
 void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool fromOdo) {
     lidarData->readLidar_lost = false;
-    //DataToFileBottom("test"+std::to_string(debuglidardemerde));
-    debuglidardemerde++;
     lidarData->old_transfo_x = lidarData->x_adv;
     lidarData->old_transfo_y = lidarData->y_adv;
     double *angles = new double[8000];
@@ -341,7 +339,6 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
     if (i == 0) {
         fullScan = true;
     }
-    // printf("%f %f %f %f %d", angles[0],);
     checkBeacon(angles, distances, quality, lidarData, fullScan);
 
 
@@ -366,9 +363,9 @@ void lidarGetRobotPosition(LidarData *lidarData, int i, bool fullScan, bool from
         lidarData->old_transfo_a = lidarData->transfo_a;
 
     } else {
-        //si le robot est perdu : 2 possibilités :
-        //      -soit il ne sait pas du tout repérer l'adversaire (d_adv mis a 400m par défaut)
-        //      -soit il se repère grace aux odo et reconnait l'adversaire qd même → dans ce cas-là on rentre dans la condition ci-dessous
+        //if the robot is lost: 2 possibilities:
+        // -either it can't spot the opponent at all (d_adv set to 400m by default)
+        // -or it can find its way thanks to the odo and recognises the opponent anyway → in which case the condition below applies.
         if (lidarData->d_adv < 100) {
 			printf("aaaaaaaaaaaaaaaaah ne doit pas rentrer ici !");
             lidarData->readLidar_d_opponent = lidarData->d_adv;

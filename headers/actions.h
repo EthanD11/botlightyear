@@ -10,6 +10,8 @@
 
 #define DEFAULT_DIST_TOL 0.006     // [m] default distance tolerance of position control
 #define DEFAULT_ANGLE_TOL 2.0       // [°] default angle tolerance of position control
+
+// Type of action 
 typedef enum _action : uint8_t
 {
     GameFinished,
@@ -23,8 +25,12 @@ typedef enum _action : uint8_t
     TestAction, 
     BlockSPs, 
     Wait
-} action_t;
+} action_t; 
 
+/* Virtual Action class
+Class used by the decision process to juggle between different tasks it can do at a given time, following its strategy
+To make a new usable action, extend this class and the main code will perform the do_action() method
+*/
 class Action {
         
     public: 
@@ -33,6 +39,11 @@ class Action {
         bool needs_path; 
         graph_path_t* path; 
         uint8_t needs[5]; 
+        /** @brief An action object
+        @param type the type of action 
+        @param needsPath signals if the action is usually used with a path following movement
+        @param graph_path the path associated with the path following movement, NULL if not needed and also NULL if no path can be found
+        */
         Action(action_t type, bool needsPath, graph_path_t* graph_path) {
             action_type = type;
             needs_path = needsPath;
@@ -42,13 +53,30 @@ class Action {
 };
 
 
-/* UTILS: PATH_FOLLOWING_TO_ACTION */
+/**
+ * @brief Blocking action of path following the checkpoints in path
+ * @param path the graph_path structure containing the nodes/checkpoints to follow
+*/
 int8_t path_following_to_action(graph_path_t *path); 
 
-/* UTILS: POSITION_CONTROL */
+/**
+ * @brief Blocking action of position control to the desired location
+ * @param x_end, y_end, theta_end the coordinates of the destination
+ * @param pos_tol the acceptable distance tolerance from the destination (default equals to DEFAULT_DIST_TOL, which uses teensy's tolerances)
+ * Always use pos_tol > DEFAULT_DIST_TOL
+ * @param angle_tol the acceptable orientation tolerance from the destination (default equals to DEFAULT_ANGLE_TOL, which uses teensy's tolerances)
+ * Always use angle_tol > DEFAULT_ANGLE_TOL
+*/
 int8_t action_position_control(double x_end, double y_end, double theta_end, double pos_tol = DEFAULT_DIST_TOL, double angle_tol = DEFAULT_ANGLE_TOL); 
 
-/* UTILS: BACK MANOEUVER*/
+/**
+ * @brief Blocking action of a position control for a given backward distance
+ * @param x_end, y_end, theta_end the coordinates of the destination
+ * @param pos_tol the acceptable distance tolerance from the destination (default equals to DEFAULT_DIST_TOL, which uses teensy's tolerances)
+ * Always use pos_tol > DEFAULT_DIST_TOL
+ * @param angle_tol the acceptable orientation tolerance from the destination (default equals to DEFAULT_ANGLE_TOL, which uses teensy's tolerances)
+ * Always use angle_tol > DEFAULT_ANGLE_TOL
+*/
 uint8_t back_manoeuvre(double backward_dist);
 /**
  * @brief Get the plate slot associated with the plate slot ID

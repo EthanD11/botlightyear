@@ -52,7 +52,7 @@ void free_path_follower(PathFollower *path_follower) {
 }
 
 bool pf_maybe_unstable(PathFollower *pf, RobotPosition *rp) {
-    return ((fabs(PIPERIODIC(rp->theta - pf->kir)) > M_PI/3));
+    return ((fabs(PIPERIODIC(rp->theta - pf->kir)) > 7*M_PI/8));
 }
 
 void init_path_following(PathFollower *path_follower, double *x, double *y, int n, double theta_start, double theta_stop, double vref, double dist_goal_reached){
@@ -69,8 +69,8 @@ void init_path_following(PathFollower *path_follower, double *x, double *y, int 
     path_follower->last_x = x[n-1];
     path_follower->last_y = y[n-1];
     path_follower->last_theta = theta_stop;
-    printf("pf->n = %d\n", path_follower->n); 
-    printf("last_q = %f\n", path_follower->last_q);
+    // printf("pf->n = %d\n", path_follower->n); 
+    // printf("last_q = %f\n", path_follower->last_q);
 
     path_follower->x_splines = compute_splines(q_checkpoints, path_follower->checkpoints_x, n);
     path_follower->y_splines = compute_splines(q_checkpoints, path_follower->checkpoints_y, n);
@@ -337,8 +337,8 @@ int update_path_follower_ref_speed(
     printf("last y = %.3e\n", pf->last_y);
     #endif
     
-    if ((dist <= dist_goal_reached) && (pf->qref > pf->last_q - 5e-1)) {
-        printf("PF: Switch mode\n");
+    if ((dist <= dist_goal_reached) && (pf->qref > pf->last_q - 2.5) && (pf->qref > 0.6)) {
+        // printf("PF: Switch mode\n");
         return 1;
     }
 

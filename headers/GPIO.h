@@ -41,14 +41,15 @@ public:
     int8_t read(GPIO_t gpio);
 };
 
-/*
-Class defining all the GPIO users' methods
-When using a GPIO, a class needs to extend this one
-*/
+
 class GPIOUser
 {
 public:
     GPIOPins *pins;
+    /*
+    Class defining all the GPIO users' methods
+    When using a GPIO, a class needs to extend this one
+    */
     GPIOUser(GPIOPins *pins);
     ~GPIOUser();
 };

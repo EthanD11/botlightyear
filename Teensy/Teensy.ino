@@ -9,9 +9,9 @@
 #include "utils.h"
 
 // #define VERBOSE
-#define SWITCH_VERBOSE
-#define SPI_VERBOSE
-#define NO_SET_POSITION_VERBOSE
+// #define SWITCH_VERBOSE
+// #define SPI_VERBOSE
+// #define NO_SET_POSITION_VERBOSE
 
 typedef enum {
   ModeIdle, // No input from RPi, default is to remain still

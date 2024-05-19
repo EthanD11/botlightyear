@@ -14,11 +14,12 @@ private:
     bool freeTheGarden;
 public:
     /**
-    @brief Action to take pots
-    * @param  potNumber: 1, 2, 3, 4 is the number of the pot to take
-    * @param removeDoublePot: true if you want to withdraw the double pot after taking either pot 3 or 5 
+    * @brief Action to take pots and store them in the plate
+    * @param path The path structure to get to the node associated with pots
+    * @param potNumber 1, 2, 3, 4 is the number of pots to take
+    * @param removeDoublePot true if you want to withdraw the double pot after taking either pot 3 or 5 
     *                  (won't happen if you don't take one of the neighboring pots!!)
-    * @param  freeTheGarden: true if you want to completely free the planter from all remaining pots after taking the pot
+    * @param freeTheGarden true if you want to completely free the planter from all remaining pots at the end of the action
     */
     ActionPots(graph_path_t *path, uint8_t potNumber,bool removeDoublePot = false,bool freeTheGarden= false) : Action(TakePots, true, path) {
         this->potCounter = potNumber;
