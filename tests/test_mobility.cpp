@@ -8,7 +8,7 @@
 #include <cmath>
 #include <lgpio.h>
 
-#define NLAPS 2
+#define NLAPS 5
 #define N1LAP 8
 
 using namespace std::chrono;
