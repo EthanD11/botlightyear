@@ -3,11 +3,13 @@
 #include <cmath>
 static double sizePlant = 0.051;
 int arraysize = 8000;
-bool printplotpy = false;
+bool printplotpy = false; //useful for graphing in Python later on
 
 bool debug = false;
 
-double rayonZone = 0.17;
+/// radius of a plant zone with a safety factor
+double rayonZone = 0.17; 
+/// radius of a plant with a safety factor
 double rayonPlante = 0.018;
 
 /// distance between the ref and the bottomLidar
@@ -61,7 +63,7 @@ void zoneInPolar(Point *robot, PlantZone **polarCoord) {
  * @param robot : position of the lidar on the table
  * @param angles : liste of angles detect by the lidar
  * @param distances : liste of distances detect by the lidar
- * @param obstacle : ?
+ * @param obstacle : not useful
  * @param arraysize : number of element in angles (same as in distances)
  * @param plantZone : liste of structure with the data of all plantzone
  */
@@ -79,28 +81,29 @@ void lidarGetPlantPosition(Point *robot, double *angles, double *distances, doub
      * |                     |
      * |_____________________|
      */
-    //Etape 1 : coordonées des zones
+    //Step 1: zone coordinates
     zoneInPolar(robot, plantZone);
-    //a cette etape, plantzone->distance,->angle sont rempli
+    //at this stage, plantzone->distance,->angle are filled in
 
-    //Etape 2 : est-ce face à nous ?
+    //Step 2: Is it right in front of us?
     double deltaAngle;
     for (int i = 0; i < 6; ++i) {
-        deltaAngle = atan(rayonZone /plantZone[i]->distance);//on estime le rayon a 25cm et donc 30 par sécurité
+        deltaAngle = atan(rayonZone /plantZone[i]->distance);
         plantZone[i]->startAngle = plantZone[i]->angle - deltaAngle;
         plantZone[i]->endAngle = plantZone[i]->angle + deltaAngle;
 
-        ///Modulo
+        /// Modulo
         plantZone[i]->startAngle = moduloLidarZero2PI(plantZone[i]->startAngle);
         plantZone[i]->endAngle = moduloLidarZero2PI(plantZone[i]->endAngle);
-        //printf("%d start stop %f %f \n",i, plantZone[i]->startAngle*180.0/M_PI, plantZone[i]->endAngle*180/M_PI);
+
+        // an area is considered accessible if it faces us
         if (plantZone[i]->angle < M_PI / 4.0 || plantZone[i]->angle > 7.0 * M_PI / 4.0) {
             plantZone[i]->isVisible = true;
         } else {
             plantZone[i]->isVisible = false;
         }
     }
-    /// à cette étape, on sait les angles de depart et de fin des zones ainsi que si la zone est accessible
+    /// at this stage, we know the start and end angles of the zones and whether the zone is accessible
 
     bool objet = false;
     int start, stop, i;
@@ -111,32 +114,27 @@ void lidarGetPlantPosition(Point *robot, double *angles, double *distances, doub
         printf("\n");
         if (plantZone[zp]->isVisible) {
             start = (int) (plantZone[zp]->startAngle / (2.0 * M_PI) * arraysize);
-            //(int) plantZone[zp].startAngle/(2*M_PI)*arraysize;
             stop = (int) (plantZone[zp]->endAngle / (2.0 * M_PI) * arraysize);
-            //printf("%d data start stop %d %d \n",zp, start, stop);
             objet = false;
             if (start > stop) {
-                //utile si plante entre 355 et 5° par exemple
+                //useful if plant zone between 355 and 5° for example
                 stop += arraysize;
             }
-            //printf("%d data2 start stop %d %d \n",zp, start, stop);
 
             for (int j = start; j < stop; ++j) {
-                i = j % arraysize;//utile si plante entre 355 et 5° par exemple
+                i = j % arraysize; // useful if plant zone between 355 and 5° for example
                 
-                /// check if the object is potentially on the table
+                /// check if the object is potentially on the zone
                 if (std::abs(distances[i] - plantZone[zp]->distance) < rayonZone) {
                     if (!objet) {
                         /// no previous object: a new object to be initialized
                         objet = true;
                         a1 = angles[i];
                         d1 = distances[i];
-                        d2 = 5.0;//pour init la comparaison
+                        d2 = 5.0;//to initiate the comparison
                     } else {
                         // object present before: if distance small enough it's the same (delta<3cm) -> nothing to do
                         // delta >3cm : new object
-                        //size = std::sqrt(d2 * d2 + d1 * d1 - 2 * d2 * d1 * std::cos(a2 - a1));
-
                         if (std::abs(d2 - distances[i]) > 0.03  ) {
                             //what we detect is a new object
                             plantZone[zp]->aPlant[plantZone[zp]->numberPlant] = a2;
@@ -147,7 +145,6 @@ void lidarGetPlantPosition(Point *robot, double *angles, double *distances, doub
                             plantZone[zp]->xPlant[plantZone[zp]->numberPlant] = robot->x + dist*std::cos(gamma);
                             plantZone[zp]->yPlant[plantZone[zp]->numberPlant] = robot->y + dist*std::sin(gamma);
                             if (debug){
-                                // printf("\nindice1 %d %d", i,j);
                                 printf("plant x = %f y = %f \n",plantZone[zp]->xPlant[plantZone[zp]->numberPlant], plantZone[zp]->yPlant[plantZone[zp]->numberPlant]);
                                 printf("detect d= %f a=%f\n",plantZone[zp]->dPlant[plantZone[zp]->numberPlant],plantZone[zp]->aPlant[plantZone[zp]->numberPlant] );
                                 printf("calcul gamma %f \n", gamma);
@@ -158,7 +155,7 @@ void lidarGetPlantPosition(Point *robot, double *angles, double *distances, doub
                             /// new object : initial values are stored
                             d1 = distances[i];
                             a1 = angles[i];
-                            d2 = 5.0;//pour init la comparaison
+                            d2 = 5.0;//to initiate the comparison
 
                         }
                     }
@@ -185,7 +182,6 @@ void lidarGetPlantPosition(Point *robot, double *angles, double *distances, doub
                         plantZone[zp]->xPlant[plantZone[zp]->numberPlant] = robot->x + dist*std::cos(gamma);
                         plantZone[zp]->yPlant[plantZone[zp]->numberPlant] = robot->y + dist*std::sin(gamma);
                         if (debug){
-                        // printf("\nindice2 %d %d", i,j);
                         printf("plant x = %f y = %f \n",plantZone[zp]->xPlant[plantZone[zp]->numberPlant], plantZone[zp]->yPlant[plantZone[zp]->numberPlant]);
                         printf("detect d= %f a=%f\n",plantZone[zp]->dPlant[plantZone[zp]->numberPlant],plantZone[zp]->aPlant[plantZone[zp]->numberPlant] );
                         printf("calcul gamma %f \n", gamma);}
@@ -204,7 +200,6 @@ void lidarGetPlantPosition(Point *robot, double *angles, double *distances, doub
                 plantZone[zp]->xPlant[plantZone[zp]->numberPlant] = robot->x + dist*std::cos(gamma);
                 plantZone[zp]->yPlant[plantZone[zp]->numberPlant] = robot->y + dist*std::sin(gamma);
                 if (debug){
-                // printf("\nfin bouble");
                 printf("plant x = %f y = %f \n",plantZone[zp]->xPlant[plantZone[zp]->numberPlant], plantZone[zp]->yPlant[plantZone[zp]->numberPlant]);
                 printf("detect d= %f a=%f\n",plantZone[zp]->dPlant[plantZone[zp]->numberPlant],plantZone[zp]->aPlant[plantZone[zp]->numberPlant] );
                 printf("calcul gamma %f \n", gamma);}
@@ -254,11 +249,8 @@ int getNumberOfPlantInAllZone(double x_robot, double y_robot, double theta_robot
     
     size_t *asize = new size_t[2]{8000, 8000};
     updateDataBottom(angles, distances, quality, asize);
-    DataToFileBottom("test.txt");//TODO PAULINE
-    //updateDataFile(angles, distances, quality, "DataTest/DataP/J-1/testBottom2.txt", asize);
     arraysize = asize[0];
     lidarGetPlantPosition(robot, angles, distances, obj, asize[0], plantZonePolar);
-    // DataToFileBottom("jsp.txt");
     for (int i = 0; i < 6; ++i) {
         double dmin = 10;
         for (int j = 0; j < plantZonePolar[i]->numberPlant; ++j) {
@@ -269,22 +261,12 @@ int getNumberOfPlantInAllZone(double x_robot, double y_robot, double theta_robot
             }
         }
     }
-    // for (int i = 0; i < 6; ++i) {
-    //     printf("%d \n", plantZonePolar[i]->numberPlant);
-    //     for (int j = 0; j < plantZonePolar[i]->numberPlant; ++j) {
-    //         printf("%f %f\n", plantZonePolar[i]->dPlant[j],plantZonePolar[i]->aPlant[j]);
-    //         printf("%f %f\n\n", plantZonePolar[i]->xPlant[j],plantZonePolar[i]->yPlant[j]);
-    //     }
-    //     printf("\n");
-    // }
-    // printf("Here 3\n");
     delete[] (angles);
     delete[] (distances);
     delete[] (quality);
     delete[] (obj);
     delete[] (robot);
     delete[] (asize);
-    printf("fin bottomlidar\n");
     return 1;
 }
 
@@ -293,7 +275,6 @@ int getNumberOfPlantInAllZone(double x_robot, double y_robot, double theta_robot
  * @param polarCoord structure for init (already allocate)
  */
 void initBottomLidar(PlantZone **polarCoord) {
-    //TODO check si modif ok
     zoneP = new Point *[6 * sizeof(Point)];
     zoneP[0] = new Point[sizeof(Point)];
     zoneP[0]->x = -0.6+1;
@@ -347,211 +328,4 @@ void deleteBottomLidar(PlantZone **polarCoord) {
     delete (polarCoord);
     delete (zoneP);
     return;
-}
-
-
-//----------------------------------------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------------------------------------
-
-/**
- * is called by the following function to determine the position of the robot relative to the lidarBottom
- * @param angles
- * @param distances
- * @param arraySize
- * @param return_x
- * @param return_y
- * @param return_theta
- */
-void lidarGetDistanceWall(double* angles, double* distances,size_t arraySize, double* return_x,double* return_y,double* return_theta) {
-
-    //trouver les deux angles,
-    //calcule la distance
-    //trouver la position du robot et son orientation
-    int pos1 = (int) (60.0 / (360.0) * arraySize);
-    int pos2 = (int) (80.0 / (360.0) * arraySize);
-    int face = 0;
-    double d1, d2, dface, a1,a2, aface;
-    while (distances[face]==0){
-        face++;
-    }
-    dface=distances[face];
-    aface=angles[face];
-
-    while (distances[pos1]==0){
-        pos1++;
-    }
-    d1=distances[pos1];
-    a1=angles[pos1];
-
-
-    while (distances[pos2]==0){
-        pos2++;
-    }
-    d2=distances[pos2];
-    a2=angles[pos2];
-
-
-
-    double mur = sqrt(d1*d1+d2*d2-2*d1*d2* cos((a2-a1)));
-    double betha = acos((d2*d2-d1*d1-mur*mur)/(-2*d1*mur));
-    double xp = d1*sin(betha);
-    printf("%f %f\n", betha*180/M_PI,a1*180/M_PI);
-    double orientation = M_PI-( a1-betha);
-    double x = xp-sin(orientation)*dLidarCentre;
-    double y = dface-cos(orientation)*dLidarCentre;
-    
-    *return_x = 2.0-x;
-    *return_y = y;
-    while (orientation>M_PI){
-        orientation-=2*M_PI;
-    }  
-    while (orientation<-M_PI){
-        orientation+=2*M_PI;
-    }
-    *return_theta = orientation;
-    return;
-}
-
-
-/**
- * To be used when positioning the solar panel, returns the values of x,y and theta in the inputs,
- * bearing in mind that y is not always reliable if there are objects between us and the wall.
- * @param return_x
- * @param return_y
- * @param return_theta
- */
-void positionBottomLidarLeftFront(double* return_x,double* return_y,double* return_theta) {
-
-    double *angles = new double[8000];
-    double *distances = new double[8000];
-    double *quality = new double[8000];
-
-    size_t *asize = new size_t[2]{8000, 8000};
-    auto started = std::chrono::high_resolution_clock::now();
-    updateDataBottom(angles, distances, quality, asize);
-    //updateDataFile(angles, distances, quality, "DataTest/solar240410/panneausolaire.txt", asize);
-    arraysize = asize[0];
-    lidarGetDistanceWall(angles, distances, asize[0], return_x, return_y, return_theta);
-    auto done = std::chrono::high_resolution_clock::now();
-    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(done - started).count() << "\n";
-
-    delete (angles);
-    delete (distances);
-    delete (quality);
-    delete (asize);
-    return;
-}
-
-void calibrationLidarBottomLeftFront(double* angles, double* distances,size_t arraySize, double* return_x,double* return_y,double* return_theta) {
-        //trouver les deux angles,
-        //calcule la distance
-        //trouver la position du robot et son orientation
-        int pos1 = (int) (60.0 / (360.0) * arraySize);
-        int pos2 = (int) (80.0 / (360.0) * arraySize);
-        int face = 0;
-        double d1, d2, dface, a1,a2, aface;
-        while (distances[face]==0){
-            face++;
-        }
-        dface=distances[face];
-        aface=angles[face];
-
-        while (distances[pos1]==0){
-            pos1++;
-        }
-        d1=distances[pos1];
-        a1=angles[pos1];
-
-
-        while (distances[pos2]==0){
-            pos2++;
-        }
-        d2=distances[pos2];
-        a2=angles[pos2];
-
-
-        double mur = sqrt(d1*d1+d2*d2-2*d1*d2* cos((a2-a1)));
-        double betha = acos((d2*d2-d1*d1-mur*mur)/(-2*d1*mur));
-        double xp = d1*sin(betha);
-        printf("%f %f\n", betha*180/M_PI,a1*180/M_PI);
-        double orientation = M_PI-( a1-betha);
-        double x = xp-sin(orientation)*dLidarCentre;
-        double y = dface-cos(orientation)*dLidarCentre;
-
-        *return_x = 2.0-x;
-        *return_y = y;
-        *return_theta = orientation;
-        return;
-
-}
-//TODO faire idem pour les 4 coins et check orientations voulues
-
-
-void calibrationYellowR1(double* angles, double* distances,size_t arraySize, double* return_x,double* return_y,double* return_theta){
-        //trouver les deux angles,
-        //calcule la distance
-        //trouver la position du robot et son orientation
-        int pos2 = (int) (300.0 / (360.0) * arraySize);
-        int pos1 = (int) (280.0 / (360.0) * arraySize);
-        int back = (int) (1.0/2.0*arraySize);
-        double d1, d2, dback, a1, a2, aback;
-        while (distances[back]==0){
-            back++;
-        }
-        dback=distances[back];
-        aback=angles[back];
-
-        while (distances[pos1]==0){
-            pos1++;
-        }
-        d1=distances[pos1];
-        a1=angles[pos1];
-
-
-        while (distances[pos2]==0){
-            pos2++;
-        }
-        d2=distances[pos2];
-        a2=angles[pos2];
-
-
-        double mur = sqrt(d1*d1+d2*d2-2*d1*d2* cos((a2-a1)));
-        double betha = acos((d2*d2-d1*d1-mur*mur)/(-2*d1*mur));
-        double xp = d1*sin(betha);
-        printf("%f xp \n",xp);
-        double orientation = moduloLidarMPIPI(a1-M_PI/2-betha);
-        double x = xp-sin(orientation)*dLidarCentre;
-        double y = dback-cos(orientation)*dLidarCentre;
-
-        *return_x = x;
-        *return_y = 3.0-y;
-        *return_theta = orientation;
-        return;
-}
-
-
-void calibrationBottom(double* return_x,double* return_y,double* return_theta){
-
-    double *angles = new double[8000];
-    double *distances = new double[8000];
-    double *quality = new double[8000];
-
-    size_t *asize = new size_t[2]{8000, 8000};
-    auto started = std::chrono::high_resolution_clock::now();
-    //updateDataBottom(angles, distances, quality, asize);
-    updateDataFile(angles, distances, quality, "DataTest/solar240410/panneausolaire.txt", asize);
-    arraysize = asize[0];
-    //TODO faire case pour savoir quelle fonction appeler
-    calibrationYellowR1(angles, distances, asize[0], return_x, return_y, return_theta);
-    auto done = std::chrono::high_resolution_clock::now();
-    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(done - started).count() << "\n";
-
-    delete (angles);
-    delete (distances);
-    delete (quality);
-    delete (asize);
-    return;
-
 }
