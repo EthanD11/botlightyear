@@ -15,6 +15,7 @@ GripperHolder servoGripperHolder = GripperHolder(&spi_bus);
 
 int main(int argc, char const *argv[])
 {
+    printf("Test begins \n"); 
     // for (size_t i = 0; i < 6; i++)
     // {
     //     servoFlaps.deploy(); 
@@ -23,11 +24,27 @@ int main(int argc, char const *argv[])
     //     sleep(4);
     // }
     // servoFlaps.idle();
-    servoGripperHolder.hold_plant();
-    servoGripperDeployer.deploy();
+    // servoGripperDeployer.half();
+    // servoGripperHolder.open_full();
+    servoGripperDeployer.half();
+
     sleep(1);
-    servoGripperDeployer.plantLift();
-    sleep(4);
+    servoGripperDeployer.deploy();
+    // servoGripperHolder.open();
+    sleep(1); 
+    servoGripperDeployer.pot_deposit();
+
+    // sleep(2);
+    // servoGripperDeployer.half();
+
+    // servoGripperHolder.close();
+    // sleep(20);
+    // servoGripperHolder.idle();
+    // servoGripperDeployer.idle();
+    // servoGripperDeployer.deploy();
+    // sleep(1);
+    // servoGripperDeployer.plantLift();
+    // sleep(4);
 
     // for (size_t i = 0; i < 60; i++)
     // {
@@ -86,8 +103,8 @@ int main(int argc, char const *argv[])
     // servoGripperHolder.open_full();
 
     // sleep(2); 
-    // servoGripperDeployer.idle();
-    // servoGripperHolder.idle();
+    servoGripperDeployer.idle();
+    servoGripperHolder.idle();
 
     return 0;
 }

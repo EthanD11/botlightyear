@@ -40,7 +40,11 @@ static void leave() {
     #endif
     state = Abort;
     pthread_join(KCID, NULL);
+    #ifdef VERBOSE
+    printf("SP Aborted\n"); 
+    #endif
     shared.steppers->flaps_move(FlapsOpen);
+    return;
 }
 
 static void *kinematic_chain(void* argv) {
@@ -88,14 +92,36 @@ static void *kinematic_chain(void* argv) {
 
                 stateKC = Solar_Panel; 
 
-                dxl_deploy(Down);
-                dxl_turn(team, dxl_angle); 
+                if (dxl_deploy(Down)) {
+                    shared.dxlAvailable = false; 
+                    state = Abort;
+                    shared.valids[3] = 0;
+                    }
+                if (dxl_turn(team, dxl_angle)) {
+                    shared.dxlAvailable = false; 
+                    state = Abort;
+                    shared.valids[3] = 0;
+                    }
 
-                if (sp_counter_glob > 1) dxl_deploy(Mid);
-                else dxl_deploy(Up);
+                if (sp_counter_glob > 1) {
+                    if (dxl_deploy(Mid)) {
+                        shared.dxlAvailable = false; 
+                        state = Abort;
+                        shared.valids[3] = 0;
+                    }
+                }
+                else {
+                    if (dxl_deploy(Up)) {
+                        shared.dxlAvailable = false; 
+                        state = Abort;
+                        shared.valids[3] = 0;
+                    }
+                }
 
-                shared.score += 5; 
-                sp_counter_glob--;
+                if (state != Abort) {
+                    shared.score += 5; 
+                    sp_counter_glob--;
+                }
 
                 #ifdef VERBOSE
                 printf("SP Thread sp_counter: %d\n", sp_counter_glob); 
@@ -114,6 +140,7 @@ static void *kinematic_chain(void* argv) {
                 #ifdef VERBOSE
                 printf("SP Thread: Abort, End\n"); 
                 #endif
+                return NULL;
 
                 switch (stateKC) {
                     case Solar_Panel: 
@@ -164,15 +191,31 @@ void ActionSP::do_action() {
     double theta_end = path->thetaEnd;
 
     shared.steppers->flaps_move(FlapsPlant); 
-    if (!previous_action_is_sp_shared) {
+    if (shared.color == TeamBlue) {
+    // if (!previous_action_is_sp_shared) {
         printf("Initiating path following\n");
-        if (path_following_to_action(path) != 0) return leave();
+        if (path_following_to_action(path) != 0) {
+            printf("PF abort in SP\n"); 
+            return leave();
+        }
         previous_action_is_sp_shared = true; 
     } else {
-        printf("Iniitating position control to reserved sp\n");
-        teensy->set_position_controller_gains(1.2, 4.5, -2.5, 2.5);
-        if (action_position_control(path->x[path->nNodes-1]-0.05, path->y[path->nNodes-1], -M_PI/2.0)) return leave();
+        if (!previous_action_is_sp_shared) {
+            printf("Initiating path following\n");
+            if (path_following_to_action(path) != 0) return leave();
+            previous_action_is_sp_shared = true; 
+        } else {
+            printf("Iniitating position control to reserved sp\n");
+            teensy->set_position_controller_gains(1.2, 4.5, -2.5, 2.5);
+            if (action_position_control(path->x[path->nNodes-1]-0.05, path->y[path->nNodes-1], -M_PI/2.0)) return leave();
+        }
     }
+    // } else {
+    //     printf("Iniitating position control to reserved sp\n");
+    //     teensy->set_position_controller_gains(1.5, 4.0, -2.5, 2.5);
+    //     if (action_position_control(path->x[path->nNodes-1]+0.015, path->y[path->nNodes-1], -M_PI/2.0)) return leave();
+    // }
+
 
     // Step
     double step;
@@ -194,20 +237,23 @@ void ActionSP::do_action() {
     teensy->set_position_controller_gains(kp, ka, kb, kw);
     
     printf("SP do_action: pos ctrl backward\n");
-    if (action_position_control(x1, y1, -M_PI_2) != 0) return leave();   
+    if (action_position_control(x1, y1, -M_PI_2) != 0) {
+        printf("Pos ctrl backward abort in SP"); 
+        return leave();
+    }   
 
     #ifdef VERBOSE
     printf("SP do_action: Successfull Path Following\n"); 
     #endif
 
-    while (sp_counter_glob > 0) {
+    while (sp_counter_glob > 0 && state != Abort) {
         #ifdef VERBOSE
         printf("SP do_action: Solar_Panel\n SP do_action sp_counter : %d\n", sp_counter_glob); 
         #endif
 
         state = Solar_Panel; 
         while (stateKC != Solar_Panel) usleep(50000);
-        printf("SP do_action: State KC == Solar_panel");
+        printf("SP do_action: State KC == Solar_panel\n");
         if (reserved) {
             camera_angle = 0; 
             #ifdef OPPONENT_UCL
@@ -228,7 +274,7 @@ void ActionSP::do_action() {
         }
 
         #ifdef VERBOSE
-        printf("SP do_action: camera_angle : %fn", camera_angle); 
+        printf("SP do_action: camera_angle : %f\n", camera_angle); 
         #endif
 
         ////////////////////////////////////////////////////
@@ -248,7 +294,10 @@ void ActionSP::do_action() {
 
         if (sp_counter_glob >= 1) {
             dxl_angle = camera_angle;
-            if (action_position_control(x1, y1, -M_PI_2) != 0) return leave();
+            if (action_position_control(x1, y1, -M_PI_2) != 0) {
+                printf("Pos ctrl abort in SP");
+                return leave();
+            }
 
             #ifdef VERBOSE
             printf("SP do_action: Successfull Postion Control\n"); 

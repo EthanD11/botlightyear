@@ -19,8 +19,8 @@
 // #define TIME_MEAS
 
 #define LIDAR_BOTTOM
-// #define LIDAR_TOP
-// #define DXL
+#define LIDAR_TOP
+#define DXL
 #define ASCII_b 98
 #define ASCII_B 66
 #define ASCII_y 121
@@ -136,10 +136,15 @@ void init_and_wait_for_start() {
 
     oled_init(); 
     #ifdef DXL
-    dxl_init_port();
-    dxl_ping(6,1.0);
-    dxl_ping(8,1.0);
-    shared.valids[3] = 1; //For now, if it passes this far, dynamixels are valid
+    shared.dxlAvailable = false;
+    if (dxl_init_port()==0) {
+        printf("Pinging dxl\n");
+        if ((dxl_ping(6,1.0)==0) && (dxl_ping(8,1.0)==0)) {
+        shared.dxlAvailable = true;
+        shared.valids[3] = 1; //If it passes this part, dynamixels are valid
+        }
+    }
+    
     #endif
 
     #ifdef LIDAR_TOP
@@ -167,7 +172,7 @@ void init_and_wait_for_start() {
     double wn = 0.2; // Command filter discrete cutoff frequency
     double kv_en = 0.;
     shared.teensy->set_path_following_gains(kt, kn, kz, sigma, epsilon, kv_en, delta, wn);
-    shared.teensy->set_position_controller_gains(1.2,4.0,-2.5,2.5);
+    shared.teensy->set_position_controller_gains(1.0,3.0,-1.5,2.0);
     
     if (pthread_create(&localizerID, NULL, localizer, NULL) != 0) exit(4);
     #ifdef LIDAR_BOTTOM
@@ -222,7 +227,7 @@ void *localizer(void* arg) {
 
     int8_t teensyI = 0;
     #ifdef LIDAR_TOP
-    int8_t teensyN = 1;
+    int8_t teensyN = 10;
     #else
     int8_t teensyN = 4;
     #endif
@@ -237,6 +242,7 @@ void *localizer(void* arg) {
 
         #ifdef LIDAR_TOP
         lidarGetRobotPosition(lidarData, 10, false, lidarData->readLidar_lost);
+        //printf("lidar adv %f %f\n", lidarData->readLidar_a_opponent*180/M_PI, lidarData->readLidar_d_opponent);
         #endif
 
         #ifdef TIME_MEAS
@@ -258,7 +264,8 @@ void *localizer(void* arg) {
         #endif
         //}
         if (++teensyI == teensyN) {
-            shared.teensy->set_position(x,y,theta);
+            // shared.teensy->set_position(x,y,theta);
+            shared.teensy_reset_pos();
             #ifdef TIME_MEAS
             teensyClock = std::chrono::high_resolution_clock::now();
             #endif
@@ -337,7 +344,8 @@ int main(int argc, char const *argv[])
    
     init_and_wait_for_start();
 
-    shared.score += 21;
+    // shared.score += 21;
+    shared.score += 1;
     oled_score_update(shared.score); 
 
     // ----- GAME -----

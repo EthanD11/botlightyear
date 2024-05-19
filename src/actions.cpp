@@ -105,6 +105,14 @@ int8_t path_following_to_action(graph_path_t *path)
     int ncheckpoints = (int)path->nNodes;
     double *x = path->x;
     double *y = path->y;
+    if (ncheckpoints >= 3) {
+        // Remove second checkpoint (leads always to TERRIBLE paths)
+        for (int i = 0; i < ncheckpoints -2; i++) {
+            x[i+1] = x[i+2];
+            y[i+1] = y[i+2];
+        }
+        ncheckpoints--;
+    }
 
     if (ncheckpoints <= 1) {
         return action_position_control(*x,*y,path->thetaEnd);
@@ -116,10 +124,10 @@ int8_t path_following_to_action(graph_path_t *path)
     double theta_start = path->thetaStart;
     double theta_end = path->thetaEnd;
 
-    double kp = 1.2;
-    double ka = 4.5;
-    double kb = -2.5;
-    double kw = 2.5;
+    double kp = 0.8;
+    double ka = 3.0;
+    double kb = -1.5;
+    double kw = 1.5;
     teensy->set_position_controller_gains(kp, ka, kb, kw);
 
     double xCurrent = 0, yCurrent = 0;
@@ -166,7 +174,9 @@ int8_t path_following_to_action(graph_path_t *path)
         printf("Node %d : x :%.3f and y: %.3f \n", i, x[i], y[i]);
     }*/
     shared.teensy_reset_pos();
-    teensy->path_following(x, y, ncheckpoints, first_node_theta, theta_end, vref, dist_goal_reached);
+    
+    
+    teensy->path_following(x, y, ncheckpoints, first_node_theta, theta_end, VREF, DIST_GOAL_REACHED);
 
     // Check Teensy mode
     #ifdef VERBOSE
@@ -182,7 +192,7 @@ int8_t path_following_to_action(graph_path_t *path)
             teensy->pos_ctrl(xCurrent, yCurrent, first_node_theta);
             printf("Starting position control to (%f,%f,%f)\n", xCurrent, yCurrent, first_node_theta);
             sleep(1);
-            teensy->path_following(x, y, ncheckpoints, theta_start, theta_end, vref, dist_goal_reached);
+            teensy->path_following(x, y, ncheckpoints, theta_start, theta_end, VREF, DIST_GOAL_REACHED);
             for (int i = 0; i < ncheckpoints; i++) {
                 printf("Node %d; (%f,%f)\n", i, x[i], y[i]);
             }
@@ -194,10 +204,10 @@ int8_t path_following_to_action(graph_path_t *path)
     int16_t teensyReset = 0;
     while ((teensy->ask_mode()) != ModePositionControlOver)
     {
-        // if (!shared.goingToBase && shared.update_and_get_timer() < 35) { // TODO Rework timer aborts
-        //     printf("Path following aborted because of timer\n");
-        //     return -1;
-        // }
+        if (!shared.goingToBase && shared.update_and_get_timer() < shared.abort_time) { // TODO Rework timer aborts
+            printf("Path following aborted because of timer\n");
+            return -1;
+        }
         
         // Get update on robot and adversary position
         double xr = 0, yr = 0, tr = 0;
@@ -241,7 +251,7 @@ int8_t path_following_to_action(graph_path_t *path)
                 printf("Relaunching path following due to absence of movement\n");
                 teensy->idle();
                 usleep(50000);
-                teensy->path_following(x,y,ncheckpoints,theta_start,theta_end,vref, dist_goal_reached);
+                teensy->path_following(x,y,ncheckpoints,theta_start,theta_end,VREF, DIST_GOAL_REACHED);
                 teensyStart = 0;
             }
         }
@@ -266,7 +276,7 @@ int8_t path_following_to_action(graph_path_t *path)
                 ncheckpoints -= closer_node_id;
                 x += closer_node_id;
                 y += closer_node_id;
-                teensy->path_following(x,y,ncheckpoints,theta_recover, theta_end, vref, dist_goal_reached);
+                teensy->path_following(x,y,ncheckpoints,theta_recover, theta_end, VREF, DIST_GOAL_REACHED);
             }
         }
 
@@ -330,10 +340,10 @@ int8_t action_position_control(double x_end, double y_end, double theta_end, dou
     while ((teensy->ask_mode()) != ModePositionControlOver)
     {
 
-        // if (!shared.goingToBase && shared.update_and_get_timer() < 30) { // TODO Rework timer aborts
-        //     printf("Position control aborted because of timer\n");
-        //     return -1;
-        // }
+        if (!shared.goingToBase && shared.update_and_get_timer() < shared.abort_time) { // TODO Rework timer aborts
+            printf("Position control aborted because of timer\n");
+            return -1;
+        }
 
         // Retrieve adversary current position
         double d_adv = 0, a_adv = 0;
@@ -342,15 +352,16 @@ int8_t action_position_control(double x_end, double y_end, double theta_end, dou
         //printf("Adversary position from shared: %.3f, %.3f\n", d_adv, a_adv);
         #endif
 
-        if ((!reverse && d_adv < 0.4 && std::abs(a_adv) < M_PI/3) || 
-            (reverse && d_adv < 0.2 && std::abs(a_adv) > 2*M_PI/3)) {
+        if ((!reverse && d_adv < 0.7 && std::abs(a_adv) < M_PI/3) || 
+            (reverse && d_adv < 0.7 && std::abs(a_adv) > 2*M_PI/3)) {
             stopped++;
             if (stopped == 1) {
                 teensy->idle();
-                printf("Adversary too close for position control !!\n");
+                printf("Adversary too close for position control : %.3f, %.3f \n", d_adv, a_adv);
             }
             if (stopped >= 300) {
                 // teensy->set_position_controller_gains(kp, ka, kb, kw);
+                printf("Abort position control\n");
                 shared.teensy_reset_pos();
                 return -1;
             } 
@@ -358,16 +369,16 @@ int8_t action_position_control(double x_end, double y_end, double theta_end, dou
             stopped = 0;
             teensy->pos_ctrl(x_end, y_end, theta_end);
         }
-        // if (pos_tol > DEFAULT_DIST_TOL || angle_tol > DEFAULT_ANGLE_TOL) {
-        //     shared.get_robot_pos(&x, &y, &theta);
-        //     if (hypot(x_end-x, y_end-y)< pos_tol && fabs(trigo_diff(theta_end, theta))<angle_tol*M_PI/180.0) {
-        //         printf("Checking non-default tolerances succeded with robot in %.3f, %.3f, %.3f\n",x,y,theta); 
-        //         shared.teensy->idle(); 
-        //         shared.teensy_reset_pos();
-        //         usleep(10000);
-        //         return 0; 
-        //     }
-        // }
+        if (pos_tol > DEFAULT_DIST_TOL || angle_tol > DEFAULT_ANGLE_TOL) {
+            shared.get_robot_pos(&x, &y, &theta);
+            if (hypot(x_end-x, y_end-y)< pos_tol && fabs(trigo_diff(theta_end, theta))<angle_tol*M_PI/180.0) {
+                printf("Checking non-default tolerances succeded with robot in %.3f, %.3f, %.3f\n",x,y,theta); 
+                shared.teensy->idle(); 
+                shared.teensy_reset_pos();
+                usleep(10000);
+                return 0; 
+            }
+        }
 
         usleep(10000);
     }

@@ -17,6 +17,7 @@ SharedVariables::SharedVariables()
     for (uint8_t i = 0; i < 8; i++) storage[i] = ContainsNothing;
     for (uint8_t i = 0; i < 2; i++) SPsDone[i] = 0;
     for (uint8_t i = 0; i < 6; i++) plantCounts[i] = 6; 
+    bulldoDone = 0;
     
     for (uint8_t j = 0; j<3; j++) {
         plantersDone[j] = 0; 
@@ -29,7 +30,7 @@ SharedVariables::SharedVariables()
     goingToBase = 0;
 
     xAdv = 400; yAdv = 0; dAdv = 400; aAdv = 0;
-
+    abort_time = 20; 
     spiBus = new SPIBus();
     pins = new GPIOPins();
     teensy = new Teensy(spiBus, pins);
@@ -60,20 +61,20 @@ SharedVariables::~SharedVariables()
 }
 
 void SharedVariables::start_timer() {
-    // #ifdef VERBOSE
-    // printf("Waiting for starting cord setup... \n");
-    // #endif
+    #ifdef VERBOSE
+    printf("Waiting for starting cord setup... \n");
+    #endif
 
-    // pins->wait_for_gpio_value(StartingCordGPIO, 0, 2000000);
+    pins->wait_for_gpio_value(StartingCordGPIO, 0, 2000000);
 
-    // #ifdef VERBOSE
-    // printf("Starting cord has been setup\n");
-    // #endif
-    // usleep(1000000);
+    #ifdef VERBOSE
+    printf("Starting cord has been setup\n");
+    #endif
+    usleep(1000000);
 
-    // fprintf(stderr,"Waiting start of the game... \n");
+    fprintf(stderr,"Waiting start of the game... \n");
 
-    // pins->wait_for_gpio_value(StartingCordGPIO, 1, 2000000);
+    pins->wait_for_gpio_value(StartingCordGPIO, 1, 2000000);
     time(&tStart);
 
     printf("Game started! \n");

@@ -14,16 +14,16 @@ typedef enum {
     CW,
 } direction_t;
 
-void dxl_init_port(); 
+int dxl_init_port(); 
 void dxl_close_port(); 
 
-void dxl_ping(int ID, float PROTOCOL); 
+int dxl_ping(int ID, float PROTOCOL); 
 void dxl_idle(int ID, float PROTOCOL);
 
-void dxl_deploy(position_t position);
+int dxl_deploy(position_t position);
 void dxl_multiturn(direction_t direction);
 void dxl_position(double goal_pos); 
-void dxl_turn(team_color_t team, double angle); 
+int dxl_turn(team_color_t team, double angle); 
 void dxl_reset_sp(); 
 
 void solar_panel(team_color_t team, double angle); 

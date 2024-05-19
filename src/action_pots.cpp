@@ -25,7 +25,7 @@ int8_t sign(double a) {
 void gainNormal(){
     // shared.teensy->set_position_controller_gains(0.9,2.5,-0.4,1.0);
     // shared.teensy->set_position_controller_gains(0.7,3.0,-0.7,4.0);
-    shared.teensy->set_position_controller_gains(1.2,4.0,-2.5,2.5);
+    shared.teensy->set_position_controller_gains(1.0,3.0,-1.5,2.0);
 
 }
 

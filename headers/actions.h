@@ -5,8 +5,8 @@
 #include <cmath>
 #include <unistd.h>
 
-#define vref 0.4                 // [m/s] Speed reference for path following
-#define dist_goal_reached 0.80    // [m] Distance tolerance to goal for path following
+#define VREF 0.3                 // [m/s] Speed reference for path following
+#define DIST_GOAL_REACHED 0.50    // [m] Distance tolerance to goal for path following
 
 #define DEFAULT_DIST_TOL 0.006     // [m] default distance tolerance of position control
 #define DEFAULT_ANGLE_TOL 2.0       // [°] default angle tolerance of position control

@@ -1,6 +1,6 @@
 #include "decision.h"
 #include "actions.h"
-#include "action_displacement.h"
+#include "action_bulldozer.h"
 #include "action_clearpots.h"
 #include "action_planter.h"
 #include "action_plants.h"
@@ -16,10 +16,11 @@
 #include <algorithm>
 
 // #define TESTS
-#define PLANT_STRATEGY
+//#define PLANT_STRATEGY
 // #define RANDOM
 // #define SP_STRATEGY
-// #define FINAL_STRATEGY
+#define FINAL_STRATEGY
+// #define BULLDO_STRATEGY
 
 //#define HOMOLOGATION
 
@@ -109,6 +110,15 @@ int16_t time_sp = 50;
 #endif 
 
 #ifdef PLANT_STRATEGY
+static bool hasTakenPots = false; 
+static bool hasDonePlanters = false; 
+int16_t time_gotobase = 15;
+int16_t time_sp = -1;
+int16_t time_sp_reserved = -1;
+int16_t time_pot = 20; 
+#endif
+
+#ifdef BULLDO_STRATEGY
 static bool hasTakenPots = false; 
 static bool hasDonePlanters = false; 
 int16_t time_gotobase = 15;
@@ -226,42 +236,43 @@ void decide_possible_actions() {
     // }
     // ---------- Plants TEST -----------
 
-    uint8_t target = 31;
+    // uint8_t target = 31;
     
-    shared.graph->update_obstacle(target,0);
-    path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
-    int whichZone = 0;
-    //shared.graph->update_obstacle(27,1);
-    if (path != NULL) {
-        path->thetaStart = theta_pos; 
-        path->thetaEnd = 0; // Angle is recomputed in Action Plants  
-        whichZone = get_plantZoneIdx(path->target);
-    } else {
-        printf("Path is NULL\n");
-    }
-    // shared.graph->update_obstacle(target,1);
-
-    possible_actions[0] = new ActionPlants(path, 6, whichZone); 
-    n_possible_actions = 1; 
-    return;
-
-    // ---------- Planters TEST -----------
-    
-    
-    // path = shared.graph->compute_path(x_pos, y_pos, shared.graph->friendlyPlanters, 3);
-    // update_plate_content(SlotM3, ContainsWeakPlant); 
-    // update_plate_content(Slot3, ContainsWeakPlant); 
-
+    // shared.graph->update_obstacle(target,0);
+    // path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+    // int whichZone = 0;
+    // //shared.graph->update_obstacle(27,1);
     // if (path != NULL) {
     //     path->thetaStart = theta_pos; 
-    //     path->thetaEnd = getThetaEnd(shared.graph->friendlyPlanters, shared.graph->friendlyPlantersTheta, 3, path->target);  
+    //     path->thetaEnd = 0; // Angle is recomputed in Action Plants  
+    //     whichZone = get_plantZoneIdx(path->target);
     // } else {
     //     printf("Path is NULL\n");
     // }
     // // shared.graph->update_obstacle(target,1);
-    // possible_actions[0] = new ActionPlanter(path, 3, SideRight, 0, SideMiddle); 
+
+    // possible_actions[0] = new ActionPlants(path, 6, whichZone); 
     // n_possible_actions = 1; 
     // return;
+
+    // ---------- Planters TEST -----------
+    
+    
+    path = shared.graph->compute_path(x_pos, y_pos, shared.graph->friendlyPlanters, 3);
+    update_plate_content(SlotM3, ContainsWeakPlant); 
+    update_plate_content(Slot3, ContainsWeakPlant); 
+    update_plate_content(SlotM2, ContainsWeakPlant); 
+
+    if (path != NULL) {
+        path->thetaStart = theta_pos; 
+        path->thetaEnd = getThetaEnd(shared.graph->friendlyPlanters, shared.graph->friendlyPlantersTheta, 3, path->target);  
+    } else {
+        printf("Path is NULL\n");
+    }
+    // shared.graph->update_obstacle(target,1);
+    possible_actions[0] = new ActionPlanter(path, 3, SideRight, 0, SideMiddle); 
+    n_possible_actions = 1; 
+    return;
     
     #endif   
 
@@ -301,7 +312,7 @@ void decide_possible_actions() {
     }
     if (remaining_time < time_gotobase) {
         printf("GOES TO BASE \n");
-
+        shared.abort_time = 1; 
         // Get the closest base from the robot pov
         // printf("Searching for bases %d %d %d\n", shared.graph->friendlyBases[0], shared.graph->friendlyBases[1], shared.graph->friendlyBases[2]);
         // printf("Bases levels %d %d %d\n", shared.graph->nodes[shared.graph->friendlyBases[0]].level, shared.graph->nodes[shared.graph->friendlyBases[1]].level, shared.graph->nodes[shared.graph->friendlyBases[2]].level);
@@ -362,7 +373,7 @@ void decide_possible_actions() {
             path->thetaEnd = -M_PI_2; 
         }
         shared.graph->update_obstacle(27,0);
-        shared.graph->update_obstacle(25,0);
+        // shared.graph->update_obstacle(25,0);
 
         possible_actions[n_possible_actions] = new ActionSP(path, 3, false, Forward); 
         n_possible_actions++;
@@ -441,8 +452,8 @@ void decide_possible_actions() {
         hasDonePlanters = true; 
     }
 
-    if ((remaining_time < time_sp) && hasDonePlanters) { //Time to switch to solar panels OR everything with plants is already done
-        
+    if (((remaining_time < time_sp) || hasDonePlanters)) {//&& shared.dxlAvailable //Time to switch to solar panels OR everything with plants is already done
+    // if (true && shared.dxlAvailable) {    
         if ((remaining_time < time_sp_reserved) && (shared.SPsDone[1]==0)) {
             if (shared.color == TeamBlue) {
                 shared.graph->update_obstacle(41,1);
@@ -465,9 +476,23 @@ void decide_possible_actions() {
 
         } else {
             if(shared.SPsDone[0]==0) {
-                shared.graph->update_obstacle(27,1);
-                uint8_t target = 26;
-                path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+                shared.graph->update_obstacle(25,1);
+                if (shared.color == TeamBlue) {
+                    shared.graph->update_obstacle(27,1);
+                    uint8_t target = 26;
+                    path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+                    shared.graph->update_obstacle(27,0);
+                } else {
+                    shared.graph->update_obstacle(16,1);
+                    uint8_t target = 26;
+                    path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+                    shared.graph->update_obstacle(16,0);
+                }
+                shared.graph->update_obstacle(25,0);
+                // shared.graph->update_obstacle(25,1);
+                // shared.graph->update_obstacle(27,1);
+                // uint8_t target = 26;
+                // path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
                 if (path != NULL) {
                     path->thetaStart = theta_pos; 
                     path->thetaEnd = -M_PI_2; 
@@ -544,7 +569,7 @@ void decide_possible_actions() {
             }
         }
         
-        possible_actions[n_possible_actions] = new ActionPlants(path,3, plantZoneIdx); // Plant number "could" be modulated with time 
+        possible_actions[n_possible_actions] = new ActionPlants(path,2, plantZoneIdx); // Plant number "could" be modulated with time 
         n_possible_actions++; 
 
         for(uint8_t i = 0; i<plantZonesCount; i++) {
@@ -587,6 +612,107 @@ void decide_possible_actions() {
     return;
     #endif
 
+    #ifdef BULLDO_STRATEGY
+    if (!shared.bulldoDone) {
+        uint8_t target;
+        double thetaEnd;
+        
+        shared.get_robot_pos(&x_pos, &y_pos, &theta_pos);
+        if (shared.color == TeamBlue) { // Go to node 33 then take plants 21 and 12 to 2
+            target = 32;
+            thetaEnd = M_PI/4;
+        } else {// TeamYellow 
+            target = 10;
+            thetaEnd = -M_PI/4;
+        }
+
+        path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+        // Launch path following to start BULLDO
+        if (path != NULL) {
+            path->thetaEnd = thetaEnd;
+        }
+        
+        printf("Adding action bulldo to list\n");
+        possible_actions[n_possible_actions] = new ActionBulldozer(path);
+        n_possible_actions++;
+        return;
+    }
+    if ((remaining_time < time_sp) || hasDonePlanters) { //Time to switch to solar panels OR everything with plants is already done
+    // if (false && shared.dxlAvailable) {    
+        if ((remaining_time < time_sp_reserved) && (shared.SPsDone[1]==0)) {
+            if (shared.color == TeamBlue) {
+                shared.graph->update_obstacle(41,1);
+                uint8_t target = 39;
+                path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+                shared.graph->update_obstacle(41,0);
+            } else {
+                shared.graph->update_obstacle(7,1);
+                uint8_t target = 6;
+                path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+                
+                shared.graph->update_obstacle(7,0);
+            }
+            if (path != NULL) {
+                path->thetaStart = theta_pos; 
+                path->thetaEnd = -M_PI_2; 
+            }
+            possible_actions[n_possible_actions] = new ActionSP(path, 3, true, Forward); //(shared.color == TeamBlue) ? Forward : Backward 
+            n_possible_actions++;
+
+        } else {
+            if(shared.SPsDone[0]==0) {
+                shared.graph->update_obstacle(25,1);
+                if (shared.color == TeamBlue) {
+                    shared.graph->update_obstacle(27,1);
+                    uint8_t target = 26;
+                    path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+                    shared.graph->update_obstacle(27,0);
+                } else {
+                    shared.graph->update_obstacle(16,1);
+                    uint8_t target = 26;
+                    path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+                    shared.graph->update_obstacle(16,0);
+                }
+                shared.graph->update_obstacle(25,0);
+                // shared.graph->update_obstacle(25,1);
+                // shared.graph->update_obstacle(27,1);
+                // uint8_t target = 26;
+                // path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+                if (path != NULL) {
+                    path->thetaStart = theta_pos; 
+                    path->thetaEnd = -M_PI_2; 
+                }
+                shared.graph->update_obstacle(27,0);
+        
+                possible_actions[n_possible_actions] = new ActionSP(path, 3, false, Forward); 
+                n_possible_actions++;
+            }
+            
+
+            if (shared.SPsDone[1]==0) {
+                if (shared.color == TeamBlue) {
+                    shared.graph->update_obstacle(41,1);
+                    uint8_t target = 39;
+                    path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+                    shared.graph->update_obstacle(41,0);
+                } else {
+                    shared.graph->update_obstacle(7,1);
+                    uint8_t target = 6;
+                    path = shared.graph->compute_path(x_pos, y_pos, &target, 1);
+                    shared.graph->update_obstacle(7,0);
+                }
+                if (path != NULL) {
+                    path->thetaStart = theta_pos; 
+                    path->thetaEnd = -M_PI_2; 
+                }
+                possible_actions[n_possible_actions] = new ActionSP(path, 3, true, Forward); //(shared.color == TeamBlue) ? Forward : Backward
+                n_possible_actions++;
+            }
+            
+        }
+        return;
+    }
+    #endif
     // -----------------------------------------------------------------------------------------
     // --------------------------------- FINAL STRATEGY ----------------------------------------
     // -----------------------------------------------------------------------------------------
@@ -690,6 +816,15 @@ void decide_possible_actions() {
         if (path !=NULL) {
             uint8_t target = path->target;
             free(path); 
+            if (shared.color == TeamBlue) {
+                shared.graph->update_obstacle(35, 1); 
+                shared.graph->update_obstacle(42, 1); 
+                shared.graph->update_obstacle(36, 1); 
+            } else {
+                shared.graph->update_obstacle(3, 1); 
+                shared.graph->update_obstacle(8, 1); 
+                shared.graph->update_obstacle(9, 1); 
+            }
             path = shared.graph->compute_path(x_pos, y_pos, &target, 1); 
             if (path != NULL) {
                 path->thetaStart = theta_pos; 
@@ -697,10 +832,17 @@ void decide_possible_actions() {
                 plantZoneIdx = get_plantZoneIdx(path->target); 
             }
         }
-        
-        possible_actions[n_possible_actions] = new ActionPlants(path, 2, plantZoneIdx); // Plant number "could" be modulated with time 
+        possible_actions[n_possible_actions] = new ActionPlants(path, 3, plantZoneIdx); // Plant number "could" be modulated with time 
         n_possible_actions++; 
-
+        if (shared.color == TeamBlue) {
+            shared.graph->update_obstacle(36, 0); 
+            shared.graph->update_obstacle(42, 0); 
+            shared.graph->update_obstacle(43, 0); 
+        } else {
+            shared.graph->update_obstacle(3, 0); 
+            shared.graph->update_obstacle(8, 0); 
+            shared.graph->update_obstacle(9, 0); 
+        }
         for(uint8_t i = 0; i<plantZonesCount; i++) {
             shared.graph->update_obstacle(plantZonesValid[i], 1); 
         }
@@ -729,7 +871,7 @@ void decide_possible_actions() {
             planter_side_t planter_side = (shared.color==TeamBlue) ? SideRight : SideLeft; 
             planter_side_t pot_clear_side = SideMiddle; //(shared.color==TeamBlue) ? SideRight : SideLeft; 
             // possible_actions[n_possible_actions] = new ActionPlanter(path, std::max((current_plant_count-2)/2,1), planter_side, pot_clear_side);
-            possible_actions[n_possible_actions] = new ActionPlanter(path, 1, planter_side, 1, pot_clear_side);
+            possible_actions[n_possible_actions] = new ActionPlanter(path, 2, planter_side, 1, pot_clear_side);
             n_possible_actions++;
         }
     }

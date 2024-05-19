@@ -1,7 +1,7 @@
 #ifndef BLY_SHARED_H
 #define BLY_SHARED_H
 
-#define TOTAL_GAME_TIME 600
+#define TOTAL_GAME_TIME 130
 
 #include "colors.h"
 #include "SPI_bus.h"
@@ -69,7 +69,7 @@ public:
     void start_timer();
     // Updates and returns the remaining game time
     int16_t update_and_get_timer();
-
+    int16_t abort_time; 
     team_color_t color; // Team color (blue vs yellow)
     uint8_t score; // Current score
     uint8_t startingBaseID; // Graph node ID of the base where the robot started
@@ -82,6 +82,7 @@ public:
     uint8_t spBlockDone; 
     uint8_t backToBaseDone;
     uint8_t goingToBase; 
+    uint8_t bulldoDone;
 
 
     uint8_t valids[5]; // SptrPlate, StprSlider, StprFlaps, dxls, lidarBottom
@@ -95,6 +96,8 @@ public:
     GripperDeployer *grpDeployer;
     GripperHolder *grpHolder;
     Graph *graph;
+
+    bool dxlAvailable;
 };
 
 extern SharedVariables shared;  

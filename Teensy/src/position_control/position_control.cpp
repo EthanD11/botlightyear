@@ -119,7 +119,7 @@ void control_position(
             #endif
             
             // pc->position_tol = POSITION_TOL_OUT;
-            if (fabs(theta_ref - theta) < ANGULAR_TOL && (fabs(rp->omega) < ANGULAR_SPEED_TOL)) {
+            if (fabs(PIPERIODIC(theta_ref - theta)) < ANGULAR_TOL && (fabs(rp->omega) < ANGULAR_SPEED_TOL)) {
                 pc->flag_angular_position_reached = TRUE;
             } else {
                 pc->flag_angular_position_reached = FALSE;

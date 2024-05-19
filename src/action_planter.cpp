@@ -26,12 +26,12 @@ static uint8_t planterId = 0;
 void gainNormalPlanter(){
     // shared.teensy->set_position_controller_gains(0.9,2.5,-1.0,1.0);
     // shared.teensy->set_position_controller_gains(0.7,3.0,-1.0,4.0);
-    shared.teensy->set_position_controller_gains(1.5,4.0,-2.5,2.5);
+    shared.teensy->set_position_controller_gains(1.0,4.0,-1.0,2.5);
 }
 
 void gainReculPlanter(){
     // shared.teensy->set_position_controller_gains(1.5,3.0,-1.0,4);
-    shared.teensy->set_position_controller_gains(2.0,4.0,-2.5,2.5);
+    shared.teensy->set_position_controller_gains(1.5,4.0,-1.0,2.5);
 }
 
 
@@ -85,7 +85,7 @@ static void *kinematic_chain(void *args) {
             toDrop = shared.storage[slotID];
             grpDeployer->half();
             steppers->plate_move(get_plate_slot(slotID),CALL_BLOCKING);
-            grpDeployer->deploy();
+            // grpDeployer->deploy();
 
             if (slotID == SlotGripper) { // If plant already in gripper
                 update_plate_content(slotID, ContainsNothing);
@@ -95,17 +95,21 @@ static void *kinematic_chain(void *args) {
             // Grab plant
             grpHolder->open_full();
             steppers->slider_move(SliderStorage, CALL_BLOCKING);
+            grpDeployer->deploy();
+            usleep(200000);
             if (toDrop & ContainsPot) {
                 grpHolder->hold_pot();
             }
-            else grpHolder->hold_plant();
+            else {
+                grpHolder->hold_plant();
+            }
             update_plate_content(slotID, ContainsNothing);
             usleep(400000);
 
             // Ready to drop
             steppers->slider_move(SliderHigh);
             usleep(700000);
-            grpDeployer->half();
+            // grpDeployer->half();
             steppers->plate_move(0, CALL_BLOCKING);
             // grpDeployer->idle();
             break;
@@ -113,11 +117,19 @@ static void *kinematic_chain(void *args) {
         case Drop:
             printf("Drop Begins\n");
             grpDeployer->deploy();
-            steppers->slider_move(SliderIntermediateLow, CALL_BLOCKING);
+            steppers->slider_move(SliderIntermediateLow);//tricks pour replier servo au milieu
+            usleep(200000);
+            grpDeployer->deploy();
+            shared.pins->wait_for_gpio_value(StprSliderGPIO, 1, 10000);
+            
+            // steppers->slider_move(SliderIntermediateLow, CALL_BLOCKING);
+            // grpDeployer->deploy();
             grpHolder->open();
             shared.plantersDone[planterId] +=1; // Updates the plant count on the given planter
             shared.score += 4 + ((toDrop & ContainsPot) == ContainsPot);
-            usleep(100000);
+            // steppers->slider_move(SliderDepositPot,CALL_BLOCKING);
+            // usleep(100000);
+            // steppers->slider_move(SliderDepositPot,CALL_BLOCKING);
             stateKC = Drop;
             printf("Moves slider high\n");
             steppers->slider_move(SliderHigh,CALL_BLOCKING);
@@ -180,24 +192,35 @@ void ActionPlanter::do_action() {
     xPlanter = path->x[path->nNodes-1];
     yPlanter = path->y[path->nNodes-1];
     thetaPlanter = path->thetaEnd;
+
+    double xpos, ypos, theta_pos; 
+    shared.get_robot_pos(&xpos, &ypos, &theta_pos);
     printf("Xplanter : %f, Yplanter : %f, thetaPlanter : %f \n",xPlanter,yPlanter,thetaPlanter);
-    if (path_following_to_action(path)) return leave();
-
-    if (needsPotClear) {
-        state = Clear;
-        while (stateKC != Clear) usleep(50000);
-
-        if (action_position_control(xPlanter+0.1*cos(thetaPlanter)-0.5*((int8_t)needsPotClear)*sin(thetaPlanter),
-                                    yPlanter+0.1*sin(thetaPlanter)+0.5*((int8_t)needsPotClear)*cos(thetaPlanter),
-                                    thetaPlanter-M_PI_2*((int8_t)needsPotClear))) return leave();
-
-        if (action_position_control(xPlanter+0.2*cos(thetaPlanter)+0.3*((int8_t)needsPotClear)*sin(thetaPlanter),
-                                    yPlanter+0.2*sin(thetaPlanter)-0.3*((int8_t)needsPotClear)*cos(thetaPlanter),
-                                    thetaPlanter-M_PI_2*((int8_t)needsPotClear))) return leave();
-
-        if (action_position_control(xPlanter, yPlanter, thetaPlanter)) return leave();
-        
+    if (hypot(xpos-xPlanter, ypos-yPlanter) > 0.7) {
+        printf("Before PF to action \n");
+        if (path_following_to_action(path)) return leave();
+    } else {
+        double *x = path->x;
+        double *y = path->y;
+        if (action_position_control(x[path->nNodes-1], y[path->nNodes-1], path->thetaEnd,0.01,20)) return;
     }
+    gainNormalPlanter();
+
+    // if (needsPotClear) {
+    //     state = Clear;
+    //     while (stateKC != Clear) usleep(50000);
+
+    //     if (action_position_control(xPlanter+0.1*cos(thetaPlanter)-0.5*((int8_t)needsPotClear)*sin(thetaPlanter),
+    //                                 yPlanter+0.1*sin(thetaPlanter)+0.5*((int8_t)needsPotClear)*cos(thetaPlanter),
+    //                                 thetaPlanter-M_PI_2*((int8_t)needsPotClear))) return leave();
+
+    //     if (action_position_control(xPlanter+0.2*cos(thetaPlanter)+0.3*((int8_t)needsPotClear)*sin(thetaPlanter),
+    //                                 yPlanter+0.2*sin(thetaPlanter)-0.3*((int8_t)needsPotClear)*cos(thetaPlanter),
+    //                                 thetaPlanter-M_PI_2*((int8_t)needsPotClear))) return leave();
+
+    //     if (action_position_control(xPlanter, yPlanter, thetaPlanter)) return leave();
+        
+    // }
 
     planter_side_t nextSpot = preference;
     for (uint8_t i = 0; i < nbPlants; i++) {
@@ -208,7 +231,8 @@ void ActionPlanter::do_action() {
         printf("Got stuck for %d loops waiting for Get\n", i_);
         printf("nextSpot : %d\n",nextSpot);
         // /!\ planter est pas la jardiniere mais le point de PF de la jardiniere!!!
-        shared.teensy->set_position_controller_gains(0.9,4.0,-2.5,2.5);
+        // shared.teensy->set_position_controller_gains(1.0,3.0,-1.5,1.5);
+        gainNormalPlanter();
         if (action_position_control(xPlanter+0.25*cos(thetaPlanter)-0.1*nextSpot*sin(thetaPlanter),
                                     yPlanter+0.25*sin(thetaPlanter)+0.1*nextSpot*cos(thetaPlanter),
                                     thetaPlanter)) return leave();
@@ -244,14 +268,26 @@ void ActionPlanter::do_action() {
             usleep(50000);
         printf("Plant dropped \n");
         //si pas derniere plante, vas deja la cherché apres avoir fini drop
+        
         if (i == nbPlants - 1){
             lastPlantInPlanter = true;
             //revient d'abord a position d approche
-            if (action_position_control(xPlanter+0.25*cos(thetaPlanter)-0.1*nextSpot*sin(thetaPlanter),
-                                    yPlanter+0.25*sin(thetaPlanter)+0.1*nextSpot*cos(thetaPlanter),
-                                    thetaPlanter)) return leave();
+            // if (action_position_control(xPlanter+0.25*cos(thetaPlanter)-0.1*nextSpot*sin(thetaPlanter),
+            //                         yPlanter+0.25*sin(thetaPlanter)+0.1*nextSpot*cos(thetaPlanter),
+            //                         thetaPlanter)) return leave();
             //puis retour au pts du PF
-            if (action_position_control(xPlanter,yPlanter,periodic_angle( thetaPlanter+M_PI) ,0.02,30)) return leave();
+            double xnew, ynew, thetanew, xpos, ypos, thetapos;
+            double backward_dist = 0.20;//0.07
+            shared.get_robot_pos(&xpos, &ypos, &thetapos);
+            xnew = xpos - cos(thetapos)*backward_dist;
+            ynew = ypos - sin(thetapos)*backward_dist;
+            thetanew = thetapos;
+            // shared.teensy->set_position_controller_gains(2.0,3.0,-1.5,1.5);
+            gainNormalPlanter();
+            if (action_position_control(xnew, ynew, thetanew,0.1,30)) return leave();
+            // if (action_position_control(xPlanter,yPlanter,periodic_angle( thetaPlanter+M_PI) ,0.02,30)) return leave();
+            // if (action_position_control(xPlanter,yPlanter,thetaPlanter,0.02,30)) return leave();
+
         } 
         else  {
             gainReculPlanter();

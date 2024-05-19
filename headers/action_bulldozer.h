@@ -5,16 +5,16 @@
 
 // void displacement_action(); 
 
-class ActionDisplacement : public Action {
+class ActionBulldozer : public Action {
     public: 
-        ActionDisplacement (graph_path_t* graph_path) : Action(Displacement, true, graph_path) {
+        ActionBulldozer (graph_path_t* graph_path) : Action(Displacement, true, graph_path) {
             this->needs[0] = 0;  // SptrPlate
             this->needs[1] = 0;  // StprSlider
             this->needs[2] = 0;  // StprFlaps
             this->needs[3] = 0;  // Dxls
             this->needs[4] = 0;  // LidarBottom
         }
-        ~ActionDisplacement() {}
+        ~ActionBulldozer() {}
         void do_action();
 };
 

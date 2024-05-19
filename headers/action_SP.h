@@ -23,7 +23,7 @@ class ActionSP : public Action {
             this->needs[0] = 0;  // SptrPlate
             this->needs[1] = 0;  // StprSlider
             this->needs[2] = 0;  // StprFlaps
-            this->needs[3] = 0;  // Dxls (0 for now, permissive)
+            this->needs[3] = 1;  // Dxls (0 for now, permissive)
             this->needs[4] = 0;  // LidarBottom
         }
         ~ActionSP() {}

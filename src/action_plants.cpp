@@ -27,18 +27,18 @@ Takes plant and puts it to the plate storage specified
 void gainDeBasePlante(){
     double gainDesGain = 1.0;
     // shared.teensy->set_position_controller_gains(1.0*gainDesGain,2.5*gainDesGain,-1.0*gainDesGain,1.8*gainDesGain);
-    shared.teensy->set_position_controller_gains(1.5,4.0,-2.5,2.5);       
+    shared.teensy->set_position_controller_gains(0.8,3.0,-1.5,2.0);       
 }
 
 void gainPrecisPlante(){
     // shared.teensy->set_position_controller_gains(0.9,2.5,0.0,1);
-    shared.teensy->set_position_controller_gains(1.5,2.5,-1.0,3.0);
+    shared.teensy->set_position_controller_gains(1.5,2.5,-1.5,3.0);
 
 
 }
 
 void gainReculePlante(){
-    shared.teensy->set_position_controller_gains(3.0,2.5,-1.0,1); 
+    shared.teensy->set_position_controller_gains(2.0,3.0,-1.5,1); 
 }
 
 void teensyIdle(){
@@ -144,6 +144,7 @@ void take_plant_kinematicChain(int8_t slotNumber) {
     // /!\ a verifier si zone jaune
     //shared.teensy->set_position_controller_gains(2.0,2.5,-1.0,1.8); 
     gainReculePlante();
+    // gainDeBasePlante();
     printf("Recule pour prendre : %f, %f, %f\n", x_pos_init-0.04*cos(theta_pos_init), y_pos_init-0.04*sin(theta_pos_init), theta_pos_init,0.01,10);
     if (action_position_control(x_pos_init-0.04*cos(theta_pos_init), y_pos_init-0.04*sin(theta_pos_init), theta_pos_init) == -1) return; 
     //teensy->pos_ctrl(x_pos_init-0.02*cos(theta_pos_init), y_pos_init-0.02*sin(theta_pos_init), theta_pos_init);
@@ -151,14 +152,16 @@ void take_plant_kinematicChain(int8_t slotNumber) {
     // steppers->slider_move(SliderIntermediateLow,CALL_BLOCKING);
     // deployer->half();
     while (PrepareSlider == true){usleep(1000);}//wait for slider to be ready
+    deployer->deploy(); 
+    holder->open_full();
     steppers->slider_move(SliderLow, CALL_BLOCKING);
-    deployer->deploy();
     // Move forward
     printf("Avance pour prendre %f, %f, %f\n",x_pos_init, y_pos_init, theta_pos_init);
+    // gainDeBasePlante();
     if (action_position_control(x_pos_init, y_pos_init, theta_pos_init) == -1) return; 
     gainDeBasePlante();
     //action_position_control(x_pos_init, y_pos_init, theta_pos_init);
-    usleep(100000);
+    usleep(300000);
     holder->hold_plant();
     int8_t args = slotNumber;  
     // printf("slotNumber in kine1 %d\n",args);
@@ -245,7 +248,8 @@ int8_t position_to_plant(double x_plant, double y_plant, double x_plant_center, 
     printf("Position control to approach to x = %.3f, y = %.3f and theta = %.3f \n", x_approach, y_approach, theta_approach);
     // shared.teensy->set_position_controller_gains(0.5,2.5,-1.5,1.0);
     gainDeBasePlante();
-    if (action_position_control(x_approach, y_approach, periodic_angle(theta_approach),0.01,5) == -1) return -1; 
+    // shared.teensy->set_position_controller_gains(1.5,4.0,-0.5,2.5);  
+    if (action_position_control(x_approach, y_approach, periodic_angle(theta_approach)) == -1) return -1; 
 
     // Then, position control to the plant distance
     double x_grab = x_plant - cos(theta_approach) * plant_grab_dist; 
@@ -421,26 +425,29 @@ void ActionPlants::do_action() {
     double xpos = 0, ypos = 0, theta_pos = 0; 
     double xpos_initial = 0, ypos_initial = 0, theta_pos_initial = 0; 
     double x_plant, y_plant, theta_plant; 
-    gainDeBasePlante();
+    // gainDeBasePlante();
     printf("Start action plant\n");
     initial_pos_stepper_forPlant();
     shared.get_robot_pos(&xpos_initial, &ypos_initial, &theta_pos_initial);
     
     // Positions itself in front of the plant node, without going in
+    if (path == NULL) printf("No path\n");
     uint8_t plantsNode = path->target; 
     double *x = path->x;
     double *y = path->y;
-    gainDeBasePlante();
     if (path->nNodes >= 3) {
         printf("More than 3 nodes: do path following\n");
         path->thetaEnd = atan2(y[path->nNodes-1]-y[path->nNodes-3], x[path->nNodes-1]-x[path->nNodes-3]);
         path->nNodes -= 2;
         if (path_following_to_action(path) == -1) return; 
     } else {
+        gainDeBasePlante();
         printf("Less than 3 nodes: do position control\n");
         path->thetaEnd = atan2(y[path->nNodes-1]-ypos_initial, x[path->nNodes-1]-xpos_initial);
-    if (action_position_control(x[path->nNodes-1], y[path->nNodes-1], path->thetaEnd,0.01,20)) return;
+        if (action_position_control(x[path->nNodes-1], y[path->nNodes-1], path->thetaEnd,0.01,20)) return;
     }
+    gainDeBasePlante();
+
     // if (action_position_control(0.7, 0.45, M_PI/2)) return;
     
 
@@ -489,6 +496,9 @@ void ActionPlants::do_action() {
     // Position control to the initial location with opposed theta for departure
     //if (action_position_control(xpos_initial, ypos_initial, periodic_angle(theta_pos_initial-M_PI)) == -1) return; 
     while(ThreadKinematicOccuped == true){usleep(1000);}
+
+
+    back_manoeuvre(0.4);
     printf("End of plant action \n\n"); 
     
 }

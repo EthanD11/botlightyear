@@ -4,18 +4,19 @@ void ActionClearPots::do_action() {
     double x = 0, y = 0, theta = 0;
     double xgoal, ygoal, theta_goal;
     shared.get_robot_pos(&x,&y,&theta);
-    shared.teensy->set_position_controller_gains(1.2, 4.0, 0., 2.0);
+    // shared.teensy->set_position_controller_gains(1.2, 4.0, 0., 2.0);
     if (shared.color == TeamYellow) {
         xgoal = x + 0.7;
-        ygoal = y - 0.03;
+        ygoal = y - 0.02;
         theta_goal = 0; 
     } else {
         xgoal = x + 0.7;
-        ygoal = y + 0.03;
+        ygoal = y + 0.02;
         theta_goal = 0;
     }
-    shared.teensy->pos_ctrl(xgoal, ygoal, theta_goal);
-    usleep(1500000);
+    // shared.teensy->pos_ctrl(xgoal, ygoal, theta_goal);
+    if (action_position_control(xgoal, ygoal, theta_goal,0.05,20) == -1) return; 
+    // usleep(1500000);
     // if (shared.color == TeamYellow) {
     //     xgoal = 0.225;
     //     ygoal = 0.275;

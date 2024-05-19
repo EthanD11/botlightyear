@@ -8,7 +8,7 @@
 #include <cmath>
 #include <lgpio.h>
 
-#define NLAPS 5
+#define NLAPS 2
 #define N1LAP 8
 
 using namespace std::chrono;
@@ -28,10 +28,10 @@ int main() {
     lguSleep(0.2);
     servoFlaps.idle();
 
-    double kp = 1.2;
-    double ka = 4.0;
+    double kp = 0.8;
+    double ka = 6.0;
     double kb = -2.0;
-    double kw = 2.2;
+    double kw = 1.2;
     teensy.set_position_controller_gains(kp, ka, kb, kw);
 
     double kt = 0.1;
@@ -48,8 +48,8 @@ int main() {
     int ncheckpoints = 1+N1LAP*NLAPS;
     // double x1lap[6] = {1.0,0.4,0.4,1.2,1.6,1.6};
     // double y1lap[6] = {0.4,1.0,2.0,2.5,2.0,1.0};
-    double x1lap[N1LAP] = {1.0, 0.5, 1.0, 1.5,  1.0, 0.5, 1.0, 1.5};
-    double y1lap[N1LAP] = {0.4, 0.9, 1.4, 1.9, 2.25, 1.9, 1.4, 0.9};
+    double x1lap[N1LAP] = {1.0, 0.5,  1.0, 1.5,  1.0, 0.5, 1.0, 1.5};
+    double y1lap[N1LAP] = {0.4, 0.8, 1.28, 1.8, 2.2, 1.8, 1.28, 0.8};
     // double x1lap[N1LAP] = {1.0, 0.75, 0.4, 0.4, 0.75, 0.75, 0.4, 0.4, 0.75, 1.0,  0.8, 0.4, 0.75, 1.25, 1.6, 1.2,  1.0, 1.25, 1.6, 1.5};
     // double y1lap[N1LAP] = {0.4, 0.8, 0.85, 1.2, 1.25, 1.6, 1.65, 2.0, 2.05, 2.15, 2.4, 2.4, 2.05, 2.05, 2.4, 2.4, 2.15, 2.05, 1.5, 0.5};
     
@@ -68,7 +68,7 @@ int main() {
     
     double theta_start = M_PI/2;
     double theta_end = M_PI/2;
-    double vref = 0.25;
+    double vref = 0.4;
     double dist_goal_reached = 2.0;
 
     double xpos = 0, ypos = 0, thetapos = 0;
@@ -88,14 +88,14 @@ int main() {
     int64_t delta_save_us, delta_pos_us, time;
     char filename[256] = "mobility-data-6.csv";
     FILE* file = fopen(filename, "w");
-    fprintf(file, "time,x,y,theta\n");
+    fprintf(file, "time,x,y,theta,mode\n");
     
     fclose(file);
     while (teensy.ask_mode() != ModePositionControlOver) {
 
         current_us =  duration_cast< microseconds >(system_clock::now().time_since_epoch());
         delta_pos_us = (int64_t) (current_us - last_pos_us).count();  
-        if (delta_pos_us > 200000) { // Reset teensy pos every 500ms
+        if (delta_pos_us > 100000) { // Reset teensy pos every 500ms
             last_pos_us = duration_cast< microseconds >(system_clock::now().time_since_epoch());    
             odo.get_pos(&xpos, &ypos, &thetapos);
             teensy.set_position(xpos, ypos, thetapos);
@@ -109,7 +109,16 @@ int main() {
             time = (current_us - start_us).count();
             odo.get_pos(&xpos, &ypos, &thetapos);
             file = fopen(filename, "a");
-            fprintf(file, "%.5f,%.5f,%.5f,%.5f\n",1e-6*((double) time),xpos,ypos,thetapos);
+            
+            fprintf(file, "%.5f,%.5f,%.5f,%.5f",1e-6*((double) time),xpos,ypos,thetapos);
+            if (teensy.ask_mode() == ModePathFollowing) {
+                fprintf(file,"ModePathFollowingn\n");
+            }
+            else if (teensy.ask_mode() == ModePositionControl) {
+                fprintf(file, "ModePositionControl\n");
+            } else {
+                fprintf(file,"Other\n");
+            }
             fclose(file);
         }
     }

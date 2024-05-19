@@ -38,7 +38,7 @@
 
 int port_num; 
 
-void dxl_init_port() {
+int dxl_init_port() {
     #ifdef VERBOSE 
     printf("Entering dxl_init_port\n"); 
     #endif
@@ -47,20 +47,22 @@ void dxl_init_port() {
 
     if (!openPort(port_num)) {
         printf("Failed to open the port!\n");
-        exit(1);
+        return 1;
     }
 
     if (!setBaudRate(port_num, BAUDRATE)) {
         printf("Failed to set the baudrate!\n");
-        exit(1);
+        return 1;
     }   
+    printf("Dxl init port done\n");
+    return 0; 
 }
 
 void dxl_close_port() {
     closePort(port_num);
 }   
 
-void dxl_ping(int ID, float PROTOCOL) {
+int dxl_ping(int ID, float PROTOCOL) {
     #ifdef VERBOSE 
     printf("Entering dxl_ping\n"); 
     #endif
@@ -72,14 +74,15 @@ void dxl_ping(int ID, float PROTOCOL) {
     if ((dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL)) != COMM_SUCCESS)
     {
         printf("%s\n", getTxRxResult(PROTOCOL, dxl_comm_result));
-        exit(1);
+        return 1;
     }
     if ((dxl_error = getLastRxPacketError(port_num, PROTOCOL)) != 0)
     {
         printf("%s\n", getRxPacketError(PROTOCOL, dxl_error));
-        exit(1);
+        return 1;
     }
     printf("Dynamixel %03d has been successfully connected \n", ID);
+    return 0;
 }
 
 void dxl_idle(int ID, float PROTOCOL) { 
@@ -101,7 +104,7 @@ void dxl_idle(int ID, float PROTOCOL) {
     printf("Dynamixel %03d has been successfully idled \n", ID);
 }
 
-void dxl_deploy(position_t position) {
+int dxl_deploy(position_t position) {
     #ifdef VERBOSE 
     printf("Entering dxl_deploy\n"); 
     #endif
@@ -136,14 +139,21 @@ void dxl_deploy(position_t position) {
     // Write goal position
     write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_GOAL_POSITION, dxl_goal_position);
 
-    while ((abs(dxl_goal_position - dxl_present_position) > DXL_MOVING_STATUS_THRESHOLD)) {
+    int counterSafety = 0;
+//modifp
+    while ((abs(dxl_goal_position - dxl_present_position) > DXL_MOVING_STATUS_THRESHOLD)&&counterSafety<60) {
       // Read present position
       dxl_present_position = read2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_AX_PRESENT_POSITION);
       write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 6, ADDR_GOAL_POSITION, dxl_goal_position);
       #ifdef VERBOSE 
       printf("dxl_deploy [ID:%03d] GoalPos:%03d  PresPos:%03d\n", 6, dxl_goal_position, dxl_present_position); 
       #endif
+      counterSafety++;
     }
+    if (counterSafety>=60){
+        return 1;
+    }
+    return 0;
 }
 
 void dxl_multiturn(direction_t direction) {
@@ -200,7 +210,7 @@ void dxl_position(double goal_pos) {
     }
 }
 
-void dxl_turn(team_color_t team, double angle) {
+int dxl_turn(team_color_t team, double angle) {
     #ifdef VERBOSE 
     printf("Entering dxl_turn\n"); 
     #endif
@@ -307,15 +317,21 @@ void dxl_turn(team_color_t team, double angle) {
 
     // Write goal position
     write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_GOAL_POSITION, dxl_goal_position);
-
-   while ((abs(dxl_goal_position - dxl_present_position) > DXL_MOVING_STATUS_THRESHOLD)) {
+//modifp
+    double counterSafety = 0;
+   while ((abs(dxl_goal_position - dxl_present_position) > DXL_MOVING_STATUS_THRESHOLD)&&counterSafety<60) {
       // Read present position
       dxl_present_position = read2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_AX_PRESENT_POSITION);
       write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_GOAL_POSITION, dxl_goal_position);
       #ifdef VERBOSE
       printf("position_solar [ID:%03d] GoalPos:%03d  PresPos:%03d\n", 6, dxl_goal_position, dxl_present_position);
       #endif
+      counterSafety++;
     }
+    if (counterSafety>=60){
+        return 1;
+    }
+    return 0;
 }
 
 void dxl_reset_sp() { 
@@ -337,7 +353,7 @@ void dxl_reset_sp() {
     
     // Write goal position
     write2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_GOAL_POSITION, dxl_goal_position);
-
+    
    while ((abs(dxl_goal_position - dxl_present_position) > DXL_MOVING_STATUS_THRESHOLD)) {
       // Read present position
       dxl_present_position = read2ByteTxRx(port_num, AX_PROTOCOL_VERSION, 8, ADDR_AX_PRESENT_POSITION);
